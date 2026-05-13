@@ -8,8 +8,8 @@
 ## Phase 0：数据生成
 
 ### 0.1 环境准备
-- [ ] 确认依赖已安装：pandas, numpy, networkx, xgboost, shap, scikit-learn, scipy, openpyxl
-- [ ] 创建项目代码目录结构：`src/`, `src/data/`, `src/prompt/`, `src/search/`, `src/evaluation/`, `src/llm/`, `data/`（存放生成的 CSV）
+- [x] 确认依赖已安装：pandas, numpy, networkx, xgboost, shap, scikit-learn, scipy, openpyxl
+- [x] 创建项目代码目录结构：`src/`, `src/data/`, `src/prompt/`, `src/search/`, `src/evaluation/`, `src/llm/`, `data/`（存放生成的 CSV）
 
 ### 0.2 运行 SimECNY 生成三表数据
 - [ ] 运行开户模块：`inputs/SimECNY/open/open_wallet_distribution_based.py` → 输出 `data/accounts.csv`（100K 钱包，16 列）
