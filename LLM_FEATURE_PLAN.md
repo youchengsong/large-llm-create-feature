@@ -344,7 +344,11 @@ def compute_feature(open_df, tx_df, close_df):
 ## 请生成 3 个新特征
 ```
 
-### 3.4 关键设计：与 LLM-FE / MedFeat 的对比
+### 3.4 关键设计：LLM 模块（可插拔）
+
+LLM 作为可插拔模块，只需满足：输入 prompt → 输出合法 Python 代码。LLM-FE 论文验证了 Llama-3.1-8B 和 GPT-3.5-Turbo 均有效，框架对底层模型不敏感，搜索智能来自进化框架而非 LLM 本身。具体模型根据实际可用资源确定。
+
+### 3.5 关键设计：与 LLM-FE / MedFeat 的对比
 
 | 设计点 | LLM-FE | MedFeat | 本方案 |
 |-------|--------|---------|-------|
@@ -413,7 +417,7 @@ def compute_feature(open_df, tx_df, close_df):
 - [ ] 领域知识结构化（将专家访谈/识别点/风险指标整理为 prompt 文本）
 - [ ] 特征执行沙盒（安全执行 LLM 生成的代码，带超时/内存限制）
 - [ ] 特征评估模块（SHAP、互信息、冗余度计算）
-- [ ] LLM 调用接口（支持多岛屿并行生成）
+- [ ] LLM 调用接口（可插拔设计，支持 API/本地模型切换，支持多岛屿并行生成）
 
 ### Phase 2：核心搜索循环实现（3天）
 - [ ] Prompt 模板系统（System Prompt + 动态 User Prompt）
