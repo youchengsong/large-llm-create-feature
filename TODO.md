@@ -59,7 +59,7 @@
 
 - [x] 2.7 写 `tests/test_metrics.py`：用简单数据测试 MI、冗余度、Cramer's V、ΔPR-AUC
 
-- [ ] 2.8 写 `tests/test_island.py`：测试 Boltzmann 采样、迁移逻辑
+- [x] 2.8 写 `tests/test_island.py`：测试 Boltzmann 采样、迁移逻辑
 
 - [ ] 2.9 写 `tests/test_parser.py`：测试 LLM 输出解析
 
