@@ -2,14 +2,14 @@
 
 > 按顺序逐项实现，每完成一项打勾。代码统一放在 `src/` 目录下。
 > 参考方案：`LLM_FEATURE_PLAN.md`
-> 注意：开发阶段使用 10K 钱包数据集（`conf_wallet_distribution_based_dev.json`），后续切换 100K。
+> 注意：开发阶段使用 1K 钱包数据集（`conf_wallet_distribution_based_dev.json`），后续切换 100K。
 
 ---
 
 ## Phase 0：数据生成（已手动完成）
 
 - [x] 0.1 环境准备：依赖安装 + 目录结构创建
-- [x] 0.2 开户数据生成：`data/accounts.csv`（10K 钱包，16 列）
+- [x] 0.2 开户数据生成：`data/accounts.csv`（1K 钱包，16 列）
 - [x] 0.3 图生成：`inputs/SimECNY/transaction/wallet_static_edges_distribution_based.csv`
 - [x] 0.4 交易数据生成：`data/transactions.csv`
 - [x] 0.5 销户数据生成：`data/close.csv`
@@ -21,7 +21,7 @@
 
 - [x] 1.1 写 `src/config.py`：集中管理所有超参数。包含：岛屿配置（4 个维度岛屿的名称、探索方向描述、重点字段列表）；搜索参数（m=4, b=3, k=2, T=10, tau 温度）；验证阈值（MI > 0.01, |corr| < 0.9, Cramer's V > 0.05, ΔPR-AUC >= 0.005, bootstrap p < 0.05）；打分权重（SHAP 0.35, MI 0.25, 冗余度 0.25, ΔPR-AUC 0.15）；XGBoost 参数（scale_pos_weight=19, eval_metric='aucpr'）；LLM 配置（provider: openai/gemini/deepseek/local, model_name, api_key 从环境变量读取, base_url, temperature, max_tokens, 超时）；路径配置（数据目录、输出目录）
 
-- [ ] 1.2 写 `src/data/loader.py`：数据加载模块。`load_all_tables(data_dir) -> (open_df, tx_df, close_df)` 加载三表；`extract_schema(df, table_name) -> str` 提取 schema 文本（字段名、类型、取值范围、统计摘要）供 prompt 用；`extract_label(tx_df) -> Series` 提取 `is_risk` 标签列
+- [x] 1.2 写 `src/data/loader.py`：数据加载模块。`load_all_tables(data_dir) -> (open_df, tx_df, close_df)` 加载三表；`extract_schema(df, table_name) -> str` 提取 schema 文本（字段名、类型、取值范围、统计摘要）供 prompt 用；`extract_label(tx_df) -> Series` 提取 `is_risk` 标签列
 
 - [ ] 1.3 写 `src/data/merge.py`：三表关联模块。`merge_feature_to_transactions(feature_df, tx_df) -> DataFrame`，逻辑：如果 feature_df 含 `tx_id` 列则直接 merge on tx_id；如果含 `wallet_id` 列则分别 merge 到 src 和 dst 两侧，列名加 `_src` / `_dst` 后缀。参考 LLM_FEATURE_PLAN.md §3.4 的代码
 
