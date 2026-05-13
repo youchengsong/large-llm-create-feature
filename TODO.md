@@ -23,7 +23,7 @@
 
 - [x] 1.2 写 `src/data/loader.py`：数据加载模块。`load_all_tables(data_dir) -> (open_df, tx_df, close_df)` 加载三表；`extract_schema(df, table_name) -> str` 提取 schema 文本（字段名、类型、取值范围、统计摘要）供 prompt 用；`extract_label(tx_df) -> Series` 提取 `is_risk` 标签列
 
-- [ ] 1.3 写 `src/data/merge.py`：三表关联模块。`merge_feature_to_transactions(feature_df, tx_df) -> DataFrame`，逻辑：如果 feature_df 含 `tx_id` 列则直接 merge on tx_id；如果含 `wallet_id` 列则分别 merge 到 src 和 dst 两侧，列名加 `_src` / `_dst` 后缀。参考 LLM_FEATURE_PLAN.md §3.4 的代码
+- [x] 1.3 写 `src/data/merge.py`：三表关联模块。`merge_feature_to_transactions(feature_df, tx_df) -> DataFrame`，逻辑：如果 feature_df 含 `tx_id` 列则直接 merge on tx_id；如果含 `wallet_id` 列则分别 merge 到 src 和 dst 两侧，列名加 `_src` / `_dst` 后缀。参考 LLM_FEATURE_PLAN.md §3.4 的代码
 
 - [ ] 1.4 写 `src/data/baseline.py`：人工基线特征提取。`run_baseline(open_df, tx_df, close_df) -> DataFrame` 调用 `inputs/baseline/feature_engineering.py` 中的 `feature_eng()` 生成人工基线特征矩阵；`get_baseline_feature_names() -> list[str]` 返回 40+ 人工特征名称列表；`compute_baseline_prauc(X_baseline, y) -> float` 用 XGBoost 5 折分层 CV 计算基线 PR-AUC
 
