@@ -25,7 +25,7 @@
 
 - [x] 1.3 写 `src/data/merge.py`：三表关联模块。`merge_feature_to_transactions(feature_df, tx_df) -> DataFrame`，逻辑：如果 feature_df 含 `tx_id` 列则直接 merge on tx_id；如果含 `wallet_id` 列则分别 merge 到 src 和 dst 两侧，列名加 `_src` / `_dst` 后缀。参考 LLM_FEATURE_PLAN.md §3.4 的代码
 
-- [ ] 1.4 写 `src/data/baseline.py`：人工基线特征提取。`run_baseline(open_df, tx_df, close_df) -> DataFrame` 调用 `inputs/baseline/feature_engineering.py` 中的 `feature_eng()` 生成人工基线特征矩阵；`get_baseline_feature_names() -> list[str]` 返回 40+ 人工特征名称列表；`compute_baseline_prauc(X_baseline, y) -> float` 用 XGBoost 5 折分层 CV 计算基线 PR-AUC
+- [x] 1.4 写 `src/data/baseline.py`：人工基线特征提取。`run_baseline(open_df, tx_df, close_df) -> DataFrame` 调用 `inputs/baseline/feature_engineering.py` 中的 `feature_eng()` 生成人工基线特征矩阵；`get_baseline_feature_names() -> list[str]` 返回 40+ 人工特征名称列表；`compute_baseline_prauc(X_baseline, y) -> float` 用 XGBoost 5 折分层 CV 计算基线 PR-AUC
 
 - [ ] 1.5 写 `src/prompt/domain_knowledge.py`：领域知识结构化。`load_transaction_patterns() -> str` 返回 8 种交易模式说明文本（3 正常 + 5 风险，从 LLM_FEATURE_PLAN.md §1.5 提取，硬编码即可）；`load_expert_interview() -> str` 返回 4 类洗钱模式压缩文本；`load_risk_indicators() -> str` 读取 `inputs/domain_knowledge/风险分类表_38指标.xlsx` 提取 38 个指标为压缩表格文本；`load_detection_rules() -> list[dict]` 读取 `inputs/domain_knowledge/检测规则_15条.xlsx` 返回 15 条规则；`rules_to_python_examples(rules, n=2) -> str` 将规则转为 Python 函数示例文本
 
