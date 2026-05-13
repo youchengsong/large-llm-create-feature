@@ -1103,6 +1103,89 @@ ROC-AUC 高 + PR-AUC 高 → 模型真正有效
 
 ---
 
+## 十、可行性评估
+
+### 10.1 总体判断
+
+**方案可行，设计合理，可以开始实施。** 理论设计完整——6 篇论文各取所长，融合逻辑清晰，验证体系（L1-L4）比现有论文都严格。核心创新点站得住（领域知识注入 + 多表关联 + SHAP+岛屿融合 + 统计验证）。
+
+以下从"能否跑起来并得到预期结果"角度，分三档分析风险。
+
+### 10.2 高可行性（有把握的部分）
+
+| 模块 | 理由 |
+|------|------|
+| **领域知识注入** | 数据和文件都已就绪（专家访谈、200+识别点、38指标、15条规则），压缩策略明确，token 预算合理（~5400 总计） |
+| **代码执行沙盒** | CAAFE 已验证此方案有效，安全白名单 + 错误反馈是成熟方案，实现简单 |
+| **L1-L2 验证** | 代码检查 + MI + 冗余度 + Cramer's V 都是标准库函数，没有技术障碍 |
+| **三表关联 merge** | 代码已写好（见 §3.4），逻辑清晰，wallet/tx 两级自动处理 |
+| **可解释性说明** | 要求 LLM 在 JSON 中附带 `explanation` 和 `domain_source`，这是 prompt 约束，LLM 天然擅长 |
+
+### 10.3 中等风险（需重点关注）
+
+#### 风险 1：LLM 代码生成质量——最大的不确定性
+
+方案假设 LLM 能根据 schema + 领域知识生成合格的 Python 函数，这是整个系统的核心假设。
+
+- **三表数据较复杂**：LLM 需要理解 src/dst 都是 wallet_id、需要 groupby + merge 等操作，比单表数据集难很多。6 篇论文全部只在单表上验证过。
+- **之前 458 条规则全部失败**：虽然那次是因为没给 schema + 没执行验证（本方案已解决），但说明这个任务的难度不低。
+- **缓解措施**：方案中有错误反馈重试（最多 2 次）+ 种子规则做示例 + 约束列表。
+- **建议**：第 1 轮先手动跑 3-5 个候选，看 LLM 实际输出质量，再决定是否需要调整 prompt。
+
+#### 风险 2：PR-AUC 增量阈值可能过严或过松
+
+- L3 的接受条件 `deltaPR-AUC >= 0.005` 和 SHAP 打分中的 `0.15 * deltaPR-AUC` 权重，在模拟数据上是否合适不确定。
+- SimECNY 数据有明确编程的异常模式（见 §1.5），如果人工基线已经捕获了大部分信号，增量空间可能很小。反之，如果 motif/mode/device/IP 这些未用字段信号很强，增量可能很大。
+- **建议**：先跑一次基线 PR-AUC，了解现有 40 个特征的预测能力，再决定阈值。如果基线已经 0.90+，0.005 的增量可能太严；如果基线只有 0.60，0.005 又太松。
+
+#### 风险 3：综合打分公式的量纲问题
+
+当前公式：`score = 0.35 * SHAP_rank + 0.25 * MI + 0.25 * (1-冗余度) + 0.15 * deltaPR-AUC`
+
+- 四个指标的量纲不同：SHAP_rank 是排名（整数 1-N），MI 是小数（0-1），冗余度是相关系数（0-1），deltaPR-AUC 是小数（0-0.x）。
+- 不归一化的话公式会被 SHAP_rank 的绝对值主导。
+- **建议**：对每个指标做 min-max 归一化到 [0,1]，然后再加权。具体实现：
+
+```python
+def normalize_score(value, all_values):
+    min_v, max_v = min(all_values), max(all_values)
+    if max_v == min_v:
+        return 0.5
+    return (value - min_v) / (max_v - min_v)
+
+# SHAP_rank 需要反转（排名越小越好 -> 归一化后越大越好）
+shap_norm = 1 - normalize_score(shap_rank, all_shap_ranks)
+mi_norm = normalize_score(mi, all_mi_values)
+redundancy_norm = 1 - max_corr  # 已经在 [0,1] 范围
+prauc_norm = normalize_score(delta_prauc, all_delta_praucs)
+
+score = 0.35 * shap_norm + 0.25 * mi_norm + 0.25 * redundancy_norm + 0.15 * prauc_norm
+```
+
+### 10.4 低风险但需注意
+
+#### SimECNY 数据生成
+
+- 销户模块有硬编码路径需要修复（已在 §3.2 Step 4 中说明）
+- 交易模拟器依赖 networkx，需要确认边生成正确
+- 建议：先确保三表 CSV 能正确生成并关联，再进入特征工程
+
+#### LLM 调用成本与轮次
+
+- 方案设计 3 岛屿 x 3 候选 x 10 轮 = 最多 90 次 LLM 调用
+- 如果用 API（GPT-4o），成本约 $5-15（可接受）
+- 如果用本地模型（Llama-3.1-8B），需要 GPU 资源，每次推理 ~30s，90 次约 45 分钟
+- 每轮还需要训练 XGBoost + SHAP（数据量 ~100K 交易），单次 ~10-30s，10 轮约 5-10 分钟
+- **总计**：整个流程 1-2 小时可以跑完，计算成本可控
+
+### 10.5 实施前必须完成的三件事
+
+1. **先生成数据、跑基线 PR-AUC** —— 这决定了增量目标和阈值设置
+2. **第 1 轮手动测试 LLM 输出质量** —— 验证 prompt 是否足够引导 LLM 处理三表数据
+3. **补充打分公式的归一化实现** —— 避免量纲问题导致评分失真
+
+---
+
 ## 参考文献
 
 1. Abhyankar et al. "LLM-FE: Automated Feature Engineering for Tabular Data with LLMs as Evolutionary Optimizers." ICLR 2026 Workshop. arXiv:2503.14434
