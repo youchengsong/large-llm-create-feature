@@ -87,12 +87,16 @@
 ### 1.8 LLM 可插拔接口
 - [ ] 写 `src/llm/interface.py`：
   - `class LLMInterface` 基类，`generate(system_prompt, user_prompt) -> str` 抽象方法
-  - `class OpenAILLM(LLMInterface)` API 模式（OpenAI 兼容接口，支持 GPT-4o / deepseek 等）
-  - `class LocalLLM(LLMInterface)` 本地模式（HTTP 调用本地 vllm/ollama 服务）
+  - `class OpenAILLM(LLMInterface)` GPT 系列（gpt-4o, gpt-4o-mini 等），用 openai SDK
+  - `class GeminiLLM(LLMInterface)` Google Gemini（gemini-2.5-flash, gemini-2.5-pro 等），用 google-genai SDK
+  - `class DeepSeekLLM(LLMInterface)` DeepSeek（deepseek-chat, deepseek-coder 等），用 OpenAI 兼容接口，base_url=https://api.deepseek.com
+  - `class LocalLLM(LLMInterface)` 开源模型（Qwen/Llama/Mistral 等），通过 OpenAI 兼容接口调用本地 vllm/ollama 服务，支持自定义 base_url + model_name
   - `class MockLLM(LLMInterface)` 测试用 mock，返回预定义的 JSON 输出
+  - 所有实现类统一接口：`__init__(model_name, api_key, base_url=None, **kwargs)`
 - [ ] 写 `src/llm/parser.py`：
   - `parse_llm_output(raw_text) -> list[dict]` 从 LLM 原始输出中提取 JSON 数组，每个 dict 含 feature_name, code, explanation, domain_source 等字段
-  - 处理常见的 LLM 输出格式问题（markdown 代码块包裹、多余文本等）
+  - 处理常见的 LLM 输出格式问题（markdown 代码块包裹、多余文本、JSON 不完整等）
+  - `extract_json_from_text(text) -> str` 从混杂文本中提取 JSON 部分（正则匹配 `[...]` 或 ````json...```）
 
 ### 1.9 配置文件
 - [ ] 写 `src/config.py`：集中管理所有超参数
@@ -101,7 +105,7 @@
   - 验证阈值：MI > 0.01, |corr| < 0.9, Cramer's V > 0.05, ΔPR-AUC ≥ 0.005, bootstrap p < 0.05
   - 打分权重：SHAP 0.35, MI 0.25, 冗余度 0.25, ΔPR-AUC 0.15
   - XGBoost 参数：scale_pos_weight=19, eval_metric='aucpr'
-  - LLM 配置：模型类型、API key 路径、超时等
+  - LLM 配置：provider（openai/gemini/deepseek/local）、model_name、api_key（从环境变量读取）、base_url（local 模式必填）、temperature、max_tokens、超时等
   - 路径配置：数据目录、输出目录
 
 ---
