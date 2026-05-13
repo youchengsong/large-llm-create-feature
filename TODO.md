@@ -51,7 +51,7 @@
 
 - [x] 2.3 写 `src/search/shap_feedback.py`：SHAP 反馈生成。`generate_shap_feedback(X_all, y) -> dict` 训练 XGBoost + SHAP；`shap_feedback_to_prompt(feedback_dict, island_dimensions) -> str` 转 prompt 文本
 
-- [ ] 2.4 写 `src/search/engine.py`：搜索引擎主程序。`class SearchEngine`；`run_single_island_step` 单岛屿一轮（含 L1 失败时 LLM 重试最多 2 次）；`evaluate_candidates` L1→L2→L3 验证；`run_round` 一轮完整迭代；`check_convergence` 连续 2 轮无新特征；`run(max_rounds=10)` 主循环
+- [x] 2.4 写 `src/search/engine.py`：搜索引擎主程序。`class SearchEngine`；`run_single_island_step` 单岛屿一轮（含 L1 失败时 LLM 重试最多 2 次）；`evaluate_candidates` L1→L2→L3 验证；`run_round` 一轮完整迭代；`check_convergence` 连续 2 轮无新特征；`run(max_rounds=10)` 主循环
 
 - [ ] 2.5 写 `src/main.py`：主入口。加载数据 → 运行基线 → 组装 System Prompt → 初始化 LLM + SearchEngine → 运行搜索循环 → 输出 `output/features.json` + `output/search_log.json`
 
