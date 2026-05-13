@@ -39,7 +39,7 @@
 
 - [x] 1.10 写 `src/llm/interface.py`：LLM 可插拔接口。`class LLMInterface` 基类 + `generate(system_prompt, user_prompt) -> str`；`class OpenAILLM` GPT 系列用 openai SDK；`class GeminiLLM` 用 google-genai SDK；`class DeepSeekLLM` 用 OpenAI 兼容接口 base_url=https://api.deepseek.com；`class LocalLLM` 开源模型通过 OpenAI 兼容接口；`class MockLLM` 测试用 mock；统一 `__init__(model_name, api_key, base_url=None, **kwargs)`
 
-- [ ] 1.11 写 `src/llm/parser.py`：LLM 输出解析。`parse_llm_output(raw_text) -> list[dict]` 提取 JSON 数组；处理 markdown 代码块包裹、多余文本、JSON 不完整等；`extract_json_from_text(text) -> str` 正则匹配提取 JSON
+- [x] 1.11 写 `src/llm/parser.py`：LLM 输出解析。`parse_llm_output(raw_text) -> list[dict]` 提取 JSON 数组；处理 markdown 代码块包裹、多余文本、JSON 不完整等；`extract_json_from_text(text) -> str` 正则匹配提取 JSON
 
 ---
 
