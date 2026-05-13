@@ -33,7 +33,7 @@
 
 - [x] 1.7 写 `src/evaluation/sandbox.py`：特征执行沙盒。`ALLOWED_MODULES = {'pandas', 'numpy', 'scipy', 'sklearn'}` 安全白名单；`check_code_safety(code: str) -> (bool, str)` AST 解析检查禁止的 import/调用（os, sys, subprocess, open, exec, eval, 网络请求）；`execute_feature_code(code: str, open_df, tx_df, close_df, timeout=30) -> (DataFrame | None, str | None)` 沙盒执行代码；`validate_output(feature_df: DataFrame) -> (bool, str)` 检查输出格式
 
-- [ ] 1.8 写 `src/evaluation/metrics.py`：特征评估指标。`compute_mutual_info(feature, label) -> float`；`compute_redundancy(feature, existing_features) -> float` 最大 |corr|；`compute_cramers_v(feature, label) -> float`；`compute_bootstrap_chi2(feature, label, n_resamples=2500) -> float`；`compute_delta_prauc(X_existing, new_feature, y) -> float` XGBoost 5 折 CV 增量 PR-AUC；`compute_shap_rank(X_all, y, feature_name) -> int`；`normalize_score(value, all_values) -> float`
+- [x] 1.8 写 `src/evaluation/metrics.py`：特征评估指标。`compute_mutual_info(feature, label) -> float`；`compute_redundancy(feature, existing_features) -> float` 最大 |corr|；`compute_cramers_v(feature, label) -> float`；`compute_bootstrap_chi2(feature, label, n_resamples=2500) -> float`；`compute_delta_prauc(X_existing, new_feature, y) -> float` XGBoost 5 折 CV 增量 PR-AUC；`compute_shap_rank(X_all, y, feature_name) -> int`；`normalize_score(value, all_values) -> float`
 
 - [ ] 1.9 写 `src/evaluation/validator.py`：特征验证流水线。`run_l1_validation(code, open_df, tx_df, close_df) -> (DataFrame | None, str)` L1 代码验证；`run_l2_validation(feature, label, existing_features) -> (bool, dict)` L2 统计验证；`run_l3_validation(X_existing, new_feature, y, baseline_prauc) -> (bool, dict)` L3 模型验证；`compute_composite_score(shap_rank, mi, redundancy, delta_prauc, all_scores) -> float` 加权打分
 
