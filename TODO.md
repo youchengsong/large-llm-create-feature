@@ -57,7 +57,7 @@
 
 - [x] 2.6 写 `tests/test_sandbox.py`：测试安全白名单、超时、输出格式检查
 
-- [ ] 2.7 写 `tests/test_metrics.py`：用简单数据测试 MI、冗余度、Cramer's V、ΔPR-AUC
+- [x] 2.7 写 `tests/test_metrics.py`：用简单数据测试 MI、冗余度、Cramer's V、ΔPR-AUC
 
 - [ ] 2.8 写 `tests/test_island.py`：测试 Boltzmann 采样、迁移逻辑
 
