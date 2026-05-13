@@ -37,7 +37,7 @@
 
 - [x] 1.9 写 `src/evaluation/validator.py`：特征验证流水线。`run_l1_validation(code, open_df, tx_df, close_df) -> (DataFrame | None, str)` L1 代码验证；`run_l2_validation(feature, label, existing_features) -> (bool, dict)` L2 统计验证；`run_l3_validation(X_existing, new_feature, y, baseline_prauc) -> (bool, dict)` L3 模型验证；`compute_composite_score(shap_rank, mi, redundancy, delta_prauc, all_scores) -> float` 加权打分
 
-- [ ] 1.10 写 `src/llm/interface.py`：LLM 可插拔接口。`class LLMInterface` 基类 + `generate(system_prompt, user_prompt) -> str`；`class OpenAILLM` GPT 系列用 openai SDK；`class GeminiLLM` 用 google-genai SDK；`class DeepSeekLLM` 用 OpenAI 兼容接口 base_url=https://api.deepseek.com；`class LocalLLM` 开源模型通过 OpenAI 兼容接口；`class MockLLM` 测试用 mock；统一 `__init__(model_name, api_key, base_url=None, **kwargs)`
+- [x] 1.10 写 `src/llm/interface.py`：LLM 可插拔接口。`class LLMInterface` 基类 + `generate(system_prompt, user_prompt) -> str`；`class OpenAILLM` GPT 系列用 openai SDK；`class GeminiLLM` 用 google-genai SDK；`class DeepSeekLLM` 用 OpenAI 兼容接口 base_url=https://api.deepseek.com；`class LocalLLM` 开源模型通过 OpenAI 兼容接口；`class MockLLM` 测试用 mock；统一 `__init__(model_name, api_key, base_url=None, **kwargs)`
 
 - [ ] 1.11 写 `src/llm/parser.py`：LLM 输出解析。`parse_llm_output(raw_text) -> list[dict]` 提取 JSON 数组；处理 markdown 代码块包裹、多余文本、JSON 不完整等；`extract_json_from_text(text) -> str` 正则匹配提取 JSON
 
