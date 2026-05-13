@@ -1,0 +1,267 @@
+{
+  "transaction_types": {
+    "single_transaction": {
+      "name": "Single Transaction",
+      "description": "Basic transaction mode, each transaction is independent",
+      "amount_range": {
+        "min": 1,
+        "max": 5000
+      },
+      "time_interval": {
+        "min": 30,
+        "max": 7200
+      },
+      "time_preference": {
+        "peak_hours": [9, 10, 14, 15, 19, 20],
+        "avoid_hours": [0, 1, 2, 3, 4, 5],
+        "peak_weight": 0.7,
+        "normal_weight": 0.3
+      },
+      "transaction_mode_distribution": {
+        "single": 0.8,
+        "forward": 0.2
+      }
+    },
+    "normal_small_high_freq": {
+      "name": "Normal Small High Frequency Transaction",
+      "description": "Daily consumption transactions",
+      "amount_range": {
+        "min": 1,
+        "max": 100
+      },
+      "time_interval": {
+        "min": 10,
+        "max": 7200
+      },
+      "time_preference": {
+        "peak_hours": [7, 8, 9, 12, 13, 15, 18, 19, 20, 22],
+        "avoid_hours": [0, 1, 2, 3, 4, 5, 6],
+        "peak_weight": 0.8,
+        "normal_weight": 0.2
+      },
+      "merchant_wallet_ratio": 0.7,
+      "transaction_mode_distribution": {
+        "fan_in": 0.3,
+        "fan_out": 0.4,
+        "many_to_one": 0.1,
+        "one_to_many": 0.1,
+        "many_to_many": 0.1
+      }
+    },
+    "regular_large_low_freq": {
+      "name": "Regular Large Low Frequency Transaction",
+      "description": "Enterprise large amount transfers, supports multiple sub-modes",
+      "amount_range": {
+        "min": 800,
+        "max": 70000
+      },
+      "time_interval": {
+        "min": 3600,
+        "max": 259200
+      },
+      "time_preference": {
+        "peak_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17,18,19],
+        "peak_weight": 0.6,
+        "normal_weight": 0.5
+      },
+      "transaction_mode_distribution": {
+        "single": 0.3,
+        "fan_out": 0.7
+      },
+      "salary_config": {
+      "enabled": true,
+      "intervals": [10, 30],
+      "interval_weights": [0.2, 0.8],
+      "same_day_delay": {
+        "min": 1,
+        "max": 10
+      },
+    "salary_amount_variation": 0.1 }
+    },
+    "small_amount_testing": {
+      "name": "Small Amount Testing",
+      "description": "Long-term dormant accounts suddenly perform small amount testing",
+      "amount_range": {
+        "min": 0.1,
+        "max": 1.0
+      },
+      "time_interval": {
+        "min": 1,
+        "max": 300
+      },
+      "time_preference": {
+        "peak_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 0, 1],
+        "peak_weight": 0.9,
+        "normal_weight": 0.1
+      },
+      "dormant_wallet_ratio": 0.6,
+      "min_dormant_days": 90,
+      "transaction_count": {
+        "min": 2,
+        "max": 5
+      },
+      "transaction_mode_distribution": {
+        "fan_in": 0.2,
+        "fan_out": 0.8
+      },
+      "cross_bank_preference": 0.5
+    },
+    "merchant_laundering": {
+      "name": "Merchant Laundering",
+      "description": "Merchant wallets perform money laundering",
+      "amount_range": {
+        "min": 1000,
+        "max": 100000
+      },
+      "time_interval": {
+        "min": 30,
+        "max": 3600
+      },
+      "time_preference": {
+        "peak_hours": [10, 11, 12, 13, 14, 15, 16, 17, 18],
+        "avoid_hours": [0, 1, 2, 3, 4, 5, 22, 23],
+        "peak_weight": 0.5,
+        "normal_weight": 0.5
+      },
+      "commission_rate": {
+        "min": 0.005,
+        "max": 0.01
+      },
+      "transaction_mode_distribution": {
+        "one_to_many": 0.1,
+        "many_to_one": 0.1,
+        "many_to_many": 0.8
+      },
+      "cross_bank_preference": 0.9,
+      "same_region_preference": 0.8
+    },
+    "class4_laundering": {
+      "name": "Class 4 Wallet Laundering",
+      "description": "Class 4 wallets perform money laundering with daily limits",
+      "amount_range": {
+        "min": 100,
+        "max": 2000
+      },
+      "time_interval": {
+        "min": 5,
+        "max": 600
+      },
+      "time_preference": {
+        "peak_hours": [0, 1, 2, 3, 4, 5,6, 22, 23],
+        
+        "peak_weight": 0.9,
+        "normal_weight": 0.1
+      },
+      "transaction_count": {
+        "min": 20,
+        "max": 100
+      },
+      "daily_amount_limit": 5000,
+      
+      "transaction_mode_distribution": {
+        "fan_out": 0.6,
+        "fan_in": 0.1,
+        "many_to_many": 0.3
+      },
+      "cross_bank_preference": 0.5
+    },
+    "online_laundering": {
+      "name": "Online Laundering",
+      "description": "Online wallets perform money laundering",
+      "amount_range": {
+        "min": 10,
+        "max": 1000
+      },
+      "time_interval": {
+        "min": 10,
+        "max": 300
+      },
+      "time_preference": {
+        "peak_hours": [20, 21, 22, 23, 0, 1],
+        "avoid_hours": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+        "peak_weight": 0.8,
+        "normal_weight": 0.2
+      },
+      "transaction_count": {
+        "min": 15,
+        "max": 50
+      },
+      "transaction_mode_distribution": {
+        "fan_out": 0.3,
+        "fan_in": 0.2,
+        "many_to_one": 0.2,
+        "one_to_many": 0.2,
+        "many_to_many": 0.1
+      },
+      "cross_bank_preference": 0.5
+     
+    }
+  },
+  "wallet_type_weights": {
+    "corporate_wallet": {
+      "single_transaction": 0.3,
+      "normal_small_high_freq": 0.15,
+      "regular_large_low_freq": 0.55,
+      "small_amount_testing": 0.025,
+      "online_laundering": 0.05,
+      "merchant_laundering": 0.025,
+      "class4_laundering": 0.025
+    },
+    "class4_wallet": {
+      "single_transaction": 0.655,
+      "normal_small_high_freq": 0.2,
+      "regular_large_low_freq": 0.016,
+      "class4_laundering": 0.255,
+      "online_laundering": 0.055,
+      "small_amount_testing": 0.025,
+      "merchant_laundering": 0.045
+    },
+    "merchant_wallet": {
+      "single_transaction": 0.595,
+      "normal_small_high_freq": 0.2,
+      "regular_large_low_freq": 0.18,
+      "merchant_laundering": 0.35,
+      "online_laundering": 0.055
+    },
+    "other_wallet": {
+      "single_transaction": 0.655,
+      "normal_small_high_freq": 0.15,
+      "regular_large_low_freq": 0.15,
+      "small_amount_testing": 0.015,
+      "online_laundering": 0.04,
+      "merchant_laundering": 0.025,
+      "class4_laundering": 0.025
+    }
+  },
+  "global_settings": {
+    "risk_transaction_ratio": 0.05,
+    "normal_transaction_ratio": 0.95,
+    "max_risk_transactions_per_wallet": 3,
+    "force_risk_ratio": true,
+    "wallet_selection_policy": {
+      "abnormal_wallet_risk_ratio": 0.9,
+      "abnormal_wallet_normal_ratio": 0.1,
+      "normal_wallet_normal_ratio": 0.95,
+      "normal_wallet_risk_ratio": 0.05,
+      "max_risk_wallets_ratio": 0.15
+    }
+  },
+"wallet_level_limits": {
+    "1": {
+      "single_transaction_limit": 50000,
+      "daily_limit": 100000
+    },
+    "2": {
+      "single_transaction_limit": 10000,
+      "daily_limit": 50000
+    },
+    "3": {
+      "single_transaction_limit": 2000,
+      "daily_limit": 5000
+    },
+    "4": {
+      "single_transaction_limit": 2000,
+      "daily_limit": 5000
+    }
+  }
+}

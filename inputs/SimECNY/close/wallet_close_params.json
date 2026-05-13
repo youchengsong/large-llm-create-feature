@@ -1,0 +1,70 @@
+{
+  "simulation_params": {
+    "total_wallets": 500,
+    "risk_wallet_ratio": 0.05,
+    "zs_channel_distribution": {
+      "IS01": 0.3,
+      "IS02": 0.1,
+      "IS04": 0.5,
+      "IS05": 0.1
+    },
+    "risk_indicators": {
+      "high_frequency_threshold": 0.7,
+      "high_counterpart_threshold": 0.6,
+      "short_duration_threshold": 0.4,
+      "high_phone_history_threshold": 0.5
+    },
+    "transaction_frequency_weights": {
+      "risk": {
+        "high": 0.8,
+        "medium": 0.15,
+        "low": 0.05
+      },
+      "normal": {
+        "high": 0.2,
+        "medium": 0.5,
+        "low": 0.3
+      }
+    },
+    "counterpart_diversity_weights": {
+      "risk": {
+        "high": 0.7,
+        "medium": 0.25,
+        "low": 0.05
+      },
+      "normal": {
+        "high": 0.1,
+        "medium": 0.4,
+        "low": 0.5
+      }
+    },
+    "wallet_duration_weights": {
+      "risk": {
+        "short": 0.6,
+        "medium": 0.3,
+        "long": 0.1
+      },
+      "normal": {
+        "short": 0.1,
+        "medium": 0.4,
+        "long": 0.5
+      }
+    },
+    "phone_history_weights": {
+      "risk": {
+        "high": 0.6,
+        "medium": 0.3,
+        "low": 0.1
+      },
+      "normal": {
+        "high": 0.1,
+        "medium": 0.3,
+        "low": 0.6
+      }
+    },
+    "time_offsets": {
+      "min_hours_after_last_tx": 1,
+      "max_hours_after_last_tx": 168
+    }
+  }
+}
