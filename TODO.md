@@ -49,7 +49,7 @@
 
 - [x] 2.2 写 `src/search/memory.py`：失败记忆。`class FailureMemory` 记录 {feature_name, code, failure_reason}；`add_failure(name, code, reason)`；`get_recent(n=5) -> list`；`to_prompt_text() -> str`
 
-- [ ] 2.3 写 `src/search/shap_feedback.py`：SHAP 反馈生成。`generate_shap_feedback(X_all, y) -> dict` 训练 XGBoost + SHAP；`shap_feedback_to_prompt(feedback_dict, island_dimensions) -> str` 转 prompt 文本
+- [x] 2.3 写 `src/search/shap_feedback.py`：SHAP 反馈生成。`generate_shap_feedback(X_all, y) -> dict` 训练 XGBoost + SHAP；`shap_feedback_to_prompt(feedback_dict, island_dimensions) -> str` 转 prompt 文本
 
 - [ ] 2.4 写 `src/search/engine.py`：搜索引擎主程序。`class SearchEngine`；`run_single_island_step` 单岛屿一轮（含 L1 失败时 LLM 重试最多 2 次）；`evaluate_candidates` L1→L2→L3 验证；`run_round` 一轮完整迭代；`check_convergence` 连续 2 轮无新特征；`run(max_rounds=10)` 主循环
 
