@@ -31,7 +31,7 @@
 
 - [x] 1.6 写 `src/prompt/builder.py`：Prompt 组装。`build_system_prompt(schema_text, transaction_patterns, expert_knowledge, risk_indicators, baseline_features, constraints) -> str` 组装完整 System Prompt（~5100 token），参考 LLM_FEATURE_PLAN.md §4.3 模板；`build_user_prompt_cold_start(island_name, island_fields, seed_examples) -> str` 第 1 轮 User Prompt；`build_user_prompt(island_name, island_fields, shap_feedback, top_features, failed_features) -> str` 第 2+ 轮 User Prompt；每个函数末尾打印 token 数估算
 
-- [ ] 1.7 写 `src/evaluation/sandbox.py`：特征执行沙盒。`ALLOWED_MODULES = {'pandas', 'numpy', 'scipy', 'sklearn'}` 安全白名单；`check_code_safety(code: str) -> (bool, str)` AST 解析检查禁止的 import/调用（os, sys, subprocess, open, exec, eval, 网络请求）；`execute_feature_code(code: str, open_df, tx_df, close_df, timeout=30) -> (DataFrame | None, str | None)` 沙盒执行代码；`validate_output(feature_df: DataFrame) -> (bool, str)` 检查输出格式
+- [x] 1.7 写 `src/evaluation/sandbox.py`：特征执行沙盒。`ALLOWED_MODULES = {'pandas', 'numpy', 'scipy', 'sklearn'}` 安全白名单；`check_code_safety(code: str) -> (bool, str)` AST 解析检查禁止的 import/调用（os, sys, subprocess, open, exec, eval, 网络请求）；`execute_feature_code(code: str, open_df, tx_df, close_df, timeout=30) -> (DataFrame | None, str | None)` 沙盒执行代码；`validate_output(feature_df: DataFrame) -> (bool, str)` 检查输出格式
 
 - [ ] 1.8 写 `src/evaluation/metrics.py`：特征评估指标。`compute_mutual_info(feature, label) -> float`；`compute_redundancy(feature, existing_features) -> float` 最大 |corr|；`compute_cramers_v(feature, label) -> float`；`compute_bootstrap_chi2(feature, label, n_resamples=2500) -> float`；`compute_delta_prauc(X_existing, new_feature, y) -> float` XGBoost 5 折 CV 增量 PR-AUC；`compute_shap_rank(X_all, y, feature_name) -> int`；`normalize_score(value, all_values) -> float`
 
