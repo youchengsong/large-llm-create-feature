@@ -55,7 +55,7 @@
 
 - [x] 2.5 写 `src/main.py`：主入口。加载数据 → 运行基线 → 组装 System Prompt → 初始化 LLM + SearchEngine → 运行搜索循环 → 输出 `output/features.json` + `output/search_log.json`
 
-- [ ] 2.6 写 `tests/test_sandbox.py`：测试安全白名单、超时、输出格式检查
+- [x] 2.6 写 `tests/test_sandbox.py`：测试安全白名单、超时、输出格式检查
 
 - [ ] 2.7 写 `tests/test_metrics.py`：用简单数据测试 MI、冗余度、Cramer's V、ΔPR-AUC
 
