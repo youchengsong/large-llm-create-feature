@@ -12,7 +12,7 @@
 - [x] 创建项目代码目录结构：`src/`, `src/data/`, `src/prompt/`, `src/search/`, `src/evaluation/`, `src/llm/`, `data/`（存放生成的 CSV）
 
 ### 0.2 运行 SimECNY 生成三表数据
-- [ ] 运行开户模块：`inputs/SimECNY/open/open_wallet_distribution_based.py` → 输出 `data/accounts.csv`（100K 钱包，16 列）
+- [x] 运行开户模块：`inputs/SimECNY/open/open_wallet_distribution_based.py` → 输出 `data/accounts.csv`（100K 钱包，16 列）
 - [ ] 运行图生成：`inputs/SimECNY/transaction/generate_static_edges.py` → 输出边表文件
 - [ ] 运行交易生成：`inputs/SimECNY/transaction/simplified_main.py` → 输出 `data/transactions.csv`
 - [ ] 修复销户模块硬编码路径（`inputs/SimECNY/close/generate_wallet_close_data.py` 第 9-10 行的 `/home/lwy/...` → 相对路径），运行 → 输出 `data/close.csv`

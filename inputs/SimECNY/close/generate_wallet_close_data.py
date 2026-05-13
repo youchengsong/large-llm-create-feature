@@ -1,20 +1,26 @@
+import os
 import pandas as pd
 import numpy as np
 import json
 import random
 from datetime import datetime, timedelta
 
-def load_data():
+def load_data(accounts_path=None, transactions_path=None):
     """加载基础数据"""
-    accounts_df = pd.read_csv('/home/lwy/DIAN-DATA-Simulate-test-0114/transaction/accounts.csv')
-    transactions_df = pd.read_csv('/home/lwy/DIAN-DATA-Simulate-test-0114/transaction/wallet_temporal_transactions_1105_1450.csv')
+    if accounts_path is None:
+        accounts_path = os.path.join(os.path.dirname(__file__), '..', 'transaction', 'accounts.csv')
+    if transactions_path is None:
+        transactions_path = os.path.join(os.path.dirname(__file__), '..', 'transaction', 'wallet_temporal_transactions_1105_1450.csv')
+    accounts_df = pd.read_csv(accounts_path)
+    transactions_df = pd.read_csv(transactions_path)
     # 转换时间戳
     transactions_df['timestamp'] = pd.to_datetime(transactions_df['timestamp'])
     return accounts_df, transactions_df
 
 def load_params():
     """加载参数配置"""
-    with open('wallet_close_params.json', 'r') as f:
+    params_path = os.path.join(os.path.dirname(__file__), 'wallet_close_params.json')
+    with open(params_path, 'r') as f:
         return json.load(f)
 
 def get_wallet_last_transaction_time(transactions_df, wallet_id):

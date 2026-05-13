@@ -1,0 +1,28 @@
+# Generated data files
+data/*.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Output
+output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# SimECNY intermediate files
+inputs/SimECNY/open/accounts.csv
+inputs/SimECNY/transaction/accounts.csv
+inputs/SimECNY/transaction/wallet_static_edges_distribution_based.csv
+inputs/SimECNY/transaction/wallet_temporal_transactions_*.csv
+inputs/SimECNY/close/new_close_3.csv
