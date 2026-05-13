@@ -57,16 +57,27 @@ def compute_bootstrap_chi2(
     else:
         binned = feature
 
+    bin_codes = binned.astype("category").cat.codes.values
+    label_arr = label.values.astype(int)
+    n_bins = int(bin_codes.max()) + 1
+    n_labels = int(label_arr.max()) + 1
+    n = len(feature)
+
     rng = np.random.RandomState(42)
     p_values = []
     for _ in range(n_resamples):
-        idx = rng.choice(len(feature), size=len(feature), replace=True)
-        ct = pd.crosstab(binned.iloc[idx].reset_index(drop=True),
-                         label.iloc[idx].reset_index(drop=True))
-        if ct.shape[0] < 2 or ct.shape[1] < 2:
+        idx = rng.randint(0, n, size=n)
+        b = bin_codes[idx]
+        l = label_arr[idx]
+        ct = np.zeros((n_bins, n_labels), dtype=np.int64)
+        np.add.at(ct, (b, l), 1)
+        row_mask = ct.sum(axis=1) > 0
+        col_mask = ct.sum(axis=0) > 0
+        ct_trimmed = ct[np.ix_(row_mask, col_mask)]
+        if ct_trimmed.shape[0] < 2 or ct_trimmed.shape[1] < 2:
             p_values.append(1.0)
             continue
-        _, p, _, _ = chi2_contingency(ct)
+        _, p, _, _ = chi2_contingency(ct_trimmed)
         p_values.append(p)
     return float(np.mean(p_values))
 

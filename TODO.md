@@ -63,7 +63,7 @@
 
 - [x] 2.9 写 `tests/test_parser.py`：测试 LLM 输出解析
 
-- [ ] 2.10 用 MockLLM 跑一次完整流程（2 轮），验证 pipeline 端到端可运行
+- [x] 2.10 用 MockLLM 跑一次完整流程（2 轮），验证 pipeline 端到端可运行
 
 ---
 

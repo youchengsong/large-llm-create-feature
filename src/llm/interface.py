@@ -146,18 +146,50 @@ class LocalLLM(LLMInterface):
         return response.choices[0].message.content or ""
 
 
-_MOCK_FEATURE_TEMPLATE = [
+_MOCK_FEATURE_TEMPLATES = [
     {
         "feature_name": "mock_amount_std",
         "explanation": "计算钱包历史交易金额的标准差，高标准差可能表示异常交易模式",
         "code": (
             "import pandas as pd\n"
             "import numpy as np\n\n"
-            "def extract_feature(open_df, tx_df, close_df):\n"
-            "    stats = tx_df.groupby('src')['amount'].std().reset_index()\n"
-            "    stats.columns = ['wallet_id', 'mock_amount_std']\n"
-            "    stats['mock_amount_std'] = stats['mock_amount_std'].fillna(0)\n"
-            "    return stats\n"
+            "stats = tx_df.groupby('src')['amount'].std().reset_index()\n"
+            "stats.columns = ['wallet_id', 'mock_amount_std']\n"
+            "stats['mock_amount_std'] = stats['mock_amount_std'].fillna(0)\n"
+            "result = stats\n"
+        ),
+    },
+    {
+        "feature_name": "mock_tx_count",
+        "explanation": "计算每个钱包的交易次数，高频交易可能暗示刷单或洗钱行为",
+        "code": (
+            "import pandas as pd\n"
+            "import numpy as np\n\n"
+            "counts = tx_df.groupby('src').size().reset_index(name='mock_tx_count')\n"
+            "counts.columns = ['wallet_id', 'mock_tx_count']\n"
+            "result = counts\n"
+        ),
+    },
+    {
+        "feature_name": "mock_amount_mean",
+        "explanation": "计算每个钱包的平均交易金额",
+        "code": (
+            "import pandas as pd\n"
+            "import numpy as np\n\n"
+            "means = tx_df.groupby('src')['amount'].mean().reset_index()\n"
+            "means.columns = ['wallet_id', 'mock_amount_mean']\n"
+            "result = means\n"
+        ),
+    },
+    {
+        "feature_name": "mock_unique_dst",
+        "explanation": "计算每个钱包的不同交易对手数量",
+        "code": (
+            "import pandas as pd\n"
+            "import numpy as np\n\n"
+            "dst_counts = tx_df.groupby('src')['dst'].nunique().reset_index()\n"
+            "dst_counts.columns = ['wallet_id', 'mock_unique_dst']\n"
+            "result = dst_counts\n"
         ),
     },
 ]
@@ -172,9 +204,9 @@ class MockLLM(LLMInterface):
 
     def generate(self, system_prompt: str, user_prompt: str) -> str:
         self._call_count += 1
-        features = []
-        for i, tmpl in enumerate(_MOCK_FEATURE_TEMPLATE):
-            feat = dict(tmpl)
-            feat["feature_name"] = f"{tmpl['feature_name']}_{self._call_count}"
-            features.append(feat)
-        return json.dumps(features, ensure_ascii=False, indent=2)
+        idx = (self._call_count - 1) % len(_MOCK_FEATURE_TEMPLATES)
+        tmpl = _MOCK_FEATURE_TEMPLATES[idx]
+        feat = dict(tmpl)
+        feat["feature_name"] = f"{tmpl['feature_name']}_{self._call_count}"
+        feat["code"] = tmpl["code"].replace(tmpl["feature_name"], feat["feature_name"])
+        return json.dumps([feat], ensure_ascii=False, indent=2)

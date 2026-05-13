@@ -2,6 +2,8 @@
 
 import ast
 import multiprocessing
+import os
+import tempfile
 import traceback
 
 import numpy as np
@@ -64,15 +66,15 @@ def _safe_import(name, *args, **kwargs):
     return builtins.__import__(name, *args, **kwargs)
 
 
-def _run_in_process(code, open_dict, tx_dict, close_dict, result_queue):
+def _run_in_process(code, data_dir, result_path, error_queue):
     """在子进程中执行特征代码。"""
     try:
         import builtins
         import pandas as pd
         import numpy as np
-        open_df = pd.DataFrame(open_dict)
-        tx_df = pd.DataFrame(tx_dict)
-        close_df = pd.DataFrame(close_dict)
+        open_df = pd.read_parquet(os.path.join(data_dir, "open.parquet"))
+        tx_df = pd.read_parquet(os.path.join(data_dir, "tx.parquet"))
+        close_df = pd.read_parquet(os.path.join(data_dir, "close.parquet"))
 
         safe_builtins = {k: v for k, v in vars(builtins).items()
                          if k not in _FORBIDDEN_BUILTINS}
@@ -88,17 +90,35 @@ def _run_in_process(code, open_dict, tx_dict, close_dict, result_queue):
         exec(code, {"__builtins__": safe_builtins}, local_ns)
 
         if "result" not in local_ns:
-            result_queue.put((None, "代码未定义 'result' 变量，请将特征 DataFrame 赋值给 result"))
+            error_queue.put("代码未定义 'result' 变量，请将特征 DataFrame 赋值给 result")
             return
 
         result = local_ns["result"]
         if not isinstance(result, pd.DataFrame):
-            result_queue.put((None, f"result 类型应为 DataFrame，实际为 {type(result).__name__}"))
+            error_queue.put(f"result 类型应为 DataFrame，实际为 {type(result).__name__}")
             return
 
-        result_queue.put((result.to_dict(), None))
+        result.to_parquet(result_path)
+        error_queue.put(None)
     except Exception:
-        result_queue.put((None, traceback.format_exc()))
+        error_queue.put(traceback.format_exc())
+
+
+_cached_data_dir: str | None = None
+
+
+def _ensure_data_cache(open_df: pd.DataFrame, tx_df: pd.DataFrame, close_df: pd.DataFrame) -> str:
+    """将 DataFrame 缓存为 Parquet 文件，避免重复序列化。"""
+    global _cached_data_dir
+    if _cached_data_dir and os.path.isdir(_cached_data_dir):
+        return _cached_data_dir
+
+    data_dir = tempfile.mkdtemp(prefix="sandbox_data_")
+    open_df.to_parquet(os.path.join(data_dir, "open.parquet"))
+    tx_df.to_parquet(os.path.join(data_dir, "tx.parquet"))
+    close_df.to_parquet(os.path.join(data_dir, "close.parquet"))
+    _cached_data_dir = data_dir
+    return data_dir
 
 
 def execute_feature_code(
@@ -113,10 +133,13 @@ def execute_feature_code(
     if not safe:
         return None, f"安全检查失败: {reason}"
 
-    result_queue = multiprocessing.Queue()
+    data_dir = _ensure_data_cache(open_df, tx_df, close_df)
+    result_path = tempfile.mktemp(suffix=".parquet", prefix="sandbox_result_")
+    error_queue = multiprocessing.Queue()
+
     proc = multiprocessing.Process(
         target=_run_in_process,
-        args=(code, open_df.to_dict(), tx_df.to_dict(), close_df.to_dict(), result_queue),
+        args=(code, data_dir, result_path, error_queue),
     )
     proc.start()
     proc.join(timeout=timeout)
@@ -126,13 +149,19 @@ def execute_feature_code(
         proc.join()
         return None, f"执行超时 ({timeout}s)"
 
-    if result_queue.empty():
+    if error_queue.empty():
         return None, "执行异常: 子进程未返回结果"
 
-    data, error = result_queue.get()
+    error = error_queue.get()
     if error:
         return None, error
-    return pd.DataFrame(data), None
+
+    try:
+        result_df = pd.read_parquet(result_path)
+    finally:
+        if os.path.exists(result_path):
+            os.unlink(result_path)
+    return result_df, None
 
 
 def validate_output(feature_df: pd.DataFrame) -> tuple[bool, str]:
