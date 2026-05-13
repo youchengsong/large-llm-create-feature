@@ -45,7 +45,7 @@
 
 ## Phase 2：核心搜索循环
 
-- [ ] 2.1 写 `src/search/island.py`：岛屿数据结构。`class Island` 含 name, dimension, fields, memory；`add_feature(feature_dict)`；`boltzmann_sample(k=2, tau=1.0) -> list[dict]` Boltzmann 采样；`class IslandManager` 管理 4 个维度岛屿 + `migrate_best(feature_dict)` 迁移
+- [x] 2.1 写 `src/search/island.py`：岛屿数据结构。`class Island` 含 name, dimension, fields, memory；`add_feature(feature_dict)`；`boltzmann_sample(k=2, tau=1.0) -> list[dict]` Boltzmann 采样；`class IslandManager` 管理 4 个维度岛屿 + `migrate_best(feature_dict)` 迁移
 
 - [ ] 2.2 写 `src/search/memory.py`：失败记忆。`class FailureMemory` 记录 {feature_name, code, failure_reason}；`add_failure(name, code, reason)`；`get_recent(n=5) -> list`；`to_prompt_text() -> str`
 
