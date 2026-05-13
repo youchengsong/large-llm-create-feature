@@ -105,12 +105,14 @@ def _run_in_process(code, data_dir, result_path, error_queue):
 
 
 _cached_data_dir: str | None = None
+_cached_data_id: tuple[int, int, int] | None = None
 
 
 def _ensure_data_cache(open_df: pd.DataFrame, tx_df: pd.DataFrame, close_df: pd.DataFrame) -> str:
     """将 DataFrame 缓存为 Parquet 文件，避免重复序列化。"""
-    global _cached_data_dir
-    if _cached_data_dir and os.path.isdir(_cached_data_dir):
+    global _cached_data_dir, _cached_data_id
+    data_id = (id(open_df), id(tx_df), id(close_df))
+    if _cached_data_dir and os.path.isdir(_cached_data_dir) and _cached_data_id == data_id:
         return _cached_data_dir
 
     data_dir = tempfile.mkdtemp(prefix="sandbox_data_")
@@ -118,6 +120,7 @@ def _ensure_data_cache(open_df: pd.DataFrame, tx_df: pd.DataFrame, close_df: pd.
     tx_df.to_parquet(os.path.join(data_dir, "tx.parquet"))
     close_df.to_parquet(os.path.join(data_dir, "close.parquet"))
     _cached_data_dir = data_dir
+    _cached_data_id = data_id
     return data_dir
 
 
