@@ -263,37 +263,51 @@ add_text(slide, Inches(0.9), Inches(6.05), Inches(11.5), Inches(0.8),
 add_page_number(slide, 4, TOTAL_SLIDES)
 
 # ============================================================
-# SLIDE 5: Anomaly Patterns (hidden from LLM)
+# SLIDE 5: 8 Transaction Patterns (injected into LLM prompt)
 # ============================================================
 slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_section_header(slide, "02 SimECNY 编程的异常模式（不告诉 LLM）", "用于验证 LLM 是否能自行发现这些模式")
+add_section_header(slide, "02 数据集 8 种交易模式（注入 LLM Prompt）", "浦发提供的数据集说明文档，作为领域知识注入")
 
-patterns = [
-    ("身份证/手机号复用", "异常钱包 90% 共享身份证\n（正常仅 5%）", ACCENT_RED),
-    ("高风险地区集中", "异常钱包 70% 在\n西藏/新疆地区", ACCENT_RED),
-    ("实名认证延迟", "异常钱包延迟 20-30 天\n（正常当天完成）", ACCENT_ORANGE),
-    ("夜间开户", "异常钱包 50% 夜间开户\n（正常仅 1%）", ACCENT_ORANGE),
-    ("小额试探交易", "金额 0.1-1.0 元\n高频短间隔", ACCENT_PURPLE),
-    ("商户洗钱", "金额 1K-100K\nmany_to_many 模式 80%", ACCENT_RED),
-    ("4类钱包洗钱", "金额 100-2K\n90% 夜间交易", ACCENT_ORANGE),
-    ("线上跑分", "金额 10-1K\n80% 夜间(20-1时)", ACCENT_PURPLE),
-    ("快速销户", "60% 风险钱包在\n最后交易 1-2 天内注销", ACCENT_RED),
+# Normal patterns
+add_text(slide, Inches(0.5), Inches(1.4), Inches(6), Inches(0.4),
+         "正常交易模式（3 种）", font_size=18, color=ACCENT_GREEN, bold=True)
+normal_patterns = [
+    ("single_transaction", "金额 1-5000 元\n高峰(9-11,14-16,19-21点)\n70%单笔 30%转发", ACCENT_GREEN),
+    ("normal_small_high_freq", "金额 1-100 元\n日常消费\n各模式各 20%", ACCENT_GREEN),
+    ("regular_large_low_freq", "金额 100-1000 元\n间隔 1H-3天\n偏向商户钱包", ACCENT_GREEN),
 ]
+for i, (name, desc, color) in enumerate(normal_patterns):
+    x = Inches(0.5 + i * 4.2)
+    card = add_shape(slide, x, Inches(1.8), Inches(3.9), Inches(1.5), CARD_LIGHT, color)
+    add_text(slide, x + Inches(0.15), Inches(1.85), Inches(3.6), Inches(0.35),
+             name, font_size=14, color=color, bold=True)
+    add_text(slide, x + Inches(0.15), Inches(2.25), Inches(3.6), Inches(0.95),
+             desc, font_size=13, color=TEXT_DARK)
 
-for i, (name, desc, color) in enumerate(patterns):
+# Risk patterns
+add_text(slide, Inches(0.5), Inches(3.5), Inches(6), Inches(0.4),
+         "风险交易模式（5 种）", font_size=18, color=ACCENT_RED, bold=True)
+risk_patterns = [
+    ("small_amount_testing", "金额 0.01-0.1 元，深夜\n休眠账户(>=90天)突然激活\n40%扇入 60%扇出", ACCENT_RED),
+    ("merchant_laundering", "金额 10-1000 元，仅商户钱包\n跨行90%，同地区80%\n佣金 7-9%", ACCENT_RED),
+    ("class4_laundering", "金额 100-2000 元，深夜\n仅4类钱包\n日限额 5000 元", ACCENT_ORANGE),
+    ("online_laundering", "金额 10-1000 元\n深夜(20-1点)\n交易次数多", ACCENT_ORANGE),
+    ("victim_laundering", "诱导: 设备IP与开户一致\n盗用: 设备IP与开户不一致\n两种子模式", ACCENT_PURPLE),
+]
+for i, (name, desc, color) in enumerate(risk_patterns):
     row = i // 3
     col = i % 3
     x = Inches(0.5 + col * 4.2)
-    y = Inches(1.5 + row * 1.85)
-    card = add_shape(slide, x, y, Inches(3.9), Inches(1.65), CARD_LIGHT, color)
-    add_text(slide, x + Inches(0.2), y + Inches(0.12), Inches(3.5), Inches(0.4),
-             name, font_size=16, color=color, bold=True)
-    add_text(slide, x + Inches(0.2), y + Inches(0.55), Inches(3.5), Inches(1.0),
-             desc, font_size=14, color=TEXT_DARK)
+    y = Inches(3.9 + row * 1.7)
+    card = add_shape(slide, x, y, Inches(3.9), Inches(1.5), CARD_LIGHT, color)
+    add_text(slide, x + Inches(0.15), y + Inches(0.05), Inches(3.6), Inches(0.35),
+             name, font_size=14, color=color, bold=True)
+    add_text(slide, x + Inches(0.15), y + Inches(0.42), Inches(3.6), Inches(1.0),
+             desc, font_size=13, color=TEXT_DARK)
 
 add_shape(slide, Inches(0.5), Inches(7.0) - Inches(0.7), Inches(12.3), Inches(0.55), SECTION_BG, ACCENT_BLUE)
 add_text(slide, Inches(0.9), Inches(7.0) - Inches(0.65), Inches(11.5), Inches(0.5),
-         "关键：这些模式不告诉 LLM，通过领域知识注入和 SHAP 引导让 LLM 自己发现。如果 LLM 发现了我们没预料到的方向，那才是真正的价值。",
+         "这些模式说明作为浦发数据集文档注入 System Prompt（~1200 token），帮助 LLM 理解数据生成逻辑，精准构造特征。",
          font_size=14, color=ACCENT_BLUE, bold=True)
 
 add_page_number(slide, 5, TOTAL_SLIDES)
@@ -306,10 +320,10 @@ add_section_header(slide, "02 领域知识与人工基线", "我们独有的数�
 
 # Domain knowledge cards
 dk_items = [
-    ("邮储专家访谈", "4 类洗钱模式详细描述\n薅羊毛/线下跑分/线上跑分/商户收款码", ACCENT_BLUE, "~800 token"),
+    ("8种交易模式说明", "浦发数据集文档：3正常+5风险模式\n金额/时间/交易模式/特殊条件", ACCENT_RED, "~1200 token"),
+    ("专家访谈", "4 类洗钱模式详细描述\n薅羊毛/线下跑分/线上跑分/商户收款码", ACCENT_BLUE, "~800 token"),
     ("可疑交易识别点", "12 类 200+ 个识别点\n压缩为每类 top-3（36 条）", ACCENT_GREEN, "~1000 token"),
-    ("风险分类表", "38 个风险指标\n4 个维度分类", ACCENT_ORANGE, "~600 token"),
-    ("检测规则", "15 条种子规则\n转为 Python 函数示例", ACCENT_PURPLE, "~400 token"),
+    ("风险分类表+检测规则", "38 个风险指标(4维度) + 15 条种子规则\n→ Python 函数示例", ACCENT_ORANGE, "~1000 token"),
 ]
 
 add_text(slide, Inches(0.8), Inches(1.5), Inches(5), Inches(0.5),
@@ -440,7 +454,7 @@ add_text(slide, Inches(7.1), Inches(2.15), Inches(5.5), Inches(4.2),
 # Bottom: Our fusion
 card = add_shape(slide, Inches(0.5), Inches(6.65), Inches(12.3), Inches(0.55), SECTION_BG, ACCENT_BLUE)
 add_text(slide, Inches(0.9), Inches(6.7), Inches(11.5), Inches(0.5),
-         "我们的融合：LLM-FE 的多岛屿并行搜索效率 + MedFeat 的 SHAP 方向引导 = 高效且有方向的搜索",
+         "我们的融合：LLM-FE 的维度岛屿并行 + MedFeat 的 SHAP 引导 + 交易模式说明 = 高效 + 有方向 + 有分工的搜索",
          font_size=15, color=ACCENT_BLUE, bold=True)
 
 add_page_number(slide, 8, TOTAL_SLIDES)
@@ -452,10 +466,10 @@ slide = prs.slides.add_slide(prs.slide_layouts[6])
 add_section_header(slide, "04 系统架构：五大组件", "各组件如何组合")
 
 components = [
-    ("1", "领域知识\n（我们独有）", "专家访谈 + 200+识别点\n+ 38风险指标 + 监管规则\n→ 注入 System Prompt", ACCENT_RED),
-    ("2", "进化搜索引擎\n（LLM-FE）", "3 岛屿并行搜索\nBoltzmann 采样 in-context\n失败记忆（MedFeat）", ACCENT_BLUE),
+    ("1", "领域知识+\n交易模式说明", "专家访谈 + 200+识别点\n+ 8种交易模式(浦发)\n→ 注入 System Prompt", ACCENT_RED),
+    ("2", "维度岛屿搜索\n（改进LLM-FE）", "4维度岛屿并行搜索\n金额/时间/行为/主体\nBoltzmann + 失败记忆", ACCENT_BLUE),
     ("3", "代码执行沙盒\n（CAAFE）", "安全白名单\n语法检查 → 执行\n错误反馈给 LLM", ACCENT_GREEN),
-    ("4", "SHAP 导航\n（MedFeat）", "XGBoost + SHAP 重要性\n接受条件：ΔPR-AUC ≥ β\n反馈有价值/冗余方向", ACCENT_ORANGE),
+    ("4", "SHAP 导航\n（MedFeat）", "XGBoost + SHAP 重要性\n接受条件：ΔPR-AUC ≥ β\n反馈有价值/冗余维度", ACCENT_ORANGE),
     ("5", "统计验证层\n（Balek）", "Bootstrap 卡方检验\nCramer's V + 互信息\n五篇论文无一使用", ACCENT_PURPLE),
 ]
 
@@ -483,11 +497,10 @@ add_text(slide, Inches(0.5), Inches(5.2), Inches(12), Inches(0.5),
          "组合逻辑", font_size=20, color=TEXT_DARK, bold=True)
 
 logic_items = [
-    ("LLM-FE 提供搜索效率（多岛屿并行），但搜索方向盲目", ACCENT_BLUE),
-    ("MedFeat 提供搜索方向（SHAP 引导），但搜索效率低（单线迭代）", ACCENT_GREEN),
-    ("两者结合 = 高效且有方向的搜索", ACCENT_RED),
+    ("LLM-FE 原论文：岛屿随机分组，搜索效率高但方向盲目 → 我们改为按风险维度划分 4 岛屿", ACCENT_BLUE),
+    ("MedFeat 提供 SHAP 引导，弱势维度天然对应到具体岛屿应该加强", ACCENT_GREEN),
+    ("8 种交易模式说明（浦发文档）让 LLM 理解数据生成逻辑，大幅降低猜测成本", ACCENT_RED),
     ("CAAFE 保障代码安全执行 + Balek 填补统计验证缺口（五篇论文无一使用）", ACCENT_ORANGE),
-    ("我们的领域知识是所有论文都没有的独特信号源", ACCENT_PURPLE),
 ]
 
 for i, (text, color) in enumerate(logic_items):
@@ -508,10 +521,10 @@ add_section_header(slide, "05 核心流程：Phase 0 输入准备", "一次性�
 steps = [
     ("Step 1", "运行 SimECNY\n生成三表 CSV", "开户/交易/销户\n100K 钱包\n~5% 异常率", ACCENT_BLUE),
     ("Step 2", "提取 Schema\n+ 统计摘要", "字段名、类型、取值范围\n不发原始数据给 LLM\n隐私保护", ACCENT_GREEN),
-    ("Step 3", "结构化\n领域知识", "专家访谈 → 压缩\n识别点 → top-3/类\n总计 ~2800 token", ACCENT_ORANGE),
+    ("Step 3", "结构化\n领域知识", "8种交易模式说明(~1200)\n专家访谈+识别点(~1800)\n总计 ~4000 token", ACCENT_ORANGE),
     ("Step 4", "提取人工\n基线清单", "40+ 特征名称列表\n告诉 LLM 不要重复\n明确已有覆盖", ACCENT_PURPLE),
     ("Step 5", "种子规则\n→ Python 示例", "15 条检测规则\n转为函数示例\n用于冷启动", ACCENT_RED),
-    ("Step 6", "组装\nSystem Prompt", "~3900 token\n分层结构\n8K 模型可容纳", ACCENT_BLUE),
+    ("Step 6", "组装\nSystem Prompt", "~5100 token\n分层结构\n16K+ 模型宽裕", ACCENT_BLUE),
 ]
 
 for i, (step, title, desc, color) in enumerate(steps):
@@ -537,16 +550,15 @@ add_page_number(slide, 10, TOTAL_SLIDES)
 # SLIDE 11: Core Process - Phase 1-2 Search Loop
 # ============================================================
 slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_section_header(slide, "05 核心流程：Phase 1-2 进化搜索循环", "3 岛屿 × 3 候选 × 最多 10 轮")
+add_section_header(slide, "05 核心流程：Phase 1-2 维度岛屿搜索循环", "4 维度岛屿 × 3 候选 × 最多 10 轮")
 
 steps_data = [
     ("Step 1\n生成候选", ACCENT_BLUE,
-     "3 个岛屿各自：\n"
-     "• Boltzmann 采样 k=2 示例\n"
-     "• 构建 User Prompt\n"
-     "  (SHAP + 示例 + 失败记录)\n"
+     "4 个维度岛屿各自：\n"
+     "• 金额/时间/行为/主体\n"
+     "• Boltzmann采样 + 维度引导\n"
      "• 调用 LLM 生成 b=3 候选\n"
-     "→ 本轮共 9 个候选特征"),
+     "→ 本轮共 12 个候选特征"),
     ("Step 2\n执行与安全", ACCENT_GREEN,
      "对每个候选：\n"
      "• 安全白名单检查\n"
@@ -588,12 +600,12 @@ for i, (title, color, desc) in enumerate(steps_data):
 # Convergence
 card = add_shape(slide, Inches(0.3), Inches(5.9), Inches(12.7), Inches(0.5), SECTION_BG, ACCENT_BLUE)
 add_text(slide, Inches(0.8), Inches(5.95), Inches(12), Inches(0.4),
-         "收敛判断：连续 2 轮无新特征通过接受条件 → 停止    |    SHAP 全局共享（搜索方向）+ Boltzmann 岛屿独立（搜索多样性）",
+         "收敛判断：连续 2 轮无新特征通过 → 停止    |    SHAP 全局共享 + 维度引导岛屿专属 + Boltzmann 岛屿独立",
          font_size=14, color=ACCENT_BLUE, bold=True)
 
 # Key numbers
 add_text(slide, Inches(0.3), Inches(6.6), Inches(12.7), Inches(0.5),
-         "关键参数：m=3 岛屿  |  b=3 候选/岛/轮  |  k=2 in-context 示例  |  T≤10 轮  |  最多 90 次 LLM 调用  |  β=0.01 接受容忍度",
+         "关键参数：m=4 维度岛屿  |  b=3 候选/岛/轮  |  k=2 示例  |  T<=10 轮  |  最多 120 次 LLM 调用  |  beta=0.01",
          font_size=14, color=MID_GRAY)
 
 add_page_number(slide, 11, TOTAL_SLIDES)
@@ -602,17 +614,17 @@ add_page_number(slide, 11, TOTAL_SLIDES)
 # SLIDE 12: SHAP + Island Fusion Detail
 # ============================================================
 slide = prs.slides.add_slide(prs.slide_layouts[6])
-add_section_header(slide, "05 SHAP 与岛屿进化的融合细节", "全局引导 + 局部多样性")
+add_section_header(slide, "05 维度岛屿与 SHAP 融合细节", "维度分工 + 全局引导 + 局部多样性")
 
 # Left: flow
 add_text(slide, Inches(0.5), Inches(1.5), Inches(6), Inches(0.5),
          "每轮迭代的执行流程", font_size=20, color=TEXT_DARK, bold=True)
 
 flow_steps = [
-    ("1. SHAP 分析（全局共享）", "训练 XGBoost → 计算 SHAP → 生成 top-10 + 弱势维度\n所有岛屿共享同一份 SHAP 反馈", ACCENT_BLUE),
-    ("2. 岛屿独立采样", "每个岛屿独立 Boltzmann 采样 k=2 示例\n不同岛屿看到不同 in-context 示例 → 多样性", ACCENT_GREEN),
-    ("3. Prompt = SHAP(共享) + 示例(独立) + 失败记忆(共享)", "User Prompt 三部分组合，每个岛屿的 prompt 不同\n因为 in-context 示例不同", ACCENT_ORANGE),
-    ("4. 岛屿间迁移", "本轮最高分特征 → 复制到所有岛屿记忆库\n好特征传播，提高整体搜索质量", ACCENT_PURPLE),
+    ("1. SHAP 分析（全局共享）", "训练 XGBoost → 计算 SHAP → 生成 top-10 + 弱势维度\n所有岛屿共享 SHAP 反馈，弱势维度对应到具体岛屿", ACCENT_BLUE),
+    ("2. 维度引导 + 岛屿独立采样", "每个岛屿附加维度引导词(如'重点探索金额频次')\nBoltzmann 独立采样 k=2 示例 → 岛屿 prompt 不同", ACCENT_GREEN),
+    ("3. Prompt = 维度引导(专属) + SHAP(共享) + 示例(独立)", "User Prompt 三部分组合\n维度引导让 LLM 聚焦，SHAP 提供全局方向", ACCENT_ORANGE),
+    ("4. 跨维度迁移", "本轮最高分特征 → 复制到所有岛屿记忆库\n好经验跨维度传播，如金额发现启发主体关联", ACCENT_PURPLE),
 ]
 
 for i, (title, desc, color) in enumerate(flow_steps):
@@ -631,16 +643,16 @@ add_text(slide, Inches(7.2), Inches(1.5), Inches(5.5), Inches(0.5),
 card = add_shape(slide, Inches(7.2), Inches(2.1), Inches(5.5), Inches(4.5), CARD_LIGHT, BORDER_LIGHT)
 
 reasons = (
-    "问题：搜索效率 vs 搜索方向\n\n"
-    "• LLM-FE 原论文：多岛屿并行，搜索效率高\n"
-    "  但搜索方向完全随机，靠运气\n\n"
-    "• MedFeat 原论文：SHAP 引导方向精准\n"
-    "  但单线迭代，搜索效率低\n\n"
-    "我们的融合方案：\n"
-    "✓ SHAP 全局共享 → 所有岛屿知道方向\n"
-    "✓ Boltzmann 独立 → 各岛屿保持多样性\n"
-    "✓ 迁移最优 → 好经验快速传播\n\n"
-    "= 高效 + 有方向 + 多样性"
+    "三层改进：\n\n"
+    "1. 维度划分（我们的改进）\n"
+    "   原论文岛屿随机分组 → 我们按风险维度分\n"
+    "   金额频次 / 时间地域 / 行为序列 / 主体关联\n\n"
+    "2. SHAP 全局引导（MedFeat）\n"
+    "   弱势维度 → 对应岛屿加强探索\n\n"
+    "3. 交易模式说明（浦发文档）\n"
+    "   LLM 知道每种风险模式的参数\n"
+    "   → 精准构造交叉特征\n\n"
+    "= 高效 + 有方向 + 有分工"
 )
 add_text(slide, Inches(7.5), Inches(2.2), Inches(5.0), Inches(4.2),
          reasons, font_size=14, color=TEXT_DARK)
@@ -655,7 +667,7 @@ add_section_header(slide, "06 Prompt 设计", "System Prompt + User Prompt 分�
 
 # System prompt
 add_text(slide, Inches(0.5), Inches(1.5), Inches(6.2), Inches(0.5),
-         "System Prompt（固定, ~3900 token）", font_size=18, color=ACCENT_BLUE, bold=True)
+         "System Prompt（固定, ~5100 token）", font_size=18, color=ACCENT_BLUE, bold=True)
 card = add_shape(slide, Inches(0.5), Inches(2.0), Inches(6.2), Inches(4.8), CARD_LIGHT, ACCENT_BLUE)
 
 sp_text = (
@@ -664,14 +676,15 @@ sp_text = (
     "## 数据结构（Schema + 统计摘要）\n"
     "开户表 16 字段 | 交易表 20 字段 | 销户表 6 字段\n"
     "三表关联关系说明\n\n"
+    "## 交易模式说明（浦发，~1200 token）\n"
+    "3 种正常模式 + 5 种风险模式的详细参数\n\n"
     "## 领域知识\n"
     "4 类洗钱模式（~800 token）\n"
     "38 个风险指标（~600 token）\n"
     "36 条核心识别点（~1000 token）\n\n"
     "## 已有特征清单（40+, 不要重复）\n\n"
     "## 约束\n"
-    "30s 执行 / 白名单模块 / 禁用标签列\n"
-    "不引用不存在的字段 / 有区分度"
+    "30s 执行 / 白名单模块 / 禁用标签列"
 )
 add_text(slide, Inches(0.7), Inches(2.1), Inches(5.8), Inches(4.6),
          sp_text, font_size=13, color=TEXT_DARK)
@@ -682,10 +695,11 @@ add_text(slide, Inches(7.0), Inches(1.5), Inches(5.8), Inches(0.5),
 card = add_shape(slide, Inches(7.0), Inches(2.0), Inches(5.8), Inches(2.3), CARD_LIGHT, ACCENT_GREEN)
 up_text = (
     "常规轮（第 2+ 轮）：\n"
-    "• 上轮最佳特征 top-3（代码 + score）\n"
-    "• SHAP 分析：top-10 特征 + 弱势维度\n"
-    "• 上轮失败特征 + 失败原因\n"
-    "• 请求：生成 3 个新特征（不同维度）"
+    "• 维度引导词(岛屿专属方向)\n"
+    "• 上轮最佳特征 top-3\n"
+    "• SHAP：top-10 + 弱势维度\n"
+    "• 上轮失败特征 + 原因\n"
+    "• 生成 3 个本维度新特征"
 )
 add_text(slide, Inches(7.2), Inches(2.1), Inches(5.4), Inches(2.1),
          up_text, font_size=14, color=TEXT_DARK)
@@ -693,18 +707,17 @@ add_text(slide, Inches(7.2), Inches(2.1), Inches(5.4), Inches(2.1),
 card = add_shape(slide, Inches(7.0), Inches(4.5), Inches(5.8), Inches(2.3), CARD_LIGHT, ACCENT_ORANGE)
 cs_text = (
     "冷启动（第 1 轮）：\n"
-    "• 无 SHAP 反馈（还没有训练过模型）\n"
-    "• 用 15 条种子规则转的 Python 示例\n"
-    "  作为 in-context 示例\n"
-    "• 引导：参考 4 类洗钱模式，\n"
-    "  从最有价值的角度出发"
+    "• 无 SHAP 反馈（首轮）\n"
+    "• 维度引导词 + 种子规则示例\n"
+    "• 参考交易模式说明 + 洗钱模式\n"
+    "• 围绕本岛屿维度出发"
 )
 add_text(slide, Inches(7.2), Inches(4.6), Inches(5.4), Inches(2.1),
          cs_text, font_size=14, color=TEXT_DARK)
 
 # Token budget
 add_text(slide, Inches(0.5), Inches(7.0) - Inches(0.15), Inches(12.3), Inches(0.4),
-         "总计 ~5400 token  →  8K context 模型可容纳  |  32K+ 模型可放入更多识别点原文和示例",
+         "总计 ~6600 token  →  16K+ context 宽裕  |  8K 可压缩识别点(36->18条)降至 ~5600  |  32K+ 可放入更多原文",
          font_size=14, color=MID_GRAY)
 
 add_page_number(slide, 13, TOTAL_SLIDES)
@@ -936,14 +949,14 @@ slide = prs.slides.add_slide(prs.slide_layouts[6])
 add_section_header(slide, "08 核心创新点", "5 个论文贡献")
 
 innovations = [
-    ("1", "领域知识增强的\nLLM 特征工程",
-     "首次将结构化专家知识（邮储访谈 + 200+ 识别点 + 监管规则）系统性注入 LLM 特征生成流程。\n现有方法：LLM-FE 仅靠特征名、MedFeat 无领域知识、CAAFE 仅靠数据集描述。",
+    ("1", "领域知识+交易模式\n增强的LLM特征工程",
+     "首次将专家知识 + 数据集交易模式说明（8种模式详细参数）系统性注入 LLM 特征生成。\n现有方法：LLM-FE 仅靠特征名、MedFeat 无领域知识、CAAFE 仅靠数据集描述。",
      ACCENT_BLUE),
     ("2", "多表关联\n特征发现",
      "首次将 LLM 特征工程扩展到多表关系型数据（开户 + 交易 + 销户三表关联）。\n所有 6 篇参考论文均仅支持单表输入。",
      ACCENT_GREEN),
-    ("3", "进化搜索 +\nSHAP 引导融合",
-     "结合 LLM-FE 的多岛屿搜索效率和 MedFeat 的 SHAP 方向引导，\n在已有 40+ 人工特征基线上发现增量贡献。",
+    ("3", "维度岛屿\n进化搜索",
+     "改进 LLM-FE 的随机岛屿为按风险维度划分的 4 岛屿（金额/时间/行为/主体），\n结合 SHAP 引导，实现高效 + 有方向 + 有分工的搜索。原论文岛屿无差异化。",
      ACCENT_ORANGE),
     ("4", "四级特征\n验证框架",
      "代码 → 统计 → 模型 → 稳定性，超越现有论文的验证深度。\n关键：五篇论文无一使用统计检验，我们用 Balek 方法填补。",
@@ -1013,7 +1026,7 @@ add_text(slide, Inches(0.5), Inches(4.7), Inches(12.3), Inches(0.5),
 card = add_shape(slide, Inches(0.5), Inches(5.15), Inches(12.3), Inches(0.8), CARD_LIGHT, BORDER_LIGHT)
 add_text(slide, Inches(0.8), Inches(5.2), Inches(11.7), Inches(0.7),
          "• SimECNY 数据生成：销户模块需修复硬编码路径（已有方案）\n"
-         "• LLM 调用成本：最多 90 次调用，API $5-15 / 本地 ~45min，整个流程 1-2 小时可完成",
+         "• LLM 调用成本：最多 120 次调用，API $7-20 / 本地 ~60min，整个流程 1-2 小时可完成",
          font_size=14, color=TEXT_DARK)
 
 # Three must-do
@@ -1038,7 +1051,7 @@ phases = [
     ("Phase 1", "基础设施", "2 天", ACCENT_GREEN,
      ["数据加载 + 三表关联", "领域知识结构化", "种子规则转换", "沙盒 + 评估模块", "LLM 接口 + Prompt"]),
     ("Phase 2", "核心搜索", "3 天", ACCENT_ORANGE,
-     ["岛屿数据结构", "Boltzmann 采样", "搜索循环主程序", "冷启动 + 迁移", "收敛判断"]),
+     ["4维度岛屿结构", "Boltzmann + 维度引导", "搜索循环主程序", "冷启动 + 跨维度迁移", "收敛判断"]),
     ("Phase 3", "验证产出", "2 天", ACCENT_PURPLE,
      ["L4 稳定性验证", "5 组增量实验", "特征字典生成", "结果报告 + 可视化"]),
 ]
