@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "generated_at": "2026-05-14T06:17:17.808483",
+    "total_features": 2,
+    "dimensions": {
+      "主体关联": 2
+    }
+  },
+  "features": [
+    {
+      "feature_name": "multi_cert_phone_ratio",
+      "dimension": "主体关联",
+      "code": "cert_phone = open_df[['wallet_id', 'wallet_open_cert', 'wallet_open_tel']].dropna(subset=['wallet_open_cert', 'wallet_open_tel'])\n\n# 计算每个身份证关联的钱包数\ncert_counts = cert_phone.groupby('wallet_open_cert')['wallet_id'].nunique().reset_index()\ncert_counts.columns = ['wallet_open_cert', 'cert_wallet_count']\n\n# 计算每个手机号关联的钱包数\nphone_counts = cert_phone.groupby('wallet_open_tel')['wallet_id'].nunique().reset_index()\nphone_counts.columns = ['wallet_open_tel', 'phone_wallet_count']\n\n# 合并到原数据\nmerged = cert_phone.merge(cert_counts, on='wallet_open_cert', how='left')\nmerged = merged.merge(phone_counts, on='wallet_open_tel', how='left')\n\n# 计算比值，避免除零\nmerged['cert_phone_ratio'] = (merged['cert_wallet_count'] / merged['phone_wallet_count'].clip(lower=1)).fillna(0)\n\nresult = merged[['wallet_id', 'cert_phone_ratio']]",
+      "explanation": "根据薅羊毛模式，批量注册4类钱包时，同一身份证/手机号会关联多个钱包。通过计算每个身份证关联的钱包数量与每个手机号关联的钱包数量的比值，可以识别出使用同一身份信息批量注册多个钱包的可疑行为。",
+      "composite_score": 0.5,
+      "statistics": {
+        "mutual_information": 0.012576626822942916,
+        "cramers_v": 0.07431431811144476,
+        "redundancy": 0.0,
+        "bootstrap_p": 4.823959738336177e-13
+      },
+      "model_metrics": {
+        "delta_prauc": 0.009322586094094264,
+        "shap_rank": null,
+        "mean_abs_shap": null
+      }
+    },
+    {
+      "feature_name": "cert_phone_multi_wallet_count",
+      "dimension": "主体关联",
+      "code": "import pandas as pd\nimport numpy as np\n\n# 统计每个开户证件关联的钱包数\ncert_counts = open_df.groupby('wallet_open_cert')['wallet_id'].nunique().reset_index()\ncert_counts.columns = ['wallet_open_cert', 'cert_wallet_count']\n\n# 统计每个手机号关联的钱包数\ntel_counts = open_df.groupby('wallet_open_tel')['wallet_id'].nunique().reset_index()\ntel_counts.columns = ['wallet_open_tel', 'tel_wallet_count']\n\n# 合并到开户表\nresult = open_df[['wallet_id', 'wallet_open_cert', 'wallet_open_tel']].copy()\nresult = result.merge(cert_counts, on='wallet_open_cert', how='left')\nresult = result.merge(tel_counts, on='wallet_open_tel', how='left')\n\n# 取两个计数的最大值作为最终特征\nresult['cert_phone_multi_wallet_count'] = result[['cert_wallet_count', 'tel_wallet_count']].max(axis=1)\nresult = result[['wallet_id', 'cert_phone_multi_wallet_count']]\nresult['cert_phone_multi_wallet_count'] = result['cert_phone_multi_wallet_count'].fillna(1)\n\nresult = result",
+      "explanation": "在薅羊毛洗钱模式中，犯罪分子常使用同一身份证或手机号批量注册多个4类钱包。统计每个钱包的开户证件(open_cert)和手机号(open_tel)关联的钱包数量，可以识别出批量开户的异常账户。",
+      "composite_score": 0.425,
+      "statistics": {
+        "mutual_information": 0.0352658768301245,
+        "cramers_v": 0.08349310698995267,
+        "redundancy": 0.02956766197658317,
+        "bootstrap_p": 1.1768796660095453e-47
+      },
+      "model_metrics": {
+        "delta_prauc": 0.0051417711372703095,
+        "shap_rank": null,
+        "mean_abs_shap": null
+      }
+    }
+  ]
+}

@@ -46,7 +46,9 @@ def plot_shap_summary(
     )
     model.fit(X_final, y, verbose=False)
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_final)
+    shap_sample_size = min(5000, len(X_final))
+    X_shap = X_final.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X_final) else X_final
+    shap_values = explainer.shap_values(X_shap)
 
     fig, ax = plt.subplots(figsize=(10, max(6, top_k * 0.35)))
     mean_abs = np.mean(np.abs(shap_values), axis=0)

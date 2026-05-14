@@ -42,7 +42,9 @@ def _compute_shap_rankings(X_final: pd.DataFrame, y: pd.Series) -> dict:
     )
     model.fit(X_final, y)
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_final)
+    shap_sample_size = min(5000, len(X_final))
+    X_shap = X_final.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X_final) else X_final
+    shap_values = explainer.shap_values(X_shap)
     mean_abs_shap = np.abs(shap_values).mean(axis=0)
 
     feature_names = list(X_final.columns)
