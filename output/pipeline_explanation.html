@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 自动特征工程 — 完整流程讲解</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --accent: #38bdf8;
+    --accent2: #818cf8;
+    --green: #4ade80;
+    --red: #f87171;
+    --orange: #fb923c;
+    --yellow: #facc15;
+    --pink: #f472b6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 50%, #1a1040 100%);
+    padding: 80px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 30% 50%, rgba(56, 189, 248, 0.06) 0%, transparent 50%),
+                radial-gradient(circle at 70% 50%, rgba(129, 140, 248, 0.06) 0%, transparent 50%);
+  }
+  .hero h1 {
+    font-size: 2.6em;
+    font-weight: 700;
+    position: relative;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero .subtitle {
+    font-size: 1.2em;
+    color: var(--text-dim);
+    margin-top: 12px;
+    position: relative;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+  }
+  .toc h2 { font-size: 1.3em; margin-bottom: 16px; color: var(--accent); }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin: 6px 0; }
+  .toc a { color: var(--accent2); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 56px;
+    scroll-margin-top: 24px;
+  }
+  .section h2 {
+    font-size: 1.6em;
+    color: var(--accent);
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section h3 {
+    font-size: 1.2em;
+    color: var(--accent2);
+    margin: 24px 0 12px;
+  }
+  .section p, .section li {
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .section ul, .section ol { padding-left: 24px; }
+
+  /* ── Phase badge ── */
+  .phase-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 16px;
+    font-size: 0.75em;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .pb-0 { background: #164e63; color: #67e8f9; }
+  .pb-1 { background: #3730a3; color: #a5b4fc; }
+  .pb-2 { background: #7c2d12; color: #fdba74; }
+  .pb-3 { background: #14532d; color: #86efac; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 1.05em;
+    margin-bottom: 8px;
+  }
+
+  /* ── Code ── */
+  pre {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 0.88em;
+    line-height: 1.6;
+    margin: 12px 0;
+  }
+  code {
+    font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+    color: #e2e8f0;
+  }
+  .kw { color: #c084fc; }
+  .fn { color: #67e8f9; }
+  .str { color: #86efac; }
+  .cmt { color: #64748b; font-style: italic; }
+  .num { color: #fbbf24; }
+  .var { color: #f0abfc; }
+  .op { color: #94a3b8; }
+
+  /* ── Flow diagram ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 24px 0;
+  }
+  .flow-node {
+    background: var(--surface);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px 28px;
+    text-align: center;
+    min-width: 300px;
+    position: relative;
+    font-weight: 500;
+  }
+  .flow-node.l1 { border-color: var(--green); }
+  .flow-node.l2 { border-color: var(--orange); }
+  .flow-node.l3 { border-color: var(--pink); }
+  .flow-node.l4 { border-color: var(--yellow); }
+  .flow-arrow {
+    width: 2px;
+    height: 28px;
+    background: var(--border);
+    position: relative;
+  }
+  .flow-arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--border);
+  }
+
+  /* ── Island grid ── */
+  .island-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .island-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    border-top: 3px solid var(--accent);
+  }
+  .island-card:nth-child(2) { border-top-color: var(--accent2); }
+  .island-card:nth-child(3) { border-top-color: var(--orange); }
+  .island-card:nth-child(4) { border-top-color: var(--pink); }
+  .island-card h4 { font-size: 1.05em; margin-bottom: 6px; }
+  .island-card .fields { font-size: 0.85em; color: var(--text-dim); }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.92em;
+  }
+  th, td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: var(--surface2);
+    font-weight: 600;
+    color: var(--accent);
+  }
+  td { background: var(--surface); }
+
+  /* ── Metric bars ── */
+  .metric-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0;
+  }
+  .metric-label {
+    min-width: 130px;
+    font-size: 0.9em;
+    color: var(--text-dim);
+  }
+  .metric-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .metric-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s;
+  }
+  .metric-value {
+    min-width: 70px;
+    font-size: 0.85em;
+    text-align: right;
+    font-family: monospace;
+    color: var(--text);
+  }
+
+  /* ── Formula ── */
+  .formula {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 24px;
+    margin: 12px 0;
+    text-align: center;
+    font-size: 1.05em;
+    font-family: 'Cambria Math', 'Times New Roman', serif;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Tag ── */
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.78em;
+    font-weight: 600;
+    margin: 0 2px;
+  }
+  .tag-green { background: #064e3b; color: #6ee7b7; }
+  .tag-red { background: #7f1d1d; color: #fca5a5; }
+  .tag-blue { background: #1e3a5f; color: #7dd3fc; }
+  .tag-orange { background: #78350f; color: #fcd34d; }
+  .tag-purple { background: #4c1d95; color: #c4b5fd; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .hero { padding: 48px 20px; }
+    .hero h1 { font-size: 1.8em; }
+    .container { padding: 24px 16px; }
+    .island-grid { grid-template-columns: 1fr; }
+    .flow-node { min-width: auto; }
+  }
+
+  /* ── Highlight box ── */
+  .highlight-box {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(129, 140, 248, 0.08));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+
+  /* ── File ref ── */
+  .file-ref {
+    display: inline-block;
+    background: var(--surface2);
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85em;
+    color: var(--accent);
+  }
+
+  /* ── Separator ── */
+  .sep {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════ HERO ════════════════════════ -->
+<div class="hero">
+  <h1>LLM 自动特征工程系统</h1>
+  <p class="subtitle">数字人民币反洗钱场景 &middot; 从数据到特征的完整流程讲解</p>
+</div>
+
+<div class="container">
+
+<!-- ════════════════════════ TOC ════════════════════════ -->
+<div class="toc">
+  <h2>目录</h2>
+  <ol>
+    <li><a href="#overview">系统总览与核心思想</a></li>
+    <li><a href="#architecture">整体架构与数据流</a></li>
+    <li><a href="#phase0">Phase 0 — 数据准备与基线构建</a></li>
+    <li><a href="#phase1">Phase 1 — LLM 特征生成</a>
+      <ol>
+        <li><a href="#p1-prompt">Prompt 工程</a></li>
+        <li><a href="#p1-island">维度岛屿搜索</a></li>
+        <li><a href="#p1-boltzmann">Boltzmann 采样</a></li>
+        <li><a href="#p1-shap">SHAP 反馈闭环</a></li>
+      </ol>
+    </li>
+    <li><a href="#phase2">Phase 2 — 三级验证</a>
+      <ol>
+        <li><a href="#l1">L1: 代码沙盒验证</a></li>
+        <li><a href="#l2">L2: 统计验证</a></li>
+        <li><a href="#l3">L3: 模型验证</a></li>
+      </ol>
+    </li>
+    <li><a href="#scoring">综合评分机制</a></li>
+    <li><a href="#convergence">搜索循环与收敛</a></li>
+    <li><a href="#phase3">Phase 3 — 最终验证与产出</a></li>
+    <li><a href="#output">产出物说明</a></li>
+    <li><a href="#example">实际运行示例</a></li>
+    <li><a href="#innovation">核心创新点</a></li>
+  </ol>
+</div>
+
+<!-- ════════════════════════ 1. 总览 ════════════════════════ -->
+<div class="section" id="overview">
+  <h2><span class="phase-badge pb-0">概述</span> 系统总览与核心思想</h2>
+
+  <p>本系统利用大语言模型（LLM）自动为数字人民币反洗钱检测模型发现新特征。核心思想可以用一句话概括：</p>
+
+  <div class="highlight-box">
+    <strong>让 LLM 充当特征工程师</strong> — 给它领域知识和数据 schema，让它生成 Python 特征提取代码，再通过严格的三级验证筛选出真正有效的特征。
+  </div>
+
+  <p>传统做法是人工专家根据经验设计特征，但这种方式受限于个人知识和经验。本系统将这一过程自动化：</p>
+  <ul>
+    <li><strong>输入</strong>：数据表结构（schema）+ 领域知识（专家访谈、检测规则、风险指标）</li>
+    <li><strong>引擎</strong>：LLM 在 4 个维度岛屿上迭代搜索，每轮生成候选特征代码</li>
+    <li><strong>过滤</strong>：L1（代码能跑）→ L2（统计上有意义）→ L3（模型上有增量）</li>
+    <li><strong>输出</strong>：经过验证的特征 Python 代码 + 可解释性说明 + 评估指标</li>
+  </ul>
+
+  <div class="card">
+    <div class="card-title">关键设计原则</div>
+    <ul>
+      <li><strong>数据不入 LLM</strong> — LLM 只看到 schema 元信息（字段名、类型、统计摘要），原始账户和交易数据不会发送给 LLM</li>
+      <li><strong>代码隔离执行</strong> — LLM 生成的代码在受限沙盒中运行，禁止文件 I/O、网络访问等危险操作</li>
+      <li><strong>统计严格验证</strong> — 每个候选特征必须通过互信息、冗余度、卡方检验和模型增量贡献四重检验</li>
+      <li><strong>SHAP 反馈引导</strong> — 用已接受特征的 SHAP 重要性引导 LLM 的后续搜索方向</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ════════════════════════ 2. 架构 ════════════════════════ -->
+<div class="section" id="architecture">
+  <h2><span class="phase-badge pb-1">架构</span> 整体架构与数据流</h2>
+
+  <p>完整 pipeline 分为 4 个阶段，下图展示了从原始数据到最终特征产出的全流程：</p>
+
+  <div class="flow">
+    <div class="flow-node" style="border-color: #67e8f9;">
+      <strong>Phase 0: 数据准备</strong><br>
+      <small>三表加载 &rarr; Schema 提取 &rarr; 基线特征 &rarr; 领域知识</small>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node" style="border-color: #a5b4fc;">
+      <strong>Phase 1: LLM 特征生成</strong><br>
+      <small>Prompt 组装 &rarr; 4 维度岛屿搜索 &rarr; Boltzmann 采样 &rarr; SHAP 反馈</small>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node" style="border-color: #fdba74;">
+      <strong>Phase 2: 三级验证</strong><br>
+      <small>L1 沙盒执行 &rarr; L2 统计检验 &rarr; L3 模型增量 &rarr; 综合打分</small>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node" style="border-color: #86efac;">
+      <strong>Phase 3: 最终验证与产出</strong><br>
+      <small>L4 稳定性 &rarr; 5 组实验 &rarr; 特征字典 &rarr; 可视化报告</small>
+    </div>
+  </div>
+
+  <h3>代码结构</h3>
+  <pre><code>src/
+├── config.py                  <span class="cmt"># 全局配置（岛屿、阈值、权重、LLM）</span>
+├── main.py                    <span class="cmt"># Phase 0-2 主入口</span>
+├── phase3_main.py             <span class="cmt"># Phase 3 主入口</span>
+├── data/
+│   ├── loader.py              <span class="cmt"># 三表加载 + schema 提取</span>
+│   ├── baseline.py            <span class="cmt"># 107 个人工基线特征</span>
+│   ├── merge.py               <span class="cmt"># wallet/tx 级特征 merge</span>
+│   └── validate_data.py       <span class="cmt"># 数据验证</span>
+├── prompt/
+│   ├── builder.py             <span class="cmt"># System/User Prompt 组装</span>
+│   └── domain_knowledge.py    <span class="cmt"># 领域知识结构化</span>
+├── llm/
+│   ├── interface.py           <span class="cmt"># 5 个 LLM 提供商（可插拔）</span>
+│   └── parser.py              <span class="cmt"># LLM 输出 JSON 解析</span>
+├── search/
+│   ├── engine.py              <span class="cmt"># 搜索引擎主循环</span>
+│   ├── island.py              <span class="cmt"># 维度岛屿 + Boltzmann 采样</span>
+│   ├── memory.py              <span class="cmt"># 失败记忆</span>
+│   └── shap_feedback.py       <span class="cmt"># SHAP 反馈生成</span>
+├── evaluation/
+│   ├── sandbox.py             <span class="cmt"># L1 代码安全沙盒</span>
+│   ├── validator.py           <span class="cmt"># L1→L2→L3 验证流水线</span>
+│   ├── metrics.py             <span class="cmt"># MI, Cramer's V, Delta PR-AUC, SHAP</span>
+│   ├── stability.py           <span class="cmt"># L4 稳定性验证</span>
+│   └── experiments.py         <span class="cmt"># 5 组增量贡献实验</span>
+└── report/
+    ├── feature_dictionary.py  <span class="cmt"># 特征字典生成</span>
+    ├── visualization.py       <span class="cmt"># 图表可视化</span>
+    └── generator.py           <span class="cmt"># 验证报告生成</span></code></pre>
+</div>
+
+<!-- ════════════════════════ 3. Phase 0 ════════════════════════ -->
+<div class="section" id="phase0">
+  <h2><span class="phase-badge pb-0">Phase 0</span> 数据准备与基线构建</h2>
+
+  <p>Phase 0 的目标是准备 LLM 搜索所需的全部输入材料。这个阶段完全不涉及 LLM，是纯数据工程。</p>
+
+  <h3>Step 1: 加载三张数据表</h3>
+  <p><span class="file-ref">src/data/loader.py</span> &mdash; <code>load_all_tables()</code></p>
+  <p>系统基于数字人民币场景的三张核心表：</p>
+
+  <table>
+    <tr><th>表名</th><th>粒度</th><th>字段数</th><th>核心字段</th></tr>
+    <tr>
+      <td><strong>开户表</strong> (open_df)</td>
+      <td>每行 = 一个钱包</td>
+      <td>16</td>
+      <td>wallet_id, wallet_type, wallet_level, wallet_open_cert (身份证), wallet_open_tel (手机号), region_code, open_device, open_ip</td>
+    </tr>
+    <tr>
+      <td><strong>交易表</strong> (tx_df)</td>
+      <td>每行 = 一笔交易</td>
+      <td>20</td>
+      <td>tx_id, src (发送方), dst (接收方), amount, timestamp, hour, transaction_mode, <strong>is_risk</strong> (标签)</td>
+    </tr>
+    <tr>
+      <td><strong>销户表</strong> (close_df)</td>
+      <td>每行 = 一次销户</td>
+      <td>5</td>
+      <td>wallet_id, zs_channel (销户渠道), zs_timestamp</td>
+    </tr>
+  </table>
+
+  <div class="card">
+    <div class="card-title">为什么是三表而不是单表？</div>
+    <p>反洗钱检测需要从多个角度观察：开户信息揭示身份特征（同一身份证开多个钱包），交易信息揭示行为模式（金额、时间、网络结构），销户信息揭示生命周期异常（交易后快速销户）。三表关联才能捕捉完整的洗钱链路。这也是本系统的一个创新点 — 现有 LLM 特征工程论文全部只支持单表。</p>
+  </div>
+
+  <h3>Step 2: Schema 提取</h3>
+  <p><span class="file-ref">src/data/loader.py</span> &mdash; <code>extract_schema()</code></p>
+  <p>为每个字段生成统计摘要（类型、空值率、唯一值数、数值范围/分类频率），这些信息会注入 LLM Prompt，让 LLM 了解数据长什么样：</p>
+
+  <pre><code><span class="cmt"># 示例 schema 输出</span>
+=== 开户表(accounts) (<span class="num">1000</span> rows, <span class="num">16</span> columns) ===
+  wallet_id: object | null=<span class="num">0.0</span>% | unique=<span class="num">1000</span> | top: W0001(1), W0002(1)...
+  wallet_level: int64 | null=<span class="num">0.0</span>% | unique=<span class="num">4</span> | min=<span class="num">1</span>, median=<span class="num">3</span>, max=<span class="num">4</span>
+  wallet_open_cert: object | null=<span class="num">42.3</span>% | unique=<span class="num">573</span> | top: 110101...(3), ...
+  amount: float64 | null=<span class="num">0.0</span>% | min=<span class="num">0.01</span>, median=<span class="num">500</span>, max=<span class="num">50000</span></code></pre>
+
+  <h3>Step 3: 运行人工基线特征</h3>
+  <p><span class="file-ref">src/data/baseline.py</span> &mdash; <code>run_baseline()</code></p>
+  <p>调用 <code>inputs/baseline/feature_engineering.py</code> 中人工设计的 <strong>107 个特征</strong>（如交易金额均值、夜间交易比例、出入度等），并用 XGBoost 5 折交叉验证计算基线 PR-AUC。</p>
+  <p>基线的意义：<strong>LLM 生成的新特征必须在此基础上产生增量贡献</strong>，而不是重新发明轮子。</p>
+
+  <h3>Step 4: 加载领域知识</h3>
+  <p><span class="file-ref">src/prompt/domain_knowledge.py</span></p>
+  <p>从多个来源收集领域知识，压缩后注入 LLM Prompt：</p>
+
+  <table>
+    <tr><th>知识来源</th><th>内容</th><th>数量</th></tr>
+    <tr><td>交易模式说明</td><td>3 种正常模式 + 5 种风险模式的特征描述</td><td>8 种</td></tr>
+    <tr><td>专家访谈</td><td>4 类洗钱模式（薅羊毛、线上跑分、对公跑分、对敲交易）</td><td>4 类</td></tr>
+    <tr><td>风险分类表</td><td>银行识别的风险指标（异常金额、异常时间等）</td><td>38 个</td></tr>
+    <tr><td>检测规则</td><td>现有反洗钱检测规则，转为 Python 代码示例</td><td>15 条</td></tr>
+  </table>
+</div>
+
+<!-- ════════════════════════ 4. Phase 1 ════════════════════════ -->
+<div class="section" id="phase1">
+  <h2><span class="phase-badge pb-1">Phase 1</span> LLM 特征生成</h2>
+
+  <p>Phase 1 是系统的核心 — 利用 LLM 自动生成特征提取的 Python 代码。这不是简单的一次性调用，而是一个<strong>多轮迭代的进化搜索过程</strong>。</p>
+
+  <!-- ── Prompt ── -->
+  <div id="p1-prompt">
+    <h3>4.1 Prompt 工程</h3>
+    <p><span class="file-ref">src/prompt/builder.py</span></p>
+    <p>Prompt 分为两部分，共同构成对 LLM 的完整指令：</p>
+
+    <div class="card">
+      <div class="card-title">System Prompt（固定，约 5000 token）</div>
+      <ul>
+        <li><strong>角色设定</strong>：「你是数字人民币反洗钱领域的特征工程师」</li>
+        <li><strong>输出格式</strong>：JSON 数组，每个特征包含 feature_name、granularity、rationale、knowledge_source、code</li>
+        <li><strong>数据结构</strong>：三表的完整 schema（由 Phase 0 提取的字段名 + 类型 + 统计摘要）</li>
+        <li><strong>三表关联</strong>：说明 src/dst 如何关联到 wallet_id</li>
+        <li><strong>领域知识</strong>：交易模式 + 专家访谈 + 风险指标（压缩后的文本）</li>
+        <li><strong>已有特征列表</strong>：107 个基线特征名（告诉 LLM 不要重复）</li>
+        <li><strong>约束条件</strong>：30 秒超时、白名单库、禁用标签列等</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">User Prompt（每轮变化）</div>
+      <p><strong>第 1 轮（冷启动）</strong>：给出当前岛屿名称 + 重点字段 + 检测规则转化的种子示例代码</p>
+      <p><strong>第 2+ 轮（迭代）</strong>：增加以下动态信息：</p>
+      <ul>
+        <li>上轮最佳特征（从记忆库中 Boltzmann 采样的高分示例）</li>
+        <li>SHAP 反馈（当前哪些特征最重要、哪些维度还薄弱）</li>
+        <li>失败记忆（上轮失败的特征及原因，避免重复犯错）</li>
+      </ul>
+    </div>
+
+    <p>LLM 每次被要求生成 <strong>3 个</strong>候选特征（JSON 格式），每个特征包含可执行的 Python 代码片段。</p>
+
+    <h3>LLM 输出示例</h3>
+    <pre><code>[
+  {
+    <span class="str">"feature_name"</span>: <span class="str">"night_fan_out_ratio"</span>,
+    <span class="str">"granularity"</span>: <span class="str">"wallet"</span>,
+    <span class="str">"rationale"</span>: <span class="str">"线上跑分常在凌晨进行，呈现分散转出模式..."</span>,
+    <span class="str">"knowledge_source"</span>: <span class="str">"邮储专家访谈-线上跑分模式"</span>,
+    <span class="str">"code"</span>: <span class="str">"tx = tx_df.copy()\ntx['is_night'] = ..."</span>
+  },
+  ...
+]</code></pre>
+  </div>
+
+  <!-- ── Island ── -->
+  <div id="p1-island">
+    <h3>4.2 维度岛屿搜索</h3>
+    <p><span class="file-ref">src/search/island.py</span> + <span class="file-ref">src/config.py</span></p>
+
+    <p>受 LLM-FE 论文启发，搜索空间被划分为 <strong>4 个维度岛屿</strong>，每个岛屿专注于一类反洗钱特征：</p>
+
+    <div class="island-grid">
+      <div class="island-card">
+        <h4>金额频次</h4>
+        <p>金额分布、交易频率、拆分交易</p>
+        <div class="fields">字段：amount, interval, hour, transaction_motif</div>
+      </div>
+      <div class="island-card">
+        <h4>时间地域</h4>
+        <p>夜间交易、IP 跳变、跨地域</p>
+        <div class="fields">字段：timestamp, src_ip, dst_ip, region_code, hour</div>
+      </div>
+      <div class="island-card">
+        <h4>行为序列</h4>
+        <p>休眠激活、交易对手更换、用途偏离</p>
+        <div class="fields">字段：timestamp, transaction_mode, zs_timestamp, zs_channel</div>
+      </div>
+      <div class="island-card">
+        <h4>主体关联</h4>
+        <p>交叉转账网络、身份复用、设备共享</p>
+        <div class="fields">字段：wallet_open_cert, wallet_open_tel, src_device, dst_device, src, dst</div>
+      </div>
+    </div>
+
+    <p>每一轮搜索中，引擎<strong>依次遍历 4 个岛屿</strong>，每个岛屿让 LLM 生成 3 个候选特征（b=3）。这样每轮最多产生 4&times;3=12 个候选特征。</p>
+
+    <p>每个岛屿维护自己的<strong>记忆库</strong>（memory）：通过验证的特征会存入对应岛屿。同时，高分特征会通过 <code>migrate_best()</code> <strong>迁移到所有岛屿</strong>，让跨维度的信息共享。</p>
+  </div>
+
+  <!-- ── Boltzmann ── -->
+  <div id="p1-boltzmann">
+    <h3>4.3 Boltzmann 采样</h3>
+    <p><span class="file-ref">src/search/island.py</span> &mdash; <code>boltzmann_sample()</code></p>
+
+    <p>从记忆库中选择 in-context 示例时，不是简单地选最高分的，而是使用 <strong>Boltzmann（玻尔兹曼）采样</strong>：</p>
+
+    <div class="formula">
+      P(i) = exp((score<sub>i</sub> - max_score) / &tau;) / &sum; exp((score<sub>j</sub> - max_score) / &tau;)
+    </div>
+
+    <p>其中 &tau; (tau) 是温度参数，默认为 1.0：</p>
+    <ul>
+      <li><strong>&tau; &rarr; 0</strong>：退化为贪心选择（总是选最高分），容易陷入局部最优</li>
+      <li><strong>&tau; &rarr; &infin;</strong>：退化为均匀随机采样，失去引导性</li>
+      <li><strong>&tau; = 1.0</strong>：平衡探索与利用 — 高分特征有更高概率被选中，但低分特征也有机会</li>
+    </ul>
+
+    <p>默认每次采样 k=2 个示例，使用<strong>无放回加权采样</strong>避免重复选择同一个特征。</p>
+
+    <pre><code><span class="cmt"># Boltzmann 采样核心代码</span>
+scores = [f.get(<span class="str">"score"</span>, <span class="num">0.0</span>) <span class="kw">for</span> f <span class="kw">in</span> self.memory]
+max_score = max(scores)
+weights = [math.exp((s - max_score) / tau) <span class="kw">for</span> s <span class="kw">in</span> scores]
+total = sum(weights)
+probs = [w / total <span class="kw">for</span> w <span class="kw">in</span> weights]
+indices = _weighted_sample_without_replacement(probs, k)</code></pre>
+  </div>
+
+  <!-- ── SHAP ── -->
+  <div id="p1-shap">
+    <h3>4.4 SHAP 反馈闭环</h3>
+    <p><span class="file-ref">src/search/shap_feedback.py</span></p>
+
+    <p>这是系统的核心创新之一。每一轮搜索后，系统会：</p>
+    <ol>
+      <li>用当前所有已接受的特征训练一个 XGBoost 模型</li>
+      <li>用 SHAP TreeExplainer 计算每个特征的全局重要性</li>
+      <li>将 Top-10 重要特征和<strong>薄弱维度</strong>反馈给 LLM</li>
+    </ol>
+
+    <div class="highlight-box">
+      <strong>薄弱维度检测</strong>：系统将每个特征的 SHAP 重要性映射到它所属的维度岛屿，计算各维度的总重要性。低于平均值的维度被标记为「薄弱」，引导 LLM 在下一轮优先探索这些方向。
+    </div>
+
+    <p>反馈文本注入 User Prompt 后，LLM 能理解「当前模型缺什么」，从而生成更有针对性的特征。这形成了一个<strong>搜索 → 验证 → 反馈 → 搜索</strong>的闭环。</p>
+  </div>
+</div>
+
+<!-- ════════════════════════ 5. Phase 2 ════════════════════════ -->
+<div class="section" id="phase2">
+  <h2><span class="phase-badge pb-2">Phase 2</span> 三级验证</h2>
+
+  <p>LLM 生成的每个候选特征必须依次通过三级验证，任一级失败即被淘汰。这是保证特征质量的核心机制。</p>
+
+  <div class="flow">
+    <div class="flow-node l1">
+      <strong>L1: 代码沙盒验证</strong><br>
+      <small>安全检查 &rarr; 隔离执行 &rarr; 输出格式验证</small>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node l2">
+      <strong>L2: 统计验证</strong><br>
+      <small>MI &ge; 0.001 &amp; Redundancy &lt; 0.9 &amp; Cramer's V &ge; 0.05 &amp; Bootstrap p &lt; 0.05</small>
+    </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node l3">
+      <strong>L3: 模型验证</strong><br>
+      <small>&Delta;PR-AUC &ge; 0.005 &amp; SHAP 排名</small>
+    </div>
+  </div>
+
+  <!-- ── L1 ── -->
+  <div id="l1">
+    <h3>5.1 L1: 代码沙盒验证</h3>
+    <p><span class="file-ref">src/evaluation/sandbox.py</span></p>
+
+    <p>L1 回答的问题是：<strong>这段代码能不能安全正确地执行？</strong></p>
+
+    <div class="card">
+      <div class="card-title">Step 1: AST 安全检查</div>
+      <p>用 Python AST 解析代码，检查所有 import 和函数调用：</p>
+      <ul>
+        <li><span class="tag tag-green">允许</span> pandas, numpy, scipy, sklearn</li>
+        <li><span class="tag tag-red">禁止</span> os, sys, subprocess, socket, requests, pickle, ctypes...</li>
+        <li><span class="tag tag-red">禁止</span> open(), exec(), eval(), __import__(), getattr()...</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Step 2: 子进程隔离执行</div>
+      <p>通过 <code>multiprocessing.Process</code> 在独立进程中执行代码，设置 <strong>30 秒超时</strong>。数据通过 Parquet 文件传入（避免序列化开销），结果也通过 Parquet 返回。</p>
+      <p>运行环境中只暴露 <code>open_df</code>、<code>tx_df</code>、<code>close_df</code>、<code>pd</code>、<code>np</code> 五个变量。代码执行完毕后，从 <code>result</code> 变量取出结果 DataFrame。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Step 3: 输出格式验证</div>
+      <ul>
+        <li>必须包含 <code>wallet_id</code> 或 <code>tx_id</code> 列（用于后续 merge）</li>
+        <li>必须包含至少一个特征列</li>
+        <li>特征不能全为常数（全 0 或全 1 无区分度）</li>
+        <li>NaN 比例不能超过 50%</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">L1 失败重试机制</div>
+      <p>如果 L1 失败（代码报错），系统不会直接放弃，而是将错误信息反馈给 LLM，让它修复代码并重试，<strong>最多重试 2 次</strong>。这显著提高了特征的通过率。</p>
+    </div>
+
+    <h3>特征 Merge 逻辑</h3>
+    <p><span class="file-ref">src/data/merge.py</span></p>
+    <p>L1 通过后，特征需要 merge 到交易表上才能用于模型训练：</p>
+    <ul>
+      <li><strong>tx_id 级特征</strong>（如每笔交易的金额异常分数）：直接 <code>merge on tx_id</code></li>
+      <li><strong>wallet_id 级特征</strong>（如每个钱包的多身份证计数）：分别 merge 到交易的 src 和 dst，生成 <code>feature_src</code> 和 <code>feature_dst</code> 两列</li>
+    </ul>
+  </div>
+
+  <!-- ── L2 ── -->
+  <div id="l2">
+    <h3>5.2 L2: 统计验证</h3>
+    <p><span class="file-ref">src/evaluation/validator.py</span> + <span class="file-ref">src/evaluation/metrics.py</span></p>
+
+    <p>L2 回答的问题是：<strong>这个特征在统计意义上和标签相关吗？</strong></p>
+
+    <table>
+      <tr>
+        <th>指标</th>
+        <th>含义</th>
+        <th>计算方法</th>
+        <th>阈值</th>
+      </tr>
+      <tr>
+        <td><strong>互信息 (MI)</strong></td>
+        <td>特征与标签的信息量共享程度</td>
+        <td>sklearn <code>mutual_info_classif</code></td>
+        <td>&ge; 0.001</td>
+      </tr>
+      <tr>
+        <td><strong>冗余度</strong></td>
+        <td>与已有特征的最大皮尔逊相关系数</td>
+        <td>逐列计算 |corr|，取最大值</td>
+        <td>&lt; 0.9</td>
+      </tr>
+      <tr>
+        <td><strong>Cramer's V</strong></td>
+        <td>特征与标签的关联强度（分类变量版）</td>
+        <td>卡方统计量 &rarr; V = &radic;(&chi;&sup2; / (n&middot;k))</td>
+        <td>&ge; 0.05</td>
+      </tr>
+      <tr>
+        <td><strong>Bootstrap &chi;&sup2; p 值</strong></td>
+        <td>关联性是否具有统计显著性</td>
+        <td>2500 次 bootstrap 重采样取平均 p 值</td>
+        <td>&lt; 0.05</td>
+      </tr>
+    </table>
+
+    <p>四个条件<strong>必须同时满足</strong>才能通过 L2。连续特征在计算 Cramer's V 和 Bootstrap &chi;&sup2; 时会先进行 10 分位分箱。</p>
+
+    <div class="highlight-box">
+      <strong>为什么需要冗余度检查？</strong> 如果新特征和已有特征高度相关（|corr| &ge; 0.9），即使它和标签相关，也不提供新信息。这确保每个通过的特征都是「增量」的。
+    </div>
+  </div>
+
+  <!-- ── L3 ── -->
+  <div id="l3">
+    <h3>5.3 L3: 模型验证</h3>
+    <p><span class="file-ref">src/evaluation/metrics.py</span></p>
+
+    <p>L3 回答的问题是：<strong>加入这个特征后，下游模型真的变好了吗？</strong></p>
+
+    <div class="card">
+      <div class="card-title">Delta PR-AUC（增量 PR-AUC）</div>
+      <p>通过 XGBoost <strong>5 折分层交叉验证</strong>对比：</p>
+      <ol>
+        <li><strong>基线模型</strong>：只用已有特征训练 &rarr; 得到 PR-AUC<sub>base</sub></li>
+        <li><strong>增强模型</strong>：已有特征 + 新特征训练 &rarr; 得到 PR-AUC<sub>aug</sub></li>
+        <li><strong>&Delta;PR-AUC</strong> = PR-AUC<sub>aug</sub> - PR-AUC<sub>base</sub></li>
+      </ol>
+      <p>阈值：<strong>&Delta;PR-AUC &ge; 0.005</strong>（即新特征至少带来 0.5% 的 PR-AUC 提升）</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">为什么用 PR-AUC 而不是 ROC-AUC？</div>
+      <p>反洗钱数据高度不平衡（正样本约 5%）。ROC-AUC 在不平衡场景下过度乐观 — 一个全预测负的模型 ROC-AUC 也能很高。PR-AUC（Precision-Recall 曲线下面积）更能反映模型找到真正可疑交易的能力。</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">SHAP 排名</div>
+      <p>通过 L3 后，还会计算新特征在完整模型中的 <strong>SHAP 重要性排名</strong>（1 = 最重要）。排名信息用于后续的综合打分和反馈。</p>
+    </div>
+
+    <p>XGBoost 训练参数专门为不平衡数据调优：</p>
+    <pre><code>XGBClassifier(
+    scale_pos_weight=<span class="num">19</span>,    <span class="cmt"># 正样本权重提升 19 倍</span>
+    eval_metric=<span class="str">"aucpr"</span>,     <span class="cmt"># 评估指标用 PR-AUC</span>
+    n_estimators=<span class="num">200</span>,
+    max_depth=<span class="num">6</span>,
+    learning_rate=<span class="num">0.1</span>,
+)</code></pre>
+  </div>
+</div>
+
+<!-- ════════════════════════ 6. 评分 ════════════════════════ -->
+<div class="section" id="scoring">
+  <h2><span class="phase-badge pb-2">评分</span> 综合评分机制</h2>
+  <p><span class="file-ref">src/evaluation/validator.py</span> &mdash; <code>compute_composite_score()</code></p>
+
+  <p>通过 L3 验证的特征会获得一个综合分数，用于岛屿记忆库的排序和 Boltzmann 采样权重：</p>
+
+  <div class="formula">
+    Score = 0.35 &times; norm(1/SHAP_rank) + 0.25 &times; norm(MI) + 0.25 &times; norm(1-redundancy) + 0.15 &times; norm(&Delta;PR-AUC)
+  </div>
+
+  <p>其中 <code>norm()</code> 是基于历史值的 min-max 归一化，确保各指标在 [0, 1] 范围内可比较。</p>
+
+  <table>
+    <tr><th>指标</th><th>权重</th><th>含义</th></tr>
+    <tr><td>1/SHAP_rank</td><td>0.35</td><td>在模型中的重要性（权重最高，因为直接反映对预测的贡献）</td></tr>
+    <tr><td>MI</td><td>0.25</td><td>与标签的信息量相关性</td></tr>
+    <tr><td>1-redundancy</td><td>0.25</td><td>与已有特征的非冗余程度（越低越好）</td></tr>
+    <tr><td>&Delta;PR-AUC</td><td>0.15</td><td>模型增量贡献</td></tr>
+  </table>
+</div>
+
+<!-- ════════════════════════ 7. 收敛 ════════════════════════ -->
+<div class="section" id="convergence">
+  <h2><span class="phase-badge pb-1">循环</span> 搜索循环与收敛</h2>
+  <p><span class="file-ref">src/search/engine.py</span></p>
+
+  <p>搜索引擎的主循环每一轮执行：</p>
+
+  <div class="card">
+    <ol style="line-height: 2.2;">
+      <li><strong>遍历 4 个岛屿</strong>，每个岛屿调用 LLM 生成 3 个候选</li>
+      <li>对每个候选执行 <strong>L1 → L2 → L3</strong> 验证</li>
+      <li>通过验证的特征<strong>加入岛屿记忆库</strong> + 迁移到其他岛屿</li>
+      <li>更新 <strong>existing_features</strong> 矩阵（后续候选的基线随之增长）</li>
+      <li>失败的候选记入<strong>失败记忆</strong>（最多保留 50 条）</li>
+      <li>检查<strong>收敛条件</strong></li>
+    </ol>
+  </div>
+
+  <h3>收敛条件</h3>
+  <p>系统在以下任一条件满足时停止搜索：</p>
+  <ul>
+    <li><strong>连续 2 轮</strong>没有任何新特征通过三级验证 &rarr; 搜索空间已被充分探索</li>
+    <li>达到<strong>最大轮数 T=10</strong>（可配置）</li>
+  </ul>
+
+  <h3>失败记忆机制</h3>
+  <p><span class="file-ref">src/search/memory.py</span></p>
+  <p>每个失败的特征都会被记录（名称、代码、失败原因），最近 5 条失败会注入下一轮的 User Prompt，告诉 LLM「不要再尝试类似的方向」。这避免 LLM 在同一个死胡同里反复浪费 token。</p>
+</div>
+
+<!-- ════════════════════════ 8. Phase 3 ════════════════════════ -->
+<div class="section" id="phase3">
+  <h2><span class="phase-badge pb-3">Phase 3</span> 最终验证与产出</h2>
+
+  <p>Phase 2 搜索完成后，Phase 3 对最终特征集进行稳定性验证和对比实验：</p>
+
+  <h3>L4: 稳定性验证</h3>
+  <p>10 次 Bootstrap 重采样，每次训练 XGBoost + SHAP，收集 top-20 特征排名，计算 <strong>Nogueira 稳定性指数</strong>（阈值 &gt; 0.8）。确保特征选择在数据扰动下保持一致。</p>
+
+  <h3>5 组增量贡献实验</h3>
+  <table>
+    <tr><th>实验</th><th>特征集</th><th>目的</th></tr>
+    <tr><td>实验 1（基线）</td><td>仅 107 个人工特征</td><td>基准对比</td></tr>
+    <tr><td>实验 2（增量）</td><td>人工 + LLM 特征</td><td>验证增量贡献</td></tr>
+    <tr><td>实验 3（独立）</td><td>仅 LLM 特征</td><td>验证独立预测力</td></tr>
+    <tr><td>实验 4（随机对照）</td><td>人工 + 等量随机特征</td><td>排除过拟合假象</td></tr>
+    <tr><td>实验 5（消融）</td><td>逐个移除 LLM 特征</td><td>识别最关键特征</td></tr>
+  </table>
+
+  <h3>最终产出</h3>
+  <ul>
+    <li><strong>特征字典</strong>：每个特征的代码 + 解释 + SHAP 排名 + 统计指标</li>
+    <li><strong>可视化</strong>：SHAP summary plot、实验对比柱状图、消融热力图、稳定性分布图</li>
+    <li><strong>验证报告</strong>：完整的 Markdown 报告</li>
+  </ul>
+</div>
+
+<!-- ════════════════════════ 9. 产出物 ════════════════════════ -->
+<div class="section" id="output">
+  <h2><span class="phase-badge pb-3">产出</span> 产出物说明</h2>
+
+  <p>pipeline 运行完毕后在 <code>output/</code> 目录生成以下文件：</p>
+
+  <table>
+    <tr><th>文件</th><th>内容</th></tr>
+    <tr><td><code>features.json</code></td><td>所有通过验证的特征列表（名称、分数、代码、解释、L2/L3 指标）</td></tr>
+    <tr><td><code>search_log.json</code></td><td>搜索日志（每轮每岛屿的候选数、通过数、详情）</td></tr>
+    <tr><td><code>features/*.py</code></td><td>每个特征的独立 Python 文件，可直接运行</td></tr>
+  </table>
+
+  <h3>特征 .py 文件结构</h3>
+  <p>每个通过验证的特征被导出为一个独立可执行的 Python 文件：</p>
+
+  <pre><code><span class="str">"""
+特征: cert_phone_multi_wallet_count
+说明: 统计每个钱包的开户证件和手机号关联的钱包数量...
+
+验证指标:
+  - Score: 0.4250
+  - MI: 0.0353
+  - Cramer's V: 0.0835
+  - Delta PR-AUC: 0.005142
+  - SHAP Rank: 1
+"""</span>
+
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">def</span> <span class="fn">compute_feature</span>(open_df, tx_df, close_df):
+    <span class="str">"""计算特征，返回 DataFrame(wallet_id, feature_value)"""</span>
+    cert_counts = open_df.groupby(<span class="str">'wallet_open_cert'</span>)[<span class="str">'wallet_id'</span>].nunique()
+    ...
+    <span class="kw">return</span> result
+
+<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
+    <span class="cmt"># 命令行直接运行</span>
+    result = compute_feature(open_df, tx_df, close_df)
+    print(result.describe())</code></pre>
+</div>
+
+<!-- ════════════════════════ 10. 示例 ════════════════════════ -->
+<div class="section" id="example">
+  <h2><span class="phase-badge pb-0">示例</span> 实际运行示例</h2>
+
+  <p>以下是用 DeepSeek-V3 模型在 1000 个钱包数据集上运行 5 轮的实际结果：</p>
+
+  <div class="card">
+    <div class="card-title">运行概况</div>
+    <table>
+      <tr><td>LLM 模型</td><td>DeepSeek-V3 (deepseek-chat)</td></tr>
+      <tr><td>数据规模</td><td>1,000 个钱包，对应约 14,000 笔交易</td></tr>
+      <tr><td>搜索轮数</td><td>4 轮（第 3-4 轮无新特征，提前收敛）</td></tr>
+      <tr><td>运行时间</td><td>约 29 分钟</td></tr>
+      <tr><td>候选特征数</td><td>~48 个（4 轮 &times; 4 岛 &times; 3 候选）</td></tr>
+      <tr><td>通过验证</td><td><strong>2 个</strong></td></tr>
+    </table>
+  </div>
+
+  <h3>通过验证的 2 个特征</h3>
+
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <div class="card-title">特征 1: multi_cert_phone_ratio</div>
+    <p><strong>含义</strong>：计算每个钱包的身份证关联钱包数 / 手机号关联钱包数的比值。</p>
+    <p><strong>领域逻辑</strong>：在「薅羊毛」洗钱模式中，犯罪分子用同一身份证 + 不同手机号批量开户，导致该比值异常偏高。</p>
+    <p><strong>来源岛屿</strong>：主体关联</p>
+
+    <div class="metric-row">
+      <span class="metric-label">Score</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 50%; background: var(--accent);"></div></div>
+      <span class="metric-value">0.5000</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">MI</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 35%; background: var(--accent2);"></div></div>
+      <span class="metric-value">0.0126</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Cramer's V</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 74%; background: var(--orange);"></div></div>
+      <span class="metric-value">0.0743</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">&Delta;PR-AUC</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 93%; background: var(--green);"></div></div>
+      <span class="metric-value">+0.0093</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">SHAP Rank</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 100%; background: var(--pink);"></div></div>
+      <span class="metric-value">#1</span>
+    </div>
+  </div>
+
+  <div class="card" style="border-left: 3px solid var(--green);">
+    <div class="card-title">特征 2: cert_phone_multi_wallet_count</div>
+    <p><strong>含义</strong>：取每个钱包的 max(身份证关联钱包数, 手机号关联钱包数)。</p>
+    <p><strong>领域逻辑</strong>：直接度量一个钱包背后的身份复用程度。正常用户通常只有 1 个钱包，批量注册者该值远大于 1。</p>
+    <p><strong>来源岛屿</strong>：主体关联</p>
+
+    <div class="metric-row">
+      <span class="metric-label">Score</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 42.5%; background: var(--accent);"></div></div>
+      <span class="metric-value">0.4250</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">MI</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 100%; background: var(--accent2);"></div></div>
+      <span class="metric-value">0.0353</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">Cramer's V</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 83%; background: var(--orange);"></div></div>
+      <span class="metric-value">0.0835</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">&Delta;PR-AUC</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 51%; background: var(--green);"></div></div>
+      <span class="metric-value">+0.0051</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">SHAP Rank</span>
+      <div class="metric-bar"><div class="metric-fill" style="width: 100%; background: var(--pink);"></div></div>
+      <span class="metric-value">#1</span>
+    </div>
+  </div>
+
+  <p>两个特征都来自「主体关联」维度，反映了<strong>身份复用</strong>这一核心洗钱指标。这验证了领域知识注入的有效性 — LLM 准确理解了专家访谈中描述的「薅羊毛」模式。</p>
+</div>
+
+<!-- ════════════════════════ 11. 创新 ════════════════════════ -->
+<div class="section" id="innovation">
+  <h2><span class="phase-badge pb-1">创新</span> 核心创新点</h2>
+
+  <div class="island-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+    <div class="island-card">
+      <h4>1. 领域知识增强</h4>
+      <p>首次将结构化专家知识（访谈 + 200+ 识别点 + 监管规则）系统性注入 LLM 特征生成。现有方法（LLM-FE、CAAFE、MedFeat）都缺乏深度领域知识注入。</p>
+    </div>
+    <div class="island-card">
+      <h4>2. 多表关联</h4>
+      <p>首次将 LLM 特征工程扩展到多表关系型数据（开户 + 交易 + 销户三表）。所有 6 篇参考论文均仅支持单表输入。</p>
+    </div>
+    <div class="island-card">
+      <h4>3. 维度岛屿 + SHAP 搜索</h4>
+      <p>改进 LLM-FE 的随机岛屿为按风险维度划分的 4 个有方向岛屿，结合 MedFeat 的 SHAP 引导，实现有分工 + 有方向的高效搜索。</p>
+    </div>
+    <div class="island-card">
+      <h4>4. 四级验证框架</h4>
+      <p>代码验证 → 统计验证 → 模型验证 → 稳定性验证。超越现有论文（无一使用统计检验）的验证深度。</p>
+    </div>
+    <div class="island-card">
+      <h4>5. 可解释特征</h4>
+      <p>每个特征附带领域依据说明和知识来源引用，满足金融监管的可解释性要求。</p>
+    </div>
+  </div>
+
+  <h3>与现有方法对比</h3>
+  <table>
+    <tr><th>能力</th><th>LLM-FE</th><th>CAAFE</th><th>MedFeat</th><th>本系统</th></tr>
+    <tr><td>多表支持</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">&radic;</span></td></tr>
+    <tr><td>领域知识注入</td><td>仅特征名</td><td>数据集描述</td><td class="tag-red">&times;</td><td><span class="tag tag-green">深度注入</span></td></tr>
+    <tr><td>搜索策略</td><td>随机岛屿</td><td>单向</td><td>SHAP 引导</td><td><span class="tag tag-green">维度岛屿 + SHAP</span></td></tr>
+    <tr><td>统计验证</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">MI + Cramer's V + Bootstrap</span></td></tr>
+    <tr><td>评估指标</td><td>Accuracy</td><td>ROC-AUC</td><td>AUC + F1</td><td><span class="tag tag-green">PR-AUC</span></td></tr>
+    <tr><td>可解释性</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">rationale + 知识溯源</span></td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<div style="text-align: center; color: var(--text-dim); padding: 24px 0;">
+  <p>LLM Feature Engineering Pipeline &mdash; 数字人民币反洗钱场景</p>
+  <p style="font-size: 0.85em;">总计 2,409 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证</p>
+</div>
+
+</div>
+</body>
+</html>
