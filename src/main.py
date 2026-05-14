@@ -12,6 +12,7 @@ import pandas as pd
 from src.config import Config, DEFAULT_CONFIG, LLMConfig
 from src.data.loader import load_all_tables, extract_schema, extract_label, extract_distribution_diff, extract_join_statistics
 from src.data.baseline import run_baseline, get_baseline_feature_names, compute_baseline_prauc, get_baseline_feature_code_samples
+from src.evaluation.calibration import calibrate_l2_thresholds
 from src.prompt.domain_knowledge import (
     load_transaction_patterns,
     load_expert_interview,
@@ -232,6 +233,7 @@ def save_results(result, output_dir: str) -> None:
         "total_rounds": result.total_rounds,
         "converged": result.converged,
         "total_features": len(result.accepted_features),
+        "calibrated_thresholds": result.calibrated_thresholds,
         "rounds": result.search_log,
     }
     with open(log_path, "w", encoding="utf-8") as fp:
@@ -268,6 +270,13 @@ def main() -> None:
         logger.warning("基线特征提取失败: %s，使用空基线", e)
         X_baseline = pd.DataFrame(index=range(len(label)))
         baseline_prauc = 0.0
+
+    logger.info("=== 自动校准 L2 阈值 ===")
+    calibrated_thresholds = calibrate_l2_thresholds(X_baseline, label)
+    logger.info(
+        "校准结果: MI_min=%.6f, cramers_v_min=%.6f (原固定值: 0.001, 0.05)",
+        calibrated_thresholds.mi_min, calibrated_thresholds.cramers_v_min,
+    )
 
     logger.info("=== 加载领域知识 ===")
     transaction_patterns, expert_knowledge, risk_indicators, seed_examples = load_domain_knowledge(cfg)
@@ -306,6 +315,7 @@ def main() -> None:
         baseline_features=X_baseline,
         baseline_prauc=baseline_prauc,
         config=cfg,
+        validation_thresholds=calibrated_thresholds,
     )
 
     logger.info("=== 开始搜索 (最多 %d 轮) ===", cfg.search.T)

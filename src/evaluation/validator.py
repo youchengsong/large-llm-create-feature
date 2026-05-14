@@ -7,7 +7,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from src.config import DEFAULT_CONFIG
+from src.config import DEFAULT_CONFIG, ValidationThresholds
 from src.evaluation.sandbox import execute_feature_code, validate_output
 from src.evaluation.metrics import (
     compute_mutual_info,
@@ -43,9 +43,11 @@ def run_l2_validation(
     feature: pd.Series,
     label: pd.Series,
     existing_features: pd.DataFrame,
+    thresholds: ValidationThresholds | None = None,
 ) -> tuple[bool, dict]:
     """L2 统计验证：MI、冗余度、Cramer's V、Bootstrap χ²。返回 (passed, metrics_dict)。"""
-    thresholds = DEFAULT_CONFIG.validation
+    if thresholds is None:
+        thresholds = DEFAULT_CONFIG.validation
 
     mi = compute_mutual_info(feature, label)
     redundancy = compute_redundancy(feature, existing_features)
