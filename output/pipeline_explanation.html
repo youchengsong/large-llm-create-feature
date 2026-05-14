@@ -612,7 +612,7 @@
       </div>
     </div>
 
-    <p>每一轮搜索中，引擎<strong>依次遍历 4 个岛屿</strong>，每个岛屿让 LLM 生成 3 个候选特征（b=3）。这样每轮最多产生 4&times;3=12 个候选特征。</p>
+    <p>每一轮搜索中，引擎<strong>依次遍历 4 个岛屿</strong>，总候选预算为 B_total=12。第 1 轮均匀分配（每岛 3 个），从第 2 轮开始根据 SHAP 维度重要性<strong>动态分配</strong>：薄弱维度的岛屿获得更多候选名额（最多 5 个），已饱和的岛屿减少（最少 1 个），使搜索资源向最需要探索的方向倾斜。</p>
 
     <p>每个岛屿维护自己的<strong>记忆库</strong>（memory）：通过验证的特征会存入对应岛屿。同时，高分特征会通过 <code>migrate_best()</code> <strong>迁移到所有岛屿</strong>，让跨维度的信息共享。</p>
   </div>
@@ -853,7 +853,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
 
   <div class="card">
     <ol style="line-height: 2.2;">
-      <li><strong>遍历 4 个岛屿</strong>，每个岛屿调用 LLM 生成 3 个候选</li>
+      <li><strong>遍历 4 个岛屿</strong>，根据 SHAP 动态分配每个岛屿的候选预算（薄弱维度分配更多）</li>
       <li>对每个候选执行 <strong>L1 → L2 → L3</strong> 验证</li>
       <li>通过验证的特征<strong>加入岛屿记忆库</strong> + 迁移到其他岛屿</li>
       <li>更新 <strong>existing_features</strong> 矩阵（后续候选的基线随之增长）</li>

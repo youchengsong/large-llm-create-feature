@@ -78,6 +78,7 @@ def build_user_prompt_cold_start(
     island_name: str,
     island_fields: list[str],
     seed_examples: str,
+    n_candidates: int = 3,
 ) -> str:
     fields_str = ", ".join(island_fields)
 
@@ -88,7 +89,7 @@ def build_user_prompt_cold_start(
 
 {seed_examples}
 
-## 请生成 3 个新特征
+## 请生成 {n_candidates} 个新特征
 你负责的维度是：{island_name}。
 重点探索的数据字段：{fields_str}
 参考上面的领域知识和交易模式说明，围绕该维度从你认为最有价值的角度出发。输出 JSON 数组格式。"""
@@ -104,6 +105,7 @@ def build_user_prompt(
     shap_feedback: str,
     top_features: list[dict],
     failed_features: list[dict],
+    n_candidates: int = 3,
 ) -> str:
     fields_str = ", ".join(island_fields)
 
@@ -138,8 +140,8 @@ def build_user_prompt(
 ## 上轮失败的特征（不要重复类似的）
 {fail_text}
 
-## 请生成 3 个新特征
-围绕你负责的维度（{island_name}），生成 3 个不同角度的特征。输出 JSON 数组格式。"""
+## 请生成 {n_candidates} 个新特征
+围绕你负责的维度（{island_name}），生成 {n_candidates} 个不同角度的特征。输出 JSON 数组格式。"""
 
     token_est = _estimate_tokens(prompt)
     print(f"[build_user_prompt] 估算 token 数: ~{token_est}")

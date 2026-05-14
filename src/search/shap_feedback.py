@@ -105,3 +105,46 @@ def shap_feedback_to_prompt(feedback: dict, island_dimensions: list[str] | None 
         lines.append(f"\n当前岛屿关注维度：{', '.join(current_dims)}")
 
     return "\n".join(lines)
+
+
+def compute_island_budgets(
+    dim_importance: dict[str, float],
+    island_dimensions: list[str],
+    B_total: int = 12,
+    b_min: int = 1,
+    b_max: int = 5,
+) -> dict[str, int]:
+    """根据 SHAP 维度重要性的反比分配每个岛屿的候选预算。
+
+    薄弱维度获得更多候选名额，已饱和维度获得更少。
+    """
+    eps = 0.01
+    raw_weights = {}
+    for dim in island_dimensions:
+        imp = dim_importance.get(dim, 0.0)
+        raw_weights[dim] = 1.0 / (imp + eps)
+
+    total_weight = sum(raw_weights.values())
+    if total_weight <= 0:
+        return {dim: B_total // len(island_dimensions) for dim in island_dimensions}
+
+    budgets = {}
+    for dim in island_dimensions:
+        raw = raw_weights[dim] / total_weight * B_total
+        budgets[dim] = max(b_min, min(b_max, round(raw)))
+
+    current_total = sum(budgets.values())
+    diff = B_total - current_total
+    if diff != 0:
+        sorted_dims = sorted(raw_weights.keys(), key=lambda d: -raw_weights[d])
+        for dim in sorted_dims:
+            if diff == 0:
+                break
+            if diff > 0 and budgets[dim] < b_max:
+                budgets[dim] += 1
+                diff -= 1
+            elif diff < 0 and budgets[dim] > b_min:
+                budgets[dim] -= 1
+                diff += 1
+
+    return budgets

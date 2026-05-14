@@ -49,7 +49,7 @@ def pipeline_result(data, system_prompt):
     open_df, tx_df, close_df, label = data
 
     cfg = Config()
-    cfg.search = SearchParams(m=4, b=1, k=1, T=2, tau=1.0)
+    cfg.search = SearchParams(m=4, b=1, B_total=4, b_min=1, b_max=2, k=1, T=2, tau=1.0)
     cfg.llm = LLMConfig(provider="mock")
 
     llm = MockLLM()

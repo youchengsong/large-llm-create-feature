@@ -22,7 +22,7 @@ from src.llm.parser import parse_llm_output
 from src.prompt.builder import build_user_prompt, build_user_prompt_cold_start
 from src.search.island import Island, IslandManager
 from src.search.memory import FailureMemory
-from src.search.shap_feedback import generate_shap_feedback, shap_feedback_to_prompt
+from src.search.shap_feedback import generate_shap_feedback, shap_feedback_to_prompt, compute_island_budgets
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class SearchEngine:
         self._rounds_without_new = 0
 
     def run_single_island_step(
-        self, island: Island, round_num: int
+        self, island: Island, round_num: int, n_candidates: int = 3
     ) -> list[dict]:
         """单岛屿一轮：LLM 生成 → 解析 → L1 验证（失败重试最多 2 次）。"""
         if round_num == 1 and not island.memory:
@@ -81,6 +81,7 @@ class SearchEngine:
                 island_name=island.name,
                 island_fields=island.fields,
                 seed_examples=self.seed_examples,
+                n_candidates=n_candidates,
             )
         else:
             shap_fb = {}
@@ -102,6 +103,7 @@ class SearchEngine:
                 shap_feedback=shap_text,
                 top_features=top_features,
                 failed_features=self.failure_memory.get_recent(5),
+                n_candidates=n_candidates,
             )
 
         raw_output = self.llm.generate(self.system_prompt, user_prompt)
@@ -259,21 +261,59 @@ class SearchEngine:
 
         return accepted_this_step
 
+    def _compute_budgets(self, round_num: int) -> dict[str, int]:
+        """计算每个岛屿的候选预算。第 1 轮均匀分配，之后根据 SHAP 动态分配。"""
+        island_dims = [isl.dimension for isl in self.island_manager.islands]
+
+        if round_num == 1 or self.existing_features.shape[1] == 0:
+            return {dim: self.cfg.search.b for dim in island_dims}
+
+        try:
+            shap_fb = generate_shap_feedback(self.existing_features, self.label)
+            dim_importance = {}
+            for ic in self.cfg.islands:
+                dim_vals = [
+                    shap_fb["feature_importance"].get(f, 0.0)
+                    for f in self.existing_features.columns
+                    if any(field.lower() in f.lower() for field in ic.fields)
+                ]
+                dim_importance[ic.dimension] = sum(dim_vals) if dim_vals else 0.0
+
+            return compute_island_budgets(
+                dim_importance, island_dims,
+                B_total=self.cfg.search.B_total,
+                b_min=self.cfg.search.b_min,
+                b_max=self.cfg.search.b_max,
+            )
+        except Exception as e:
+            logger.warning("Dynamic budget computation failed: %s, using uniform", e)
+            return {dim: self.cfg.search.b for dim in island_dims}
+
     def run_round(self, round_num: int) -> dict:
-        """一轮完整迭代：遍历所有岛屿。"""
+        """一轮完整迭代：遍历所有岛屿，根据 SHAP 动态分配候选预算。"""
+        budgets = self._compute_budgets(round_num)
+
         round_log = {
             "round": round_num,
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "islands": [],
             "new_features": 0,
+            "budgets": {dim: b for dim, b in budgets.items()},
         }
 
         new_count = 0
         for island in self.island_manager.islands:
-            island_log = {"island": island.name, "candidates": 0, "accepted": 0, "details": []}
+            n_candidates = budgets.get(island.dimension, self.cfg.search.b)
+            island_log = {
+                "island": island.name,
+                "budget": n_candidates,
+                "candidates": 0,
+                "accepted": 0,
+                "details": [],
+            }
 
             try:
-                validated = self.run_single_island_step(island, round_num)
+                validated = self.run_single_island_step(island, round_num, n_candidates)
                 island_log["candidates"] = len(validated)
 
                 accepted = self.evaluate_candidates(validated, island)
