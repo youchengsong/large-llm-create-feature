@@ -267,13 +267,13 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     # 使用closed='left'排除当前时间点，使用历史1小时内的交易统计
     # 修复NaN/inf错误：先填充NaN和inf，再转换为int
     all_accounts['counts_1H_From'] = all_accounts.groupby('Account', group_keys=False).apply(
-        lambda g: g[g['Type']=='From'].rolling('1H', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
+        lambda g: g[g['Type']=='From'].rolling('1h', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
     ).reset_index(level=0, drop=True)
     # 处理NaN和inf值
     all_accounts['counts_1H_From'] = all_accounts['counts_1H_From'].fillna(0).replace([np.inf, -np.inf], 0).astype(int)
 
     all_accounts['counts_1H_To'] = all_accounts.groupby('Account', group_keys=False).apply(
-        lambda g: g[g['Type']=='To'].rolling('1H', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
+        lambda g: g[g['Type']=='To'].rolling('1h', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
     ).reset_index(level=0, drop=True)
     # 处理NaN和inf值
     all_accounts['counts_1H_To'] = all_accounts['counts_1H_To'].fillna(0).replace([np.inf, -np.inf], 0).astype(int)
@@ -894,7 +894,7 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     # 在最终特征中保留原始的 src / dst 列（按 tx_id 对齐）
     # 注意：此处不对 src / dst 做任何归一化或变换，只作原样保留，便于后续按节点划分或回溯原交易
     if {'tx_id', 'src', 'dst'}.issubset(set(df.columns)):
-        src_dst_map = df[['tx_id', 'src', 'dst']].copy()
+        src_dst_map = df[['tx_id', 'src', 'dst']].drop_duplicates(subset='tx_id').copy()
         src_dst_map = src_dst_map.rename(columns={'tx_id': 'id'})
         df_normalized = df_normalized.merge(src_dst_map, on='id', how='left')
     else:

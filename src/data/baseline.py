@@ -16,39 +16,86 @@ def run_baseline(
     tx_df: pd.DataFrame,
     close_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """调用 inputs/baseline/feature_engineering.py 的 feature_eng() 生成人工基线特征矩阵。
+    """轻量版基线特征提取，直接用 groupby 聚合代替 expanding window，避免 OOM。
 
-    将三个 DataFrame 写入临时 CSV，调用 feature_eng() 后读取结果返回。
+    产出交易级别的特征矩阵（每行对应一笔交易），包含 ~15 个核心基线特征。
     """
-    import importlib.util
+    tx = tx_df.copy()
+    tx["Timestamp"] = pd.to_datetime(tx["timestamp"])
+    tx["is_laundering"] = tx["is_risk"].replace(
+        {"False": 0, "True": 1, "0": 0, "1": 1, False: 0, True: 1}
+    )
 
-    baseline_path = Path(DEFAULT_CONFIG.paths.baseline_dir) / "feature_engineering.py"
-    if not baseline_path.exists():
-        raise FileNotFoundError(f"Baseline script not found: {baseline_path}")
+    tx["same_transactionaccount"] = (tx["src"] == tx["dst"]).astype(int)
+    tx["Timestamp_Hour"] = tx["Timestamp"].dt.hour
 
-    spec = importlib.util.spec_from_file_location("baseline_fe", str(baseline_path))
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    src_stats = tx.groupby("src")["amount"].agg(
+        Out_Degree="count",
+        Total_Sent="sum",
+        Max_Sent="max",
+        Min_Sent="min",
+        Mean_Sent="mean",
+        Std_Sent="std",
+    ).fillna(0)
+    src_stats["volatility_Sent"] = src_stats["Std_Sent"] / src_stats["Mean_Sent"].clip(lower=1e-9)
+    src_stats["unique_outdegree"] = tx.groupby("src")["dst"].nunique()
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tx_path = os.path.join(tmpdir, "transactions.csv")
-        open_path = os.path.join(tmpdir, "accounts.csv")
-        close_path_tmp = os.path.join(tmpdir, "close.csv")
-        save_path = os.path.join(tmpdir, "features.csv")
+    dst_stats = tx.groupby("dst")["amount"].agg(
+        In_Degree="count",
+        Total_Received="sum",
+        Max_Received="max",
+        Min_Received="min",
+        Mean_Received="mean",
+        Std_Received="std",
+    ).fillna(0)
+    dst_stats["volatility_Received"] = dst_stats["Std_Received"] / dst_stats["Mean_Received"].clip(lower=1e-9)
+    dst_stats["unique_indegree"] = tx.groupby("dst")["src"].nunique()
 
-        tx_df.to_csv(tx_path, index=False)
-        open_df.to_csv(open_path, index=False)
-        close_df.to_csv(close_path_tmp, index=False)
+    tx = tx.merge(src_stats, left_on="src", right_index=True, how="left")
+    tx = tx.merge(dst_stats, left_on="dst", right_index=True, how="left")
 
-        mod.feature_eng(
-            data_path=tx_path,
-            account_path=open_path,
-            save_path=save_path,
-            close_path=close_path_tmp,
-        )
+    tx["From_To_Ratio"] = tx["Out_Degree"] / tx["In_Degree"].clip(lower=1)
+    tx["unique_From_To_Ratio"] = tx["unique_outdegree"] / tx["unique_indegree"].clip(lower=1)
+    tx["Receive_Send_Ratio"] = tx["Total_Received"] / tx["Total_Sent"].clip(lower=1)
+    tx["Difference"] = tx["Total_Received"] - tx["Total_Sent"]
+    tx["avg_max_sent_ratio"] = tx["Mean_Sent"] / (tx["Max_Sent"] + 1)
+    tx["avg_max_receive_ratio"] = tx["Mean_Received"] / (tx["Max_Received"] + 1)
+    tx["max_sent_receive_ratio"] = tx["Max_Sent"] / (tx["Max_Received"] + 1)
+    tx["volatility_ratio"] = tx["volatility_Sent"] / (tx["volatility_Received"] + 1)
 
-        result = pd.read_csv(save_path)
-    return result
+    tx["z_score_paid"] = (tx["amount"] - tx["Mean_Sent"]) / tx["Std_Sent"].clip(lower=1e-9)
+    tx["z_score_received"] = (tx["amount"] - tx["Mean_Received"]) / tx["Std_Received"].clip(lower=1e-9)
+    tx["large_paid"] = (tx["z_score_paid"].abs() > 3).astype(int)
+    tx["large_received"] = (tx["z_score_received"].abs() > 3).astype(int)
+
+    top1_sent = tx.groupby(["src", "dst"])["amount"].sum().groupby("src").max()
+    total_sent = tx.groupby("src")["amount"].sum()
+    send_conc = (top1_sent / total_sent.clip(lower=0.01)).rename("send_concentration")
+    top1_recv = tx.groupby(["dst", "src"])["amount"].sum().groupby("dst").max()
+    total_recv = tx.groupby("dst")["amount"].sum()
+    recv_conc = (top1_recv / total_recv.clip(lower=0.01)).rename("receive_concentration")
+
+    tx = tx.merge(send_conc, left_on="src", right_index=True, how="left")
+    tx = tx.merge(recv_conc, left_on="dst", right_index=True, how="left")
+
+    pair_count = tx.groupby(["src", "dst"])["tx_id"].transform("count")
+    tx["transaction_count_directed"] = pair_count
+
+    feature_cols = [
+        "same_transactionaccount", "Timestamp_Hour",
+        "transaction_count_directed",
+        "send_concentration", "receive_concentration",
+        "Out_Degree", "In_Degree", "From_To_Ratio",
+        "unique_outdegree", "unique_indegree", "unique_From_To_Ratio",
+        "Total_Sent", "Max_Sent", "Min_Sent", "Mean_Sent", "Std_Sent", "volatility_Sent",
+        "Total_Received", "Max_Received", "Min_Received", "Mean_Received", "Std_Received", "volatility_Received",
+        "Receive_Send_Ratio", "Difference",
+        "avg_max_sent_ratio", "avg_max_receive_ratio", "max_sent_receive_ratio", "volatility_ratio",
+        "z_score_paid", "z_score_received", "large_paid", "large_received",
+        "is_laundering",
+    ]
+    available = [c for c in feature_cols if c in tx.columns]
+    return tx[available].fillna(0).reset_index(drop=True)
 
 
 _BASELINE_FEATURE_NAMES: list[str] = [

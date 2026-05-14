@@ -1,143 +1,203 @@
 {
-  "total_rounds": 4,
+  "total_rounds": 2,
   "converged": true,
-  "total_features": 2,
+  "total_features": 0,
   "rounds": [
     {
       "round": 1,
-      "timestamp": "2026-05-14 00:39:44",
+      "timestamp": "2026-05-14 11:39:59",
       "islands": [
         {
           "island": "金额频次",
-          "candidates": 3,
-          "accepted": 0,
-          "details": [],
-          "error": "Found input variables with inconsistent numbers of samples: [161601, 160001]"
-        },
-        {
-          "island": "时间地域",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        },
-        {
-          "island": "行为序列",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        },
-        {
-          "island": "主体关联",
-          "candidates": 3,
-          "accepted": 1,
-          "details": [
+          "budget": 3,
+          "turns": [
             {
-              "name": "multi_cert_phone_ratio",
-              "score": 0.5
-            }
-          ]
-        }
-      ],
-      "new_features": 1
-    },
-    {
-      "round": 2,
-      "timestamp": "2026-05-14 00:44:59",
-      "islands": [
-        {
-          "island": "金额频次",
-          "candidates": 3,
-          "accepted": 0,
-          "details": [],
-          "error": "Found input variables with inconsistent numbers of samples: [161601, 160001]"
-        },
-        {
-          "island": "时间地域",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        },
-        {
-          "island": "行为序列",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        },
-        {
-          "island": "主体关联",
-          "candidates": 3,
-          "accepted": 1,
-          "details": [
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            },
             {
-              "name": "cert_phone_multi_wallet_count",
-              "score": 0.425
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
             }
-          ]
-        }
-      ],
-      "new_features": 1
-    },
-    {
-      "round": 3,
-      "timestamp": "2026-05-14 00:51:39",
-      "islands": [
-        {
-          "island": "金额频次",
-          "candidates": 3,
+          ],
+          "candidates": 6,
           "accepted": 0,
           "details": []
         },
         {
           "island": "时间地域",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
           "candidates": 3,
           "accepted": 0,
           "details": []
         },
         {
           "island": "行为序列",
-          "candidates": 3,
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 5,
           "accepted": 0,
           "details": []
         },
         {
           "island": "主体关联",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        }
-      ],
-      "new_features": 0
-    },
-    {
-      "round": 4,
-      "timestamp": "2026-05-14 00:59:03",
-      "islands": [
-        {
-          "island": "金额频次",
-          "candidates": 3,
-          "accepted": 0,
-          "details": []
-        },
-        {
-          "island": "时间地域",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
           "candidates": 2,
           "accepted": 0,
           "details": []
+        }
+      ],
+      "new_features": 0,
+      "budgets": {
+        "amount_frequency": 3,
+        "time_region": 3,
+        "behavior_sequence": 3,
+        "entity_association": 3
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 2,
+      "timestamp": "2026-05-14 11:48:03",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "时间地域",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 0,
+          "details": []
         },
         {
           "island": "行为序列",
-          "candidates": 3,
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 5,
           "accepted": 0,
           "details": []
         },
         {
           "island": "主体关联",
-          "candidates": 3,
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
           "accepted": 0,
           "details": []
         }
       ],
-      "new_features": 0
+      "new_features": 0,
+      "budgets": {
+        "amount_frequency": 3,
+        "time_region": 3,
+        "behavior_sequence": 3,
+        "entity_association": 3
+      },
+      "pending_pool_size": 0
     }
   ]
 }

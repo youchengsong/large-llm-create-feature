@@ -61,12 +61,22 @@
 
 **方法**：
 - LLM 生成特征转换的 Python 代码（而非直接生成特征值）
-- 进化搜索策略迭代优化特征组合
-- 不依赖数据集的自然语言描述
+- **多岛进化策略**：维护多个独立"岛"的记忆缓冲区，每个岛独立进化
+- 每轮迭代通过 Boltzmann 采样从记忆中选 k=2 个高分程序作为 in-context 示例
+- 每次生成 b=3 个候选程序，在验证集上评分，超越当前最优才入池
+- 总共 20 次 LLM 采样，最终从 top m=3 程序（每岛一个）集成预测
+- Prompt 包含：任务指令 + 数据集描述 + 评估函数 + 历史高分程序示例
+
+**关键结果**：
+- 分类任务平均排名 1.54（vs CAAFE 3.82, OpenFE 3.00），11 个数据集中 9 个最优
+- 回归任务排名 1.00（最佳），一致性 N-RMSE 提升
+- 消融实验证明进化优化是关键——去掉后性能停滞
 
 **对我们的启发**：
 - 让 LLM 生成**特征转换代码**而非直接打分，更灵活、可复用
 - 进化搜索思路可用于自动发现最优特征组合
+- **数据驱动反馈闭环**：验证性能→指导下一轮生成，比一次性 prompting 效果显著更好
+- 多岛策略保持多样性，避免陷入局部最优
 
 ---
 
@@ -162,6 +172,28 @@
 - 无需数据集语言描述（克服 CAAFE 的限制）
 - 代码：https://github.com/jaehyun513/OCTree
 
+#### FeatLLM: LLMs for Few-Shot Tabular Learning (ICML 2024)
+- **作者**：Sungwon Han, Jinsung Yoon, Sercan O Arik, Tomas Pfister (Google)
+- **arXiv**：https://arxiv.org/abs/2404.09491
+- **核心创新**：LLM 生成**可解释的二值规则特征**（如 `IF age > 30 AND income > 50k THEN 1`），而非连续特征值
+- 只在特征生成阶段调用 LLM，**推理阶段仅用简单线性模型**——无需逐样本查询 LLM
+- 生成的规则 79% AUROC > 0.5（训练后提升到 91%）
+- 平均比 TabLLM/STUNT 高 10%
+- **鲁棒性强**：加入无关列后性能不降，因为 LLM 的结构化推理自动忽略无关特征
+- **对我们的启发**：生成二值规则特征+简单模型的思路可大幅降低推理成本，适合生产环境
+
+#### MedFeat: Model-Aware and Explainability-Driven Feature Engineering (arXiv 2026)
+- **arXiv**：https://arxiv.org/abs/2603.02221
+- **核心创新**：**SHAP 引导的特征生成**——用 SHAP 重要性驱动 LLM 的特征发现方向
+- **Feature Island 机制**：按重要性采样特征子集构建"特征岛"，引导 LLM 聚焦高影响区域
+- **记忆库**：记录成功和失败的特征提案，避免重复尝试
+- **隐私保护**：不发送患者级原始数据给 LLM，只传特征元数据和统计信息
+- **迭代闭环**：生成→验证→反馈→再生成
+- **对我们的启发**：
+  - SHAP 引导的方向选择比随机搜索高效得多
+  - 记忆库机制与我们的 pending pool 理念相似，值得参考
+  - 不传原始数据的隐私保护设计对金融场景尤其重要
+
 ### B. LLM + 金融数据
 
 #### FinFRE-RAG: Understanding Structured Financial Data with LLMs (ACL 2026)
@@ -178,13 +210,15 @@
 
 ## 三、技术方法分类
 
-| 方法类别 | 代表论文 | 核心思路 | 适用场景 |
-|---------|---------|---------|---------|
-| **文本→可解释特征** | Balek 2025 | LLM 直接从文本提取语义特征值 | 文本分类、NLP |
-| **表格→特征代码** | CAAFE, OCTree, LLM-FE | LLM 生成特征转换代码/规则 | 表格数据预测 |
-| **图→文本推理** | Pirmorad 2025 | 子图序列化 + ICL 推理 | 金融图谱分析 |
-| **多 Agent 系统** | RiskTagger | 多模块 Agent 协同 | AML 合规、犯罪调查 |
-| **结构化数据→NL** | FinFRE-RAG | 特征降维 + 序列化 + RAG | 欺诈检测 |
+| 方法类别 | 代表论文 | 核心思路 | 适用场景 | 特征质量保证 |
+|---------|---------|---------|---------|-------------|
+| **文本→可解释特征** | Balek 2025 | LLM 直接从文本提取语义特征值 | 文本分类、NLP | 卡方检验 + Cramer's V |
+| **表格→特征代码** | CAAFE, OCTree, LLM-FE | LLM 生成特征转换代码/规则，进化优化 | 表格数据预测 | 验证集反馈闭环 |
+| **表格→二值规则** | FeatLLM | LLM 生成 IF-THEN 二值规则特征 | 少样本表格预测 | AUROC 过滤 |
+| **模型感知特征工程** | MedFeat | SHAP 引导 + 记忆库 + 隐私保护 | 医疗/敏感数据 | SHAP + 局部验证 |
+| **图→文本推理** | Pirmorad 2025 | 子图序列化 + ICL 推理 | 金融图谱分析 | Few-shot 模式匹配 |
+| **多 Agent 系统** | RiskTagger | 多模块 Agent 协同 + Self-reflection | AML 合规、犯罪调查 | 专家一致性评估 |
+| **结构化数据→NL** | FinFRE-RAG | 特征降维 + 序列化 + RAG | 欺诈检测 | 下游任务验证 |
 
 ---
 
@@ -196,6 +230,9 @@
 2. **从单一调用到 Agent 架构**：RiskTagger 等代表了多模块 Agent 系统的趋势
 3. **成本可控**：本地小模型推理成本极低（$0.15/3000 条），具备实际部署可行性
 4. **图结构 + LLM 是新方向**：序列化后 ICL 可行但性能有限，需要结合其他方法
+5. **反馈闭环是共识**：LLM-FE、MedFeat、CAAFE 都采用"生成→验证→反馈→再生成"的迭代模式，单次 prompting 已被证明不够
+6. **模型感知成为趋势**：MedFeat 用 SHAP 引导生成方向，OCTree 用决策树反馈——不是让 LLM 盲猜，而是用下游模型的信号指引
+7. **隐私保护设计**：MedFeat 不传原始数据、FeatLLM 推理阶段不调 LLM，对金融合规场景关键
 
 ### 对本项目的建议
 
@@ -204,17 +241,29 @@
    - 统计验证流程（卡方检验 + Cramer's V）可直接复用
    - 成本效益最优
 
-2. **结合 CAAFE/OCTree 的代码生成思路**：
+2. **结合 LLM-FE 的进化优化思路**：
    - 让 LLM 生成特征转换代码，比直接打分更灵活
-   - 迭代优化机制可持续改进特征质量
+   - **关键改进**：用验证性能作为反馈信号迭代优化（而非一次性生成）
+   - 多岛策略保持多样性，Boltzmann 采样偏向高分程序
 
-3. **借鉴 RiskTagger 的多维度分析框架**：
+3. **引入 MedFeat 的 SHAP 引导机制**：
+   - 用 SHAP/特征重要性分析告诉 LLM 哪些特征区域值得探索
+   - 记忆库记录成功/失败方案，避免重复无效尝试
+   - 不传原始数据的隐私保护设计对金融场景尤其重要
+
+4. **考虑 FeatLLM 的规则特征思路**：
+   - 生成 IF-THEN 规则特征，推理时仅用线性模型，无需 LLM
+   - 适合需要低延迟、高吞吐的生产环境部署
+   - 对抗虚假相关性（spurious correlations）效果好
+
+5. **借鉴 RiskTagger 的多维度分析框架**：
    - 从多个维度（模式、流向、关联、时序）系统性提取特征
    - Chain-of-Thought + Self-reflection 提升质量
 
-4. **建立特征质量验证体系**：
+6. **建立特征质量验证体系**：
    - 统计显著性检验（卡方/互信息）
    - 效应大小衡量（Cramer's V）
+   - SHAP 重要性分析
    - 人工评估（抽样验证语义合理性）
    - 下游任务性能对比
 
@@ -232,3 +281,5 @@
 8. Fang et al. "Large Language Models on Tabular Data: A Survey." arXiv 2402.17944.
 9. Naik et al. "Co-Investigator AI: Agentic AI for AML Compliance." arXiv 2509.08380.
 10. Chernakov et al. "An Agentic LLM Framework for Adverse Media Screening in AML." arXiv 2602.23373.
+11. Han et al. "Large Language Models Can Automatically Engineer Features for Few-Shot Tabular Learning." ICML 2024. arXiv 2404.09491.
+12. "MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs for Clinical Tabular Prediction." arXiv 2603.02221, 2026.
