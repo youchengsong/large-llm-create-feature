@@ -176,6 +176,14 @@ class SearchEngine:
                 logger.info("Merge failed for %s: %s", name, e)
                 continue
 
+            if len(merged) != len(self.tx_df):
+                self.failure_memory.add_failure(
+                    name, cand.get("code", ""),
+                    f"merge 行数不匹配: {len(merged)} vs {len(self.tx_df)}"
+                )
+                logger.info("Merge row mismatch for %s: %d vs %d", name, len(merged), len(self.tx_df))
+                continue
+
             feat_cols = [c for c in merged.columns if c not in self.tx_df.columns]
             if not feat_cols:
                 self.failure_memory.add_failure(name, cand.get("code", ""), "merge 后无新列")
@@ -190,7 +198,12 @@ class SearchEngine:
             cand["l2_metrics"] = l2_metrics
 
             if not l2_passed:
-                reason = f"L2 未通过: MI={l2_metrics['mi']:.4f}, redundancy={l2_metrics['redundancy']:.4f}"
+                reason = (
+                    f"L2 未通过: MI={l2_metrics['mi']:.4f}, "
+                    f"redundancy={l2_metrics['redundancy']:.4f}, "
+                    f"cramers_v={l2_metrics['cramers_v']:.4f}, "
+                    f"bootstrap_p={l2_metrics['bootstrap_p']:.4e}"
+                )
                 self.failure_memory.add_failure(name, cand.get("code", ""), reason)
                 logger.info("L2 failed for %s: %s", name, reason)
                 continue
