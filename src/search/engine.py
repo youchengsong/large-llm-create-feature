@@ -9,10 +9,9 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from src.config import Config, DEFAULT_CONFIG
+from src.config import Config, DEFAULT_CONFIG, ValidationThresholds
 from src.data.merge import merge_feature_to_transactions
 from src.evaluation.validator import (
-    calibrate_l2_thresholds,
     run_l1_validation,
     run_l2_validation,
     run_l3_validation,
@@ -37,6 +36,7 @@ class SearchResult:
     search_log: list[dict] = field(default_factory=list)
     total_rounds: int = 0
     converged: bool = False
+    calibrated_thresholds: dict | None = None
 
 
 class SearchEngine:
@@ -52,6 +52,7 @@ class SearchEngine:
         baseline_features: pd.DataFrame,
         baseline_prauc: float,
         config: Config | None = None,
+        validation_thresholds: ValidationThresholds | None = None,
     ) -> None:
         self.llm = llm
         self.system_prompt = system_prompt
@@ -63,6 +64,7 @@ class SearchEngine:
         self.baseline_prauc = baseline_prauc
 
         self.cfg = config or DEFAULT_CONFIG
+        self.validation_thresholds = validation_thresholds
         self.island_manager = IslandManager(self.cfg.islands)
         self.failure_memory = FailureMemory()
         self.pending_pool = PendingPool(
@@ -80,11 +82,6 @@ class SearchEngine:
             "delta_prauc": [],
         }
         self._rounds_without_new = 0
-
-        calibration = calibrate_l2_thresholds(baseline_features, label)
-        self._calibrated_mi_min = calibration["mi_min"]
-        self._calibrated_cv_min = calibration["cramers_v_min"]
-        self._calibration_stats = calibration.get("baseline_stats", {})
 
     def run_single_island_step(
         self, island: Island, round_num: int, n_candidates: int = 3
@@ -267,18 +264,22 @@ class SearchEngine:
 
             l2_passed, l2_metrics = run_l2_validation(
                 feature_series, self.label, self.existing_features,
-                mi_min=self._calibrated_mi_min,
-                cramers_v_min=self._calibrated_cv_min,
+                thresholds=self.validation_thresholds,
             )
             cand["l2_metrics"] = l2_metrics
 
             if not l2_passed:
-                reason = (
-                    f"L2 未通过: MI={l2_metrics['mi']:.4f}, "
-                    f"redundancy={l2_metrics['redundancy']:.4f}, "
-                    f"cramers_v={l2_metrics['cramers_v']:.4f}, "
-                    f"bootstrap_p={l2_metrics['bootstrap_p']:.4e}"
-                )
+                th = self.validation_thresholds or self.cfg.validation
+                failed_checks = []
+                if l2_metrics["mi"] < th.mi_min:
+                    failed_checks.append(f"MI={l2_metrics['mi']:.6f}<{th.mi_min:.6f}")
+                if l2_metrics["redundancy"] >= th.corr_max:
+                    failed_checks.append(f"redundancy={l2_metrics['redundancy']:.4f}>={th.corr_max}")
+                if l2_metrics["cramers_v"] < th.cramers_v_min:
+                    failed_checks.append(f"cramers_v={l2_metrics['cramers_v']:.6f}<{th.cramers_v_min:.6f}")
+                if l2_metrics["bootstrap_p"] >= th.bootstrap_p_max:
+                    failed_checks.append(f"bootstrap_p={l2_metrics['bootstrap_p']:.4e}>={th.bootstrap_p_max}")
+                reason = f"L2 未通过: {'; '.join(failed_checks)}"
                 self.failure_memory.add_failure(name, cand.get("code", ""), reason)
                 logger.info("L2 failed for %s: %s", name, reason)
                 continue
@@ -607,8 +608,16 @@ class SearchEngine:
                     island_log["candidates"] += len(validated)
                     island_log["accepted"] += len(accepted)
                     island_log["details"].extend(
-                        [{"name": f["name"], "score": f["score"]} for f in accepted]
+                        [{"name": f["name"], "score": f["score"], "status": "accepted"} for f in accepted]
                     )
+                    for pf in prev_failed:
+                        detail = {"name": pf["name"], "status": "rejected", "reason": pf["reason"]}
+                        cand_match = next((c for c in validated if c.get("feature_name") == pf["name"]), None)
+                        if cand_match and "l2_metrics" in cand_match:
+                            detail["l2_metrics"] = cand_match["l2_metrics"]
+                        if cand_match and "l3_metrics" in cand_match:
+                            detail["l3_metrics"] = cand_match["l3_metrics"]
+                        island_log["details"].append(detail)
                     new_count += len(accepted)
 
                     if len(accepted) == 0 and not has_queries and turn >= 2:
@@ -646,6 +655,15 @@ class SearchEngine:
             max_rounds = self.cfg.search.T
 
         result = SearchResult()
+        if self.validation_thresholds:
+            th = self.validation_thresholds
+            result.calibrated_thresholds = {
+                "mi_min": th.mi_min,
+                "corr_max": th.corr_max,
+                "cramers_v_min": th.cramers_v_min,
+                "delta_prauc_min": th.delta_prauc_min,
+                "bootstrap_p_max": th.bootstrap_p_max,
+            }
 
         for round_num in range(1, max_rounds + 1):
             logger.info("=== Round %d/%d ===", round_num, max_rounds)

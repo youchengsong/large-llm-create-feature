@@ -7,7 +7,7 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from src.config import DEFAULT_CONFIG
+from src.config import DEFAULT_CONFIG, ValidationThresholds
 from src.evaluation.sandbox import execute_feature_code, validate_output
 from src.evaluation.metrics import (
     compute_mutual_info,
@@ -19,65 +19,6 @@ from src.evaluation.metrics import (
     compute_shap_rank,
     normalize_score,
 )
-
-
-def calibrate_l2_thresholds(
-    baseline_features: pd.DataFrame,
-    label: pd.Series,
-    percentile: float = 10.0,
-) -> dict:
-    """基于基线特征的指标分布，自动校准 L2 阈值。
-
-    对每个基线特征计算 MI 和 Cramer's V，取 p-percentile 作为新阈值。
-    返回 dict 包含校准后的阈值和基线指标统计。
-    """
-    mis = []
-    cramers_vs = []
-
-    for col in baseline_features.columns:
-        feature = baseline_features[col].fillna(0)
-        if feature.nunique() <= 1:
-            continue
-        mi = compute_mutual_info(feature, label)
-        cv = compute_cramers_v(feature, label)
-        mis.append(mi)
-        cramers_vs.append(cv)
-
-    if not mis:
-        logger.warning("No valid baseline features for calibration, using defaults")
-        return {
-            "mi_min": DEFAULT_CONFIG.validation.mi_min,
-            "cramers_v_min": DEFAULT_CONFIG.validation.cramers_v_min,
-            "baseline_stats": {},
-        }
-
-    mi_arr = np.array(mis)
-    cv_arr = np.array(cramers_vs)
-
-    mi_threshold = float(max(np.percentile(mi_arr, percentile), 1e-6))
-    cv_threshold = float(max(np.percentile(cv_arr, percentile), 0.001))
-
-    stats = {
-        "n_features": len(mis),
-        "mi": {"min": float(mi_arr.min()), "p10": float(np.percentile(mi_arr, 10)),
-               "median": float(np.median(mi_arr)), "max": float(mi_arr.max())},
-        "cramers_v": {"min": float(cv_arr.min()), "p10": float(np.percentile(cv_arr, 10)),
-                      "median": float(np.median(cv_arr)), "max": float(cv_arr.max())},
-    }
-
-    logger.info(
-        "L2 threshold calibration: MI >= %.6f (was %.6f), Cramer's V >= %.4f (was %.4f), "
-        "based on %d baseline features (p%.0f)",
-        mi_threshold, DEFAULT_CONFIG.validation.mi_min,
-        cv_threshold, DEFAULT_CONFIG.validation.cramers_v_min,
-        len(mis), percentile,
-    )
-
-    return {
-        "mi_min": mi_threshold,
-        "cramers_v_min": cv_threshold,
-        "baseline_stats": stats,
-    }
 
 
 def run_l1_validation(
@@ -102,16 +43,11 @@ def run_l2_validation(
     feature: pd.Series,
     label: pd.Series,
     existing_features: pd.DataFrame,
-    mi_min: float | None = None,
-    cramers_v_min: float | None = None,
+    thresholds: ValidationThresholds | None = None,
 ) -> tuple[bool, dict]:
-    """L2 统计验证：MI、冗余度、Cramer's V、Bootstrap χ²。返回 (passed, metrics_dict)。
-
-    mi_min / cramers_v_min 可由调用方传入（自动校准值），未传则用默认配置。
-    """
-    thresholds = DEFAULT_CONFIG.validation
-    effective_mi_min = mi_min if mi_min is not None else thresholds.mi_min
-    effective_cv_min = cramers_v_min if cramers_v_min is not None else thresholds.cramers_v_min
+    """L2 统计验证：MI、冗余度、Cramer's V、Bootstrap χ²。返回 (passed, metrics_dict)。"""
+    if thresholds is None:
+        thresholds = DEFAULT_CONFIG.validation
 
     mi = compute_mutual_info(feature, label)
     redundancy = compute_redundancy(feature, existing_features)
@@ -123,18 +59,12 @@ def run_l2_validation(
         "redundancy": redundancy,
         "cramers_v": cramers_v,
         "bootstrap_p": bootstrap_p,
-        "thresholds_used": {
-            "mi_min": effective_mi_min,
-            "cramers_v_min": effective_cv_min,
-            "corr_max": thresholds.corr_max,
-            "bootstrap_p_max": thresholds.bootstrap_p_max,
-        },
     }
 
     passed = (
-        mi >= effective_mi_min
+        mi >= thresholds.mi_min
         and redundancy < thresholds.corr_max
-        and cramers_v >= effective_cv_min
+        and cramers_v >= thresholds.cramers_v_min
         and bootstrap_p < thresholds.bootstrap_p_max
     )
 
