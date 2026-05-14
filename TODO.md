@@ -84,7 +84,7 @@
 
 - [x] 3.3 写 `src/report/feature_dictionary.py`：特征字典生成。`generate_feature_dictionary(features_data, X_final, y) -> dict` 为每个通过验证的特征生成完整字典条目：Python 代码 + 可解释性说明 + 领域知识来源 + SHAP 排名 + 统计指标（MI, Cramer's V, Delta PR-AUC）；`export_feature_dictionary(dictionary, output_path)` 导出为 JSON + 可读 Markdown 格式
 
-- [ ] 3.4 写 `src/report/visualization.py`：结果可视化。生成以下图表：
+- [x] 3.4 写 `src/report/visualization.py`：结果可视化。生成以下图表：
   - SHAP summary plot（特征重要性）
   - 5 组实验 PR-AUC 对比柱状图（含误差线）
   - 消融实验热力图
