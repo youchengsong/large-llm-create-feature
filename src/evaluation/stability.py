@@ -86,7 +86,13 @@ def run_l4_stability(
         model.fit(X_boot, y_boot, verbose=False)
 
         explainer = shap.TreeExplainer(model)
-        shap_values = explainer.shap_values(X_boot)
+        shap_sample_size = min(5000, len(X_boot))
+        if shap_sample_size < len(X_boot):
+            sample_idx = rng.choice(len(X_boot), shap_sample_size, replace=False)
+            X_shap = X_boot.iloc[sample_idx] if isinstance(X_boot, pd.DataFrame) else X_boot[sample_idx]
+        else:
+            X_shap = X_boot
+        shap_values = explainer.shap_values(X_shap)
         mean_abs = np.mean(np.abs(shap_values), axis=0)
 
         sorted_indices = np.argsort(-mean_abs)[:top_k]

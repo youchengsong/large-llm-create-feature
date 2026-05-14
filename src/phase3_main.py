@@ -102,8 +102,8 @@ def rebuild_feature_matrix(
 def main() -> None:
     args = parse_args()
 
-    data_dir = args.data_dir or DEFAULT_CONFIG.paths.data_dir
-    output_dir = args.output_dir or DEFAULT_CONFIG.paths.output_dir
+    data_dir = str(Path(args.data_dir or DEFAULT_CONFIG.paths.data_dir).resolve())
+    output_dir = str(Path(args.output_dir or DEFAULT_CONFIG.paths.output_dir).resolve())
     features_json_path = args.features_json or str(Path(output_dir) / "features.json")
 
     logger.info("=== Phase 3: 最终验证与产出 ===")

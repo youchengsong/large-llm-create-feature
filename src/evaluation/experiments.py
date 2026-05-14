@@ -48,7 +48,9 @@ def _compute_shap_ranks(X: pd.DataFrame, y: np.ndarray) -> dict[str, int]:
     )
     model.fit(X, y, verbose=False)
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X)
+    shap_sample_size = min(5000, len(X))
+    X_shap = X.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X) else X
+    shap_values = explainer.shap_values(X_shap)
     mean_abs = np.mean(np.abs(shap_values), axis=0)
     sorted_indices = np.argsort(-mean_abs)
     ranks = {}
@@ -77,17 +79,24 @@ def run_ablation_experiments(
         包含 5 组实验结果的字典
     """
     y_arr = y.values if isinstance(y, pd.Series) else np.asarray(y)
-    X_base = X_baseline[baseline_feature_names].values
+    has_baseline = len(baseline_feature_names) > 0
+    X_base = X_baseline[baseline_feature_names].values if has_baseline else np.empty((len(y_arr), 0))
     X_llm_arr = X_llm[llm_feature_names].values
 
     results = {}
 
     # 实验 1：仅人工特征
-    mean1, std1 = _cv_prauc(X_base, y_arr)
+    if has_baseline:
+        mean1, std1 = _cv_prauc(X_base, y_arr)
+    else:
+        mean1, std1 = 0.0, 0.0
     results["exp1_baseline"] = {"prauc_mean": mean1, "prauc_std": std1}
 
     # 实验 2：人工 + LLM 特征
-    X_aug = np.column_stack([X_base, X_llm_arr])
+    if has_baseline:
+        X_aug = np.column_stack([X_base, X_llm_arr])
+    else:
+        X_aug = X_llm_arr
     mean2, std2 = _cv_prauc(X_aug, y_arr)
     results["exp2_augmented"] = {"prauc_mean": mean2, "prauc_std": std2}
 
@@ -98,8 +107,11 @@ def run_ablation_experiments(
     # 实验 4：人工 + 等量随机特征
     rng = np.random.RandomState(42)
     n_llm = X_llm_arr.shape[1]
-    X_random = rng.randn(X_base.shape[0], n_llm)
-    X_random_aug = np.column_stack([X_base, X_random])
+    X_random = rng.randn(X_aug.shape[0], n_llm)
+    if has_baseline:
+        X_random_aug = np.column_stack([X_base, X_random])
+    else:
+        X_random_aug = X_random
     mean4, std4 = _cv_prauc(X_random_aug, y_arr)
     results["exp4_random_control"] = {"prauc_mean": mean4, "prauc_std": std4}
 
@@ -108,9 +120,20 @@ def run_ablation_experiments(
     for i, fname in enumerate(llm_feature_names):
         cols_keep = [j for j in range(n_llm) if j != i]
         if cols_keep:
-            X_ablated = np.column_stack([X_base, X_llm_arr[:, cols_keep]])
+            if has_baseline:
+                X_ablated = np.column_stack([X_base, X_llm_arr[:, cols_keep]])
+            else:
+                X_ablated = X_llm_arr[:, cols_keep]
         else:
-            X_ablated = X_base
+            if has_baseline:
+                X_ablated = X_base
+            else:
+                ablation[fname] = {
+                    "prauc_mean": 0.0,
+                    "prauc_std": 0.0,
+                    "contribution": mean2,
+                }
+                continue
         m, s = _cv_prauc(X_ablated, y_arr)
         ablation[fname] = {
             "prauc_mean": m,
@@ -120,9 +143,8 @@ def run_ablation_experiments(
     results["exp5_ablation"] = ablation
 
     # SHAP 排名（在完整模型中）
-    X_full_df = pd.DataFrame(
-        X_aug, columns=baseline_feature_names + llm_feature_names
-    )
+    all_feature_names = (baseline_feature_names + llm_feature_names) if has_baseline else llm_feature_names
+    X_full_df = pd.DataFrame(X_aug, columns=all_feature_names)
     shap_ranks = _compute_shap_ranks(X_full_df, y_arr)
     results["shap_ranks"] = shap_ranks
 
