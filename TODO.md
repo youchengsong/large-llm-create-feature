@@ -104,7 +104,7 @@
 
 - [x] 3.7 写 `tests/test_stability.py`：测试 Nogueira 稳定性指数计算、bootstrap 逻辑
 
-- [ ] 3.8 写 `tests/test_experiments.py`：测试 5 组实验流程（用小数据集验证正确性）
+- [x] 3.8 写 `tests/test_experiments.py`：测试 5 组实验流程（用小数据集验证正确性）
 
 - [ ] 3.9 用现有的 2 个通过特征跑一次完整 Phase 3 流程，验证端到端可运行
 
