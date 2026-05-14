@@ -82,6 +82,37 @@ def compute_bootstrap_chi2(
     return float(np.mean(p_values))
 
 
+def compute_cv_prauc(X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) -> float:
+    """5 折 CV 计算 PR-AUC，用于缓刑池批量评估。"""
+    cfg = DEFAULT_CONFIG.xgboost
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=cfg.random_state)
+
+    X_arr = X.values if isinstance(X, pd.DataFrame) else np.asarray(X)
+    y_arr = y.values if isinstance(y, pd.Series) else np.asarray(y)
+
+    if X_arr.ndim != 2 or X_arr.shape[1] == 0:
+        return float(y_arr.mean())
+
+    params = dict(
+        scale_pos_weight=cfg.scale_pos_weight,
+        eval_metric=cfg.eval_metric,
+        n_estimators=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=cfg.learning_rate,
+        random_state=cfg.random_state,
+        n_jobs=cfg.n_jobs,
+    )
+
+    scores = []
+    for train_idx, val_idx in cv.split(X_arr, y_arr):
+        model = XGBClassifier(**params)
+        model.fit(X_arr[train_idx], y_arr[train_idx], verbose=False)
+        pred = model.predict_proba(X_arr[val_idx])[:, 1]
+        scores.append(average_precision_score(y_arr[val_idx], pred))
+
+    return float(np.mean(scores))
+
+
 def compute_delta_prauc(
     X_existing: pd.DataFrame, new_feature: pd.Series, y: pd.Series
 ) -> float:

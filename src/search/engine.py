@@ -15,6 +15,7 @@ from src.evaluation.validator import (
     run_l1_validation,
     run_l2_validation,
     run_l3_validation,
+    backward_eliminate_pending,
     compute_composite_score,
 )
 from src.llm.interface import LLMInterface
@@ -23,6 +24,7 @@ from src.llm.parser import parse_llm_output, parse_llm_output_mixed, extract_jso
 from src.prompt.builder import build_user_prompt, build_user_prompt_cold_start
 from src.search.island import Island, IslandManager
 from src.search.memory import FailureMemory
+from src.search.pending_pool import PendingPool, PendingFeature
 from src.search.shap_feedback import generate_shap_feedback, shap_feedback_to_prompt, compute_island_budgets
 
 logger = logging.getLogger(__name__)
@@ -62,6 +64,11 @@ class SearchEngine:
         self.cfg = config or DEFAULT_CONFIG
         self.island_manager = IslandManager(self.cfg.islands)
         self.failure_memory = FailureMemory()
+        self.pending_pool = PendingPool(
+            max_size=self.cfg.pending_pool.max_size,
+            max_age=self.cfg.pending_pool.max_age,
+            max_rejects=self.cfg.pending_pool.max_rejects,
+        )
 
         self.existing_features = baseline_features.copy()
         self.accepted: list[dict] = []
@@ -274,9 +281,19 @@ class SearchEngine:
             cand["l3_metrics"] = l3_metrics
 
             if not l3_passed:
-                reason = f"L3 未通过: delta_prauc={l3_metrics['delta_prauc']:.6f}"
-                self.failure_memory.add_failure(name, cand.get("code", ""), reason)
-                logger.info("L3 failed for %s: %s", name, reason)
+                pending_feat = PendingFeature(
+                    name=name,
+                    code=cand.get("code", ""),
+                    explanation=cand.get("explanation", cand.get("rationale", "")),
+                    reasoning=cand.get("reasoning", ""),
+                    feature_values=feature_series.values,
+                    l2_metrics=l2_metrics,
+                    l3_metrics=l3_metrics,
+                    island_name=island.name,
+                )
+                self.pending_pool.add(pending_feat)
+                logger.info("L3 failed for %s (delta_prauc=%.6f), added to pending pool (%d in pool)",
+                            name, l3_metrics["delta_prauc"], len(self.pending_pool))
                 continue
 
             self.all_scores["shap_rank"].append(l3_metrics["shap_rank"])
@@ -330,6 +347,93 @@ class SearchEngine:
             )
 
         return accepted_this_step
+
+    def _accept_pending_feature(self, pf: PendingFeature) -> dict:
+        """将缓刑池特征正式接受。"""
+        feature_series = pd.Series(pf.feature_values, name=pf.name)
+
+        self.all_scores["shap_rank"].append(pf.l3_metrics.get("shap_rank", 999))
+        self.all_scores["mi"].append(pf.l2_metrics.get("mi", 0))
+        self.all_scores["redundancy"].append(pf.l2_metrics.get("redundancy", 0))
+        self.all_scores["delta_prauc"].append(pf.l3_metrics.get("delta_prauc", 0))
+
+        score = compute_composite_score(
+            shap_rank=pf.l3_metrics.get("shap_rank", 999),
+            mi=pf.l2_metrics.get("mi", 0),
+            redundancy=pf.l2_metrics.get("redundancy", 0),
+            delta_prauc=pf.l3_metrics.get("delta_prauc", 0),
+            all_scores=self.all_scores,
+        )
+
+        self.existing_features[pf.name] = pf.feature_values
+
+        explainability = self._generate_explainability(
+            name=pf.name,
+            code=pf.code,
+            explanation=pf.explanation,
+            l2_metrics=pf.l2_metrics,
+            l3_metrics=pf.l3_metrics,
+            feature_series=feature_series,
+        )
+
+        feature_record = {
+            "name": pf.name,
+            "feature_name": pf.name,
+            "score": score,
+            "code": pf.code,
+            "explanation": pf.explanation,
+            "reasoning": pf.reasoning,
+            "l2_metrics": pf.l2_metrics,
+            "l3_metrics": pf.l3_metrics,
+            "shap_rank": pf.l3_metrics.get("shap_rank", 999),
+            "mi": pf.l2_metrics.get("mi", 0),
+            "explainability": explainability,
+            "accepted_via": "pending_pool",
+        }
+
+        island = self.island_manager.get_island(pf.island_name)
+        if island:
+            island.add_feature(feature_record)
+        self.island_manager.migrate_best(feature_record)
+        self.accepted.append(feature_record)
+        return feature_record
+
+    def run_pending_pool_evaluation(self) -> list[dict]:
+        """每轮结束后对缓刑池做反向淘汰评估，返回新接受的特征记录。"""
+        if self.pending_pool.is_empty():
+            return []
+
+        if self.existing_features.shape[1] == 0:
+            logger.info("No accepted features yet, skipping pending pool evaluation")
+            return []
+
+        pending_features = {
+            pf.name: pf.feature_values
+            for pf in self.pending_pool.get_all()
+        }
+
+        accepted_names, rejected_names = backward_eliminate_pending(
+            self.existing_features, pending_features, self.label,
+        )
+
+        logger.info("Pending pool evaluation: %d accepted, %d rejected out of %d",
+                     len(accepted_names), len(rejected_names), len(pending_features))
+
+        self.pending_pool.mark_rejected(rejected_names)
+
+        accepted_pfs = self.pending_pool.remove_accepted(accepted_names)
+        new_records = []
+        for pf in accepted_pfs:
+            record = self._accept_pending_feature(pf)
+            new_records.append(record)
+            logger.info("Accepted from pending pool: %s (score=%.4f)", pf.name, record["score"])
+
+        self.pending_pool.tick_age()
+        purged = self.pending_pool.purge_expired()
+        if purged:
+            logger.info("Purged %d expired features from pending pool: %s", len(purged), purged)
+
+        return new_records
 
     def _compute_budgets(self, round_num: int) -> dict[str, int]:
         """计算每个岛屿的候选预算。第 1 轮均匀分配，之后根据 SHAP 动态分配。"""
@@ -509,7 +613,15 @@ class SearchEngine:
 
             round_log["islands"].append(island_log)
 
+        pool_accepted = self.run_pending_pool_evaluation()
+        if pool_accepted:
+            round_log["pending_pool_accepted"] = [
+                {"name": f["name"], "score": f["score"]} for f in pool_accepted
+            ]
+            new_count += len(pool_accepted)
+
         round_log["new_features"] = new_count
+        round_log["pending_pool_size"] = len(self.pending_pool)
         return round_log
 
     def check_convergence(self, round_log: dict) -> bool:

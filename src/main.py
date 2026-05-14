@@ -216,6 +216,7 @@ def save_results(result, output_dir: str) -> None:
             "l2_metrics": f.get("l2_metrics", {}),
             "l3_metrics": f.get("l3_metrics", {}),
             "explainability": f.get("explainability", {}),
+            "accepted_via": f.get("accepted_via", "direct"),
         }
         features_data.append(record)
     with open(features_path, "w", encoding="utf-8") as fp:

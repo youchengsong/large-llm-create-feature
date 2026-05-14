@@ -59,6 +59,13 @@ class SearchParams:
 
 
 @dataclass
+class PendingPoolConfig:
+    max_size: int = 20       # max features in pool
+    max_age: int = 3         # purge after this many rounds
+    max_rejects: int = 2     # purge after consecutive rejections
+
+
+@dataclass
 class ValidationThresholds:
     mi_min: float = 0.001
     corr_max: float = 0.9
@@ -120,6 +127,7 @@ class PathConfig:
 class Config:
     islands: list[IslandConfig] = field(default_factory=lambda: list(ISLANDS))
     search: SearchParams = field(default_factory=SearchParams)
+    pending_pool: PendingPoolConfig = field(default_factory=PendingPoolConfig)
     validation: ValidationThresholds = field(default_factory=ValidationThresholds)
     scoring: ScoringWeights = field(default_factory=ScoringWeights)
     xgboost: XGBoostParams = field(default_factory=XGBoostParams)

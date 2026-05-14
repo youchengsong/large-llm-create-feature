@@ -1,6 +1,11 @@
-"""特征验证流水线：L1 代码验证 → L2 统计验证 → L3 模型验证 → 加权打分。"""
+"""特征验证流水线：L1 → L2 → L3 → 打分 + 缓刑池反向淘汰。"""
 
+import logging
+
+import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 from src.config import DEFAULT_CONFIG
 from src.evaluation.sandbox import execute_feature_code, validate_output
@@ -9,6 +14,7 @@ from src.evaluation.metrics import (
     compute_redundancy,
     compute_cramers_v,
     compute_bootstrap_chi2,
+    compute_cv_prauc,
     compute_delta_prauc,
     compute_shap_rank,
     normalize_score,
@@ -122,3 +128,71 @@ def compute_composite_score(
     )
 
     return float(score)
+
+
+def backward_eliminate_pending(
+    X_accepted: pd.DataFrame,
+    pending_features: dict[str, np.ndarray],
+    y: pd.Series,
+) -> tuple[set[str], set[str]]:
+    """反向淘汰：把缓刑池特征全部加入，从最弱的开始逐个尝试剔除。
+
+    返回 (accepted_names, rejected_names)。
+    accepted_names: 剔除后分数下降的特征（有组合贡献）
+    rejected_names: 剔除后分数不降的特征（没有贡献）
+    """
+    if not pending_features:
+        return set(), set()
+
+    X_full = X_accepted.copy()
+    for name, values in pending_features.items():
+        X_full[name] = values
+
+    score_full = compute_cv_prauc(X_full, y)
+    logger.info("Backward elimination: full score=%.6f with %d accepted + %d pending",
+                score_full, X_accepted.shape[1], len(pending_features))
+
+    import shap
+    from xgboost import XGBClassifier
+
+    cfg = DEFAULT_CONFIG.xgboost
+    model = XGBClassifier(
+        scale_pos_weight=cfg.scale_pos_weight,
+        eval_metric=cfg.eval_metric,
+        n_estimators=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=cfg.learning_rate,
+        random_state=cfg.random_state,
+        n_jobs=cfg.n_jobs,
+    )
+    model.fit(X_full, y, verbose=False)
+    explainer = shap.TreeExplainer(model)
+    shap_values = explainer.shap_values(X_full)
+    mean_abs = np.mean(np.abs(shap_values), axis=0)
+    importance = dict(zip(X_full.columns, mean_abs))
+
+    pending_names_sorted = sorted(
+        pending_features.keys(),
+        key=lambda n: importance.get(n, 0),
+    )
+
+    current_score = score_full
+    rejected = set()
+    X_current = X_full.copy()
+
+    for name in pending_names_sorted:
+        X_without = X_current.drop(columns=[name])
+        score_without = compute_cv_prauc(X_without, y)
+
+        if score_without >= current_score:
+            rejected.add(name)
+            X_current = X_without
+            current_score = score_without
+            logger.info("  Eliminated %s: score %.6f -> %.6f (no loss)",
+                        name, current_score, score_without)
+        else:
+            logger.info("  Kept %s: removing would drop score %.6f -> %.6f",
+                        name, current_score, score_without)
+
+    accepted = set(pending_features.keys()) - rejected
+    return accepted, rejected
