@@ -1,4 +1,4 @@
-# Phase 0-2 实现 TODO
+# Phase 0-3 实现 TODO
 
 > 按顺序逐项实现，每完成一项打勾。代码统一放在 `src/` 目录下。
 > 参考方案：`LLM_FEATURE_PLAN.md`
@@ -67,10 +67,55 @@
 
 ---
 
+---
+
+## Phase 3：最终验证与产出
+
+- [x] 3.1 写 `src/evaluation/stability.py`：L4 稳定性验证。`compute_nogueira_stability(selection_sets, n_features) -> float` 计算 Nogueira 稳定性指数；`run_l4_stability(X_final, y, n_bootstrap=10, top_k=20) -> dict` 10 次 bootstrap 训练 XGBoost + SHAP，收集 top-20 特征排名，计算稳定性指数（阈值 > 0.8）。返回 `{stability_index, per_round_rankings, pass: bool}`
+
+- [ ] 3.2 写 `src/evaluation/experiments.py`：5 组增量贡献实验。`run_ablation_experiments(X_baseline, X_llm, y, baseline_feature_names, llm_feature_names) -> dict` 实现 5 组对比实验：
+  - 实验 1（基线）：仅人工特征 → XGBoost 5 折 CV → PR-AUC_baseline
+  - 实验 2（增量）：人工 + LLM 特征 → PR-AUC_augmented
+  - 实验 3（独立）：仅 LLM 特征 → PR-AUC_llm_only
+  - 实验 4（随机对照）：人工 + 等量随机特征 → PR-AUC_random（排除过拟合）
+  - 实验 5（消融）：逐个移除 LLM 特征 → 识别最关键特征
+  - 报告指标：增量 PR-AUC、独立 PR-AUC、随机对照差、各特征 SHAP 排名、消融贡献
+  - 所有实验使用 5 折分层 CV，报告均值 ± 标准差
+
+- [ ] 3.3 写 `src/report/feature_dictionary.py`：特征字典生成。`generate_feature_dictionary(features_data, X_final, y) -> dict` 为每个通过验证的特征生成完整字典条目：Python 代码 + 可解释性说明 + 领域知识来源 + SHAP 排名 + 统计指标（MI, Cramer's V, Delta PR-AUC）；`export_feature_dictionary(dictionary, output_path)` 导出为 JSON + 可读 Markdown 格式
+
+- [ ] 3.4 写 `src/report/visualization.py`：结果可视化。生成以下图表：
+  - SHAP summary plot（特征重要性）
+  - 5 组实验 PR-AUC 对比柱状图（含误差线）
+  - 消融实验热力图
+  - 特征稳定性 bootstrap 分布图
+  - 各维度岛屿贡献饼图（每个岛产出多少通过验证的特征）
+  - 输出到 `output/plots/` 目录
+
+- [ ] 3.5 写 `src/report/generator.py`：验证报告生成。`generate_report(stability_results, experiment_results, feature_dictionary, search_log) -> str` 生成完整验证报告（Markdown），包含：
+  - 搜索过程摘要（轮数、各岛屿贡献、收敛情况）
+  - 特征字典表格
+  - 5 组实验结果及分析
+  - L4 稳定性验证结果
+  - 嵌入可视化图表引用
+  - 导出到 `output/report.md`
+
+- [ ] 3.6 写 `src/phase3_main.py`：Phase 3 主入口。加载 Phase 2 产出的 `output/features.json` → 重建特征矩阵 → 运行 L4 稳定性验证 → 运行 5 组增量实验 → 生成特征字典 → 生成可视化 → 生成验证报告。支持 `--features-json`、`--data-dir`、`--output-dir` 参数
+
+- [ ] 3.7 写 `tests/test_stability.py`：测试 Nogueira 稳定性指数计算、bootstrap 逻辑
+
+- [ ] 3.8 写 `tests/test_experiments.py`：测试 5 组实验流程（用小数据集验证正确性）
+
+- [ ] 3.9 用现有的 2 个通过特征跑一次完整 Phase 3 流程，验证端到端可运行
+
+---
+
 ## 完成标准
 
-所有 Phase 0-2 任务完成后，应该能做到：
-1. `python src/main.py` 一键运行完整搜索流程（用 MockLLM 测试）
-2. 替换为真实 LLM 后，能产出经过 L1-L3 验证的特征列表
-3. 每个特征有完整的 code + explanation + 评估指标
-4. 搜索日志记录每轮每岛屿的详细过程
+所有 Phase 0-3 任务完成后，应该能做到：
+1. `python src/main.py` 一键运行完整搜索流程（Phase 0-2）
+2. `python src/phase3_main.py` 一键运行最终验证与产出（Phase 3）
+3. 替换为真实 LLM 后，能产出经过 L1-L4 四级验证的特征列表
+4. 每个特征有完整的 code + explanation + 评估指标 + 稳定性验证
+5. 搜索日志记录每轮每岛屿的详细过程
+6. 输出完整的验证报告、特征字典和可视化图表
