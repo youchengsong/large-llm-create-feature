@@ -92,7 +92,8 @@ def _strip_redundant_imports(code: str) -> str:
 
 
 def _generate_feature_file(feature_name: str, code: str, explanation: str,
-                           l2_metrics: dict, l3_metrics: dict, score: float) -> str:
+                           l2_metrics: dict, l3_metrics: dict, score: float,
+                           explainability: dict | None = None) -> str:
     """将 code 片段包装为独立可执行的 .py 文件内容。"""
     clean_code = _strip_redundant_imports(code)
     indented_code = "\n".join("    " + line if line.strip() else ""
@@ -103,6 +104,21 @@ def _generate_feature_file(feature_name: str, code: str, explanation: str,
     cramers_v = l2_metrics.get("cramers_v", 0)
     delta_prauc = l3_metrics.get("delta_prauc", 0)
     shap_rank = l3_metrics.get("shap_rank", 0)
+
+    explain_section = ""
+    if explainability and isinstance(explainability, dict):
+        explain_lines = ["\n可解释性报告:"]
+        if explainability.get("value_meaning"):
+            explain_lines.append(f"  - 值含义: {explainability['value_meaning']}")
+        if explainability.get("risk_threshold"):
+            explain_lines.append(f"  - 风险阈值: {explainability['risk_threshold']}")
+        if explainability.get("synergy"):
+            explain_lines.append(f"  - 协同特征: {explainability['synergy']}")
+        if explainability.get("false_positive_cases"):
+            explain_lines.append(f"  - 误判场景: {explainability['false_positive_cases']}")
+        if explainability.get("regulatory_explanation"):
+            explain_lines.append(f"  - 监管说明: {explainability['regulatory_explanation']}")
+        explain_section = "\n".join(explain_lines)
 
     content = f'''"""
 特征: {feature_name}
@@ -115,6 +131,7 @@ def _generate_feature_file(feature_name: str, code: str, explanation: str,
   - Cramer's V: {cramers_v:.4f}
   - Delta PR-AUC: {delta_prauc:.6f}
   - SHAP Rank: {shap_rank}
+{explain_section}
 
 由 LLM 自动生成，通过 L1/L2/L3 三级验证。
 """
@@ -172,6 +189,7 @@ def export_feature_files(features_data: list[dict], output_dir: str) -> list[str
             l2_metrics=f.get("l2_metrics", {}),
             l3_metrics=f.get("l3_metrics", {}),
             score=f.get("score", 0),
+            explainability=f.get("explainability"),
         )
 
         file_path = features_dir / f"{name}.py"
@@ -194,8 +212,10 @@ def save_results(result, output_dir: str) -> None:
             "score": f.get("score", 0),
             "code": f.get("code", ""),
             "explanation": f.get("explanation", ""),
+            "reasoning": f.get("reasoning", ""),
             "l2_metrics": f.get("l2_metrics", {}),
             "l3_metrics": f.get("l3_metrics", {}),
+            "explainability": f.get("explainability", {}),
         }
         features_data.append(record)
     with open(features_path, "w", encoding="utf-8") as fp:

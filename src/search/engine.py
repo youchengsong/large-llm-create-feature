@@ -18,7 +18,7 @@ from src.evaluation.validator import (
     compute_composite_score,
 )
 from src.llm.interface import LLMInterface
-from src.llm.parser import parse_llm_output
+from src.llm.parser import parse_llm_output, extract_json_from_text
 from src.prompt.builder import build_user_prompt, build_user_prompt_cold_start
 from src.search.island import Island, IslandManager
 from src.search.memory import FailureMemory
@@ -158,6 +158,63 @@ class SearchEngine:
 
         return None, error
 
+    def _generate_explainability(
+        self,
+        name: str,
+        code: str,
+        explanation: str,
+        l2_metrics: dict,
+        l3_metrics: dict,
+        feature_series: pd.Series,
+    ) -> dict:
+        """通过 L3 后调用 LLM 生成特征可解释性报告。"""
+        normal_vals = feature_series[self.label == 0]
+        abnormal_vals = feature_series[self.label == 1]
+
+        prompt = f"""特征 {name} 已通过三级验证，请为它生成可解释性报告。
+
+## 特征信息
+- 名称: {name}
+- 说明: {explanation}
+- 代码: ```python
+{code}
+```
+
+## 验证指标
+- SHAP Rank: #{l3_metrics.get('shap_rank', 'N/A')}（在模型所有特征中的重要性排名）
+- MI (互信息): {l2_metrics.get('mi', 0):.4f}
+- Cramer's V: {l2_metrics.get('cramers_v', 0):.4f}
+- Delta PR-AUC: {l3_metrics.get('delta_prauc', 0):.6f}
+
+## 该特征在正常 vs 异常交易上的分布
+- 正常交易: 中位数={normal_vals.median():.4f}, 均值={normal_vals.mean():.4f}, std={normal_vals.std():.4f}
+- 异常交易: 中位数={abnormal_vals.median():.4f}, 均值={abnormal_vals.mean():.4f}, std={abnormal_vals.std():.4f}
+- 正常交易的 [25%, 75%] 分位: [{normal_vals.quantile(0.25):.4f}, {normal_vals.quantile(0.75):.4f}]
+- 异常交易的 [25%, 75%] 分位: [{abnormal_vals.quantile(0.25):.4f}, {abnormal_vals.quantile(0.75):.4f}]
+
+请输出一个 JSON 对象，包含以下字段：
+- value_meaning: 不同取值区间的业务含义（如"值=1表示正常，值>3表示批量注册嫌疑"）
+- risk_threshold: 高风险阈值及判断依据（具体数值+为什么选这个阈值）
+- synergy: 建议与哪些已有特征配合使用、为什么能协同
+- false_positive_cases: 可能的误判场景（什么情况下正常用户也会触发高值）
+- regulatory_explanation: 面向监管审计人员的一句话解释（简洁、非技术语言）"""
+
+        try:
+            raw = self.llm.generate(self.system_prompt, prompt)
+            json_str = extract_json_from_text(raw)
+            if json_str:
+                import json as _json
+                report = _json.loads(json_str)
+                if isinstance(report, dict):
+                    logger.info("Explainability report generated for %s", name)
+                    return report
+            if isinstance(raw, str) and len(raw) > 20:
+                return {"raw_explanation": raw}
+        except Exception as e:
+            logger.warning("Explainability generation failed for %s: %s", name, e)
+
+        return {}
+
     def evaluate_candidates(
         self, candidates: list[dict], island: Island
     ) -> list[dict]:
@@ -237,16 +294,28 @@ class SearchEngine:
 
             self.existing_features[name] = feature_series.values
 
+            explanation_text = cand.get("explanation", cand.get("rationale", ""))
+            explainability = self._generate_explainability(
+                name=name,
+                code=cand.get("code", ""),
+                explanation=explanation_text,
+                l2_metrics=l2_metrics,
+                l3_metrics=l3_metrics,
+                feature_series=feature_series,
+            )
+
             feature_record = {
                 "name": name,
                 "feature_name": name,
                 "score": score,
                 "code": cand.get("code", ""),
-                "explanation": cand.get("explanation", cand.get("rationale", "")),
+                "explanation": explanation_text,
+                "reasoning": cand.get("reasoning", ""),
                 "l2_metrics": l2_metrics,
                 "l3_metrics": l3_metrics,
                 "shap_rank": l3_metrics["shap_rank"],
                 "mi": l2_metrics["mi"],
+                "explainability": explainability,
             }
 
             island.add_feature(feature_record)
