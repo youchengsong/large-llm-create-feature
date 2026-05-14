@@ -57,6 +57,18 @@ stats['my_feature'] = stats['my_feature'].fillna(0)
 result = stats
 ```
 
+## 数据探索（可选）
+如果你需要先查看数据的分布或统计信息再决定生成什么特征，可以在输出中使用「查询」动作。
+查询动作的格式：
+```json
+{{"action": "query", "question": "我想看什么", "code": "query_result = tx_df.groupby('src')['amount'].describe()"}}
+```
+- 代码中将结果赋值给 `query_result`（不是 result）
+- 可用变量与特征代码相同：open_df, tx_df, close_df, pd, np
+- 查询结果会在下一轮反馈中返回给你
+- 你可以在同一个输出中同时包含查询和特征，也可以只输出查询
+- 每轮最多 3 个查询，超时 15 秒
+
 ## 数据结构
 
 {schema_text}

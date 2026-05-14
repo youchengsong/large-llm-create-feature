@@ -18,7 +18,8 @@ from src.evaluation.validator import (
     compute_composite_score,
 )
 from src.llm.interface import LLMInterface
-from src.llm.parser import parse_llm_output, extract_json_from_text
+from src.data.stats_query import execute_stats_query
+from src.llm.parser import parse_llm_output, parse_llm_output_mixed, extract_json_from_text
 from src.prompt.builder import build_user_prompt, build_user_prompt_cold_start
 from src.search.island import Island, IslandManager
 from src.search.memory import FailureMemory
@@ -358,15 +359,39 @@ class SearchEngine:
             logger.warning("Dynamic budget computation failed: %s, using uniform", e)
             return {dim: self.cfg.search.b for dim in island_dims}
 
+    def _execute_queries(self, queries: list[dict], max_queries: int = 3) -> list[dict]:
+        """执行 LLM 的数据探索查询，返回结果列表。"""
+        results = []
+        for q in queries[:max_queries]:
+            code = q.get("code", "")
+            question = q.get("question", "")
+            result_text, error = execute_stats_query(
+                code, self.open_df, self.tx_df, self.close_df,
+            )
+            results.append({
+                "question": question,
+                "result": result_text if result_text else f"查询失败: {error}",
+            })
+            logger.info("Stats query '%s': %s", question, "OK" if result_text else error)
+        return results
+
     def _build_turn_feedback_prompt(
         self,
         island: Island,
         turn_accepted: list[dict],
         turn_failed: list[dict],
         n_candidates: int,
+        query_results: list[dict] | None = None,
     ) -> str:
         """构建岛屿内多轮对话的反馈 Prompt。"""
         lines = [f"## 上一轮生成结果反馈（{island.name}）\n"]
+
+        if query_results:
+            lines.append("### 数据查询结果")
+            for qr in query_results:
+                lines.append(f"**{qr['question']}**")
+                lines.append(f"```\n{qr['result']}\n```")
+            lines.append("")
 
         if turn_accepted:
             lines.append("通过验证的特征：")
@@ -416,15 +441,24 @@ class SearchEngine:
             }
 
             try:
+                pending_query_results: list[dict] | None = None
                 for turn in range(1, max_turns + 1):
                     if turn == 1:
                         validated = self.run_single_island_step(island, round_num, n_candidates)
+                        pending_query_results = None
                     else:
                         feedback_prompt = self._build_turn_feedback_prompt(
                             island, prev_accepted, prev_failed, n_candidates,
+                            query_results=pending_query_results,
                         )
                         raw_output = self.llm.generate(self.system_prompt, feedback_prompt)
-                        candidates = parse_llm_output(raw_output)
+                        candidates, queries = parse_llm_output_mixed(raw_output)
+
+                        if queries:
+                            pending_query_results = self._execute_queries(queries)
+                        else:
+                            pending_query_results = None
+
                         validated = []
                         for cand in candidates:
                             code = cand.get("code", "")
@@ -450,10 +484,12 @@ class SearchEngine:
                             reason = recent[0].get("failure_reason", "") if recent else "验证未通过"
                             prev_failed.append({"name": name, "reason": reason})
 
+                    has_queries = pending_query_results is not None
                     turn_log = {
                         "turn": turn,
                         "candidates": len(validated),
                         "accepted": len(accepted),
+                        "queries": len(pending_query_results) if has_queries else 0,
                     }
                     island_log["turns"].append(turn_log)
                     island_log["candidates"] += len(validated)
@@ -463,8 +499,8 @@ class SearchEngine:
                     )
                     new_count += len(accepted)
 
-                    if len(accepted) == 0 and turn >= 2:
-                        logger.info("Island %s turn %d: no new features, stopping intra-island turns", island.name, turn)
+                    if len(accepted) == 0 and not has_queries and turn >= 2:
+                        logger.info("Island %s turn %d: no new features and no queries, stopping", island.name, turn)
                         break
 
             except Exception as e:

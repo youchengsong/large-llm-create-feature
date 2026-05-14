@@ -97,3 +97,41 @@ def parse_llm_output(raw_text: str) -> list[dict]:
         return []
 
     return [item for item in data if _validate_feature(item)]
+
+
+def parse_llm_output_mixed(raw_text: str) -> tuple[list[dict], list[dict]]:
+    """解析 LLM 输出，分离特征和查询请求。
+
+    返回 (features, queries)。
+    queries 中每项包含 action="query" 和 code 字段。
+    """
+    if not raw_text or not raw_text.strip():
+        return [], []
+
+    json_str = extract_json_from_text(raw_text)
+
+    for attempt_text in [json_str, _fix_truncated_json(json_str)]:
+        try:
+            data = json.loads(attempt_text)
+            break
+        except json.JSONDecodeError:
+            continue
+    else:
+        return [], []
+
+    if isinstance(data, dict):
+        data = [data]
+    elif not isinstance(data, list):
+        return [], []
+
+    features = []
+    queries = []
+    for item in data:
+        if not isinstance(item, dict):
+            continue
+        if item.get("action") == "query" and item.get("code"):
+            queries.append(item)
+        elif _validate_feature(item):
+            features.append(item)
+
+    return features, queries
