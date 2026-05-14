@@ -52,9 +52,10 @@ class SearchParams:
     B_total: int = 12    # total candidate budget per round (m * b)
     b_min: int = 1       # min candidates per island (dynamic allocation)
     b_max: int = 5       # max candidates per island (dynamic allocation)
-    k: int = 2           # in-context examples via Boltzmann sampling
+    k: int = 5           # in-context examples via Boltzmann sampling
     T: int = 10          # max rounds
     tau: float = 1.0     # Boltzmann temperature
+    intra_island_turns: int = 3  # multi-turn dialogue rounds per island per search round
 
 
 @dataclass

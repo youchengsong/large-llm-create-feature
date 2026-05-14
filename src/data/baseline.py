@@ -112,6 +112,33 @@ def get_baseline_feature_names() -> list[str]:
     return list(_BASELINE_FEATURE_NAMES)
 
 
+_BASELINE_CODE_SAMPLES: dict[str, str] = {
+    "Out_Degree": "tx_df.groupby('src')['tx_id'].count().reset_index().rename(columns={'tx_id':'Out_Degree','src':'wallet_id'})",
+    "In_Degree": "tx_df.groupby('dst')['tx_id'].count().reset_index().rename(columns={'tx_id':'In_Degree','dst':'wallet_id'})",
+    "From_To_Ratio": "out=tx_df.groupby('src')['tx_id'].count(); inp=tx_df.groupby('dst')['tx_id'].count(); ratio=(out/inp.reindex(out.index).fillna(1)).fillna(0)",
+    "Total_Sent": "tx_df.groupby('src')['amount'].sum()",
+    "Mean_Sent": "tx_df.groupby('src')['amount'].mean()",
+    "Std_Sent": "tx_df.groupby('src')['amount'].std().fillna(0)",
+    "Max_Sent": "tx_df.groupby('src')['amount'].max()",
+    "Total_Received": "tx_df.groupby('dst')['amount'].sum()",
+    "Receive_Send_Ratio": "received=tx_df.groupby('dst')['amount'].sum(); sent=tx_df.groupby('src')['amount'].sum(); ratio=received/sent.reindex(received.index).clip(lower=0.01)",
+    "Timestamp_Hour": "tx_df['hour']  # 直接取交易小时",
+    "large_transaction_ratio": "large=(tx_df['amount']>10000); tx_df.groupby('src')[large].mean()",
+    "transaction_frequency": "tx_count=tx_df.groupby('src')['tx_id'].count(); active_days=tx_df.groupby('src')['timestamp'].nunique(); freq=tx_count/active_days.clip(lower=1)",
+    "send_concentration": "top1=tx_df.groupby(['src','dst'])['amount'].sum().groupby('src').max(); total=tx_df.groupby('src')['amount'].sum(); conc=top1/total.clip(lower=0.01)",
+    "avg_inactive_period": "tx_df.sort_values('timestamp').groupby('src')['interval'].mean()",
+    "max_inactive_period": "tx_df.sort_values('timestamp').groupby('src')['interval'].max()",
+}
+
+
+def get_baseline_feature_code_samples() -> str:
+    """返回基线特征代码摘要文本，供 System Prompt 注入。"""
+    lines = ["以下是部分人工特征的实现逻辑（参考，不要重复，可以组合改进）：\n"]
+    for name, code in _BASELINE_CODE_SAMPLES.items():
+        lines.append(f"- **{name}**: `{code}`")
+    return "\n".join(lines)
+
+
 def compute_baseline_prauc(X_baseline: pd.DataFrame, y: pd.Series) -> float:
     """用 XGBoost 5 折分层 CV 计算基线 PR-AUC。"""
     cfg = DEFAULT_CONFIG.xgboost

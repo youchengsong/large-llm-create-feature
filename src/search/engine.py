@@ -289,9 +289,42 @@ class SearchEngine:
             logger.warning("Dynamic budget computation failed: %s, using uniform", e)
             return {dim: self.cfg.search.b for dim in island_dims}
 
+    def _build_turn_feedback_prompt(
+        self,
+        island: Island,
+        turn_accepted: list[dict],
+        turn_failed: list[dict],
+        n_candidates: int,
+    ) -> str:
+        """构建岛屿内多轮对话的反馈 Prompt。"""
+        lines = [f"## 上一轮生成结果反馈（{island.name}）\n"]
+
+        if turn_accepted:
+            lines.append("通过验证的特征：")
+            for f in turn_accepted:
+                lines.append(
+                    f"  - {f['name']}: score={f['score']:.4f}, "
+                    f"delta_prauc={f.get('l3_metrics', {}).get('delta_prauc', 0):.6f}"
+                )
+            lines.append("")
+
+        if turn_failed:
+            lines.append("未通过的特征（请避免类似方向）：")
+            for f in turn_failed:
+                lines.append(f"  - {f.get('name', 'unknown')}: {f.get('reason', '')}")
+            lines.append("")
+
+        lines.append(
+            f"请基于以上反馈，围绕 {island.name} 维度再生成 {n_candidates} 个"
+            f"不同角度的新特征。尝试与上轮不同的思路。输出 JSON 数组格式。"
+        )
+        return "\n".join(lines)
+
     def run_round(self, round_num: int) -> dict:
-        """一轮完整迭代：遍历所有岛屿，根据 SHAP 动态分配候选预算。"""
+        """一轮完整迭代：遍历所有岛屿，根据 SHAP 动态分配候选预算。
+        每个岛屿内进行多轮对话（intra_island_turns），实时反馈验证结果。"""
         budgets = self._compute_budgets(round_num)
+        max_turns = self.cfg.search.intra_island_turns
 
         round_log = {
             "round": round_num,
@@ -307,21 +340,64 @@ class SearchEngine:
             island_log = {
                 "island": island.name,
                 "budget": n_candidates,
+                "turns": [],
                 "candidates": 0,
                 "accepted": 0,
                 "details": [],
             }
 
             try:
-                validated = self.run_single_island_step(island, round_num, n_candidates)
-                island_log["candidates"] = len(validated)
+                for turn in range(1, max_turns + 1):
+                    if turn == 1:
+                        validated = self.run_single_island_step(island, round_num, n_candidates)
+                    else:
+                        feedback_prompt = self._build_turn_feedback_prompt(
+                            island, prev_accepted, prev_failed, n_candidates,
+                        )
+                        raw_output = self.llm.generate(self.system_prompt, feedback_prompt)
+                        candidates = parse_llm_output(raw_output)
+                        validated = []
+                        for cand in candidates:
+                            code = cand.get("code", "")
+                            name = cand.get("feature_name", "unknown")
+                            feature_df, error = self._try_l1_with_retry(code, name, max_retries=2)
+                            if feature_df is not None:
+                                cand["_feature_df"] = feature_df
+                                validated.append(cand)
+                            else:
+                                self.failure_memory.add_failure(name, code, error)
 
-                accepted = self.evaluate_candidates(validated, island)
-                island_log["accepted"] = len(accepted)
-                island_log["details"] = [
-                    {"name": f["name"], "score": f["score"]} for f in accepted
-                ]
-                new_count += len(accepted)
+                    accepted = self.evaluate_candidates(validated, island)
+
+                    prev_accepted = [
+                        {"name": f["name"], "score": f["score"], "l3_metrics": f.get("l3_metrics", {})}
+                        for f in accepted
+                    ]
+                    prev_failed = []
+                    for cand in validated:
+                        name = cand.get("feature_name", "unknown")
+                        if not any(a["name"] == name for a in accepted):
+                            recent = self.failure_memory.get_recent(1)
+                            reason = recent[0].get("failure_reason", "") if recent else "验证未通过"
+                            prev_failed.append({"name": name, "reason": reason})
+
+                    turn_log = {
+                        "turn": turn,
+                        "candidates": len(validated),
+                        "accepted": len(accepted),
+                    }
+                    island_log["turns"].append(turn_log)
+                    island_log["candidates"] += len(validated)
+                    island_log["accepted"] += len(accepted)
+                    island_log["details"].extend(
+                        [{"name": f["name"], "score": f["score"]} for f in accepted]
+                    )
+                    new_count += len(accepted)
+
+                    if len(accepted) == 0 and turn >= 2:
+                        logger.info("Island %s turn %d: no new features, stopping intra-island turns", island.name, turn)
+                        break
+
             except Exception as e:
                 logger.error("Error in island %s round %d: %s", island.name, round_num, e)
                 island_log["error"] = str(e)

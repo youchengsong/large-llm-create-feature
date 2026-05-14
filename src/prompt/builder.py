@@ -11,6 +11,9 @@ def build_system_prompt(
     expert_knowledge: str,
     risk_indicators: str,
     baseline_features: list[str],
+    distribution_diff: str = "",
+    join_statistics: str = "",
+    baseline_code_samples: str = "",
     constraints: str | None = None,
 ) -> str:
     baseline_list = "\n".join(f"- {f}" for f in baseline_features)
@@ -25,10 +28,18 @@ def build_system_prompt(
 
     prompt = f"""你是数字人民币反洗钱领域的特征工程师。你的任务是为反洗钱检测模型生成新特征。
 
+## 思考过程
+生成每个特征前，请先按以下步骤推理：
+1. 分析下方的「分布差异」，找出正常和异常之间差异最大的维度
+2. 思考哪些领域知识能解释这些差异
+3. 设计一个能捕捉该差异的特征，确保它与已有特征不冗余
+4. 编写代码实现
+
 ## 输出要求
 每个特征必须以 JSON 格式输出，包含以下字段：
 - feature_name: 特征名称（英文，有描述性）
 - granularity: "wallet" 或 "transaction"
+- reasoning: 你的推理过程（分析了什么差异、为什么这个特征有用、与已有特征的区别）
 - rationale: 为什么创建这个特征（必须引用下方的领域知识）
 - knowledge_source: 引用的具体领域知识条目
 - code: Python 代码片段（不要定义函数，直接写代码）
@@ -50,6 +61,10 @@ result = stats
 
 {schema_text}
 
+{join_statistics}
+
+{distribution_diff}
+
 ## 三表关联
 - 交易表的 src 和 dst 字段是 wallet_id，关联到开户表和销户表
 - 一个钱包可以在多笔交易中出现
@@ -62,9 +77,11 @@ result = stats
 
 {risk_indicators}
 
-## 已有特征（不要重复）
+## 已有特征（不要重复，可以组合改进）
 以下特征已经由人工实现：
 {baseline_list}
+
+{baseline_code_samples}
 
 ## 约束
 {constraints}"""

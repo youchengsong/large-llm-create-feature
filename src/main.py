@@ -10,8 +10,8 @@ from pathlib import Path
 import pandas as pd
 
 from src.config import Config, DEFAULT_CONFIG, LLMConfig
-from src.data.loader import load_all_tables, extract_schema, extract_label
-from src.data.baseline import run_baseline, get_baseline_feature_names, compute_baseline_prauc
+from src.data.loader import load_all_tables, extract_schema, extract_label, extract_distribution_diff, extract_join_statistics
+from src.data.baseline import run_baseline, get_baseline_feature_names, compute_baseline_prauc, get_baseline_feature_code_samples
 from src.prompt.domain_knowledge import (
     load_transaction_patterns,
     load_expert_interview,
@@ -251,6 +251,12 @@ def main() -> None:
     logger.info("=== 加载领域知识 ===")
     transaction_patterns, expert_knowledge, risk_indicators, seed_examples = load_domain_knowledge(cfg)
 
+    logger.info("=== 提取分布差异与关联统计 ===")
+    distribution_diff = extract_distribution_diff(open_df, tx_df, close_df, label)
+    join_statistics = extract_join_statistics(open_df, tx_df, close_df)
+    baseline_code_samples = get_baseline_feature_code_samples()
+    logger.info("分布差异: %d chars, 关联统计: %d chars", len(distribution_diff), len(join_statistics))
+
     logger.info("=== 组装 System Prompt ===")
     system_prompt = build_system_prompt(
         schema_text=schema_text,
@@ -258,6 +264,9 @@ def main() -> None:
         expert_knowledge=expert_knowledge,
         risk_indicators=risk_indicators,
         baseline_features=baseline_feature_names,
+        distribution_diff=distribution_diff,
+        join_statistics=join_statistics,
+        baseline_code_samples=baseline_code_samples,
     )
 
     logger.info("=== 初始化 LLM ===")
