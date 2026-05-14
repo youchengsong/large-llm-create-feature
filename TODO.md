@@ -71,7 +71,7 @@
 
 ## Phase 3：最终验证与产出
 
-- [x] 3.1 写 `src/evaluation/stability.py`：L4 稳定性验证。`compute_nogueira_stability(selection_sets, n_features) -> float` 计算 Nogueira 稳定性指数；`run_l4_stability(X_final, y, n_bootstrap=10, top_k=20) -> dict` 10 次 bootstrap 训练 XGBoost + SHAP，收集 top-20 特征排名，计算稳定性指数（阈值 > 0.8）。返回 `{stability_index, per_round_rankings, pass: bool}`
+- [ ] 3.1 写 `src/evaluation/stability.py`：L4 稳定性验证。`compute_nogueira_stability(selection_sets, n_features) -> float` 计算 Nogueira 稳定性指数；`run_l4_stability(X_final, y, n_bootstrap=10, top_k=20) -> dict` 10 次 bootstrap 训练 XGBoost + SHAP，收集 top-20 特征排名，计算稳定性指数（阈值 > 0.8）。返回 `{stability_index, per_round_rankings, pass: bool}`
 
 - [ ] 3.2 写 `src/evaluation/experiments.py`：5 组增量贡献实验。`run_ablation_experiments(X_baseline, X_llm, y, baseline_feature_names, llm_feature_names) -> dict` 实现 5 组对比实验：
   - 实验 1（基线）：仅人工特征 → XGBoost 5 折 CV → PR-AUC_baseline
