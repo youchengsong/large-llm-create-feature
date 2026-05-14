@@ -78,6 +78,110 @@ def load_domain_knowledge(cfg: Config) -> tuple[str, str, str, str]:
     return transaction_patterns, expert_knowledge, risk_indicators, seed_examples
 
 
+def _strip_redundant_imports(code: str) -> str:
+    """去除代码中重复的 import pandas/numpy（函数头已包含）。"""
+    lines = code.split("\n")
+    filtered = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped in ("import pandas as pd", "import numpy as np",
+                        "import pandas", "import numpy"):
+            continue
+        filtered.append(line)
+    return "\n".join(filtered)
+
+
+def _generate_feature_file(feature_name: str, code: str, explanation: str,
+                           l2_metrics: dict, l3_metrics: dict, score: float) -> str:
+    """将 code 片段包装为独立可执行的 .py 文件内容。"""
+    clean_code = _strip_redundant_imports(code)
+    indented_code = "\n".join("    " + line if line.strip() else ""
+                              for line in clean_code.split("\n"))
+
+    mi = l2_metrics.get("mi", 0)
+    redundancy = l2_metrics.get("redundancy", 0)
+    cramers_v = l2_metrics.get("cramers_v", 0)
+    delta_prauc = l3_metrics.get("delta_prauc", 0)
+    shap_rank = l3_metrics.get("shap_rank", 0)
+
+    content = f'''"""
+特征: {feature_name}
+说明: {explanation}
+
+验证指标:
+  - Score: {score:.4f}
+  - MI: {mi:.4f}
+  - Redundancy: {redundancy:.4f}
+  - Cramer's V: {cramers_v:.4f}
+  - Delta PR-AUC: {delta_prauc:.6f}
+  - SHAP Rank: {shap_rank}
+
+由 LLM 自动生成，通过 L1/L2/L3 三级验证。
+"""
+
+import pandas as pd
+import numpy as np
+
+
+def compute_feature(open_df: pd.DataFrame, tx_df: pd.DataFrame,
+                    close_df: pd.DataFrame) -> pd.DataFrame:
+    """计算特征 {feature_name}，返回 DataFrame(wallet_id/tx_id, feature_value)。"""
+{indented_code}
+    return result
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="计算特征: {feature_name}")
+    parser.add_argument("--data-dir", default="data", help="数据目录")
+    parser.add_argument("--output", default=None, help="输出 CSV 路径")
+    args = parser.parse_args()
+
+    open_df = pd.read_csv(f"{{args.data_dir}}/accounts.csv")
+    tx_df = pd.read_csv(f"{{args.data_dir}}/transactions.csv")
+    close_df = pd.read_csv(f"{{args.data_dir}}/close.csv")
+
+    result = compute_feature(open_df, tx_df, close_df)
+    print(f"特征 {feature_name}: {{len(result)}} 行, 列={{list(result.columns)}}")
+    print(result.describe())
+
+    if args.output:
+        result.to_csv(args.output, index=False)
+        print(f"已保存到 {{args.output}}")
+'''
+    return content
+
+
+def export_feature_files(features_data: list[dict], output_dir: str) -> list[str]:
+    """将通过验证的特征导出为独立 .py 文件，返回文件路径列表。"""
+    features_dir = Path(output_dir) / "features"
+    features_dir.mkdir(parents=True, exist_ok=True)
+
+    exported = []
+    for f in features_data:
+        name = f.get("feature_name", "unknown")
+        code = f.get("code", "")
+        if not code:
+            continue
+
+        content = _generate_feature_file(
+            feature_name=name,
+            code=code,
+            explanation=f.get("explanation", ""),
+            l2_metrics=f.get("l2_metrics", {}),
+            l3_metrics=f.get("l3_metrics", {}),
+            score=f.get("score", 0),
+        )
+
+        file_path = features_dir / f"{name}.py"
+        with open(file_path, "w", encoding="utf-8") as fp:
+            fp.write(content)
+        exported.append(str(file_path))
+
+    return exported
+
+
 def save_results(result, output_dir: str) -> None:
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -97,6 +201,10 @@ def save_results(result, output_dir: str) -> None:
     with open(features_path, "w", encoding="utf-8") as fp:
         json.dump(features_data, fp, ensure_ascii=False, indent=2)
     logger.info("特征结果已保存: %s (%d 个特征)", features_path, len(features_data))
+
+    exported = export_feature_files(features_data, output_dir)
+    for path in exported:
+        logger.info("特征文件已导出: %s", path)
 
     log_path = out / "search_log.json"
     log_data = {
