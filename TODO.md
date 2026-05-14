@@ -100,7 +100,7 @@
   - 嵌入可视化图表引用
   - 导出到 `output/report.md`
 
-- [ ] 3.6 写 `src/phase3_main.py`：Phase 3 主入口。加载 Phase 2 产出的 `output/features.json` → 重建特征矩阵 → 运行 L4 稳定性验证 → 运行 5 组增量实验 → 生成特征字典 → 生成可视化 → 生成验证报告。支持 `--features-json`、`--data-dir`、`--output-dir` 参数
+- [x] 3.6 写 `src/phase3_main.py`：Phase 3 主入口。加载 Phase 2 产出的 `output/features.json` → 重建特征矩阵 → 运行 L4 稳定性验证 → 运行 5 组增量实验 → 生成特征字典 → 生成可视化 → 生成验证报告。支持 `--features-json`、`--data-dir`、`--output-dir` 参数
 
 - [ ] 3.7 写 `tests/test_stability.py`：测试 Nogueira 稳定性指数计算、bootstrap 逻辑
 
