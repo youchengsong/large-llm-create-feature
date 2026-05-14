@@ -1,0 +1,143 @@
+{
+  "total_rounds": 4,
+  "converged": true,
+  "total_features": 2,
+  "rounds": [
+    {
+      "round": 1,
+      "timestamp": "2026-05-14 00:39:44",
+      "islands": [
+        {
+          "island": "金额频次",
+          "candidates": 3,
+          "accepted": 0,
+          "details": [],
+          "error": "Found input variables with inconsistent numbers of samples: [161601, 160001]"
+        },
+        {
+          "island": "时间地域",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "行为序列",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "主体关联",
+          "candidates": 3,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "multi_cert_phone_ratio",
+              "score": 0.5
+            }
+          ]
+        }
+      ],
+      "new_features": 1
+    },
+    {
+      "round": 2,
+      "timestamp": "2026-05-14 00:44:59",
+      "islands": [
+        {
+          "island": "金额频次",
+          "candidates": 3,
+          "accepted": 0,
+          "details": [],
+          "error": "Found input variables with inconsistent numbers of samples: [161601, 160001]"
+        },
+        {
+          "island": "时间地域",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "行为序列",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "主体关联",
+          "candidates": 3,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "cert_phone_multi_wallet_count",
+              "score": 0.425
+            }
+          ]
+        }
+      ],
+      "new_features": 1
+    },
+    {
+      "round": 3,
+      "timestamp": "2026-05-14 00:51:39",
+      "islands": [
+        {
+          "island": "金额频次",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "时间地域",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "行为序列",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "主体关联",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        }
+      ],
+      "new_features": 0
+    },
+    {
+      "round": 4,
+      "timestamp": "2026-05-14 00:59:03",
+      "islands": [
+        {
+          "island": "金额频次",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "时间地域",
+          "candidates": 2,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "行为序列",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "主体关联",
+          "candidates": 3,
+          "accepted": 0,
+          "details": []
+        }
+      ],
+      "new_features": 0
+    }
+  ]
+}

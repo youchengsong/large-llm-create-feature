@@ -7,8 +7,6 @@ __pycache__/
 *.pyo
 .venv/
 
-# Output
-output/
 
 # IDE
 .idea/
