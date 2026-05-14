@@ -31,11 +31,20 @@ def build_system_prompt(
 - granularity: "wallet" 或 "transaction"
 - rationale: 为什么创建这个特征（必须引用下方的领域知识）
 - knowledge_source: 引用的具体领域知识条目
-- code: Python 函数，签名为 def compute_feature(open_df, tx_df, close_df)
+- code: Python 代码片段（不要定义函数，直接写代码）
 
-函数必须返回 DataFrame，包含：
+代码中可以直接使用以下变量：open_df, tx_df, close_df, pd, np
+代码最后必须将结果赋值给 result 变量，result 必须是 DataFrame，包含：
   - wallet 级特征：[wallet_id, feature_value] 两列
   - transaction 级特征：[tx_id, feature_value] 两列
+
+示例代码格式：
+```python
+stats = tx_df.groupby('src')['amount'].std().reset_index()
+stats.columns = ['wallet_id', 'my_feature']
+stats['my_feature'] = stats['my_feature'].fillna(0)
+result = stats
+```
 
 ## 数据结构
 

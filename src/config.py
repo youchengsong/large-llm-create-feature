@@ -56,7 +56,7 @@ class SearchParams:
 
 @dataclass
 class ValidationThresholds:
-    mi_min: float = 0.01
+    mi_min: float = 0.001
     corr_max: float = 0.9
     cramers_v_min: float = 0.05
     delta_prauc_min: float = 0.005

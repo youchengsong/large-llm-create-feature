@@ -90,27 +90,36 @@ def compute_delta_prauc(
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=cfg.random_state)
 
     X_base = X_existing.values if isinstance(X_existing, pd.DataFrame) else np.asarray(X_existing)
-    X_aug = np.column_stack([X_base, new_feature.values])
     y_arr = y.values if isinstance(y, pd.Series) else np.asarray(y)
+
+    has_base = X_base.ndim == 2 and X_base.shape[1] > 0
+    if has_base:
+        X_aug = np.column_stack([X_base, new_feature.values])
+    else:
+        X_aug = new_feature.values.reshape(-1, 1)
 
     base_scores = []
     aug_scores = []
 
-    for train_idx, val_idx in cv.split(X_base, y_arr):
-        params = dict(
-            scale_pos_weight=cfg.scale_pos_weight,
-            eval_metric=cfg.eval_metric,
-            n_estimators=cfg.n_estimators,
-            max_depth=cfg.max_depth,
-            learning_rate=cfg.learning_rate,
-            random_state=cfg.random_state,
-            n_jobs=cfg.n_jobs,
-        )
+    params = dict(
+        scale_pos_weight=cfg.scale_pos_weight,
+        eval_metric=cfg.eval_metric,
+        n_estimators=cfg.n_estimators,
+        max_depth=cfg.max_depth,
+        learning_rate=cfg.learning_rate,
+        random_state=cfg.random_state,
+        n_jobs=cfg.n_jobs,
+    )
 
-        model_base = XGBClassifier(**params)
-        model_base.fit(X_base[train_idx], y_arr[train_idx], verbose=False)
-        pred_base = model_base.predict_proba(X_base[val_idx])[:, 1]
-        base_scores.append(average_precision_score(y_arr[val_idx], pred_base))
+    for train_idx, val_idx in cv.split(X_aug, y_arr):
+        if has_base:
+            model_base = XGBClassifier(**params)
+            model_base.fit(X_base[train_idx], y_arr[train_idx], verbose=False)
+            pred_base = model_base.predict_proba(X_base[val_idx])[:, 1]
+            base_scores.append(average_precision_score(y_arr[val_idx], pred_base))
+        else:
+            positive_rate = y_arr.mean()
+            base_scores.append(float(positive_rate))
 
         model_aug = XGBClassifier(**params)
         model_aug.fit(X_aug[train_idx], y_arr[train_idx], verbose=False)

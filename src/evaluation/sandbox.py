@@ -80,14 +80,16 @@ def _run_in_process(code, data_dir, result_path, error_queue):
                          if k not in _FORBIDDEN_BUILTINS}
         safe_builtins["__import__"] = _safe_import
 
-        local_ns = {
+        global_ns = {
+            "__builtins__": safe_builtins,
             "pd": pd,
             "np": np,
             "open_df": open_df,
             "tx_df": tx_df,
             "close_df": close_df,
         }
-        exec(code, {"__builtins__": safe_builtins}, local_ns)
+        local_ns = global_ns
+        exec(code, global_ns, local_ns)
 
         if "result" not in local_ns:
             error_queue.put("代码未定义 'result' 变量，请将特征 DataFrame 赋值给 result")
