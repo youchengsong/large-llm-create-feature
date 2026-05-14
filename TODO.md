@@ -92,7 +92,7 @@
   - 各维度岛屿贡献饼图（每个岛产出多少通过验证的特征）
   - 输出到 `output/plots/` 目录
 
-- [ ] 3.5 写 `src/report/generator.py`：验证报告生成。`generate_report(stability_results, experiment_results, feature_dictionary, search_log) -> str` 生成完整验证报告（Markdown），包含：
+- [x] 3.5 写 `src/report/generator.py`：验证报告生成。`generate_report(stability_results, experiment_results, feature_dictionary, search_log) -> str` 生成完整验证报告（Markdown），包含：
   - 搜索过程摘要（轮数、各岛屿贡献、收敛情况）
   - 特征字典表格
   - 5 组实验结果及分析
