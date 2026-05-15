@@ -1,0 +1,170 @@
+2026-05-15 01:01:04,351 [INFO] __main__: === 加载数据 ===
+2026-05-15 01:01:04,830 [INFO] __main__: 数据加载完成: open=1000, tx=160001, close=500
+2026-05-15 01:01:04,830 [INFO] __main__: === 提取 Schema ===
+2026-05-15 01:01:05,205 [INFO] __main__: === 运行基线特征 ===
+正在进行特征工程（使用Rolling/Expanding Window，避免数据泄露）...
+计算账户对特征（使用Expanding Window）...
+计算交易集中度特征（使用Expanding Window）...
+计算账户交易频率特征（使用Expanding Window）...
+计算账户度特征（使用Expanding Window）...
+计算账户金额统计特征（使用Expanding Window）...
+计算账户活跃时间特征（使用Expanding Window）...
+计算最后交易特征（使用Expanding Window）...
+计算交易时间间隔特征（使用Expanding Window）...
+读取账户开立数据...
+读取账户开立特征...
+合并账户开立信息和特征...
+计算S指标（S_history_count, S_geo_risk_202308等）...
+    计算S指标（S_history_count / S_geo_risk_202308 / S_time_risk_202308）...
+  成功计算S指标，共 1000 个钱包的S指标
+  S指标列: ['wallet_id', 'S_history_count', 'S_geo_risk_202308', 'S_time_risk_202308']
+  已合并 3 个S指标（From和To各3个，共6列）
+  S指标列名: ['S_src_history_count', 'S_src_geo_risk_202308', 'S_src_time_risk_202308', 'S_dst_history_count', 'S_dst_geo_risk_202308', 'S_dst_time_risk_202308']
+删除账户ID列和重复特征...
+  已删除 8 个重复特征: Amount Paid, Amount Received, bank_id_From, bank_id_To, transaction_counts_From, transaction_counts_To, balance_limit_From, balance_limit_To
+保存原始特征（归一化之前）...
+  原始特征已保存到: /tmp/tmp058_7e7n/features_original.csv
+对特征进行归一化...
+删除指定列...
+  已删除列: id, init_balance_From, init_balance_To, amount
+按时间顺序排序...
+归一化后的完整特征已保存到: /tmp/tmp058_7e7n/features.csv
+
+特征工程已完成。
+2026-05-15 01:02:38,481 [INFO] __main__: 基线 PR-AUC: 0.8850 (61 个特征)
+2026-05-15 01:02:38,481 [INFO] __main__: === 自动校准 L2 阈值 ===
+2026-05-15 01:07:33,529 [INFO] src.evaluation.calibration: L2 thresholds calibrated from 60 baseline features:
+  MI: baseline p10=0.000279 -> threshold=0.000139 (was 0.001)
+  Cramer's V: baseline p10=0.005647 -> threshold=0.002824 (was 0.05)
+  Redundancy: 0.90 (unchanged)
+  Bootstrap p: 0.05 (unchanged)
+2026-05-15 01:07:33,529 [INFO] src.evaluation.calibration: Baseline MI distribution: min=0.000098, p25=0.000645, median=0.001081, p75=0.001994, max=0.015839
+2026-05-15 01:07:33,529 [INFO] src.evaluation.calibration: Baseline Cramer's V distribution: min=0.000000, p25=0.011804, median=0.025478, p75=0.036538, max=0.063816
+2026-05-15 01:07:33,530 [INFO] __main__: 校准结果: MI_min=0.000139, cramers_v_min=0.002824 (原固定值: 0.001, 0.05)
+2026-05-15 01:07:33,530 [INFO] __main__: === 加载领域知识 ===
+2026-05-15 01:07:33,647 [INFO] __main__: === 提取分布差异与关联统计 ===
+2026-05-15 01:07:33,748 [INFO] __main__: 分布差异: 585 chars, 关联统计: 183 chars
+2026-05-15 01:07:33,748 [INFO] __main__: === 组装 System Prompt ===
+[build_system_prompt] 估算 token 数: ~3721
+2026-05-15 01:07:33,748 [INFO] __main__: === 初始化 LLM ===
+2026-05-15 01:07:34,324 [INFO] __main__: LLM provider: deepseek, model: deepseek-chat
+2026-05-15 01:07:34,324 [INFO] __main__: === 初始化搜索引擎 ===
+2026-05-15 01:07:34,473 [INFO] __main__: === 开始搜索 (最多 10 轮) ===
+2026-05-15 01:07:34,473 [INFO] src.search.engine: === Round 1/10 ===
+[build_user_prompt_cold_start] 估算 token 数: ~661
+2026-05-15 01:07:35,120 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:07:55,881 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:10:11,010 [INFO] src.search.engine: L3 failed for night_class4_avg_amount (delta_prauc=-0.003489), added to pending pool (1 in pool)
+2026-05-15 01:12:14,550 [INFO] src.search.engine: L3 failed for midnight_regular_large_ratio (delta_prauc=-0.003190), added to pending pool (2 in pool)
+2026-05-15 01:12:34,887 [INFO] src.search.engine: L2 failed for merchant_small_amount_ratio: L2 未通过: MI=0.000039<0.000139; bootstrap_p=3.6527e-01>=0.05
+2026-05-15 01:12:35,180 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:12:37,954 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~662
+2026-05-15 01:12:38,245 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:12:40,411 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:12:57,090 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:13:26,378 [INFO] src.search.engine: L2 failed for night_transaction_ratio_as_sender: L2 未通过: bootstrap_p=1.1385e-01>=0.05
+2026-05-15 01:13:46,373 [INFO] src.search.engine: L2 failed for transaction_hour_entropy: L2 未通过: bootstrap_p=1.8218e-01>=0.05
+2026-05-15 01:15:50,092 [INFO] src.search.engine: L3 failed for weekend_transaction_ratio (delta_prauc=-0.000641), added to pending pool (3 in pool)
+2026-05-15 01:15:50,092 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~665
+2026-05-15 01:15:50,381 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:16:34,009 [INFO] src.search.engine: L2 failed for night_transaction_ratio: L2 未通过: bootstrap_p=5.7714e-02>=0.05
+2026-05-15 01:18:39,245 [INFO] src.search.engine: L3 failed for inter_tx_time_std (delta_prauc=-0.000040), added to pending pool (4 in pool)
+2026-05-15 01:19:00,096 [INFO] src.search.engine: L2 failed for close_after_high_activity: L2 未通过: MI=0.000138<0.000139; bootstrap_p=1.1529e-01>=0.05
+2026-05-15 01:19:00,369 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:21:25,013 [INFO] src.search.engine: L3 failed for transaction_mode_entropy (delta_prauc=0.000727), added to pending pool (5 in pool)
+2026-05-15 01:21:46,523 [INFO] src.search.engine: L2 failed for regular_large_low_freq_ratio: L2 未通过: bootstrap_p=5.4219e-02>=0.05
+2026-05-15 01:23:50,654 [INFO] src.search.engine: L3 failed for counterparty_stability (delta_prauc=-0.009468), added to pending pool (6 in pool)
+2026-05-15 01:23:50,654 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~669
+2026-05-15 01:23:50,937 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:24:05,734 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:24:33,358 [INFO] src.search.engine: L2 failed for cert_multi_wallet_count: L2 未通过: bootstrap_p=1.7932e-01>=0.05
+2026-05-15 01:24:53,732 [INFO] src.search.engine: L2 failed for tel_multi_wallet_count: L2 未通过: bootstrap_p=5.3467e-02>=0.05
+2026-05-15 01:25:13,943 [INFO] src.search.engine: L2 failed for overlap_wallet_ratio: L2 未通过: bootstrap_p=7.8210e-02>=0.05
+2026-05-15 01:25:14,231 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:25:39,082 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:26:08,209 [INFO] src.search.engine: L2 failed for assoc_wallet_behavior_std: L2 未通过: bootstrap_p=1.9108e-01>=0.05
+2026-05-15 01:26:08,209 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-15 01:26:33,202 [INFO] src.evaluation.validator: Backward elimination: full score=0.876815 with 61 accepted + 6 pending
+2026-05-15 01:27:55,898 [INFO] src.evaluation.validator:   Kept night_class4_avg_amount: removing would drop score 0.876815 -> 0.876063
+2026-05-15 01:28:19,390 [INFO] src.evaluation.validator:   Eliminated midnight_regular_large_ratio: score 0.880051 -> 0.880051 (no loss)
+2026-05-15 01:28:42,517 [INFO] src.evaluation.validator:   Kept transaction_mode_entropy: removing would drop score 0.880051 -> 0.875366
+2026-05-15 01:29:05,760 [INFO] src.evaluation.validator:   Kept inter_tx_time_std: removing would drop score 0.880051 -> 0.875160
+2026-05-15 01:29:28,906 [INFO] src.evaluation.validator:   Kept weekend_transaction_ratio: removing would drop score 0.880051 -> 0.876866
+2026-05-15 01:29:51,901 [INFO] src.evaluation.validator:   Kept counterparty_stability: removing would drop score 0.880051 -> 0.879602
+2026-05-15 01:29:51,916 [INFO] src.search.engine: Pending pool evaluation: 5 accepted, 1 rejected out of 6
+2026-05-15 01:29:52,213 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:30:02,364 [INFO] src.search.engine: Explainability report generated for night_class4_avg_amount
+2026-05-15 01:30:02,365 [INFO] src.search.engine: Accepted from pending pool: night_class4_avg_amount (score=0.5000)
+2026-05-15 01:30:02,660 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:30:12,789 [INFO] src.search.engine: Explainability report generated for weekend_transaction_ratio
+2026-05-15 01:30:12,789 [INFO] src.search.engine: Accepted from pending pool: weekend_transaction_ratio (score=0.5000)
+2026-05-15 01:30:13,107 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:30:21,401 [INFO] src.search.engine: Explainability report generated for inter_tx_time_std
+2026-05-15 01:30:21,401 [INFO] src.search.engine: Accepted from pending pool: inter_tx_time_std (score=0.6419)
+2026-05-15 01:30:21,694 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:30:31,432 [INFO] src.search.engine: Explainability report generated for transaction_mode_entropy
+2026-05-15 01:30:31,433 [INFO] src.search.engine: Accepted from pending pool: transaction_mode_entropy (score=0.3149)
+2026-05-15 01:30:31,864 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:30:39,939 [INFO] src.search.engine: Explainability report generated for counterparty_stability
+2026-05-15 01:30:39,939 [INFO] src.search.engine: Accepted from pending pool: counterparty_stability (score=0.6754)
+2026-05-15 01:30:39,939 [INFO] src.search.engine: Round 1: 5 new features, 5 total accepted
+2026-05-15 01:30:39,939 [INFO] src.search.engine: === Round 2/10 ===
+[build_user_prompt] 估算 token 数: ~404
+2026-05-15 01:32:37,024 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:33:14,819 [INFO] src.search.engine: L2 failed for amount_sudden_spike_ratio: L2 未通过: MI=0.000094<0.000139; bootstrap_p=1.8302e-01>=0.05
+2026-05-15 01:33:34,822 [INFO] src.search.engine: L2 failed for amount_volatility_entropy: L2 未通过: bootstrap_p=1.6455e-01>=0.05
+2026-05-15 01:33:35,137 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:34:17,636 [INFO] src.search.engine: L2 failed for amount_z_score_skewness: L2 未通过: bootstrap_p=1.0765e-01>=0.05
+2026-05-15 01:34:38,420 [INFO] src.search.engine: L2 failed for night_amount_ratio: L2 未通过: bootstrap_p=1.8284e-01>=0.05
+2026-05-15 01:34:38,421 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~412
+2026-05-15 01:35:40,668 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:36:01,998 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:36:28,933 [INFO] src.search.engine: L2 failed for night_transaction_ratio_src: L2 未通过: bootstrap_p=1.1385e-01>=0.05
+2026-05-15 01:36:29,269 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:37:08,510 [INFO] src.search.engine: L2 failed for region_mismatch_ratio: L2 未通过: bootstrap_p=7.3275e-02>=0.05
+2026-05-15 01:37:28,507 [INFO] src.search.engine: L2 failed for dst_region_diversity: L2 未通过: bootstrap_p=2.5265e-01>=0.05
+2026-05-15 01:37:48,407 [INFO] src.search.engine: L2 failed for weekend_transaction_ratio: L2 未通过: redundancy=1.0000>=0.9
+2026-05-15 01:37:48,407 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~404
+2026-05-15 01:38:46,821 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:38:59,255 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:39:00,604 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:39:28,987 [INFO] src.search.engine: L2 failed for fan_out_forward_ratio: L2 未通过: bootstrap_p=7.6631e-02>=0.05
+2026-05-15 01:39:29,263 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:39:33,519 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~410
+2026-05-15 01:40:33,933 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:41:06,928 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:41:14,680 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:41:24,090 [INFO] src.search.engine: L1 failed for same_cert_transaction_ratio: 输出验证失败: 特征 feature_value 只有一个唯一值 (全0/全1)
+2026-05-15 01:41:47,180 [INFO] src.search.engine: L2 failed for cert_tel_linkage_ratio: L2 未通过: cramers_v=0.001035<0.002824; bootstrap_p=6.1177e-01>=0.05
+2026-05-15 01:42:08,410 [INFO] src.search.engine: L2 failed for multi_cert_wallet_flag: L2 未通过: MI=0.000119<0.000139; cramers_v=0.000000<0.002824; bootstrap_p=7.3064e-01>=0.05
+2026-05-15 01:42:29,664 [INFO] src.search.engine: L2 failed for cert_tel_overlap_risk: L2 未通过: bootstrap_p=7.5877e-02>=0.05
+2026-05-15 01:42:49,607 [INFO] src.search.engine: L2 failed for tel_device_diversity: L2 未通过: cramers_v=0.002598<0.002824; bootstrap_p=6.6292e-01>=0.05
+2026-05-15 01:42:49,831 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:43:13,389 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:43:45,983 [INFO] src.search.engine: L2 failed for device_region_mismatch_ratio: L2 未通过: bootstrap_p=1.4948e-01>=0.05
+2026-05-15 01:45:53,628 [INFO] src.search.engine: L3 failed for dst_device_diversity_score (delta_prauc=0.001182), added to pending pool (2 in pool)
+2026-05-15 01:46:13,972 [INFO] src.search.engine: L2 failed for tel_device_entropy: L2 未通过: MI=0.000129<0.000139; bootstrap_p=5.4721e-02>=0.05
+2026-05-15 01:46:33,872 [INFO] src.search.engine: L2 failed for ip_device_correlation: L2 未通过: cramers_v=0.001890<0.002824; bootstrap_p=4.5190e-01>=0.05
+2026-05-15 01:46:53,678 [INFO] src.search.engine: L2 failed for bank_account_device_mismatch: L2 未通过: bootstrap_p=1.7470e-01>=0.05
+2026-05-15 01:46:53,678 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-15 01:47:20,665 [INFO] src.evaluation.validator: Backward elimination: full score=0.877169 with 66 accepted + 2 pending
+2026-05-15 01:48:43,224 [INFO] src.evaluation.validator:   Eliminated midnight_regular_large_ratio: score 0.881232 -> 0.881232 (no loss)
+2026-05-15 01:49:06,852 [INFO] src.evaluation.validator:   Kept dst_device_diversity_score: removing would drop score 0.881232 -> 0.880051
+2026-05-15 01:49:06,867 [INFO] src.search.engine: Pending pool evaluation: 1 accepted, 1 rejected out of 2
+2026-05-15 01:49:07,169 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:49:15,997 [INFO] src.search.engine: Explainability report generated for dst_device_diversity_score
+2026-05-15 01:49:15,997 [INFO] src.search.engine: Accepted from pending pool: dst_device_diversity_score (score=0.2736)
+2026-05-15 01:49:15,997 [INFO] src.search.pending_pool: Purged midnight_regular_large_ratio: consecutive_rejects=2
+2026-05-15 01:49:15,997 [INFO] src.search.engine: Purged 1 expired features from pending pool: ['midnight_regular_large_ratio']
+2026-05-15 01:49:15,997 [INFO] src.search.engine: Round 2: 1 new features, 6 total accepted
+2026-05-15 01:49:15,997 [INFO] src.search.engine: === Round 3/10 ===
+[build_user_prompt] 估算 token 数: ~430
+2026-05-15 01:51:12,003 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 01:51:39,649 [INFO] src.search.engine: L2 failed for amount_skewness_sent: L2 未通过: bootstrap_p=1.1628e-01>=0.05
+2026-05-15 01:51:39,937 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"

@@ -1,5 +1,9 @@
 # Generated data files (keep data/*.csv tracked)
 
+# Large output files
+output/full_baseline_features.csv
+output/full_baseline_features_original.csv
+
 # Python
 __pycache__/
 *.pyc

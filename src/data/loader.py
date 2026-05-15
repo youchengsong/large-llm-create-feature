@@ -6,14 +6,17 @@ import pandas as pd
 _FALLBACK_PATHS = {
     "open": [
         "accounts.csv",
+        "open/accounts.csv",
         "../inputs/SimECNY/open/accounts.csv",
     ],
     "tx": [
         "transactions.csv",
+        "transaction/wallet_temporal_transactions_1105_1450_temp.csv",
         "../inputs/SimECNY/transaction/wallet_temporal_transactions_1105_1450_temp.csv",
     ],
     "close": [
         "close.csv",
+        "close/new_close_3.csv",
         "../inputs/SimECNY/close/new_close_3.csv",
     ],
 }
