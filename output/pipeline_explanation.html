@@ -364,7 +364,7 @@
     <li><a href="#phase2">Phase 2 — 三级验证</a>
       <ol>
         <li><a href="#l1">L1: 代码沙盒验证</a></li>
-        <li><a href="#l2">L2: 统计验证 + 自动校准</a></li>
+        <li><a href="#l2">L2: 统计验证 + 阈值自动校准</a></li>
         <li><a href="#l3">L3: 模型验证</a></li>
       </ol>
     </li>
@@ -745,7 +745,7 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
     <div class="flow-arrow"></div>
     <div class="flow-node l2">
       <strong>L2: 统计验证（阈值自动校准）</strong><br>
-      <small>MI &amp; Redundancy &lt; 0.9 &amp; Cramer's V &amp; Bootstrap p &lt; 0.05（MI/V 阈值从基线分布 p10 自动校准）</small>
+      <small>MI &ge; auto &amp; Redundancy &lt; 0.9 &amp; Cramer's V &ge; auto &amp; Bootstrap p &lt; 0.05（MI/V 阈值从基线分布自动校准）</small>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node l3">
@@ -850,22 +850,29 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
     <h3>L2 阈值自动校准</h3>
     <p><span class="file-ref">src/evaluation/calibration.py</span></p>
 
-    <p>固定阈值（MI &ge; 0.001, Cramer's V &ge; 0.05）在不同数据集上表现差异很大。系统引入了<strong>基于基线分布的自动校准</strong>机制：</p>
+    <p>上表中的 MI 和 Cramer's V 阈值并非硬编码，而是通过<strong>基线特征分布自动校准</strong>：</p>
 
     <div class="card">
-      <div class="card-title">校准流程</div>
-      <ol style="line-height: 2.2;">
-        <li>对每个基线特征计算 MI、Cramer's V、Bootstrap &chi;&sup2; p 值</li>
-        <li>取 <strong>p10 分位数</strong>（即最弱的 10% 基线特征对应的指标值）</li>
-        <li>阈值 = p10 &times; 0.5（留足安全裕度，避免过严）</li>
-        <li>新特征只需「不比最弱基线特征差太多」即可通过 L2</li>
+      <div class="card-title">校准逻辑</div>
+      <ol>
+        <li>对基线特征分别计算 MI 和 Cramer's V</li>
+        <li>取各指标的 <strong>p10 分位数 &times; 0.5</strong> 作为新阈值</li>
+        <li>冗余度（&lt; 0.9）和 Bootstrap p（&lt; 0.05）保持不变（已足够宽松/标准）</li>
       </ol>
+      <p>核心思想：<strong>新特征只需不比最弱的基线特征差太多</strong>即可通过 L2 粗筛。最终质量由 L3 增量验证 + 反向淘汰把关。</p>
     </div>
 
-    <p>校准后的阈值会记录在 <code>search_log.json</code> 的 <code>calibrated_thresholds</code> 字段中，便于复现和审计。冗余度（0.9）、&Delta;PR-AUC（0.005）和 Bootstrap p（0.05）仍使用固定阈值。</p>
+    <p>校准后的阈值会记录在 <code>search_log.json</code> 的 <code>calibrated_thresholds</code> 字段中，便于复现和审计。</p>
+
+    <pre><code><span class="cmt"># 校准示例（1000 钱包数据集）</span>
+<span class="cmt"># 原硬编码阈值 → 校准后阈值</span>
+MI:        <span class="num">0.001</span>  →  <span class="num">0.000131</span>   <span class="cmt"># 降低 7.6 倍</span>
+Cramer's V: <span class="num">0.05</span>  →  <span class="num">0.006661</span>  <span class="cmt"># 降低 7.5 倍</span>
+Redundancy: <span class="num">0.9</span>   →  <span class="num">0.9</span>       <span class="cmt"># 不变</span>
+Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>      <span class="cmt"># 不变</span></code></pre>
 
     <div class="highlight-box">
-      <strong>为什么自动校准？</strong> 当基线特征本身的 MI 中位数就只有 0.002 时，固定阈值 0.001 几乎没有筛选力；反之如果基线特征普遍 MI &gt; 0.1，固定阈值又太宽松。自动校准让阈值随数据自适应。
+      <strong>为什么需要自动校准？</strong> 实测发现硬编码阈值在某些数据集上过于严格（例如 39 个候选特征 0 个通过 L2），导致搜索引擎连续 2 轮无新特征直接收敛退出。自动校准后 L2 转变为粗筛角色，L3 增量验证 + 缓刑池反向淘汰承担最终质量控制。
     </div>
   </div>
 
@@ -1111,24 +1118,30 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
 <div class="section" id="example">
   <h2><span class="phase-badge pb-0">示例</span> 实际运行示例</h2>
 
-  <p>以下是用 DeepSeek-V3 模型在 1000 个钱包数据集上运行 5 轮的实际结果：</p>
+  <p>以下是用 DeepSeek-V3 模型在 1000 个钱包数据集上，启用 L2 自动校准后运行的实际结果：</p>
 
   <div class="card">
     <div class="card-title">运行概况</div>
     <table>
       <tr><td>LLM 模型</td><td>DeepSeek-V3 (deepseek-chat)</td></tr>
       <tr><td>数据规模</td><td>1,000 个钱包，对应约 14,000 笔交易</td></tr>
-      <tr><td>搜索轮数</td><td>4 轮（第 3-4 轮无新特征，提前收敛）</td></tr>
-      <tr><td>运行时间</td><td>约 29 分钟</td></tr>
-      <tr><td>候选特征数</td><td>~48 个（4 轮 &times; 4 岛 &times; 3 候选）</td></tr>
-      <tr><td>通过验证</td><td><strong>2 个</strong></td></tr>
+      <tr><td>搜索轮数</td><td>5 轮（收敛退出）</td></tr>
+      <tr><td>运行时间</td><td>约 5.5 小时（含 LLM 调用和 5-fold CV）</td></tr>
+      <tr><td>L2 校准阈值</td><td>MI &ge; 0.000131（原 0.001，降 7.6x），Cramer's V &ge; 0.006661（原 0.05，降 7.5x）</td></tr>
+      <tr><td>通过验证</td><td><strong>52 个</strong>（4 个维度均有特征被接受）</td></tr>
+      <tr><td>基线 PR-AUC</td><td>0.6305</td></tr>
+      <tr><td>最终 PR-AUC</td><td><strong>~0.678（+0.048 提升）</strong></td></tr>
     </table>
   </div>
 
-  <h3>通过验证的 2 个特征</h3>
+  <div class="highlight-box">
+    <strong>L2 自动校准的关键作用</strong>：首次测试使用硬编码阈值时，39 个候选特征 0 通过 L2，系统直接收敛退出。启用自动校准后，L2 转为粗筛角色，52 个特征通过验证。这验证了阈值应根据数据特性自适应的设计原则。
+  </div>
+
+  <h3>代表性特征示例</h3>
 
   <div class="card" style="border-left: 3px solid var(--green);">
-    <div class="card-title">特征 1: multi_cert_phone_ratio</div>
+    <div class="card-title">特征: multi_cert_phone_ratio</div>
     <p><strong>含义</strong>：计算每个钱包的身份证关联钱包数 / 手机号关联钱包数的比值。</p>
     <p><strong>领域逻辑</strong>：在「薅羊毛」洗钱模式中，犯罪分子用同一身份证 + 不同手机号批量开户，导致该比值异常偏高。</p>
     <p><strong>来源岛屿</strong>：主体关联</p>
@@ -1161,7 +1174,7 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
   </div>
 
   <div class="card" style="border-left: 3px solid var(--green);">
-    <div class="card-title">特征 2: cert_phone_multi_wallet_count</div>
+    <div class="card-title">特征: cert_phone_multi_wallet_count</div>
     <p><strong>含义</strong>：取每个钱包的 max(身份证关联钱包数, 手机号关联钱包数)。</p>
     <p><strong>领域逻辑</strong>：直接度量一个钱包背后的身份复用程度。正常用户通常只有 1 个钱包，批量注册者该值远大于 1。</p>
     <p><strong>来源岛屿</strong>：主体关联</p>
@@ -1193,7 +1206,7 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
     </div>
   </div>
 
-  <p>两个特征都来自「主体关联」维度，反映了<strong>身份复用</strong>这一核心洗钱指标。这验证了领域知识注入的有效性 — LLM 准确理解了专家访谈中描述的「薅羊毛」模式。</p>
+  <p>52 个通过验证的特征覆盖全部 4 个维度岛屿（金额频次、时间地域、行为序列、主体关联），其中主体关联维度的身份复用类特征贡献最大。基线 PR-AUC 从 0.6305 提升至 ~0.678（+0.048），验证了领域知识注入和 SHAP 引导搜索的有效性。</p>
 </div>
 
 <!-- ════════════════════════ 11. 创新 ════════════════════════ -->
@@ -1225,6 +1238,10 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
       <h4>6. 缓刑池反向淘汰</h4>
       <p>解决特征组合效应问题。L2 通过但 L3 单独不够的特征进入缓刑池，每轮末通过反向淘汰发现组合有效的特征。现有方法（CAAFE、LLM-FE）均逐个评估，无法捕捉交互。</p>
     </div>
+    <div class="island-card">
+      <h4>7. L2 阈值自动校准</h4>
+      <p>验证阈值从基线特征分布自动校准（p10 &times; 0.5），而非硬编码。解决了固定阈值过严导致搜索失败的问题。L2 转为粗筛角色，由 L3 + 反向淘汰承担最终质量控制。</p>
+    </div>
   </div>
 
   <h3>与现有方法对比</h3>
@@ -1239,6 +1256,7 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
     <tr><td>可解释性</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">rationale + 知识溯源</span></td></tr>
     <tr><td>组合效应</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">缓刑池反向淘汰</span></td></tr>
     <tr><td>数据探索</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">按需统计查询</span></td></tr>
+    <tr><td>阈值校准</td><td>硬编码</td><td>硬编码</td><td>硬编码</td><td><span class="tag tag-green">基线分布自动校准</span></td></tr>
   </table>
 </div>
 
@@ -1246,7 +1264,7 @@ indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=
 
 <div style="text-align: center; color: var(--text-dim); padding: 24px 0;">
   <p>LLM Feature Engineering Pipeline &mdash; 数字人民币反洗钱场景</p>
-  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 + L2 自动校准 &middot; 缓刑池反向淘汰 &middot; 按需数据探索 &middot; XGBoost hist 全局配置 + GPU 可选 &middot; SHAP 5000 样本采样优化</p>
+  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 + L2 阈值自动校准 &middot; 缓刑池反向淘汰 &middot; 按需数据探索 &middot; XGBoost hist 加速 + GPU 可选</p>
 </div>
 
 </div>
