@@ -1,5 +1,6 @@
 import tempfile
 import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -10,95 +11,83 @@ from sklearn.metrics import average_precision_score
 
 from src.config import DEFAULT_CONFIG
 
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+
 
 def run_baseline(
     open_df: pd.DataFrame,
     tx_df: pd.DataFrame,
     close_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """轻量版基线特征提取，直接用 groupby 聚合代替 expanding window，避免 OOM。
+    """调用完整特征工程流水线（Expanding Window），返回交易级特征矩阵。
 
-    产出交易级别的特征矩阵（每行对应一笔交易），包含 ~15 个核心基线特征。
+    内部将 DataFrame 写入临时文件，调用 inputs/baseline/feature_engineering.py 的
+    feature_eng() 函数，读取原始特征输出并返回。
     """
-    tx = tx_df.copy()
-    tx["Timestamp"] = pd.to_datetime(tx["timestamp"])
-    tx["is_laundering"] = tx["is_risk"].replace(
-        {"False": 0, "True": 1, "0": 0, "1": 1, False: 0, True: 1}
-    )
+    fe_path = _PROJECT_ROOT / "inputs" / "baseline" / "feature_engineering.py"
+    if not fe_path.exists():
+        raise FileNotFoundError(f"完整特征工程脚本不存在: {fe_path}")
 
-    tx["same_transactionaccount"] = (tx["src"] == tx["dst"]).astype(int)
-    tx["Timestamp_Hour"] = tx["Timestamp"].dt.hour
+    # 动态导入 feature_engineering 模块
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("feature_engineering", str(fe_path))
+    fe_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(fe_module)
 
-    src_stats = tx.groupby("src")["amount"].agg(
-        Out_Degree="count",
-        Total_Sent="sum",
-        Max_Sent="max",
-        Min_Sent="min",
-        Mean_Sent="mean",
-        Std_Sent="std",
-    ).fillna(0)
-    src_stats["volatility_Sent"] = src_stats["Std_Sent"] / src_stats["Mean_Sent"].clip(lower=1e-9)
-    src_stats["unique_outdegree"] = tx.groupby("src")["dst"].nunique()
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tx_path = os.path.join(tmpdir, "transactions.csv")
+        open_path = os.path.join(tmpdir, "accounts.csv")
+        close_path = os.path.join(tmpdir, "close.csv")
+        out_path = os.path.join(tmpdir, "features.csv")
 
-    dst_stats = tx.groupby("dst")["amount"].agg(
-        In_Degree="count",
-        Total_Received="sum",
-        Max_Received="max",
-        Min_Received="min",
-        Mean_Received="mean",
-        Std_Received="std",
-    ).fillna(0)
-    dst_stats["volatility_Received"] = dst_stats["Std_Received"] / dst_stats["Mean_Received"].clip(lower=1e-9)
-    dst_stats["unique_indegree"] = tx.groupby("dst")["src"].nunique()
+        tx_df.to_csv(tx_path, index=False)
+        open_df.to_csv(open_path, index=False)
+        close_df.to_csv(close_path, index=False)
 
-    tx = tx.merge(src_stats, left_on="src", right_index=True, how="left")
-    tx = tx.merge(dst_stats, left_on="dst", right_index=True, how="left")
+        fe_module.feature_eng(
+            data_path=tx_path,
+            account_path=open_path,
+            save_path=out_path,
+            close_path=close_path,
+        )
 
-    tx["From_To_Ratio"] = tx["Out_Degree"] / tx["In_Degree"].clip(lower=1)
-    tx["unique_From_To_Ratio"] = tx["unique_outdegree"] / tx["unique_indegree"].clip(lower=1)
-    tx["Receive_Send_Ratio"] = tx["Total_Received"] / tx["Total_Sent"].clip(lower=1)
-    tx["Difference"] = tx["Total_Received"] - tx["Total_Sent"]
-    tx["avg_max_sent_ratio"] = tx["Mean_Sent"] / (tx["Max_Sent"] + 1)
-    tx["avg_max_receive_ratio"] = tx["Mean_Received"] / (tx["Max_Received"] + 1)
-    tx["max_sent_receive_ratio"] = tx["Max_Sent"] / (tx["Max_Received"] + 1)
-    tx["volatility_ratio"] = tx["volatility_Sent"] / (tx["volatility_Received"] + 1)
+        # 读取原始特征（未归一化），用于 XGBoost
+        original_path = os.path.join(
+            tmpdir,
+            os.path.splitext("features.csv")[0] + "_original.csv",
+        )
+        if os.path.exists(original_path):
+            result_df = pd.read_csv(original_path)
+        else:
+            result_df = pd.read_csv(out_path)
 
-    tx["z_score_paid"] = (tx["amount"] - tx["Mean_Sent"]) / tx["Std_Sent"].clip(lower=1e-9)
-    tx["z_score_received"] = (tx["amount"] - tx["Mean_Received"]) / tx["Std_Received"].clip(lower=1e-9)
-    tx["large_paid"] = (tx["z_score_paid"].abs() > 3).astype(int)
-    tx["large_received"] = (tx["z_score_received"].abs() > 3).astype(int)
+    non_feature_cols = {
+        "id", "amount", "is_laundering", "account_is_laundering_From",
+        "account_is_laundering_To", "src", "dst", "Timestamp",
+    }
 
-    top1_sent = tx.groupby(["src", "dst"])["amount"].sum().groupby("src").max()
-    total_sent = tx.groupby("src")["amount"].sum()
-    send_conc = (top1_sent / total_sent.clip(lower=0.01)).rename("send_concentration")
-    top1_recv = tx.groupby(["dst", "src"])["amount"].sum().groupby("dst").max()
-    total_recv = tx.groupby("dst")["amount"].sum()
-    recv_conc = (top1_recv / total_recv.clip(lower=0.01)).rename("receive_concentration")
+    if "is_laundering" not in result_df.columns:
+        if "is_risk" in tx_df.columns:
+            label = tx_df["is_risk"].replace(
+                {"False": 0, "True": 1, "0": 0, "1": 1, False: 0, True: 1}
+            ).astype(int)
+            if len(label) == len(result_df):
+                result_df["is_laundering"] = label.values
 
-    tx = tx.merge(send_conc, left_on="src", right_index=True, how="left")
-    tx = tx.merge(recv_conc, left_on="dst", right_index=True, how="left")
+    feature_cols = [c for c in result_df.columns if c not in non_feature_cols]
+    out = result_df[feature_cols].fillna(0).reset_index(drop=True)
 
-    pair_count = tx.groupby(["src", "dst"])["tx_id"].transform("count")
-    tx["transaction_count_directed"] = pair_count
+    if "is_laundering" in result_df.columns:
+        out["is_laundering"] = result_df["is_laundering"].astype(int).values
 
-    feature_cols = [
-        "same_transactionaccount", "Timestamp_Hour",
-        "transaction_count_directed",
-        "send_concentration", "receive_concentration",
-        "Out_Degree", "In_Degree", "From_To_Ratio",
-        "unique_outdegree", "unique_indegree", "unique_From_To_Ratio",
-        "Total_Sent", "Max_Sent", "Min_Sent", "Mean_Sent", "Std_Sent", "volatility_Sent",
-        "Total_Received", "Max_Received", "Min_Received", "Mean_Received", "Std_Received", "volatility_Received",
-        "Receive_Send_Ratio", "Difference",
-        "avg_max_sent_ratio", "avg_max_receive_ratio", "max_sent_receive_ratio", "volatility_ratio",
-        "z_score_paid", "z_score_received", "large_paid", "large_received",
-        "is_laundering",
-    ]
-    available = [c for c in feature_cols if c in tx.columns]
-    return tx[available].fillna(0).reset_index(drop=True)
+    return out
 
 
 _BASELINE_FEATURE_NAMES: list[str] = [
+    "src_bank_account_number",
+    "dst_bank_account_number",
+    "src_wallet_level",
+    "dst_wallet_level",
     "same_transactionaccount",
     "Timestamp_Hour",
     "transaction_count_directed",
@@ -141,21 +130,72 @@ _BASELINE_FEATURE_NAMES: list[str] = [
     "z_score_received",
     "large_paid",
     "large_received",
+    "large_transaction_ratio_paid",
+    "large_transaction_ratio_received",
     "large_transaction_ratio",
-    "activetime",
-    "transaction_frequency",
-    "last_direction",
-    "last_amount",
-    "avg_payment_time_diff",
-    "avg_receipt_time_diff",
-    "avg_inactive_period",
-    "max_inactive_period",
-    "min_inactive_period",
+    "init_balance_From",
+    "wallet_level_From",
+    "wallet_type_From",
+    "init_balance_To",
+    "wallet_level_To",
+    "wallet_type_To",
+    "open_hour_From",
+    "is_work_hour_From",
+    "is_night_hour_From",
+    "auth_delay_days_From",
+    "wallets_per_cert_From",
+    "days_to_expire_from_current_From",
+    "tel_reuse_count_From",
+    "is_high_risk_region_From",
+    "log_balance_From",
+    "open_hour_To",
+    "is_work_hour_To",
+    "is_night_hour_To",
+    "auth_delay_days_To",
+    "wallets_per_cert_To",
+    "days_to_expire_from_current_To",
+    "tel_reuse_count_To",
+    "is_high_risk_region_To",
+    "log_balance_To",
+    "S_src_history_count",
+    "S_src_geo_risk_202308",
+    "S_src_time_risk_202308",
+    "S_dst_history_count",
+    "S_dst_geo_risk_202308",
+    "S_dst_time_risk_202308",
+    "S_src_ibank_index",
+    "S_dst_ibank_index",
+    "S_src_ibank_amount_ratio",
+    "S_dst_ibank_amount_ratio",
+    "S_src_counterparty_index",
+    "S_dst_counterparty_index",
+    "S_src_per_deal_match_times",
+    "S_dst_per_deal_match_times",
+    "S_src_daily_deal_match_times",
+    "S_dst_daily_deal_match_times",
+    "activetime_From",
+    "transaction_frequency_From",
+    "last_direction_From",
+    "last_amount_From",
+    "avg_payment_time_diff_From",
+    "avg_receipt_time_diff_From",
+    "avg_inactive_period_From",
+    "max_inactive_period_From",
+    "min_inactive_period_From",
+    "activetime_To",
+    "transaction_frequency_To",
+    "last_direction_To",
+    "last_amount_To",
+    "avg_payment_time_diff_To",
+    "avg_receipt_time_diff_To",
+    "avg_inactive_period_To",
+    "max_inactive_period_To",
+    "min_inactive_period_To",
 ]
 
 
 def get_baseline_feature_names() -> list[str]:
-    """返回 40+ 人工特征名称列表。"""
+    """返回完整基线特征名称列表。"""
     return list(_BASELINE_FEATURE_NAMES)
 
 

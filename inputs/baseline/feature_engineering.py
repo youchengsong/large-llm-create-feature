@@ -144,7 +144,7 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     - account_features_path: 账户开立特征文件路径（如果为None，则从account_path读取）
     """
     print("正在进行特征工程（使用Rolling/Expanding Window，避免数据泄露）...")
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path, on_bad_lines='skip')
     
     # 适配新的数据格式
     df['Timestamp'] = pd.to_datetime(df['timestamp'])
@@ -580,16 +580,67 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     account_df['is_laundering'] = account_df['is_abnormal'].replace({False: 0, True: 1, 'False': 0, 'True': 1, '0': 0, '1': 1})
     account_df = account_df.rename(columns={'is_laundering': 'account_is_laundering'})
     
-    # 读取账户开立特征文件（如果提供了路径）
+    # 读取账户开立特征文件（如果提供了路径），否则自动从 account_df 计算
     print("读取账户开立特征...")
     account_features_df = None
     if account_features_path and os.path.exists(account_features_path):
         print(f"  从文件读取特征: {account_features_path}")
         account_features_df = pd.read_csv(account_features_path)
-        # 确保wallet_id列存在
         if 'wallet_id' not in account_features_df.columns:
             print("  警告: 特征文件中没有wallet_id列，将跳过账户开立特征合并")
             account_features_df = None
+    if account_features_df is None:
+        print("  自动从开户表计算账户开立特征...")
+        acct = account_df.copy()
+        acct['wallet_id'] = acct['wallet_id'].astype(str) if 'wallet_id' in acct.columns else acct.index.astype(str)
+        af = pd.DataFrame({'wallet_id': acct['wallet_id']})
+        if 'wallet_open_timestamp' in acct.columns:
+            open_ts = pd.to_datetime(acct['wallet_open_timestamp'], errors='coerce')
+            af['open_hour'] = open_ts.dt.hour.fillna(0).astype(int)
+            af['is_work_hour'] = af['open_hour'].between(9, 17).astype(int)
+            af['is_night_hour'] = (af['open_hour'].isin([22, 23, 0, 1, 2, 3, 4, 5])).astype(int)
+        elif 'wallet_open_date' in acct.columns:
+            open_ts = pd.to_datetime(acct['wallet_open_date'], errors='coerce')
+            af['open_hour'] = open_ts.dt.hour.fillna(0).astype(int)
+            af['is_work_hour'] = af['open_hour'].between(9, 17).astype(int)
+            af['is_night_hour'] = (af['open_hour'].isin([22, 23, 0, 1, 2, 3, 4, 5])).astype(int)
+        else:
+            af['open_hour'] = 0
+            af['is_work_hour'] = 0
+            af['is_night_hour'] = 0
+        if 'realname_auth_time' in acct.columns and 'wallet_open_timestamp' in acct.columns:
+            auth_ts = pd.to_datetime(acct['realname_auth_time'], errors='coerce')
+            open_ts2 = pd.to_datetime(acct['wallet_open_timestamp'], errors='coerce')
+            af['auth_delay_days'] = (auth_ts - open_ts2).dt.total_seconds().div(86400).fillna(0).clip(lower=0)
+        else:
+            af['auth_delay_days'] = 0
+        if 'wallet_open_cert' in acct.columns:
+            cert_counts = acct.groupby('wallet_open_cert')['wallet_id'].transform('count')
+            af['wallets_per_cert'] = cert_counts.values
+        else:
+            af['wallets_per_cert'] = 1
+        if 'wallet_open_cert_expire' in acct.columns and 'wallet_open_timestamp' in acct.columns:
+            expire_ts = pd.to_datetime(acct['wallet_open_cert_expire'], errors='coerce')
+            open_ts3 = pd.to_datetime(acct['wallet_open_timestamp'], errors='coerce')
+            af['days_to_expire_from_current'] = (expire_ts - open_ts3).dt.total_seconds().div(86400).fillna(0)
+        else:
+            af['days_to_expire_from_current'] = 0
+        if 'wallet_open_tel' in acct.columns:
+            tel_counts = acct.groupby('wallet_open_tel')['wallet_id'].transform('count')
+            af['tel_reuse_count'] = tel_counts.values
+        else:
+            af['tel_reuse_count'] = 1
+        if 'region_code' in acct.columns:
+            high_risk_codes = {'540000', '650000'}
+            af['is_high_risk_region'] = acct['region_code'].astype(str).isin(high_risk_codes).astype(int)
+        else:
+            af['is_high_risk_region'] = 0
+        if 'init_balance' in acct.columns:
+            af['log_balance'] = np.log1p(acct['init_balance'].fillna(0).clip(lower=0))
+        else:
+            af['log_balance'] = 0
+        account_features_df = af
+        print(f"  自动计算完成: {len(af)} 行, {len(af.columns)-1} 个特征")
     
     # 需要从账户开立特征中提取的特征
     account_features_list = [
@@ -776,7 +827,24 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
         src_cols = [f'S_src_{col.replace("S_", "")}' for col in s_indicator_cols]
         dst_cols = [f'S_dst_{col.replace("S_", "")}' for col in s_indicator_cols]
         print(f"  S指标列名: {src_cols + dst_cols}")
-    else:
+
+    # 补全缺失的 S 指标列（数据中可能只有 3 个，需要确保全部 8 个都存在）
+    all_s_indicator_names = [
+        'S_history_count', 'S_geo_risk_202308', 'S_time_risk_202308',
+        'S_ibank_index', 'S_ibank_amount_ratio', 'S_counterparty_index',
+        'S_per_deal_match_times', 'S_daily_deal_match_times'
+    ]
+    missing_s = 0
+    for col in all_s_indicator_names:
+        for prefix in ['S_src_', 'S_dst_']:
+            full_col = f'{prefix}{col.replace("S_", "")}'
+            if full_col not in df_quantized.columns:
+                df_quantized[full_col] = 0.0
+                missing_s += 1
+    if missing_s > 0:
+        print(f"  补全 {missing_s} 个缺失S指标列（置0）")
+
+    if False:  # 原 else 分支保留为 fallback，上面的补全逻辑已经覆盖
         print("  警告: calculate_s_indicators 返回了空DataFrame，S指标将不会被合并")
         # 即使没有S指标，也要创建默认的S指标列（全为0）
         s_indicator_cols = [
@@ -794,14 +862,36 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
             df_quantized[f'S_dst_{col.replace("S_", "")}'] = 0.0
         print(f"  已创建默认S指标列（全为0）: {len(s_indicator_cols)*2} 列")
     
-    # 合并账户级别特征（使用expanding window计算的特征值）
-    # 注意：df_quantized中已经包含了交易级别的特征（如Out_Degree, Total_Sent等）
-    # 这些已经是每个交易在当时的特征值，不需要再合并
-    
-    # 对于feature_df中的其他账户级别特征，我们需要在每笔交易时使用当前值
-    # 但由于我们已经通过expanding window在df_quantized中计算了大部分特征，
-    # 我们只需要合并账户开立信息中独有的特征
-    
+    # 合并 feature_df 中独有的账户级特征回 df_quantized
+    # feature_df 包含 activetime, transaction_frequency, last_direction, last_amount,
+    # avg_payment_time_diff, avg_receipt_time_diff, avg/max/min_inactive_period
+    # 这些在 df_quantized 中没有，需要按 From/To 两个视角分别 merge
+    acct_only_cols = [
+        'activetime', 'transaction_frequency',
+        'last_direction', 'last_amount',
+        'avg_payment_time_diff', 'avg_receipt_time_diff',
+        'avg_inactive_period', 'max_inactive_period', 'min_inactive_period',
+    ]
+    acct_only_available = [c for c in acct_only_cols if c in feature_df.columns]
+    if acct_only_available:
+        merge_subset = feature_df[['Account'] + acct_only_available].copy()
+        # 确保类型一致
+        merge_subset['Account'] = merge_subset['Account'].astype(str)
+        df_quantized['From_Account'] = df_quantized['From_Account'].astype(str)
+        df_quantized['To_Account'] = df_quantized['To_Account'].astype(str)
+        # From 视角
+        from_rename = {c: f'{c}_From' for c in acct_only_available}
+        from_rename['Account'] = 'From_Account'
+        merge_from = merge_subset.rename(columns=from_rename)
+        df_quantized = df_quantized.merge(merge_from, on='From_Account', how='left')
+        # To 视角
+        to_rename = {c: f'{c}_To' for c in acct_only_available}
+        to_rename['Account'] = 'To_Account'
+        merge_to = merge_subset.rename(columns=to_rename)
+        df_quantized = df_quantized.merge(merge_to, on='To_Account', how='left')
+        df_quantized = df_quantized.fillna(0)
+        print(f"  已合并 {len(acct_only_available)} 个账户级特征（From和To各{len(acct_only_available)}个，共{len(acct_only_available)*2}列）")
+
     df_new = df_quantized.copy()
 
     # 删除账户ID列和重复特征（在特征工程阶段完成）

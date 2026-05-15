@@ -262,7 +262,12 @@ def main() -> None:
     baseline_feature_names = get_baseline_feature_names()
     try:
         baseline_df = run_baseline(open_df, tx_df, close_df)
-        available_cols = [c for c in baseline_feature_names if c in baseline_df.columns]
+        if "is_laundering" in baseline_df.columns:
+            label = baseline_df["is_laundering"].astype(int)
+            baseline_df = baseline_df.drop(columns=["is_laundering"])
+        available_cols = [c for c in baseline_df.columns if c in baseline_feature_names]
+        if not available_cols:
+            available_cols = [c for c in baseline_df.columns]
         X_baseline = baseline_df[available_cols].fillna(0)
         baseline_prauc = compute_baseline_prauc(X_baseline, label)
         logger.info("基线 PR-AUC: %.4f (%d 个特征)", baseline_prauc, len(available_cols))
