@@ -330,6 +330,55 @@ def main() -> None:
         result.total_rounds, len(result.accepted_features), result.converged,
     )
 
+
+    # === 组合评估 ===
+    if result.accepted_features:
+        logger.info("=== 组合评估: 基线 + 全部新特征 ===")
+        import numpy as np
+        combined_df = X_baseline.copy()
+        for feat in result.accepted_features:
+            name = feat["feature_name"]
+            code = feat["code"]
+            try:
+                local_ns = {"tx_df": tx_df.copy(), "pd": pd, "np": np}
+                exec(code, local_ns)
+                feat_result = local_ns["result"]
+                val_col = [c for c in feat_result.columns if c != "wallet_id"][0]
+                mapping = feat_result.set_index("wallet_id")[val_col]
+                src_col = None
+                for c in ["src", "From_Account"]:
+                    if c in tx_df.columns:
+                        src_col = c
+                        break
+                dst_col = None
+                for c in ["dst", "To_Account"]:
+                    if c in tx_df.columns:
+                        dst_col = c
+                        break
+                if src_col and dst_col:
+                    tx_sorted = tx_df.sort_values("timestamp").reset_index(drop=True)
+                    src_vals = tx_sorted[src_col].values[:len(combined_df)]
+                    dst_vals = tx_sorted[dst_col].values[:len(combined_df)]
+                    combined_df[name + "_src"] = pd.Series(src_vals).map(mapping).fillna(0).values
+                    combined_df[name + "_dst"] = pd.Series(dst_vals).map(mapping).fillna(0).values
+                    logger.info("  已添加特征: %s (_src, _dst)", name)
+            except Exception as e:
+                logger.warning("  特征 %s 计算失败: %s", name, e)
+
+        combined_prauc = compute_baseline_prauc(combined_df, label)
+        delta = combined_prauc - baseline_prauc
+        improve_pct = (delta / baseline_prauc * 100) if baseline_prauc > 0 else 0
+        logger.info("========== 组合评估结果 ==========")
+        logger.info("基线 PR-AUC:     %.6f (%d 个特征)", baseline_prauc, len(available_cols))
+        logger.info("组合 PR-AUC:     %.6f (%d 个特征)", combined_prauc, len(combined_df.columns))
+        logger.info("增量 PR-AUC:     %+.6f", delta)
+        logger.info("提升百分比:      %+.2f%%", improve_pct)
+
+        result.combined_prauc = combined_prauc
+        result.baseline_prauc = baseline_prauc
+    else:
+        logger.info("=== 无通过验证的新特征，跳过组合评估 ===")
+
     logger.info("=== 保存结果 ===")
     save_results(result, cfg.paths.output_dir)
 
