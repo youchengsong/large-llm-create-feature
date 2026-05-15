@@ -1,4 +1,5 @@
-# Generated data files (keep data/*.csv tracked)
+# Large data files (use .gz version for git)
+data/transactions.csv
 
 # Large output files
 output/full_baseline_features.csv
