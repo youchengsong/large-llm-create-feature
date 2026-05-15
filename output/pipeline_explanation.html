@@ -364,7 +364,7 @@
     <li><a href="#phase2">Phase 2 — 三级验证</a>
       <ol>
         <li><a href="#l1">L1: 代码沙盒验证</a></li>
-        <li><a href="#l2">L2: 统计验证</a></li>
+        <li><a href="#l2">L2: 统计验证 + 自动校准</a></li>
         <li><a href="#l3">L3: 模型验证</a></li>
       </ol>
     </li>
@@ -403,7 +403,7 @@
     <ul>
       <li><strong>数据不入 LLM</strong> — LLM 只看到 schema 元信息（字段名、类型、统计摘要），原始账户和交易数据不会发送给 LLM</li>
       <li><strong>代码隔离执行</strong> — LLM 生成的代码在受限沙盒中运行，禁止文件 I/O、网络访问等危险操作</li>
-      <li><strong>统计严格验证</strong> — 每个候选特征必须通过互信息、冗余度、卡方检验和模型增量贡献四重检验</li>
+      <li><strong>统计严格验证</strong> — 每个候选特征必须通过互信息、冗余度、卡方检验和模型增量贡献四重检验；MI 和 Cramer's V 阈值从基线特征分布自动校准</li>
       <li><strong>SHAP 反馈引导</strong> — 用已接受特征的 SHAP 重要性引导 LLM 的后续搜索方向</li>
     </ul>
   </div>
@@ -428,7 +428,7 @@
     <div class="flow-arrow"></div>
     <div class="flow-node" style="border-color: #fdba74;">
       <strong>Phase 2: 三级验证</strong><br>
-      <small>L1 沙盒执行 &rarr; L2 统计检验 &rarr; L3 模型增量 &rarr; 综合打分</small>
+      <small>L1 沙盒执行 &rarr; L2 统计检验（自动校准）&rarr; L3 模型增量 &rarr; 综合打分</small>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node" style="border-color: #86efac;">
@@ -464,6 +464,7 @@
 │   ├── sandbox.py             <span class="cmt"># L1 代码安全沙盒</span>
 │   ├── validator.py           <span class="cmt"># L1→L2→L3 验证流水线</span>
 │   ├── metrics.py             <span class="cmt"># MI, Cramer's V, Delta PR-AUC, SHAP</span>
+│   ├── calibration.py         <span class="cmt"># L2 阈值自动校准（基于基线分布）</span>
 │   ├── stability.py           <span class="cmt"># L4 稳定性验证</span>
 │   └── experiments.py         <span class="cmt"># 5 组增量贡献实验</span>
 └── report/
@@ -649,7 +650,7 @@
       <li><strong>&tau; = 1.0</strong>：平衡探索与利用 — 高分特征有更高概率被选中，但低分特征也有机会</li>
     </ul>
 
-    <p>默认每次采样 k=2 个示例，使用<strong>无放回加权采样</strong>避免重复选择同一个特征。</p>
+    <p>默认每次采样 k=5 个示例，使用<strong>无放回加权采样</strong>避免重复选择同一个特征。</p>
 
     <pre><code><span class="cmt"># Boltzmann 采样核心代码</span>
 scores = [f.get(<span class="str">"score"</span>, <span class="num">0.0</span>) <span class="kw">for</span> f <span class="kw">in</span> self.memory]
@@ -657,7 +658,7 @@ max_score = max(scores)
 weights = [math.exp((s - max_score) / tau) <span class="kw">for</span> s <span class="kw">in</span> scores]
 total = sum(weights)
 probs = [w / total <span class="kw">for</span> w <span class="kw">in</span> weights]
-indices = _weighted_sample_without_replacement(probs, k)</code></pre>
+indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=5</span></code></pre>
   </div>
 
   <!-- ── SHAP ── -->
@@ -743,8 +744,8 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node l2">
-      <strong>L2: 统计验证</strong><br>
-      <small>MI &ge; 0.001 &amp; Redundancy &lt; 0.9 &amp; Cramer's V &ge; 0.05 &amp; Bootstrap p &lt; 0.05</small>
+      <strong>L2: 统计验证（阈值自动校准）</strong><br>
+      <small>MI &amp; Redundancy &lt; 0.9 &amp; Cramer's V &amp; Bootstrap p &lt; 0.05（MI/V 阈值从基线分布 p10 自动校准）</small>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node l3">
@@ -802,8 +803,8 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
 
   <!-- ── L2 ── -->
   <div id="l2">
-    <h3>5.2 L2: 统计验证</h3>
-    <p><span class="file-ref">src/evaluation/validator.py</span> + <span class="file-ref">src/evaluation/metrics.py</span></p>
+    <h3>5.2 L2: 统计验证 + 自动校准</h3>
+    <p><span class="file-ref">src/evaluation/validator.py</span> + <span class="file-ref">src/evaluation/metrics.py</span> + <span class="file-ref">src/evaluation/calibration.py</span></p>
 
     <p>L2 回答的问题是：<strong>这个特征在统计意义上和标签相关吗？</strong></p>
 
@@ -818,7 +819,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
         <td><strong>互信息 (MI)</strong></td>
         <td>特征与标签的信息量共享程度</td>
         <td>sklearn <code>mutual_info_classif</code></td>
-        <td>&ge; 0.001</td>
+        <td>&ge; 0.001 <span class="tag tag-blue">自动校准</span></td>
       </tr>
       <tr>
         <td><strong>冗余度</strong></td>
@@ -830,7 +831,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
         <td><strong>Cramer's V</strong></td>
         <td>特征与标签的关联强度（分类变量版）</td>
         <td>卡方统计量 &rarr; V = &radic;(&chi;&sup2; / (n&middot;k))</td>
-        <td>&ge; 0.05</td>
+        <td>&ge; 0.05 <span class="tag tag-blue">自动校准</span></td>
       </tr>
       <tr>
         <td><strong>Bootstrap &chi;&sup2; p 值</strong></td>
@@ -844,6 +845,27 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
 
     <div class="highlight-box">
       <strong>为什么需要冗余度检查？</strong> 如果新特征和已有特征高度相关（|corr| &ge; 0.9），即使它和标签相关，也不提供新信息。这确保每个通过的特征都是「增量」的。
+    </div>
+
+    <h3>L2 阈值自动校准</h3>
+    <p><span class="file-ref">src/evaluation/calibration.py</span></p>
+
+    <p>固定阈值（MI &ge; 0.001, Cramer's V &ge; 0.05）在不同数据集上表现差异很大。系统引入了<strong>基于基线分布的自动校准</strong>机制：</p>
+
+    <div class="card">
+      <div class="card-title">校准流程</div>
+      <ol style="line-height: 2.2;">
+        <li>对每个基线特征计算 MI、Cramer's V、Bootstrap &chi;&sup2; p 值</li>
+        <li>取 <strong>p10 分位数</strong>（即最弱的 10% 基线特征对应的指标值）</li>
+        <li>阈值 = p10 &times; 0.5（留足安全裕度，避免过严）</li>
+        <li>新特征只需「不比最弱基线特征差太多」即可通过 L2</li>
+      </ol>
+    </div>
+
+    <p>校准后的阈值会记录在 <code>search_log.json</code> 的 <code>calibrated_thresholds</code> 字段中，便于复现和审计。冗余度（0.9）、&Delta;PR-AUC（0.005）和 Bootstrap p（0.05）仍使用固定阈值。</p>
+
+    <div class="highlight-box">
+      <strong>为什么自动校准？</strong> 当基线特征本身的 MI 中位数就只有 0.002 时，固定阈值 0.001 几乎没有筛选力；反之如果基线特征普遍 MI &gt; 0.1，固定阈值又太宽松。自动校准让阈值随数据自适应。
     </div>
   </div>
 
@@ -875,15 +897,15 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
       <p>通过 L3 后，还会计算新特征在完整模型中的 <strong>SHAP 重要性排名</strong>（1 = 最重要）。排名信息用于后续的综合打分和反馈。</p>
     </div>
 
-    <p>XGBoost 训练参数专门为不平衡数据调优，支持 GPU 加速：</p>
+    <p>XGBoost 训练参数专门为不平衡数据调优，支持 GPU 加速。<code>tree_method</code> 和 <code>device</code> 作为全局配置参数定义在 <span class="file-ref">src/config.py</span> 的 <code>XGBoostParams</code> 中，所有 XGBoost 调用点（metrics、validator、stability、experiments、shap_feedback、visualization、feature_dictionary、baseline）统一读取：</p>
     <pre><code>XGBClassifier(
     scale_pos_weight=<span class="num">19</span>,    <span class="cmt"># 正样本权重提升 19 倍</span>
     eval_metric=<span class="str">"aucpr"</span>,     <span class="cmt"># 评估指标用 PR-AUC</span>
     n_estimators=<span class="num">200</span>,
     max_depth=<span class="num">6</span>,
     learning_rate=<span class="num">0.1</span>,
-    tree_method=<span class="str">"hist"</span>,      <span class="cmt"># 直方图加速算法</span>
-    device=<span class="str">"cpu"</span>,            <span class="cmt"># 可通过 XGB_DEVICE 环境变量切换为 GPU</span>
+    tree_method=<span class="str">"hist"</span>,      <span class="cmt"># 直方图加速算法（全局配置）</span>
+    device=<span class="str">"cpu"</span>,            <span class="cmt"># 可通过 XGB_DEVICE 环境变量切换为 GPU（全局配置）</span>
 )</code></pre>
   </div>
 </div>
@@ -1022,7 +1044,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
   <p>Phase 2 搜索完成后，Phase 3 对最终特征集进行稳定性验证和对比实验：</p>
 
   <h3>L4: 稳定性验证</h3>
-  <p>10 次 Bootstrap 重采样，每次训练 XGBoost + SHAP，收集 top-20 特征排名，计算 <strong>Nogueira 稳定性指数</strong>（阈值 &gt; 0.8）。确保特征选择在数据扰动下保持一致。</p>
+  <p>10 次 Bootstrap 重采样，每次训练 XGBoost + SHAP，收集 top-20 特征排名，计算 <strong>Nogueira 稳定性指数</strong>（阈值 &gt; 0.8）。确保特征选择在数据扰动下保持一致。所有 SHAP 计算均采用最多 <strong>5000 样本</strong>的采样上限，在保持精度的同时控制计算时间。</p>
 
   <h3>5 组增量贡献实验</h3>
   <table>
@@ -1051,7 +1073,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
   <table>
     <tr><th>文件</th><th>内容</th></tr>
     <tr><td><code>features.json</code></td><td>所有通过验证的特征列表（名称、分数、代码、解释、L2/L3 指标）；包含 <code>accepted_via</code> 字段标识直通接受(direct)还是缓刑池接受(pending_pool)</td></tr>
-    <tr><td><code>search_log.json</code></td><td>搜索日志（每轮每岛屿的候选数、通过数、详情）</td></tr>
+    <tr><td><code>search_log.json</code></td><td>搜索日志（每轮每岛屿的候选数、通过数、详情）；包含 <code>calibrated_thresholds</code> 记录自动校准的 L2 阈值</td></tr>
     <tr><td><code>features/*.py</code></td><td>每个特征的独立 Python 文件，可直接运行；包含可解释性报告（value_meaning, risk_threshold 等）</td></tr>
   </table>
 
@@ -1192,8 +1214,8 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
       <p>改进 LLM-FE 的随机岛屿为按风险维度划分的 4 个有方向岛屿，结合 MedFeat 的 SHAP 引导，实现有分工 + 有方向的高效搜索。</p>
     </div>
     <div class="island-card">
-      <h4>4. 四级验证框架</h4>
-      <p>代码验证 → 统计验证 → 模型验证 → 稳定性验证。超越现有论文（无一使用统计检验）的验证深度。</p>
+      <h4>4. 四级验证框架 + 自动校准</h4>
+      <p>代码验证 → 统计验证 → 模型验证 → 稳定性验证。L2 阈值从基线特征分布自动校准（p10 × 0.5），超越现有论文（无一使用统计检验）的验证深度。</p>
     </div>
     <div class="island-card">
       <h4>5. 可解释特征</h4>
@@ -1212,6 +1234,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
     <tr><td>领域知识注入</td><td>仅特征名</td><td>数据集描述</td><td class="tag-red">&times;</td><td><span class="tag tag-green">深度注入</span></td></tr>
     <tr><td>搜索策略</td><td>随机岛屿</td><td>单向</td><td>SHAP 引导</td><td><span class="tag tag-green">维度岛屿 + SHAP</span></td></tr>
     <tr><td>统计验证</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">MI + Cramer's V + Bootstrap</span></td></tr>
+    <tr><td>阈值自适应</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">L2 基线分布自动校准</span></td></tr>
     <tr><td>评估指标</td><td>Accuracy</td><td>ROC-AUC</td><td>AUC + F1</td><td><span class="tag tag-green">PR-AUC</span></td></tr>
     <tr><td>可解释性</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">rationale + 知识溯源</span></td></tr>
     <tr><td>组合效应</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">缓刑池反向淘汰</span></td></tr>
@@ -1223,7 +1246,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
 
 <div style="text-align: center; color: var(--text-dim); padding: 24px 0;">
   <p>LLM Feature Engineering Pipeline &mdash; 数字人民币反洗钱场景</p>
-  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 &middot; 缓刑池反向淘汰 &middot; 按需数据探索 &middot; XGBoost hist 加速 + GPU 可选</p>
+  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 + L2 自动校准 &middot; 缓刑池反向淘汰 &middot; 按需数据探索 &middot; XGBoost hist 全局配置 + GPU 可选 &middot; SHAP 5000 样本采样优化</p>
 </div>
 
 </div>

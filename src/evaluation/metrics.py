@@ -101,6 +101,10 @@ def compute_cv_prauc(X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) ->
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
 
     scores = []
@@ -140,6 +144,8 @@ def compute_delta_prauc(
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
 
     for train_idx, val_idx in cv.split(X_aug, y_arr):
@@ -175,6 +181,8 @@ def compute_shap_rank(
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
     model.fit(X_all, y, verbose=False)
 

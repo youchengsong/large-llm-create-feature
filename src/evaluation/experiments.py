@@ -25,6 +25,8 @@ def _cv_prauc(
             learning_rate=cfg.learning_rate,
             random_state=cfg.random_state,
             n_jobs=cfg.n_jobs,
+            tree_method=cfg.tree_method,
+            device=cfg.device,
         )
         model.fit(X[train_idx], y[train_idx], verbose=False)
         pred = model.predict_proba(X[val_idx])[:, 1]
@@ -45,6 +47,8 @@ def _compute_shap_ranks(X: pd.DataFrame, y: np.ndarray) -> dict[str, int]:
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
     model.fit(X, y, verbose=False)
     explainer = shap.TreeExplainer(model)

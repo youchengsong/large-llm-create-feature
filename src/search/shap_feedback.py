@@ -38,6 +38,8 @@ def generate_shap_feedback(X_all: pd.DataFrame, y: pd.Series) -> dict:
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
     model.fit(X_all, y, verbose=False)
 

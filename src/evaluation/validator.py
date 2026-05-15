@@ -166,6 +166,8 @@ def backward_eliminate_pending(
         learning_rate=cfg.learning_rate,
         random_state=cfg.random_state,
         n_jobs=cfg.n_jobs,
+        tree_method=cfg.tree_method,
+        device=cfg.device,
     )
     model.fit(X_full, y, verbose=False)
     explainer = shap.TreeExplainer(model)

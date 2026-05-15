@@ -37,6 +37,8 @@ def _compute_shap_rankings(X_final: pd.DataFrame, y: pd.Series) -> dict:
         learning_rate=config.learning_rate,
         random_state=config.random_state,
         n_jobs=config.n_jobs,
+        tree_method=config.tree_method,
+        device=config.device,
         eval_metric=config.eval_metric,
         verbosity=0,
     )
