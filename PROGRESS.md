@@ -93,3 +93,32 @@
 经验教训：
 - 长时间运行的搜索任务需要用 nohup 后台执行，避免 Bash 超时
 - 校准阈值的核心思想：新特征只需不比最弱基线差太多（p10 × 0.5）
+
+## 2026-05-15 反向淘汰逻辑修复 + 特征工程升级 + GPU 支持
+
+### 反向淘汰 bug 修复
+- **问题**：旧版反向淘汰以 full_score（所有已接受+待定特征的组合分数）为比较基准，但 full_score 始终低于 baseline_prauc（0.868~0.880 vs 0.885）。特征在"已变差的集合"中有相对贡献就被接受，导致越多特征被接受、模型越差
+- **实测数据**：R1→R6 的 full_score 持续下降：0.877→0.877→0.880→0.878→0.873→0.868，12个"已接受"特征实际拉低了 baseline 1.7 个百分点
+- **修复方案（方案B 两阶段筛选）**：
+  1. 阶段1（反向淘汰去噪）：照旧从弱到强逐个剔除，清除组合中无贡献的噪音
+  2. 阶段2（增量验证）：对幸存特征逐个加入原始 baseline 计算 delta_prauc，只有 delta > 0 才接受
+- **改动文件**：`src/evaluation/validator.py`（backward_eliminate_pending）、`src/search/engine.py`（传入 baseline_prauc）
+- 177 个测试全部通过
+
+### 特征工程升级
+- 替换 `inputs/baseline/feature_engineering.py` 为新版本
+- 新增 5 个 S 交易行为指标（ibank_index, ibank_amount_ratio, counterparty_index, per_deal_match_times, daily_deal_match_times）
+- 新增 9 个账户开立衍生特征（open_hour, is_work_hour, auth_delay_days, wallets_per_cert 等）
+- 修复 feature_df 未合并回 df_quantized 的 bug（账户级汇总特征 activetime, transaction_frequency 等现在正确通过 From/To 合并回交易表）
+- `_BASELINE_FEATURE_NAMES` 从 62 个更新为 107 个
+
+### GPU 加速
+- XGBoostParams 新增 tree_method="hist" + device（通过 XGB_DEVICE 环境变量控制）
+- 8 处 XGBClassifier 调用全部加上 GPU 参数
+- 租用 GPU 服务器（RTX PRO 6000 48GB vGPU），环境已搭建并验证
+- 50K×70 训练耗时从 CPU ~10s 降至 GPU 0.69s（~15x 加速）
+
+经验教训：
+- 反向淘汰的比较基准必须是原始 baseline，而不是包含待定特征后的 full_score
+- full_score < baseline 时，整批待定特征是负向贡献，旧逻辑在此场景下完全失效
+- 两阶段方案兼顾了组合效应检测（阶段1）和绝对质量保证（阶段2）

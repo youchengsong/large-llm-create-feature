@@ -103,8 +103,6 @@ def compute_cv_prauc(X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) ->
         n_jobs=cfg.n_jobs,
         tree_method=cfg.tree_method,
         device=cfg.device,
-        tree_method=cfg.tree_method,
-        device=cfg.device,
     )
 
     scores = []

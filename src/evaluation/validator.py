@@ -136,23 +136,30 @@ def backward_eliminate_pending(
     X_accepted: pd.DataFrame,
     pending_features: dict[str, np.ndarray],
     y: pd.Series,
+    baseline_prauc: float = 0.0,
 ) -> tuple[set[str], set[str]]:
-    """反向淘汰：把缓刑池特征全部加入，从最弱的开始逐个尝试剔除。
+    """两阶段筛选：反向淘汰去噪 + 单特征增量验证。
+
+    阶段 1（反向淘汰）：把缓刑池特征全部加入已接受特征，从 SHAP 最弱的开始
+    逐个剔除，移除对组合无贡献的噪音特征。
+
+    阶段 2（增量验证）：对阶段 1 幸存的每个特征，单独加入原始 baseline
+    计算 delta_prauc。只有 delta > 0 的特征才被最终接受。
 
     返回 (accepted_names, rejected_names)。
-    accepted_names: 剔除后分数下降的特征（有组合贡献）
-    rejected_names: 剔除后分数不降的特征（没有贡献）
     """
     if not pending_features:
         return set(), set()
 
+    # ── 阶段 1：反向淘汰，清除组合中无贡献的噪音 ──
     X_full = X_accepted.copy()
     for name, values in pending_features.items():
         X_full[name] = values
 
     score_full = compute_cv_prauc(X_full, y)
-    logger.info("Backward elimination: full score=%.6f with %d accepted + %d pending",
-                score_full, X_accepted.shape[1], len(pending_features))
+    logger.info("Backward elimination phase 1: full score=%.6f (baseline=%.6f) "
+                "with %d accepted + %d pending",
+                score_full, baseline_prauc, X_accepted.shape[1], len(pending_features))
 
     import shap
     from xgboost import XGBClassifier
@@ -181,7 +188,7 @@ def backward_eliminate_pending(
     )
 
     current_score = score_full
-    rejected = set()
+    phase1_rejected = set()
     X_current = X_full.copy()
 
     for name in pending_names_sorted:
@@ -189,14 +196,41 @@ def backward_eliminate_pending(
         score_without = compute_cv_prauc(X_without, y)
 
         if score_without >= current_score:
-            rejected.add(name)
+            phase1_rejected.add(name)
             X_current = X_without
             current_score = score_without
-            logger.info("  Eliminated %s: score %.6f -> %.6f (no loss)",
+            logger.info("  Phase 1 eliminated %s: score %.6f -> %.6f (no loss)",
                         name, current_score, score_without)
         else:
-            logger.info("  Kept %s: removing would drop score %.6f -> %.6f",
+            logger.info("  Phase 1 kept %s: removing would drop score %.6f -> %.6f",
                         name, current_score, score_without)
 
-    accepted = set(pending_features.keys()) - rejected
+    phase1_survivors = set(pending_features.keys()) - phase1_rejected
+    logger.info("Phase 1 done: %d survivors, %d eliminated",
+                len(phase1_survivors), len(phase1_rejected))
+
+    if not phase1_survivors:
+        return set(), set(pending_features.keys())
+
+    # ── 阶段 2：对幸存特征逐个验证对 baseline 的增量 ──
+    logger.info("Phase 2: verifying %d survivors against baseline (prauc=%.6f)",
+                len(phase1_survivors), baseline_prauc)
+
+    accepted = set()
+    phase2_rejected = set()
+
+    for name in phase1_survivors:
+        feat_series = pd.Series(pending_features[name], name=name)
+        delta = compute_delta_prauc(X_accepted, feat_series, y)
+        if delta > 0:
+            accepted.add(name)
+            logger.info("  Phase 2 accepted %s: delta_prauc=+%.6f", name, delta)
+        else:
+            phase2_rejected.add(name)
+            logger.info("  Phase 2 rejected %s: delta_prauc=%.6f (not positive)",
+                        name, delta)
+
+    rejected = phase1_rejected | phase2_rejected
+    logger.info("Final: %d accepted, %d rejected (phase1: %d, phase2: %d)",
+                len(accepted), len(rejected), len(phase1_rejected), len(phase2_rejected))
     return accepted, rejected

@@ -445,7 +445,7 @@
 ├── data/
 │   ├── loader.py              <span class="cmt"># 三表加载 + schema 提取 + 分布差异</span>
 │   ├── stats_query.py         <span class="cmt"># 按需统计查询（方案 B）</span>
-│   ├── baseline.py            <span class="cmt"># 107 个人工基线特征</span>
+│   ├── baseline.py            <span class="cmt"># 人工基线特征</span>
 │   ├── merge.py               <span class="cmt"># wallet/tx 级特征 merge</span>
 │   └── validate_data.py       <span class="cmt"># 数据验证</span>
 ├── prompt/
@@ -523,7 +523,7 @@
 
   <h3>Step 3: 运行人工基线特征</h3>
   <p><span class="file-ref">src/data/baseline.py</span> &mdash; <code>run_baseline()</code></p>
-  <p>调用 <code>inputs/baseline/feature_engineering.py</code> 中人工设计的 <strong>107 个特征</strong>（如交易金额均值、夜间交易比例、出入度等），并用 XGBoost 5 折交叉验证计算基线 PR-AUC。</p>
+  <p>调用 <code>inputs/baseline/feature_engineering.py</code> 中人工设计的特征工程流水线（交易级特征 + 账户开立衍生特征 + S 指标 + 账户级汇总特征），并用 XGBoost 5 折交叉验证计算基线 PR-AUC。</p>
   <p>基线的意义：<strong>LLM 生成的新特征必须在此基础上产生增量贡献</strong>，而不是重新发明轮子。</p>
 
   <h3>Step 4: 加载领域知识</h3>
@@ -559,10 +559,10 @@
         <li><strong>数据结构</strong>：三表的完整 schema（由 Phase 0 提取的字段名 + 类型 + 统计摘要）</li>
         <li><strong>三表关联</strong>：说明 src/dst 如何关联到 wallet_id</li>
         <li><strong>领域知识</strong>：交易模式 + 专家访谈 + 风险指标（压缩后的文本）</li>
-        <li><strong>已有特征列表</strong>：107 个基线特征名（告诉 LLM 不要重复）</li>
+        <li><strong>已有特征列表</strong>：基线特征名（告诉 LLM 不要重复）</li>
         <li><strong>分布差异注入</strong>：正常 vs 异常交易的聚合统计差异（金额、时间间隔、凌晨占比等）</li>
         <li><strong>三表关联统计</strong>：src/dst 匹配率、销户率、钱包重叠率</li>
-        <li><strong>基线代码示例</strong>：15 个代表性人工特征的实现代码</li>
+        <li><strong>基线代码示例</strong>：21 个代表性人工特征的实现代码</li>
         <li><strong>思维链（CoT）</strong>：要求 LLM 先分析分布差异 &rarr; 匹配领域知识 &rarr; 检查非冗余 &rarr; 再写代码</li>
         <li><strong>数据探索能力</strong>：LLM 可输出查询动作，在沙盒中执行统计查询</li>
         <li><strong>约束条件</strong>：30 秒超时、白名单库、禁用标签列等</li>
@@ -940,22 +940,33 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
     </div>
   </div>
 
-  <h3>反向淘汰流程</h3>
+  <h3>两阶段筛选流程</h3>
   <div class="card">
+    <h4 style="color: var(--accent); margin-bottom: 8px;">阶段 1：反向淘汰去噪</h4>
     <ol style="line-height: 2.2;">
       <li><strong>构造完整矩阵</strong>：已接受 N 个 + 缓刑池 M 个 = N+M 列</li>
       <li><strong>训练 + SHAP</strong>：XGBoost 5 折 CV 得到 score_full，算 SHAP 重要性</li>
       <li><strong>逐个剔除</strong>：从 SHAP 最低的缓刑池特征开始：
         <ul>
           <li>剔除后分数不降 &rarr; 确认没贡献，标记为 rejected</li>
-          <li>剔除后分数下降 &rarr; 在组合中有贡献，保留并接受</li>
+          <li>剔除后分数下降 &rarr; 在组合中有贡献，保留为 survivor</li>
+        </ul>
+      </li>
+    </ol>
+    <h4 style="color: var(--green); margin-top: 16px; margin-bottom: 8px;">阶段 2：增量验证</h4>
+    <ol style="line-height: 2.2;" start="4">
+      <li><strong>逐个验证</strong>：对每个 survivor，单独加入<strong>原始 baseline</strong> 计算 delta_prauc：
+        <ul>
+          <li>delta &gt; 0 &rarr; <span class="tag tag-green">接受</span></li>
+          <li>delta &le; 0 &rarr; <span class="tag tag-red">拒绝</span></li>
         </ul>
       </li>
     </ol>
   </div>
 
   <div class="highlight-box">
-    <strong>为什么能捕捉组合效应？</strong> 如果特征 A 和 B 单独无增量，但 A+B 在模型中产生交互，全量矩阵中 score_full 包含了 A+B 的组合增益。尝试剔除 A 时分数下降（因为失去搭档），A 被保留。同理 B 也被保留。
+    <strong>为什么需要两阶段？</strong> 旧版仅做反向淘汰，以 full_score 为基准。当多个待定特征共同拉低模型性能时，full_score &lt; baseline_prauc，此时任何特征在这个"已变差的集合"中都可能有相对贡献，导致被错误接受。<br><br>
+    两阶段方案解决了这个问题：<strong>阶段 1</strong> 清除组合中无贡献的噪音，<strong>阶段 2</strong> 用原始 baseline 作为参照，确保每个被接受的特征对 baseline 有正向增益（delta &gt; 0，不要求 &ge; 0.005）。
   </div>
 
   <h3>淘汰规则</h3>
@@ -1056,7 +1067,7 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
   <h3>5 组增量贡献实验</h3>
   <table>
     <tr><th>实验</th><th>特征集</th><th>目的</th></tr>
-    <tr><td>实验 1（基线）</td><td>仅 107 个人工特征</td><td>基准对比</td></tr>
+    <tr><td>实验 1（基线）</td><td>仅 人工特征</td><td>基准对比</td></tr>
     <tr><td>实验 2（增量）</td><td>人工 + LLM 特征</td><td>验证增量贡献</td></tr>
     <tr><td>实验 3（独立）</td><td>仅 LLM 特征</td><td>验证独立预测力</td></tr>
     <tr><td>实验 4（随机对照）</td><td>人工 + 等量随机特征</td><td>排除过拟合假象</td></tr>
@@ -1235,8 +1246,8 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
       <p>每个特征附带领域依据说明和知识来源引用，满足金融监管的可解释性要求。</p>
     </div>
     <div class="island-card">
-      <h4>6. 缓刑池反向淘汰</h4>
-      <p>解决特征组合效应问题。L2 通过但 L3 单独不够的特征进入缓刑池，每轮末通过反向淘汰发现组合有效的特征。现有方法（CAAFE、LLM-FE）均逐个评估，无法捕捉交互。</p>
+      <h4>6. 缓刑池两阶段筛选</h4>
+      <p>解决特征组合效应问题。L2 通过但 L3 单独不够的特征进入缓刑池，每轮末通过两阶段筛选（反向淘汰去噪 + 对 baseline 增量验证）发现真正有效的特征。现有方法（CAAFE、LLM-FE）均逐个评估，无法捕捉交互。</p>
     </div>
     <div class="island-card">
       <h4>7. L2 阈值自动校准</h4>

@@ -423,6 +423,7 @@ class SearchEngine:
 
         accepted_names, rejected_names = backward_eliminate_pending(
             self.existing_features, pending_features, self.label,
+            baseline_prauc=self.baseline_prauc,
         )
 
         logger.info("Pending pool evaluation: %d accepted, %d rejected out of %d",
