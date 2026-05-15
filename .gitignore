@@ -1,5 +1,4 @@
-# Generated data files
-data/*.csv
+# Generated data files (keep data/*.csv tracked)
 
 # Python
 __pycache__/
