@@ -19,16 +19,11 @@ def run_baseline(
     tx_df: pd.DataFrame,
     close_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    """调用完整特征工程流水线（Expanding Window），返回交易级特征矩阵。
-
-    内部将 DataFrame 写入临时文件，调用 inputs/baseline/feature_engineering.py 的
-    feature_eng() 函数，读取原始特征输出并返回。
-    """
+    """调用完整特征工程流水线（Expanding Window），返回交易级特征矩阵。"""
     fe_path = _PROJECT_ROOT / "inputs" / "baseline" / "feature_engineering.py"
     if not fe_path.exists():
         raise FileNotFoundError(f"完整特征工程脚本不存在: {fe_path}")
 
-    # 动态导入 feature_engineering 模块
     import importlib.util
     spec = importlib.util.spec_from_file_location("feature_engineering", str(fe_path))
     fe_module = importlib.util.module_from_spec(spec)
@@ -51,7 +46,6 @@ def run_baseline(
             close_path=close_path,
         )
 
-        # 读取原始特征（未归一化），用于 XGBoost
         original_path = os.path.join(
             tmpdir,
             os.path.splitext("features.csv")[0] + "_original.csv",
@@ -81,6 +75,11 @@ def run_baseline(
         out["is_laundering"] = result_df["is_laundering"].astype(int).values
 
     return out
+
+
+def get_baseline_feature_names() -> list[str]:
+    """返回基线特征名称列表（以实际 feature_engineering.py 输出为准）。"""
+    return list(_BASELINE_FEATURE_NAMES)
 
 
 _BASELINE_FEATURE_NAMES: list[str] = [
@@ -139,64 +138,13 @@ _BASELINE_FEATURE_NAMES: list[str] = [
     "init_balance_To",
     "wallet_level_To",
     "wallet_type_To",
-    "open_hour_From",
-    "is_work_hour_From",
-    "is_night_hour_From",
-    "auth_delay_days_From",
-    "wallets_per_cert_From",
-    "days_to_expire_from_current_From",
-    "tel_reuse_count_From",
-    "is_high_risk_region_From",
-    "log_balance_From",
-    "open_hour_To",
-    "is_work_hour_To",
-    "is_night_hour_To",
-    "auth_delay_days_To",
-    "wallets_per_cert_To",
-    "days_to_expire_from_current_To",
-    "tel_reuse_count_To",
-    "is_high_risk_region_To",
-    "log_balance_To",
     "S_src_history_count",
     "S_src_geo_risk_202308",
     "S_src_time_risk_202308",
     "S_dst_history_count",
     "S_dst_geo_risk_202308",
     "S_dst_time_risk_202308",
-    "S_src_ibank_index",
-    "S_dst_ibank_index",
-    "S_src_ibank_amount_ratio",
-    "S_dst_ibank_amount_ratio",
-    "S_src_counterparty_index",
-    "S_dst_counterparty_index",
-    "S_src_per_deal_match_times",
-    "S_dst_per_deal_match_times",
-    "S_src_daily_deal_match_times",
-    "S_dst_daily_deal_match_times",
-    "activetime_From",
-    "transaction_frequency_From",
-    "last_direction_From",
-    "last_amount_From",
-    "avg_payment_time_diff_From",
-    "avg_receipt_time_diff_From",
-    "avg_inactive_period_From",
-    "max_inactive_period_From",
-    "min_inactive_period_From",
-    "activetime_To",
-    "transaction_frequency_To",
-    "last_direction_To",
-    "last_amount_To",
-    "avg_payment_time_diff_To",
-    "avg_receipt_time_diff_To",
-    "avg_inactive_period_To",
-    "max_inactive_period_To",
-    "min_inactive_period_To",
 ]
-
-
-def get_baseline_feature_names() -> list[str]:
-    """返回完整基线特征名称列表。"""
-    return list(_BASELINE_FEATURE_NAMES)
 
 
 _BASELINE_CODE_SAMPLES: dict[str, str] = {
