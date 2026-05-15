@@ -100,6 +100,11 @@
     color: var(--accent2);
     margin: 24px 0 12px;
   }
+  .section h4 {
+    font-size: 1.05em;
+    color: var(--orange);
+    margin: 18px 0 8px;
+  }
   .section p, .section li {
     color: var(--text);
     margin-bottom: 8px;
@@ -120,6 +125,8 @@
   .pb-1 { background: #3730a3; color: #a5b4fc; }
   .pb-2 { background: #7c2d12; color: #fdba74; }
   .pb-3 { background: #14532d; color: #86efac; }
+  .pb-4 { background: #78350f; color: #fcd34d; }
+  .pb-5 { background: #581c87; color: #d8b4fe; }
 
   /* ── Cards ── */
   .card {
@@ -348,93 +355,650 @@
 <div class="toc">
   <h2>目录</h2>
   <ol>
-    <li><a href="#overview">系统总览与核心思想</a></li>
-    <li><a href="#architecture">整体架构与数据流</a></li>
-    <li><a href="#phase0">Phase 0 — 数据准备与基线构建</a></li>
-    <li><a href="#phase1">Phase 1 — LLM 特征生成</a>
+    <li><a href="#sec1">一、问题定义</a>
       <ol>
-        <li><a href="#p1-prompt">Prompt 工程</a></li>
-        <li><a href="#p1-island">维度岛屿搜索</a></li>
-        <li><a href="#p1-boltzmann">Boltzmann 采样</a></li>
-        <li><a href="#p1-shap">SHAP 反馈闭环</a></li>
-        <li><a href="#p1-data-exploration">数据探索（A+B 方案）</a></li>
-        <li><a href="#p1-multiturn">多轮岛内对话</a></li>
+        <li><a href="#s1-1">1.1 我们要解决什么问题</a></li>
+        <li><a href="#s1-2">1.2 预测目标</a></li>
+        <li><a href="#s1-3">1.3 数据来源（三表完整字段）</a></li>
+        <li><a href="#s1-4">1.4 三表关联关系</a></li>
+        <li><a href="#s1-5">1.5 数据集交易模式说明（8 种）</a></li>
       </ol>
     </li>
-    <li><a href="#phase2">Phase 2 — 三级验证</a>
+    <li><a href="#sec2">二、参考文献与借鉴方式</a>
       <ol>
-        <li><a href="#l1">L1: 代码沙盒验证</a></li>
-        <li><a href="#l2">L2: 统计验证 + 阈值自动校准</a></li>
-        <li><a href="#l3">L3: 模型验证</a></li>
+        <li><a href="#s2-1">2.1 LLM-FE &mdash; 搜索引擎骨架</a></li>
+        <li><a href="#s2-2">2.2 MedFeat &mdash; SHAP 导航系统</a></li>
+        <li><a href="#s2-3">2.3 CAAFE &mdash; 代码安全与错误反馈</a></li>
+        <li><a href="#s2-4">2.4 OCTree &mdash; 可解释性增强</a></li>
+        <li><a href="#s2-5">2.5 CoFEH &mdash; 后续升级方向</a></li>
+        <li><a href="#s2-6">2.6 Balek 2025 &mdash; 统计验证方法</a></li>
+        <li><a href="#s2-7">2.7 各组件如何组合</a></li>
+        <li><a href="#s2-8">2.8 方法全景对比</a></li>
       </ol>
     </li>
-    <li><a href="#pending-pool">缓刑池 — 特征组合效应捕捉</a></li>
-    <li><a href="#scoring">综合评分机制</a></li>
-    <li><a href="#convergence">搜索循环与收敛</a></li>
-    <li><a href="#explainability">特征可解释性报告</a></li>
-    <li><a href="#phase3">Phase 3 — 最终验证与产出</a></li>
-    <li><a href="#output">产出物说明</a></li>
-    <li><a href="#example">实际运行示例</a></li>
-    <li><a href="#innovation">核心创新点</a></li>
+    <li><a href="#sec3">三、输入文件与数据准备</a></li>
+    <li><a href="#sec4">四、系统架构详细设计</a>
+      <ol>
+        <li><a href="#s4-1">4.1 总体流程</a></li>
+        <li><a href="#s4-2">4.2 LLM 输出格式</a></li>
+        <li><a href="#s4-3">4.3 Prompt 详细设计</a></li>
+        <li><a href="#s4-4">4.4 SHAP 与岛屿进化的融合细节</a></li>
+        <li><a href="#s4-5">4.5 LLM 模块（可插拔）</a></li>
+        <li><a href="#s4-6">4.6 Prompt 长度管理</a></li>
+      </ol>
+    </li>
+    <li><a href="#sec5">五、现状分析</a>
+      <ol>
+        <li><a href="#s5-1">5.1 人工基线特征</a></li>
+        <li><a href="#s5-2">5.2 关键缺口</a></li>
+        <li><a href="#s5-3">5.3 458 条规则失败教训</a></li>
+      </ol>
+    </li>
+    <li><a href="#sec6">六、特征有效性验证方法（L1-L4）</a></li>
+    <li><a href="#sec7">七、实现路线图</a></li>
+    <li><a href="#sec8">八、预期产出</a></li>
+    <li><a href="#sec9">九、核心创新点</a></li>
+    <li><a href="#sec10">十、可行性评估</a></li>
+    <li><a href="#appendix-pending">附录 A：缓刑池与综合评分</a></li>
+    <li><a href="#appendix-example">附录 B：实际运行示例（DeepSeek-V3）</a></li>
+    <li><a href="#references">参考文献</a></li>
   </ol>
 </div>
 
-<!-- ════════════════════════ 1. 总览 ════════════════════════ -->
-<div class="section" id="overview">
-  <h2><span class="phase-badge pb-0">概述</span> 系统总览与核心思想</h2>
+<!-- ════════════════════════ 一、问题定义 ════════════════════════ -->
+<div class="section" id="sec1">
+  <h2><span class="phase-badge pb-0">一</span> 问题定义</h2>
 
-  <p>本系统利用大语言模型（LLM）自动为数字人民币反洗钱检测模型发现新特征。核心思想可以用一句话概括：</p>
+  <div id="s1-1">
+    <h3>1.1 我们要解决什么问题</h3>
+    <p>我们有一个数字人民币（e-CNY）反洗钱检测系统，当前已有人工设计的 40+ 个特征（见 <span class="file-ref">inputs/baseline/feature_engineering.py</span>）。这些特征存在已知缺口（多个数据字段未利用、时间窗口单一等），但人工逐一设计新特征效率低、容易遗漏。</p>
 
-  <div class="highlight-box">
-    <strong>让 LLM 充当特征工程师</strong> — 给它领域知识和数据 schema，让它生成 Python 特征提取代码，再通过严格的三级验证筛选出真正有效的特征。
+    <div class="highlight-box">
+      <strong>核心思路</strong>：构建一个系统，让 LLM 自动发现新特征并生成可执行代码，同时为每个特征提供领域依据的可解释性说明。人不去设计特征，LLM 是特征工程师。
+    </div>
+
+    <p><strong>目标</strong>：用 LLM 自动发现人工未覆盖的新特征，每个新特征必须：</p>
+    <ol>
+      <li>生成可直接执行的 Python 代码（不是文字描述或逻辑表达式）</li>
+      <li>附带可解释性说明（为什么创建这个特征、对应什么反洗钱领域知识）</li>
+      <li>经过验证确认有效（对下游模型有增量贡献）</li>
+    </ol>
   </div>
 
-  <p>传统做法是人工专家根据经验设计特征，但这种方式受限于个人知识和经验。本系统将这一过程自动化：</p>
-  <ul>
-    <li><strong>输入</strong>：数据表结构（schema）+ 领域知识（专家访谈、检测规则、风险指标）</li>
-    <li><strong>引擎</strong>：LLM 在 4 个维度岛屿上迭代搜索，每轮生成候选特征代码</li>
-    <li><strong>过滤</strong>：L1→L2→L3 直通验证 + 缓刑池反向淘汰（捕捉特征组合效应）</li>
-    <li><strong>数据探索</strong>：LLM 可主动查询数据统计（按需探索 + 预计算注入）</li>
-    <li><strong>输出</strong>：经过验证的特征 Python 代码 + 可解释性说明 + 评估指标</li>
-  </ul>
+  <div id="s1-2">
+    <h3>1.2 预测目标</h3>
+    <p><strong>交易级二分类</strong>：每行 = 一笔交易，标签 = <code>is_risk</code>（0 或 1）。</p>
+    <p>依据：人工基线 <code>feature_engineering.py</code> 以交易表为主表，将 <code>is_risk</code> 作为 label。开户表的 <code>is_abnormal</code> 和销户表的 <code>is_zs_laundering</code> 是辅助信息，不是预测目标。</p>
+  </div>
 
-  <div class="card">
-    <div class="card-title">关键设计原则</div>
-    <ul>
-      <li><strong>数据不入 LLM</strong> — LLM 只看到 schema 元信息（字段名、类型、统计摘要），原始账户和交易数据不会发送给 LLM</li>
-      <li><strong>代码隔离执行</strong> — LLM 生成的代码在受限沙盒中运行，禁止文件 I/O、网络访问等危险操作</li>
-      <li><strong>统计严格验证</strong> — 每个候选特征必须通过互信息、冗余度、卡方检验和模型增量贡献四重检验；MI 和 Cramer's V 阈值从基线特征分布自动校准</li>
-      <li><strong>SHAP 反馈引导</strong> — 用已接受特征的 SHAP 重要性引导 LLM 的后续搜索方向</li>
-    </ul>
+  <div id="s1-3">
+    <h3>1.3 数据来源</h3>
+    <p>数据来自 SimECNY 模拟器（<span class="file-ref">inputs/SimECNY/</span>），包含三个关联表：</p>
+
+    <h4>开户表（16 字段，每行 = 一个钱包）</h4>
+    <table>
+      <tr><th>字段名</th><th>类型</th><th>说明</th><th>取值范围</th></tr>
+      <tr><td>wallet_id</td><td>string</td><td>钱包唯一标识</td><td>14位数字</td></tr>
+      <tr><td>wallet_type</td><td>int</td><td>钱包类型</td><td>1=企业, 2=个人, 3=商户</td></tr>
+      <tr><td>wallet_level</td><td>int</td><td>钱包等级</td><td>1-4类（1类限额最高）</td></tr>
+      <tr><td>wallet_open_cert</td><td>string</td><td>开户身份证号</td><td>18位，4类钱包为NULL</td></tr>
+      <tr><td>wallet_open_cert_expire</td><td>string</td><td>证件过期日期</td><td>YYYY-MM-DD</td></tr>
+      <tr><td>wallet_open_date</td><td>string</td><td>开户日期</td><td>YYYY-MM-DD</td></tr>
+      <tr><td>wallet_open_timestamp</td><td>string</td><td>开户精确时间</td><td>YYYY-MM-DD HH:MM:SS</td></tr>
+      <tr><td>wallet_open_tel</td><td>string</td><td>手机号</td><td>11位</td></tr>
+      <tr><td>realname_auth_time</td><td>string</td><td>实名认证时间</td><td>YYYY-MM-DD HH:MM:SS，4类为NULL</td></tr>
+      <tr><td>accociated_bank_account</td><td>string</td><td>关联银行卡号</td><td>完整卡号，3/4类为NULL</td></tr>
+      <tr><td>bank_account_number</td><td>string</td><td>银行编号</td><td>前4位</td></tr>
+      <tr><td>init_balance</td><td>float</td><td>初始余额</td><td>0-N（CNY）</td></tr>
+      <tr><td>region_code</td><td>string</td><td>开户地区</td><td>6位行政区划码</td></tr>
+      <tr><td>is_abnormal</td><td>bool</td><td>是否异常账户</td><td>True/False（~5%异常率）</td></tr>
+      <tr><td>open_device</td><td>string</td><td>开户设备</td><td>MAC地址</td></tr>
+      <tr><td>open_ip</td><td>string</td><td>开户IP</td><td>IPv4地址</td></tr>
+    </table>
+
+    <h4>交易表（20 字段，每行 = 一笔交易）</h4>
+    <table>
+      <tr><th>字段名</th><th>类型</th><th>说明</th><th>取值范围</th></tr>
+      <tr><td>tx_id</td><td>string</td><td>交易唯一标识</td><td></td></tr>
+      <tr><td>timestamp</td><td>string</td><td>交易时间</td><td>YYYY-MM-DD HH:MM:SS</td></tr>
+      <tr><td>src</td><td>string</td><td>发送方 wallet_id</td><td></td></tr>
+      <tr><td>dst</td><td>string</td><td>接收方 wallet_id</td><td></td></tr>
+      <tr><td>amount</td><td>float</td><td>交易金额</td><td>0.1 - 100,000（CNY）</td></tr>
+      <tr><td>transaction_motif</td><td>string</td><td>交易动机类型</td><td>7种（见 1.5 节）</td></tr>
+      <tr><td>motif_id</td><td>string</td><td>动机组ID</td><td>关联同一批次的交易</td></tr>
+      <tr><td>transaction_mode</td><td>string</td><td>交易结构模式</td><td>7种（见 1.5 节）</td></tr>
+      <tr><td>is_risk</td><td>string</td><td><strong>预测标签</strong></td><td>0=正常, 1=风险（~5%风险率）</td></tr>
+      <tr><td>is_src_victim</td><td>int</td><td>发送方是否受害者</td><td>0/1</td></tr>
+      <tr><td>src_bank_account_number</td><td>string</td><td>发送方银行编号</td><td>前4位</td></tr>
+      <tr><td>dst_bank_account_number</td><td>string</td><td>接收方银行编号</td><td>前4位</td></tr>
+      <tr><td>src_wallet_level</td><td>int</td><td>发送方钱包等级</td><td>1-4</td></tr>
+      <tr><td>dst_wallet_level</td><td>int</td><td>接收方钱包等级</td><td>1-4</td></tr>
+      <tr><td>src_device</td><td>string</td><td>发送方设备</td><td>MAC地址</td></tr>
+      <tr><td>src_ip</td><td>string</td><td>发送方IP</td><td>IPv4</td></tr>
+      <tr><td>dst_device</td><td>string</td><td>接收方设备</td><td>MAC地址</td></tr>
+      <tr><td>dst_ip</td><td>string</td><td>接收方IP</td><td>IPv4</td></tr>
+      <tr><td>interval</td><td>float</td><td>与关联交易的时间间隔</td><td>秒</td></tr>
+      <tr><td>hour</td><td>int</td><td>交易小时</td><td>0-23</td></tr>
+    </table>
+
+    <h4>销户表（6 字段，每行 = 一次销户）</h4>
+    <table>
+      <tr><th>字段名</th><th>类型</th><th>说明</th><th>取值范围</th></tr>
+      <tr><td>wallet_id</td><td>string</td><td>钱包标识</td><td></td></tr>
+      <tr><td>zs_id</td><td>string</td><td>销户流水号</td><td>ZS000001...</td></tr>
+      <tr><td>zs_channel</td><td>string</td><td>销户渠道</td><td>mobile_app, web, counter</td></tr>
+      <tr><td>zs_timestamp</td><td>string</td><td>销户时间</td><td>YYYY-MM-DD HH:MM:SS</td></tr>
+      <tr><td>wallet_open_tel</td><td>string</td><td>手机号</td><td>11位</td></tr>
+      <tr><td>is_zs_laundering</td><td>int</td><td>是否洗钱销户</td><td>0/1</td></tr>
+    </table>
+  </div>
+
+  <div id="s1-4">
+    <h3>1.4 三表关联关系</h3>
+    <pre><code>交易表（主表，每行一笔交易）
+  ├── src (wallet_id) ──&rarr; 开户表.wallet_id &rarr; 获取发送方的账户属性
+  │                   ──&rarr; 销户表.wallet_id &rarr; 获取发送方的销户信息
+  ├── dst (wallet_id) ──&rarr; 开户表.wallet_id &rarr; 获取接收方的账户属性
+  │                   ──&rarr; 销户表.wallet_id &rarr; 获取接收方的销户信息
+  └── is_risk (label)</code></pre>
+    <p>关联键是 <code>wallet_id</code>，交易表的 <code>src</code> 和 <code>dst</code> 字段都是 wallet_id。一个钱包可以出现在多笔交易中（作为 src 或 dst），所以是一对多关系。</p>
+  </div>
+
+  <div id="s1-5">
+    <h3>1.5 数据集交易模式说明（浦发提供）</h3>
+    <p>数据集包含 8 种交易模式（3 种正常 + 5 种风险），由浦发银行提供的模拟数据集说明文档定义。<strong>这些模式说明作为数据集文档的一部分，注入 LLM 的 System Prompt</strong>。</p>
+
+    <h4>正常交易模式（3 种）</h4>
+    <table>
+      <tr><th>模式</th><th>motif 值</th><th>金额范围</th><th>时间特征</th><th>交易模式</th><th>其他</th></tr>
+      <tr><td><strong>单笔交易</strong></td><td>single_transaction</td><td>1-5000元</td><td>高峰(9-11,14-16,19-21点)</td><td>70%单笔，30%转发</td><td>所有钱包类型</td></tr>
+      <tr><td><strong>小额高频</strong></td><td>normal_small_high_freq</td><td>1-100元</td><td>高峰(7-9,12-13,18-20点)</td><td>各20%：扇入/扇出/多对一/一对多/多对多</td><td>日常消费</td></tr>
+      <tr><td><strong>大额低频</strong></td><td>regular_large_low_freq</td><td>100-1000元</td><td>高峰(9-11,14-16点)</td><td>60%单笔，40%一对多</td><td>偏向商户钱包</td></tr>
+    </table>
+
+    <h4>风险交易模式（5 种）</h4>
+    <table>
+      <tr><th>模式</th><th>motif 值</th><th>金额范围</th><th>时间特征</th><th>交易模式</th><th>特殊条件</th></tr>
+      <tr><td><strong>小额测试</strong></td><td>small_amount_testing</td><td>0.01-0.1元</td><td>深夜(0-5,22-23点)</td><td>40%扇入，60%扇出</td><td>休眠账户比例60%，最少休眠90天</td></tr>
+      <tr><td><strong>商户洗钱</strong></td><td>merchant_laundering</td><td>10-1000元</td><td>高峰(10-18点)</td><td>70%一对多，30%多对多</td><td>仅商户钱包，跨行90%，同地区80%，佣金7-9%</td></tr>
+      <tr><td><strong>4类钱包洗钱</strong></td><td>class4_laundering</td><td>100-2000元</td><td>深夜(0-1,23点)</td><td>40%多对一，40%一对多，20%多对多</td><td>仅4类钱包，日限额5000元</td></tr>
+      <tr><td><strong>线上洗钱</strong></td><td>online_laundering</td><td>10-1000元</td><td>深夜(20-1点)</td><td>各20%：扇入/扇出/多对一/一对多/多对多</td><td>交易次数较多</td></tr>
+      <tr><td><strong>受害者洗钱</strong></td><td>victim_laundering</td><td>&mdash;</td><td>&mdash;</td><td>20%扇入，30%多对一，20%一对多，30%多对多</td><td>分两种：诱导(设备IP一致)/盗用(设备IP不一致)</td></tr>
+    </table>
+
+    <h4>开户层面的异常特征</h4>
+    <table>
+      <tr><th>特征</th><th>说明</th></tr>
+      <tr><td><strong>身份证复用</strong></td><td>异常钱包 90% 共享身份证（vs 正常 5%），组大小 2-10</td></tr>
+      <tr><td><strong>手机号复用</strong></td><td>异常钱包 90% 共享手机号（vs 正常 2%）</td></tr>
+      <tr><td><strong>高风险地区</strong></td><td>异常钱包 70% 在西藏/新疆（vs 正常 2%）</td></tr>
+      <tr><td><strong>实名延迟</strong></td><td>异常钱包认证延迟 20-30 天（vs 正常当天）</td></tr>
+      <tr><td><strong>夜间开户</strong></td><td>异常钱包 50% 夜间开户（vs 正常 1%）</td></tr>
+      <tr><td><strong>快速销户</strong></td><td>60% 风险钱包在最后交易 1-2 天内注销</td></tr>
+    </table>
   </div>
 </div>
 
-<!-- ════════════════════════ 2. 架构 ════════════════════════ -->
-<div class="section" id="architecture">
-  <h2><span class="phase-badge pb-1">架构</span> 整体架构与数据流</h2>
+<hr class="sep">
 
-  <p>完整 pipeline 分为 4 个阶段，下图展示了从原始数据到最终特征产出的全流程：</p>
+<!-- ════════════════════════ 二、参考文献与借鉴方式 ════════════════════════ -->
+<div class="section" id="sec2">
+  <h2><span class="phase-badge pb-1">二</span> 参考文献与借鉴方式</h2>
+  <p>本方案参考 6 篇论文，每篇借鉴特定组件。下面详细说明每篇论文的核心算法、我们具体借鉴什么、怎么用、为什么这样组合。</p>
 
-  <div class="flow">
-    <div class="flow-node" style="border-color: #67e8f9;">
-      <strong>Phase 0: 数据准备</strong><br>
-      <small>三表加载 &rarr; Schema 提取 &rarr; 基线特征 &rarr; 领域知识</small>
+  <div id="s2-1">
+    <h3>2.1 LLM-FE &mdash; 搜索引擎骨架</h3>
+    <div class="card">
+      <div class="card-title">Abhyankar et al. &ldquo;LLM-FE: Automated Feature Engineering for Tabular Data with LLMs as Evolutionary Optimizers.&rdquo; ICLR 2026 Workshop. arXiv:2503.14434</div>
     </div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node" style="border-color: #a5b4fc;">
-      <strong>Phase 1: LLM 特征生成</strong><br>
-      <small>Prompt 组装 &rarr; 4 维度岛屿搜索 &rarr; Boltzmann 采样 &rarr; SHAP 反馈</small>
+    <p><strong>论文做了什么</strong>：LLM-FE 把 LLM 当作进化优化器 &mdash; 维护多个&ldquo;岛屿&rdquo;（独立种群），每个岛屿保存一批特征转换程序。每轮从岛屿中选出高分程序作为 in-context 示例给 LLM，让 LLM 生成新程序。</p>
+
+    <h4>核心算法：岛屿模型进化搜索</h4>
+    <pre><code><span class="cmt">算法：岛屿模型进化搜索</span>
+<span class="cmt">参数：m=4 个岛屿, b=3 个候选/岛屿/轮, k=2 个 in-context 示例, &tau;=温度参数</span>
+
+初始化：每个岛屿 Island_j = {} (空集)
+
+<span class="kw">FOR</span> round = <span class="num">1</span> <span class="kw">to</span> T:
+    选择一个岛屿 j（轮流或随机）
+
+    <span class="cmt"># Boltzmann 采样选 in-context 示例</span>
+    <span class="kw">IF</span> Island_j 非空:
+        对 Island_j 中每个程序 i，计算选择概率：
+            P_i = exp(score_i / &tau;) / &Sigma;_all exp(score_all / &tau;)
+        从 P_i 分布中采样 k=<span class="num">2</span> 个程序作为示例
+
+    <span class="cmt"># LLM 生成新候选</span>
+    prompt = System_Prompt + 示例 + <span class="str">"请生成 b=3 个新特征转换"</span>
+    candidates = LLM(prompt) &rarr; 得到 b 个 Python 函数
+
+    <span class="cmt"># 执行和评估</span>
+    <span class="kw">FOR</span> each candidate c <span class="kw">in</span> candidates:
+        执行 c 在训练数据上 &rarr; 生成新特征列
+        训练 XGBoost &rarr; 在验证集上评估 &rarr; score_c
+
+    <span class="cmt"># 更新岛屿</span>
+    将 (candidate, score) 加入 Island_j</code></pre>
+
+    <p><strong>我们怎么用</strong>：</p>
+    <ul>
+      <li>完整采用岛屿模型和 Boltzmann 采样机制</li>
+      <li><strong>维度岛屿</strong>：原论文的岛屿是随机分组，我们按风险维度划分 4 个岛屿（见 2.7），每个岛屿有明确探索方向</li>
+      <li>修改评估方式：原论文用 Accuracy，我们改为 PR-AUC</li>
+      <li>扩展到多表：原论文仅支持单表输入，我们的 LLM 函数接收三个 DataFrame</li>
+    </ul>
+    <p><strong>论文实验数据</strong>：27 个 OpenML 数据集上排名 1.54（第一）。消融实验：去掉领域知识准确率 -26%，去掉进化精炼 -31%。</p>
+  </div>
+
+  <div id="s2-2">
+    <h3>2.2 MedFeat &mdash; SHAP 导航系统</h3>
+    <div class="card">
+      <div class="card-title">&ldquo;MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs.&rdquo; arXiv:2603.02221, 2026</div>
     </div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node" style="border-color: #fdba74;">
-      <strong>Phase 2: 三级验证</strong><br>
-      <small>L1 沙盒执行 &rarr; L2 统计检验（自动校准）&rarr; L3 模型增量 &rarr; 综合打分</small>
+    <p><strong>论文做了什么</strong>：每轮特征生成后计算 SHAP 特征重要性，用 SHAP 值引导 LLM 下一轮的搜索方向。</p>
+
+    <h4>核心算法：SHAP 引导的特征生成</h4>
+    <pre><code><span class="kw">FOR</span> round t = <span class="num">1</span> <span class="kw">to</span> T:
+    <span class="cmt"># Step 1: 计算 SHAP 重要性</span>
+    model_t = 训练 XGBoost(当前特征集, y_train)
+    shap_values = TreeExplainer(model_t).shap_values(X_val)
+    s_t_i = mean(|shap_values[:, i]|)    <span class="cmt"># 全局平均绝对 SHAP 值</span>
+    s&#771;_t_i = s_t_i / &Sigma;_all s_t_all       <span class="cmt"># 转为概率分布</span>
+
+    <span class="cmt"># Step 2: 构建 prompt 反馈</span>
+    shap_feedback = {
+        <span class="str">"top_10_features"</span>: 按 s&#771;_t_i 排序的前10个特征及其重要性,
+        <span class="str">"weak_dimensions"</span>: SHAP 值低的特征类别,
+        <span class="str">"model_type"</span>: <span class="str">"XGBoost"</span>
+    }
+
+    <span class="cmt"># Step 3: LLM 生成</span>
+    candidates = LLM(System_Prompt + shap_feedback + memory)
+
+    <span class="cmt"># Step 4: 特征接受条件</span>
+    <span class="kw">IF</span> L_t_k* >= L_t_baseline + &beta; (&beta;=<span class="num">0.01</span>):
+        接受 candidate_k*，更新特征集和 baseline
+    <span class="kw">ELSE</span>:
+        拒绝，记录原因到失败记忆库</code></pre>
+
+    <p><strong>我们怎么用</strong>：完整采用 SHAP 引导机制、接受条件 &beta;=0.01、失败记忆、模型感知。<strong>不采用</strong>它的搜索方式（单线迭代太慢），用 LLM-FE 的岛屿并行替代。</p>
+    <p><strong>论文实验数据</strong>：去掉 SHAP 引导 F1 下降 9-26%，去掉模型感知 F1 最高下降 35.9%。</p>
+  </div>
+
+  <div id="s2-3">
+    <h3>2.3 CAAFE &mdash; 代码安全与错误反馈</h3>
+    <div class="card">
+      <div class="card-title">Hollmann et al. &ldquo;Large Language Models for Automated Data Science: Introducing CAAFE.&rdquo; NeurIPS 2023. arXiv:2305.03403</div>
     </div>
-    <div class="flow-arrow"></div>
-    <div class="flow-node" style="border-color: #86efac;">
-      <strong>Phase 3: 最终验证与产出</strong><br>
-      <small>L4 稳定性 &rarr; 5 组实验 &rarr; 特征字典 &rarr; 可视化报告</small>
+
+    <p>我们借鉴的具体机制：</p>
+    <pre><code><span class="cmt">代码安全白名单（借鉴 CAAFE）：</span>
+  允许的模块: pandas, numpy, scipy.stats, sklearn.preprocessing
+  禁止的操作: os, sys, subprocess, open(), exec(), eval(), 网络请求
+
+<span class="cmt">错误反馈循环（借鉴 CAAFE）：</span>
+  <span class="kw">IF</span> 代码执行失败:
+      error_msg = 捕获的异常信息（类型 + 行号 + 消息）
+      retry_prompt = f<span class="str">"你上一次生成的代码执行失败：\n{error_msg}\n请修正并重新生成。"</span>
+      corrected = LLM(retry_prompt)
+      最多重试 <span class="num">2</span> 次
+
+<span class="cmt">输出格式（借鉴 CAAFE）：</span>
+  每个特征必须附带文本解释，说明为什么创建、捕捉了什么模式、对应哪个领域知识</code></pre>
+    <p><strong>论文实验数据</strong>：14 个数据集中 11 个获得提升，平均 ROC AUC +2.4%。</p>
+  </div>
+
+  <div id="s2-4">
+    <h3>2.4 OCTree &mdash; 可解释性增强（可选）</h3>
+    <div class="card">
+      <div class="card-title">Nam et al. &ldquo;OCTree: Optimized Feature Generation via LLMs with Decision Tree Reasoning.&rdquo; NeurIPS 2024. arXiv:2406.08527</div>
     </div>
+    <p>训练浅层决策树 CART(max_depth=4)，将决策树分裂规则转为自然语言反馈给 LLM。作为 SHAP 反馈的可选补充。</p>
+    <p><strong>论文实验数据</strong>：加入决策树反馈后，改进幅度从 1.4-17.2% 提升到 2.6-20.1%。</p>
+  </div>
+
+  <div id="s2-5">
+    <h3>2.5 CoFEH &mdash; 后续升级方向</h3>
+    <div class="card">
+      <div class="card-title">Xu et al. &ldquo;CoFEH: LLM-driven Feature Engineering Empowered by Collaborative Bayesian HPO.&rdquo; ASPLOS 2026. arXiv:2602.09851</div>
+    </div>
+    <p>用 MCTS 替代进化搜索，同时联合优化特征工程和模型超参数。实现复杂度最高，作为 V2 升级方向。</p>
+    <p><strong>论文实验数据</strong>：排名 1.75（仅次于 LLM-FE 的 1.54）。</p>
+  </div>
+
+  <div id="s2-6">
+    <h3>2.6 Balek 2025 &mdash; 统计验证方法</h3>
+    <div class="card">
+      <div class="card-title">Balek et al. &ldquo;LLM-based Feature Generation from Text for Interpretable ML.&rdquo; Machine Learning, 2025. arXiv:2409.07132</div>
+    </div>
+
+    <pre><code><span class="cmt">Bootstrap 卡方检验（验证特征有效性）：</span>
+  <span class="kw">FOR</span> i = <span class="num">1</span> <span class="kw">to</span> <span class="num">2500</span>:
+      sample = 有放回抽样(feature, label)
+      chi2_i, p_i = chi2_contingency(crosstab(sample_feature, sample_label))
+  p_value = mean(所有 p_i)
+  <span class="kw">IF</span> p_value &lt; <span class="num">0.05</span>: 特征与标签显著相关
+
+<span class="cmt">Cramer's V（衡量效应大小，不受样本量影响）：</span>
+  V = sqrt(&chi;&sup2; / (N &times; (min(r,c) - <span class="num">1</span>)))
+  解释：V &lt; <span class="num">0.10</span> 可忽略, <span class="num">0.10-0.30</span> 弱, <span class="num">0.30-0.50</span> 中等, &gt; <span class="num">0.50</span> 强</code></pre>
+
+    <div class="highlight-box">
+      <strong>关键发现</strong>：五篇论文（LLM-FE, CAAFE, MedFeat, OCTree, CoFEH）无一使用统计检验。我们用 Balek 的方法填补这个缺口。
+    </div>
+  </div>
+
+  <div id="s2-7">
+    <h3>2.7 各组件如何组合</h3>
+    <pre><code>[<span class="num">1</span>] 领域知识 + 交易模式说明（我们独有）
+    - 专家访谈 + 200+识别点 + 38风险指标 + 监管规则
+    - 8 种交易模式详细说明（浦发数据集文档）
+            | 注入 System Prompt
+            v
+[<span class="num">2</span>] 维度岛屿进化搜索引擎（来自 LLM-FE, 改进为维度划分）
+    - 岛屿1[金额频次] --&rarr; LLM --&rarr; 候选特征代码 --+
+    - 岛屿2[时间地域] --&rarr; LLM --&rarr; 候选特征代码 --+--&rarr; 汇总
+    - 岛屿3[行为序列] --&rarr; LLM --&rarr; 候选特征代码 --+
+    - 岛屿4[主体关联] --&rarr; LLM --&rarr; 候选特征代码 --+
+            v
+[<span class="num">3</span>] 代码执行沙盒（来自 CAAFE）
+    - 安全白名单 &rarr; 语法检查 &rarr; 执行 &rarr; 错误反馈给 LLM
+            v
+[<span class="num">4</span>] SHAP 导航系统（来自 MedFeat）
+    - 训练 XGBoost &rarr; 计算 SHAP 重要性 &rarr; 反馈给 LLM
+    - 接受条件: deltaPR-AUC &ge; &beta; (<span class="num">0.01</span>)
+            v
+[<span class="num">5</span>] 统计验证层（来自 Balek）
+    - Bootstrap 卡方检验 + Cramer's V + 互信息</code></pre>
+
+    <h4>维度岛屿划分</h4>
+    <table>
+      <tr><th>岛屿</th><th>探索维度</th><th>对应风险分类表二级类</th><th>重点探索的数据字段</th></tr>
+      <tr><td><strong>岛屿 1：金额频次</strong></td><td>金额分布、频率、拆分交易</td><td>金额与频次异常风险</td><td>amount, interval, hour, transaction_motif</td></tr>
+      <tr><td><strong>岛屿 2：时间地域</strong></td><td>夜间交易、IP跳变、跨地域</td><td>时间与地域异常风险</td><td>timestamp, src/dst_ip, region_code, hour</td></tr>
+      <tr><td><strong>岛屿 3：行为序列</strong></td><td>休眠激活、交易对手更换</td><td>行为序列异常风险</td><td>timestamp(时序), transaction_mode, 销户表</td></tr>
+      <tr><td><strong>岛屿 4：主体关联</strong></td><td>交叉转账网络、身份复用</td><td>账户关联 + 主体信用风险</td><td>wallet_open_cert, open_tel, src/dst_device, src/dst 图结构</td></tr>
+    </table>
+
+    <div class="card">
+      <div class="card-title">组合逻辑</div>
+      <ul>
+        <li><strong>LLM-FE</strong> 提供搜索效率（多岛屿并行），我们的维度划分让每个岛屿有明确方向</li>
+        <li><strong>MedFeat</strong> 提供搜索方向（SHAP 引导），三者结合：高效 + 有方向 + 有分工的搜索</li>
+        <li><strong>CAAFE</strong> 提供代码执行的安全保障和错误反馈</li>
+        <li><strong>Balek</strong> 提供超越所有论文的统计验证</li>
+        <li><strong>我们的领域知识 + 交易模式说明</strong>是所有论文都没有的独特信号源</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="s2-8">
+    <h3>2.8 方法全景对比</h3>
+    <table>
+      <tr><th>方法</th><th>发表</th><th>搜索策略</th><th>评估指标</th><th>可解释性</th><th>领域知识</th><th>平均排名(&darr;)</th></tr>
+      <tr><td>CAAFE</td><td>NeurIPS'23</td><td>贪心迭代</td><td>ROC AUC</td><td>中</td><td>仅数据集描述</td><td>3.82</td></tr>
+      <tr><td>OCTree</td><td>NeurIPS'24</td><td>决策树引导</td><td>错误率</td><td>强</td><td>列名语义</td><td>~2.5</td></tr>
+      <tr><td><strong>LLM-FE</strong></td><td>ICLR'26 WS</td><td><strong>岛屿进化</strong></td><td>Accuracy</td><td>中</td><td>特征名+描述</td><td><strong>1.54</strong></td></tr>
+      <tr><td>FeatLLM</td><td>arXiv'24</td><td>集成bagging</td><td>错误率</td><td>强</td><td>任务描述+样本</td><td>3.82</td></tr>
+      <tr><td><strong>MedFeat</strong></td><td>arXiv'26</td><td><strong>SHAP引导</strong></td><td>AUC+F1</td><td><strong>最强</strong></td><td>SHAP+模型感知</td><td>N/A</td></tr>
+      <tr><td>CoFEH</td><td>ASPLOS'26</td><td>MCTS+BO</td><td>错误率</td><td>中</td><td>prompt+记忆</td><td><strong>1.75</strong></td></tr>
+      <tr><td><strong>本方案</strong></td><td>&mdash;</td><td><strong>维度岛屿+SHAP</strong></td><td><strong>PR-AUC</strong></td><td><strong>强</strong></td><td><strong>专家知识+交易模式+200+识别点</strong></td><td>&mdash;</td></tr>
+    </table>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 三、输入文件与数据准备 ════════════════════════ -->
+<div class="section" id="sec3">
+  <h2><span class="phase-badge pb-0">三</span> 输入文件与数据准备</h2>
+
+  <h3>3.1 文件清单</h3>
+  <table>
+    <tr><th>文件</th><th>路径</th><th>内容</th><th>在系统中的用途</th></tr>
+    <tr><td>开户模拟器</td><td><code>inputs/SimECNY/open/</code></td><td>生成 100K 钱包数据的 Python 代码</td><td>运行生成 accounts.csv</td></tr>
+    <tr><td>交易模拟器</td><td><code>inputs/SimECNY/transaction/</code></td><td>生成交易流水的 Python 代码</td><td>运行生成 transactions.csv</td></tr>
+    <tr><td>销户模拟器</td><td><code>inputs/SimECNY/close/</code></td><td>生成销户数据的 Python 代码</td><td>运行生成 close.csv</td></tr>
+    <tr><td>度分布文件</td><td><code>inputs/SimECNY/transaction/wallet_static_edges_in_out_freq.csv</code></td><td>交易网络的度分布</td><td>生成交易图结构</td></tr>
+    <tr><td>邮储专家访谈</td><td><code>inputs/domain_knowledge/邮储专家访谈_数币洗钱模式.docx</code></td><td>4 类洗钱模式的专家描述</td><td>结构化后注入 System Prompt</td></tr>
+    <tr><td>可疑交易识别点</td><td><code>inputs/domain_knowledge/可疑交易识别点_DATA_SOURCE.pdf</code></td><td>12 类 200+ 识别点</td><td>压缩后注入 System Prompt</td></tr>
+    <tr><td>风险分类表</td><td><code>inputs/domain_knowledge/风险分类表_38指标.xlsx</code></td><td>38 个风险指标</td><td>完整写入 System Prompt</td></tr>
+    <tr><td>检测规则</td><td><code>inputs/domain_knowledge/检测规则_15条.xlsx</code></td><td>15 条种子规则</td><td>转为 Python 示例用于冷启动</td></tr>
+    <tr><td>人工特征基线</td><td><code>inputs/baseline/feature_engineering.py</code></td><td>40+ 人工特征代码</td><td>提取特征清单告诉 LLM</td></tr>
+    <tr><td>失败规则</td><td><code>inputs/baseline/failed_rules_458.json</code></td><td>458 条失败规则</td><td>反面教材写入约束</td></tr>
+  </table>
+
+  <h3>3.2 数据生成流程</h3>
+  <pre><code><span class="cmt">Step 1: 运行开户模块</span>
+  cd inputs/SimECNY/open/
+  python3 open_wallet_distribution_based.py
+  &rarr; 输出: accounts.csv（100,000 行，16 列，~5% is_abnormal=True）
+
+<span class="cmt">Step 2: 运行图生成</span>
+  cd inputs/SimECNY/transaction/
+  python3 generate_static_edges.py
+  &rarr; 输入: accounts.csv + wallet_static_edges_in_out_freq.csv
+
+<span class="cmt">Step 3: 运行交易生成</span>
+  python3 simplified_main.py
+  &rarr; 输出: wallet_temporal_transactions_*.csv（~20列）
+
+<span class="cmt">Step 4: 修复并运行销户模块</span>
+  需要修改硬编码路径为相对路径
+  python3 generate_wallet_close_data.py
+  &rarr; 输出: new_close_3.csv（6列）
+
+<span class="cmt">Step 5: 验证数据完整性</span>
+  检查: 字段名与 &sect;1.3 一致、is_risk ~5%、wallet_id 关联完整</code></pre>
+
+  <h3>3.3 领域知识结构化</h3>
+  <p>领域知识需要压缩后注入 LLM prompt。压缩策略：</p>
+  <table>
+    <tr><th>来源</th><th>原始量</th><th>压缩方式</th><th>压缩后 token</th></tr>
+    <tr><td><strong>8 种交易模式说明</strong></td><td>~2000 字</td><td>按模式提取：金额/时间/模式/特殊条件</td><td>~1200</td></tr>
+    <tr><td>专家访谈</td><td>~3000 字</td><td>按4类洗钱模式提取关键特征描述</td><td>~800</td></tr>
+    <tr><td>200+ 识别点</td><td>~10000 字</td><td>按 12 类分组，每类保留 top-3</td><td>~1000</td></tr>
+    <tr><td>38 个指标</td><td>~1500 字</td><td>保持表格形式</td><td>~600</td></tr>
+    <tr><td>15 条规则</td><td>~500 字</td><td>转为 Python 函数示例</td><td>~400</td></tr>
+  </table>
+
+  <h3>3.4 三表关联模块的具体实现</h3>
+  <p>LLM 生成的特征函数支持两种返回粒度，系统自动处理：</p>
+  <pre><code><span class="kw">def</span> <span class="fn">merge_feature_to_transactions</span>(feature_df, tx_df):
+    <span class="str">"""将 LLM 生成的特征合并到交易表"""</span>
+
+    <span class="kw">if</span> <span class="str">'tx_id'</span> <span class="kw">in</span> feature_df.columns:
+        <span class="cmt"># 交易级特征：直接 merge</span>
+        <span class="kw">return</span> tx_df.merge(feature_df, on=<span class="str">'tx_id'</span>, how=<span class="str">'left'</span>)
+
+    <span class="kw">elif</span> <span class="str">'wallet_id'</span> <span class="kw">in</span> feature_df.columns:
+        <span class="cmt"># 钱包级特征：分别 merge 到 src 和 dst</span>
+        feature_name = [c <span class="kw">for</span> c <span class="kw">in</span> feature_df.columns <span class="kw">if</span> c != <span class="str">'wallet_id'</span>][<span class="num">0</span>]
+
+        <span class="cmt"># src 侧</span>
+        src_df = feature_df.rename(columns={
+            <span class="str">'wallet_id'</span>: <span class="str">'src'</span>,
+            feature_name: f<span class="str">'{feature_name}_src'</span>
+        })
+        tx_df = tx_df.merge(src_df, on=<span class="str">'src'</span>, how=<span class="str">'left'</span>)
+
+        <span class="cmt"># dst 侧</span>
+        dst_df = feature_df.rename(columns={
+            <span class="str">'wallet_id'</span>: <span class="str">'dst'</span>,
+            feature_name: f<span class="str">'{feature_name}_dst'</span>
+        })
+        tx_df = tx_df.merge(dst_df, on=<span class="str">'dst'</span>, how=<span class="str">'left'</span>)
+
+        <span class="kw">return</span> tx_df</code></pre>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 四、系统架构详细设计 ════════════════════════ -->
+<div class="section" id="sec4">
+  <h2><span class="phase-badge pb-1">四</span> 系统架构详细设计</h2>
+
+  <div id="s4-1">
+    <h3>4.1 总体流程</h3>
+
+    <div class="flow">
+      <div class="flow-node" style="border-color: #67e8f9;">
+        <strong>Phase 0: 输入准备</strong><br>
+        <small>三表加载 &rarr; Schema 提取 &rarr; 基线特征 &rarr; 领域知识</small>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node" style="border-color: #a5b4fc;">
+        <strong>Phase 1-2: 进化搜索循环（核心）</strong><br>
+        <small>4 维度岛屿 &rarr; Boltzmann 采样 &rarr; LLM 生成 &rarr; L1-L3 验证 &rarr; SHAP 反馈</small>
+      </div>
+      <div class="flow-arrow"></div>
+      <div class="flow-node" style="border-color: #86efac;">
+        <strong>Phase 3: 最终验证与产出</strong><br>
+        <small>L4 稳定性 &rarr; 5 组实验 &rarr; 特征字典 &rarr; 可视化报告</small>
+      </div>
+    </div>
+
+    <p>Phase 1-2 搜索循环的详细步骤：</p>
+    <pre><code><span class="kw">FOR</span> round = <span class="num">1</span> <span class="kw">to</span> T (最多 <span class="num">10</span> 轮):
+
+  <span class="cmt">--- Step 1: 生成候选特征 ---</span>
+      4 个维度岛屿各自:
+      - Boltzmann 采样选 k=<span class="num">2</span> 个 in-context 示例
+      - 构建 User Prompt（SHAP反馈 + 维度引导词 + 示例 + 失败记录）
+      - 调用 LLM 生成 b=<span class="num">3</span> 个候选特征
+      &rarr; 本轮共 4x3 = <span class="num">12</span> 个候选特征
+
+  <span class="cmt">--- Step 2: 代码执行与安全检查 ---</span>
+      对每个候选:
+      - 安全白名单检查（禁止 os/sys/网络等）
+      - 在沙盒中执行（超时 30s, 内存 2GB）
+      - 检查输出: 非空、非全0、非全1、无 NaN 超过 50%
+      - 失败的: 错误信息反馈给 LLM 重试（最多 <span class="num">2</span> 次）
+
+  <span class="cmt">--- Step 3: 特征质量评估 ---</span>
+      L2 统计验证:
+      - 互信息 MI(feature, label) &gt; <span class="num">0.01</span>
+      - |corr| &lt; <span class="num">0.9</span>（非冗余）
+      - Cramer's V &gt; <span class="num">0.05</span>
+
+      L3 模型验证:
+      - 训练 XGBoost, 5折分层CV
+      - deltaPR-AUC &ge; <span class="num">0.005</span>
+
+      综合打分:
+      score = <span class="num">0.35</span>*SHAP_rank + <span class="num">0.25</span>*MI + <span class="num">0.25</span>*(1-冗余度) + <span class="num">0.15</span>*deltaPR-AUC
+
+  <span class="cmt">--- Step 4: 记忆更新与反馈 ---</span>
+      接受的特征 &rarr; 加入岛屿记忆库
+      拒绝的特征 &rarr; 加入失败记忆库
+      岛屿间迁移: 本轮最高分特征复制到所有岛屿
+      SHAP 反馈: top-10 特征 + 弱势维度
+
+  收敛判断: 连续 <span class="num">2</span> 轮无新特征通过 &rarr; 停止</code></pre>
+  </div>
+
+  <div id="s4-2">
+    <h3>4.2 LLM 输出格式</h3>
+    <p>每个候选特征，LLM 需要输出以下 JSON 结构：</p>
+    <pre><code>{
+    <span class="str">"feature_name"</span>: <span class="str">"night_fan_out_ratio"</span>,
+    <span class="str">"granularity"</span>: <span class="str">"wallet"</span>,
+    <span class="str">"rationale"</span>: <span class="str">"邮储专家指出线上跑分常在凌晨进行，且呈现'分散转出'模式..."</span>,
+    <span class="str">"knowledge_source"</span>: <span class="str">"邮储专家访谈-线上跑分模式 + 可疑交易识别点1-1"</span>,
+    <span class="str">"code"</span>: <span class="str">"def compute_feature(open_df, tx_df, close_df):\n    ..."</span>
+}</code></pre>
+    <p>字段说明：<code>feature_name</code>（描述性特征名）、<code>granularity</code>（wallet 或 transaction）、<code>rationale</code>（可解释性说明，必须引用领域知识）、<code>knowledge_source</code>（引用来源）、<code>code</code>（可执行 Python 函数）。</p>
+  </div>
+
+  <div id="s4-3">
+    <h3>4.3 Prompt 详细设计</h3>
+
+    <div class="card">
+      <div class="card-title">System Prompt（固定，约 5000 token）</div>
+      <ul>
+        <li><strong>角色设定</strong>：「你是数字人民币反洗钱领域的特征工程师」</li>
+        <li><strong>输出格式</strong>：JSON 数组，每个特征包含 feature_name、granularity、rationale、knowledge_source、code</li>
+        <li><strong>数据结构</strong>：三表完整 schema（字段名 + 类型 + 统计摘要）+ 三表关联说明</li>
+        <li><strong>领域知识</strong>：8 种交易模式说明 + 4 类洗钱模式（专家访谈）+ 38 个风险指标 + 36 条核心识别点</li>
+        <li><strong>已有特征列表</strong>：107 个基线特征名（告诉 LLM 不要重复）</li>
+        <li><strong>约束条件</strong>：30 秒超时、白名单库、禁用标签列、仅 Python 代码</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-title">User Prompt（每轮变化）</div>
+      <p><strong>第 1 轮（冷启动）</strong>：当前岛屿名称 + 重点字段 + 检测规则转化的种子示例代码</p>
+      <p><strong>第 2+ 轮（迭代）</strong>：增加以下动态信息：</p>
+      <ul>
+        <li>上轮最佳特征（从记忆库中 Boltzmann 采样的高分示例）</li>
+        <li>SHAP 反馈（当前哪些特征最重要、哪些维度薄弱）</li>
+        <li>失败记忆（上轮失败的特征及原因，避免重复犯错）</li>
+        <li>多轮岛内对话：每个岛屿最多 3 轮对话，实时反馈验证结果</li>
+        <li>数据查询结果：LLM 上轮发起的统计查询结果</li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="s4-4">
+    <h3>4.4 SHAP 与岛屿进化的融合细节</h3>
+    <pre><code>每一轮迭代的执行流程：
+
+<span class="num">1</span>. SHAP 分析（全局，所有岛屿共享）
+   model = XGBoost(当前全部特征)
+   shap_values = TreeExplainer(model).shap_values(X_val)
+   shap_feedback = 生成 top-10 特征 + 弱势维度文本
+
+<span class="num">2</span>. 对每个维度岛屿 j &isin; {金额频次, 时间地域, 行为序列, 主体关联}：
+
+   a) Boltzmann 采样选 in-context 示例（岛屿独立）
+      P_i = exp(score_i / &tau;) / &Sigma; exp(score_all / &tau;)
+      示例 = 从 P_i 分布中采样 k=<span class="num">2</span> 个特征
+
+   b) 构建 User Prompt
+      = 维度引导词（岛屿专属）
+      + shap_feedback（全局共享）
+      + 示例（岛屿独立的 Boltzmann 采样结果）
+      + 失败记忆（全局共享）
+
+   c) 调用 LLM 生成 b=<span class="num">3</span> 个候选
+
+<span class="num">3</span>. 岛屿间迁移
+   best_feature = 本轮所有 <span class="num">12</span> 个候选中得分最高的
+   复制到所有岛屿的记忆库（跨维度经验共享）</code></pre>
+
+    <div class="highlight-box">
+      <strong>为什么这样设计</strong>：维度划分让每个岛屿有明确方向；SHAP 全局共享让所有岛屿知道哪个方向有价值；Boltzmann 岛屿独立保持多样性；迁移最优实现跨维度好特征传播。
+    </div>
+  </div>
+
+  <div id="s4-5">
+    <h3>4.5 LLM 模块（可插拔）</h3>
+    <pre><code><span class="kw">class</span> <span class="fn">LLMInterface</span>:
+    <span class="kw">def</span> <span class="fn">generate</span>(self, system_prompt: <span class="var">str</span>, user_prompt: <span class="var">str</span>) -&gt; <span class="var">str</span>:
+        <span class="str">"""输入 prompt，输出包含 JSON 的文本"""</span>
+        <span class="kw">raise</span> NotImplementedError
+
+<span class="kw">class</span> <span class="fn">OpenAILLM</span>(LLMInterface):
+    <span class="str">"""API 模式：GPT-4o / GPT-3.5-Turbo"""</span>
+
+<span class="kw">class</span> <span class="fn">LocalLLM</span>(LLMInterface):
+    <span class="str">"""本地模式：Qwen2.5-Coder-32B / Llama-3.1-8B 等"""</span></code></pre>
+    <p>LLM-FE 论文验证了 Llama-3.1-8B 和 GPT-3.5-Turbo 均有效，框架对底层模型不敏感。搜索智能来自进化框架，不是来自 LLM 本身。</p>
+  </div>
+
+  <div id="s4-6">
+    <h3>4.6 Prompt 长度管理</h3>
+    <table>
+      <tr><th>层级</th><th>内容</th><th>token 估算</th><th>说明</th></tr>
+      <tr><td><strong>必须</strong></td><td>Schema + 三表关联 + 约束 + 输出格式</td><td>~1500</td><td>不可压缩</td></tr>
+      <tr><td><strong>关键</strong></td><td>8 种交易模式说明</td><td>~1200</td><td>3 正常 + 5 风险模式</td></tr>
+      <tr><td><strong>核心</strong></td><td>4 类洗钱模式（专家访谈）</td><td>~800</td><td>4 段，每段 ~200 token</td></tr>
+      <tr><td><strong>重要</strong></td><td>38 个风险指标（表格）</td><td>~600</td><td>名称+说明</td></tr>
+      <tr><td><strong>补充</strong></td><td>36 条核心识别点</td><td>~1000</td><td>可按 context 长度调整</td></tr>
+      <tr><td colspan="2"><strong>System 小计</strong></td><td><strong>~5100</strong></td><td></td></tr>
+      <tr><td><strong>动态</strong></td><td>User Prompt</td><td>~1500</td><td>维度引导 + SHAP + 示例 + 失败</td></tr>
+      <tr><td colspan="2"><strong>总计</strong></td><td><strong>~6600</strong></td><td>8K 紧凑，16K+ 宽裕</td></tr>
+    </table>
   </div>
 
   <h3>代码结构</h3>
@@ -445,7 +1009,7 @@
 ├── data/
 │   ├── loader.py              <span class="cmt"># 三表加载 + schema 提取 + 分布差异</span>
 │   ├── stats_query.py         <span class="cmt"># 按需统计查询（方案 B）</span>
-│   ├── baseline.py            <span class="cmt"># 人工基线特征</span>
+│   ├── baseline.py            <span class="cmt"># 107 个人工基线特征</span>
 │   ├── merge.py               <span class="cmt"># wallet/tx 级特征 merge</span>
 │   └── validate_data.py       <span class="cmt"># 数据验证</span>
 ├── prompt/
@@ -464,7 +1028,7 @@
 │   ├── sandbox.py             <span class="cmt"># L1 代码安全沙盒</span>
 │   ├── validator.py           <span class="cmt"># L1→L2→L3 验证流水线</span>
 │   ├── metrics.py             <span class="cmt"># MI, Cramer's V, Delta PR-AUC, SHAP</span>
-│   ├── calibration.py         <span class="cmt"># L2 阈值自动校准（基于基线分布）</span>
+│   ├── calibration.py         <span class="cmt"># L2 阈值自动校准</span>
 │   ├── stability.py           <span class="cmt"># L4 稳定性验证</span>
 │   └── experiments.py         <span class="cmt"># 5 组增量贡献实验</span>
 └── report/
@@ -473,453 +1037,398 @@
     └── generator.py           <span class="cmt"># 验证报告生成</span></code></pre>
 </div>
 
-<!-- ════════════════════════ 3. Phase 0 ════════════════════════ -->
-<div class="section" id="phase0">
-  <h2><span class="phase-badge pb-0">Phase 0</span> 数据准备与基线构建</h2>
+<hr class="sep">
 
-  <p>Phase 0 的目标是准备 LLM 搜索所需的全部输入材料。这个阶段完全不涉及 LLM，是纯数据工程。</p>
+<!-- ════════════════════════ 五、现状分析 ════════════════════════ -->
+<div class="section" id="sec5">
+  <h2><span class="phase-badge pb-2">五</span> 现状分析</h2>
 
-  <h3>Step 1: 加载三张数据表</h3>
-  <p><span class="file-ref">src/data/loader.py</span> &mdash; <code>load_all_tables()</code></p>
-  <p>系统基于数字人民币场景的三张核心表：</p>
-
-  <table>
-    <tr><th>表名</th><th>粒度</th><th>字段数</th><th>核心字段</th></tr>
-    <tr>
-      <td><strong>开户表</strong> (open_df)</td>
-      <td>每行 = 一个钱包</td>
-      <td>16</td>
-      <td>wallet_id, wallet_type, wallet_level, wallet_open_cert (身份证), wallet_open_tel (手机号), region_code, open_device, open_ip</td>
-    </tr>
-    <tr>
-      <td><strong>交易表</strong> (tx_df)</td>
-      <td>每行 = 一笔交易</td>
-      <td>20</td>
-      <td>tx_id, src (发送方), dst (接收方), amount, timestamp, hour, transaction_mode, <strong>is_risk</strong> (标签)</td>
-    </tr>
-    <tr>
-      <td><strong>销户表</strong> (close_df)</td>
-      <td>每行 = 一次销户</td>
-      <td>5</td>
-      <td>wallet_id, zs_channel (销户渠道), zs_timestamp</td>
-    </tr>
-  </table>
-
-  <div class="card">
-    <div class="card-title">为什么是三表而不是单表？</div>
-    <p>反洗钱检测需要从多个角度观察：开户信息揭示身份特征（同一身份证开多个钱包），交易信息揭示行为模式（金额、时间、网络结构），销户信息揭示生命周期异常（交易后快速销户）。三表关联才能捕捉完整的洗钱链路。这也是本系统的一个创新点 — 现有 LLM 特征工程论文全部只支持单表。</p>
+  <div id="s5-1">
+    <h3>5.1 人工特征工程基线（~40 个特征）</h3>
+    <p><span class="file-ref">inputs/baseline/feature_engineering.py</span></p>
+    <table>
+      <tr><th>类别</th><th>特征</th><th>已覆盖</th></tr>
+      <tr><td>交易对</td><td>same_transactionaccount, transaction_count_directed/Undirected, timeinterval, density</td><td>是</td></tr>
+      <tr><td>集中度</td><td>send/receive_concentration, send/receive_amount_concentration</td><td>是</td></tr>
+      <tr><td>短期频率</td><td>counts_1H_From/To, 1H_frequency_From/To</td><td>是（仅1H窗口）</td></tr>
+      <tr><td>图度</td><td>Out/In_Degree, From_To_Ratio, unique_outdegree/indegree</td><td>是（仅简单度）</td></tr>
+      <tr><td>金额统计</td><td>Total/Max/Min/Mean/Std Sent/Received, volatility, z_score, large_ratio</td><td>是</td></tr>
+      <tr><td>时间</td><td>Timestamp_Hour, activetime, transaction_frequency, inactive_period</td><td>是</td></tr>
+      <tr><td>S指标</td><td>S_history_count, S_geo_risk, S_time_risk</td><td>是</td></tr>
+      <tr><td>开户特征</td><td>open_hour, is_night_hour, auth_delay_days, wallets_per_cert 等</td><td>是</td></tr>
+    </table>
   </div>
 
-  <h3>Step 2: Schema 提取</h3>
-  <p><span class="file-ref">src/data/loader.py</span> &mdash; <code>extract_schema()</code></p>
-  <p>为每个字段生成统计摘要（类型、空值率、唯一值数、数值范围/分类频率），这些信息会注入 LLM Prompt，让 LLM 了解数据长什么样：</p>
-
-  <pre><code><span class="cmt"># 示例 schema 输出</span>
-=== 开户表(accounts) (<span class="num">1000</span> rows, <span class="num">16</span> columns) ===
-  wallet_id: object | null=<span class="num">0.0</span>% | unique=<span class="num">1000</span> | top: W0001(1), W0002(1)...
-  wallet_level: int64 | null=<span class="num">0.0</span>% | unique=<span class="num">4</span> | min=<span class="num">1</span>, median=<span class="num">3</span>, max=<span class="num">4</span>
-  wallet_open_cert: object | null=<span class="num">42.3</span>% | unique=<span class="num">573</span> | top: 110101...(3), ...
-  amount: float64 | null=<span class="num">0.0</span>% | min=<span class="num">0.01</span>, median=<span class="num">500</span>, max=<span class="num">50000</span></code></pre>
-
-  <h3>Step 3: 运行人工基线特征</h3>
-  <p><span class="file-ref">src/data/baseline.py</span> &mdash; <code>run_baseline()</code></p>
-  <p>调用 <code>inputs/baseline/feature_engineering.py</code> 中人工设计的特征工程流水线（交易级特征 + 账户开立衍生特征 + S 指标 + 账户级汇总特征），并用 XGBoost 5 折交叉验证计算基线 PR-AUC。</p>
-  <p>基线的意义：<strong>LLM 生成的新特征必须在此基础上产生增量贡献</strong>，而不是重新发明轮子。</p>
-
-  <h3>Step 4: 加载领域知识</h3>
-  <p><span class="file-ref">src/prompt/domain_knowledge.py</span></p>
-  <p>从多个来源收集领域知识，压缩后注入 LLM Prompt：</p>
-
-  <table>
-    <tr><th>知识来源</th><th>内容</th><th>数量</th></tr>
-    <tr><td>交易模式说明</td><td>3 种正常模式 + 5 种风险模式的特征描述</td><td>8 种</td></tr>
-    <tr><td>专家访谈</td><td>4 类洗钱模式（薅羊毛、线上跑分、对公跑分、对敲交易）</td><td>4 类</td></tr>
-    <tr><td>风险分类表</td><td>银行识别的风险指标（异常金额、异常时间等）</td><td>38 个</td></tr>
-    <tr><td>检测规则</td><td>现有反洗钱检测规则，转为 Python 代码示例</td><td>15 条</td></tr>
-  </table>
-</div>
-
-<!-- ════════════════════════ 4. Phase 1 ════════════════════════ -->
-<div class="section" id="phase1">
-  <h2><span class="phase-badge pb-1">Phase 1</span> LLM 特征生成</h2>
-
-  <p>Phase 1 是系统的核心 — 利用 LLM 自动生成特征提取的 Python 代码。这不是简单的一次性调用，而是一个<strong>多轮迭代的进化搜索过程</strong>。</p>
-
-  <!-- ── Prompt ── -->
-  <div id="p1-prompt">
-    <h3>4.1 Prompt 工程</h3>
-    <p><span class="file-ref">src/prompt/builder.py</span></p>
-    <p>Prompt 分为两部分，共同构成对 LLM 的完整指令：</p>
-
-    <div class="card">
-      <div class="card-title">System Prompt（固定，约 5000 token）</div>
-      <ul>
-        <li><strong>角色设定</strong>：「你是数字人民币反洗钱领域的特征工程师」</li>
-        <li><strong>输出格式</strong>：JSON 数组，每个特征包含 feature_name、granularity、rationale、knowledge_source、code</li>
-        <li><strong>数据结构</strong>：三表的完整 schema（由 Phase 0 提取的字段名 + 类型 + 统计摘要）</li>
-        <li><strong>三表关联</strong>：说明 src/dst 如何关联到 wallet_id</li>
-        <li><strong>领域知识</strong>：交易模式 + 专家访谈 + 风险指标（压缩后的文本）</li>
-        <li><strong>已有特征列表</strong>：基线特征名（告诉 LLM 不要重复）</li>
-        <li><strong>分布差异注入</strong>：正常 vs 异常交易的聚合统计差异（金额、时间间隔、凌晨占比等）</li>
-        <li><strong>三表关联统计</strong>：src/dst 匹配率、销户率、钱包重叠率</li>
-        <li><strong>基线代码示例</strong>：21 个代表性人工特征的实现代码</li>
-        <li><strong>思维链（CoT）</strong>：要求 LLM 先分析分布差异 &rarr; 匹配领域知识 &rarr; 检查非冗余 &rarr; 再写代码</li>
-        <li><strong>数据探索能力</strong>：LLM 可输出查询动作，在沙盒中执行统计查询</li>
-        <li><strong>约束条件</strong>：30 秒超时、白名单库、禁用标签列等</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-title">User Prompt（每轮变化）</div>
-      <p><strong>第 1 轮（冷启动）</strong>：给出当前岛屿名称 + 重点字段 + 检测规则转化的种子示例代码</p>
-      <p><strong>第 2+ 轮（迭代）</strong>：增加以下动态信息：</p>
-      <ul>
-        <li>上轮最佳特征（从记忆库中 Boltzmann 采样的高分示例）</li>
-        <li>SHAP 反馈（当前哪些特征最重要、哪些维度还薄弱）</li>
-        <li>失败记忆（上轮失败的特征及原因，避免重复犯错）</li>
-        <li>多轮岛内对话：每个岛屿最多 3 轮对话，实时反馈验证结果</li>
-        <li>数据查询结果：如果 LLM 上轮发起了统计查询，结果会注入反馈</li>
-      </ul>
-    </div>
-
-    <p>LLM 每次根据 SHAP 动态预算生成 <strong>1-5 个</strong>候选特征（JSON 格式），每个特征包含可执行的 Python 代码片段。</p>
-
-    <h3>LLM 输出示例</h3>
-    <pre><code>[
-  {
-    <span class="str">"feature_name"</span>: <span class="str">"night_fan_out_ratio"</span>,
-    <span class="str">"granularity"</span>: <span class="str">"wallet"</span>,
-    <span class="str">"rationale"</span>: <span class="str">"线上跑分常在凌晨进行，呈现分散转出模式..."</span>,
-    <span class="str">"knowledge_source"</span>: <span class="str">"邮储专家访谈-线上跑分模式"</span>,
-    <span class="str">"code"</span>: <span class="str">"tx = tx_df.copy()\ntx['is_night'] = ..."</span>
-  },
-  ...
-]</code></pre>
-  </div>
-
-  <!-- ── Island ── -->
-  <div id="p1-island">
-    <h3>4.2 维度岛屿搜索</h3>
-    <p><span class="file-ref">src/search/island.py</span> + <span class="file-ref">src/config.py</span></p>
-
-    <p>受 LLM-FE 论文启发，搜索空间被划分为 <strong>4 个维度岛屿</strong>，每个岛屿专注于一类反洗钱特征：</p>
-
-    <div class="island-grid">
-      <div class="island-card">
-        <h4>金额频次</h4>
-        <p>金额分布、交易频率、拆分交易</p>
-        <div class="fields">字段：amount, interval, hour, transaction_motif</div>
-      </div>
-      <div class="island-card">
-        <h4>时间地域</h4>
-        <p>夜间交易、IP 跳变、跨地域</p>
-        <div class="fields">字段：timestamp, src_ip, dst_ip, region_code, hour</div>
-      </div>
-      <div class="island-card">
-        <h4>行为序列</h4>
-        <p>休眠激活、交易对手更换、用途偏离</p>
-        <div class="fields">字段：timestamp, transaction_mode, zs_timestamp, zs_channel</div>
-      </div>
-      <div class="island-card">
-        <h4>主体关联</h4>
-        <p>交叉转账网络、身份复用、设备共享</p>
-        <div class="fields">字段：wallet_open_cert, wallet_open_tel, src_device, dst_device, src, dst</div>
-      </div>
-    </div>
-
-    <p>每一轮搜索中，引擎<strong>依次遍历 4 个岛屿</strong>，总候选预算为 B_total=12。第 1 轮均匀分配（每岛 3 个），从第 2 轮开始根据 SHAP 维度重要性<strong>动态分配</strong>：薄弱维度的岛屿获得更多候选名额（最多 5 个），已饱和的岛屿减少（最少 1 个），使搜索资源向最需要探索的方向倾斜。</p>
-
-    <p>每个岛屿维护自己的<strong>记忆库</strong>（memory）：通过验证的特征会存入对应岛屿。同时，高分特征会通过 <code>migrate_best()</code> <strong>迁移到所有岛屿</strong>，让跨维度的信息共享。</p>
-  </div>
-
-  <!-- ── Boltzmann ── -->
-  <div id="p1-boltzmann">
-    <h3>4.3 Boltzmann 采样</h3>
-    <p><span class="file-ref">src/search/island.py</span> &mdash; <code>boltzmann_sample()</code></p>
-
-    <p>从记忆库中选择 in-context 示例时，不是简单地选最高分的，而是使用 <strong>Boltzmann（玻尔兹曼）采样</strong>：</p>
-
-    <div class="formula">
-      P(i) = exp((score<sub>i</sub> - max_score) / &tau;) / &sum; exp((score<sub>j</sub> - max_score) / &tau;)
-    </div>
-
-    <p>其中 &tau; (tau) 是温度参数，默认为 1.0：</p>
-    <ul>
-      <li><strong>&tau; &rarr; 0</strong>：退化为贪心选择（总是选最高分），容易陷入局部最优</li>
-      <li><strong>&tau; &rarr; &infin;</strong>：退化为均匀随机采样，失去引导性</li>
-      <li><strong>&tau; = 1.0</strong>：平衡探索与利用 — 高分特征有更高概率被选中，但低分特征也有机会</li>
-    </ul>
-
-    <p>默认每次采样 k=5 个示例，使用<strong>无放回加权采样</strong>避免重复选择同一个特征。</p>
-
-    <pre><code><span class="cmt"># Boltzmann 采样核心代码</span>
-scores = [f.get(<span class="str">"score"</span>, <span class="num">0.0</span>) <span class="kw">for</span> f <span class="kw">in</span> self.memory]
-max_score = max(scores)
-weights = [math.exp((s - max_score) / tau) <span class="kw">for</span> s <span class="kw">in</span> scores]
-total = sum(weights)
-probs = [w / total <span class="kw">for</span> w <span class="kw">in</span> weights]
-indices = _weighted_sample_without_replacement(probs, k)  <span class="cmt"># k=5</span></code></pre>
-  </div>
-
-  <!-- ── SHAP ── -->
-  <div id="p1-shap">
-    <h3>4.4 SHAP 反馈闭环</h3>
-    <p><span class="file-ref">src/search/shap_feedback.py</span></p>
-
-    <p>这是系统的核心创新之一。每一轮搜索后，系统会：</p>
-    <ol>
-      <li>用当前所有已接受的特征训练一个 XGBoost 模型</li>
-      <li>用 SHAP TreeExplainer 计算每个特征的全局重要性</li>
-      <li>将 Top-10 重要特征和<strong>薄弱维度</strong>反馈给 LLM</li>
-    </ol>
+  <div id="s5-2">
+    <h3>5.2 人工特征的关键缺口</h3>
+    <table>
+      <tr><th>缺口</th><th>具体说明</th><th>涉及的未用字段</th></tr>
+      <tr><td><strong>transaction_motif/mode 完全未用</strong></td><td>7种交易动机 + 7种结构模式，是区分正常/异常交易的直接信号</td><td>transaction_motif, transaction_mode</td></tr>
+      <tr><td><strong>设备/IP 交易级特征未用</strong></td><td>同设备多钱包、IP 跳变等是洗钱强信号</td><td>src/dst_device, src/dst_ip</td></tr>
+      <tr><td><strong>图拓扑高阶特征缺失</strong></td><td>无中心性、环路检测、聚集系数、PageRank</td><td>需从 src/dst 构建图计算</td></tr>
+      <tr><td><strong>销户模块完全未实现</strong></td><td>快速销户是洗钱关键信号（60% 快速销户模式）</td><td>close_df 全部字段</td></tr>
+      <tr><td><strong>领域知识特征缺失</strong></td><td>无整数金额检测、限额利用率、跨行交易模式</td><td>amount, wallet_level</td></tr>
+      <tr><td><strong>行为序列模式缺失</strong></td><td>无沉睡-爆发、小额试探后大额转移</td><td>timestamp, amount 时序</td></tr>
+      <tr><td><strong>时间窗口单一</strong></td><td>仅 1H 窗口，无日/周/月维度</td><td>timestamp</td></tr>
+      <tr><td><strong>对手风险传播缺失</strong></td><td>不知道交易对手的风险水平</td><td>需跨交易聚合</td></tr>
+    </table>
 
     <div class="highlight-box">
-      <strong>薄弱维度检测</strong>：系统将每个特征的 SHAP 重要性映射到它所属的维度岛屿，计算各维度的总重要性。低于平均值的维度被标记为「薄弱」，引导 LLM 在下一轮优先探索这些方向。
+      <strong>策略</strong>：以上缺口分析不直接告诉 LLM，但我们通过 8 种交易模式说明 + 领域知识注入 + SHAP 引导 + 维度岛屿划分，引导 LLM 自主发现这些方向。如果 LLM 还能发现我们没预料到的方向，那才是 LLM 特征工程的真正附加价值。
     </div>
-
-    <p>反馈文本注入 User Prompt 后，LLM 能理解「当前模型缺什么」，从而生成更有针对性的特征。这形成了一个<strong>搜索 → 验证 → 反馈 → 搜索</strong>的闭环。</p>
   </div>
 
-  <!-- ── Data Exploration ── -->
-  <div id="p1-data-exploration">
-    <h3>4.5 数据探索（A+B 方案）</h3>
-    <p><span class="file-ref">src/data/loader.py</span> + <span class="file-ref">src/data/stats_query.py</span></p>
-
-    <p>LLM 获取数据信息有两条路径：</p>
-
-    <div class="card">
-      <div class="card-title">方案 A：预计算注入（被动）</div>
-      <p>在 System Prompt 中预先注入：</p>
-      <ul>
-        <li><strong>分布差异</strong>：正常 vs 异常交易在金额/时间间隔/凌晨占比/交易模式等维度的聚合统计</li>
-        <li><strong>关联统计</strong>：src&rarr;开户表匹配率、dst&rarr;开户表匹配率、销户率、钱包重叠率</li>
-        <li>覆盖约 10 个关键维度，不泄露原始数据</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <div class="card-title">方案 B：按需查询（主动）</div>
-      <p>LLM 可在输出中使用查询动作：</p>
-      <pre><code>{"action": "query", "question": "凌晨2-4点的金额分布", "code": "query_result = tx_df[tx_df['hour'].between(2,4)].groupby('src')['amount'].describe()"}</code></pre>
-      <ul>
-        <li>代码在同样的安全沙盒中执行（15 秒超时）</li>
-        <li>结果返回给下一轮对话（最多 2000 字符）</li>
-        <li>每轮最多 3 个查询</li>
-        <li>在多轮岛内对话的第 2 轮起可用</li>
-      </ul>
-    </div>
-
-    <p><strong>A 为主、B 为补充</strong>：A 保证基本质量（覆盖 80% 常见需求），B 解决后期深水区探索（LLM 自行决定需要什么信息）。</p>
-  </div>
-
-  <!-- ── Multi-turn ── -->
-  <div id="p1-multiturn">
-    <h3>4.6 多轮岛内对话</h3>
-    <p><span class="file-ref">src/search/engine.py</span></p>
-
-    <p>每个岛屿每轮不只调用一次 LLM，而是进行最多 <strong>3 轮对话</strong>（intra_island_turns=3）：</p>
-
-    <div class="card">
-      <ol style="line-height: 2.2;">
-        <li><strong>Turn 1</strong>：正常生成候选特征 &rarr; L1/L2/L3 验证</li>
-        <li><strong>Turn 2</strong>：将 Turn 1 的验证结果（通过/失败及原因）+ 数据查询结果反馈给 LLM &rarr; 生成新候选</li>
-        <li><strong>Turn 3</strong>：同上，继续迭代</li>
-      </ol>
-    </div>
-
-    <p>提前停止条件：如果某轮没有新特征通过且没有数据查询，后续轮次不再继续。</p>
+  <div id="s5-3">
+    <h3>5.3 之前 458 条规则的失败教训</h3>
+    <table>
+      <tr><th>失败原因</th><th>详细说明</th><th>本方案如何避免</th></tr>
+      <tr><td>引用不存在的字段</td><td>如 <code>daily_limit_breach</code>，数据中无此字段</td><td>Prompt 中列出全部实际字段名和类型</td></tr>
+      <tr><td>输出格式无法执行</td><td>一阶逻辑表达式，不是代码</td><td>要求输出 Python 函数，立即在数据上执行验证</td></tr>
+      <tr><td>无执行验证</td><td>规则从未在数据上运行过</td><td>每个候选特征都在沙盒中执行，失败则反馈修正</td></tr>
+    </table>
   </div>
 </div>
 
-<!-- ════════════════════════ 5. Phase 2 ════════════════════════ -->
-<div class="section" id="phase2">
-  <h2><span class="phase-badge pb-2">Phase 2</span> 三级验证</h2>
+<hr class="sep">
 
-  <p>LLM 生成的每个候选特征必须依次通过三级验证，任一级失败即被淘汰。这是保证特征质量的核心机制。</p>
+<!-- ════════════════════════ 六、特征有效性验证方法 ════════════════════════ -->
+<div class="section" id="sec6">
+  <h2><span class="phase-badge pb-2">六</span> 特征有效性验证方法</h2>
+
+  <h3>6.1 四级验证框架</h3>
+  <p>每个 LLM 生成的候选特征经过四级验证，逐级过滤。只有通过全部四级的特征才进入最终特征集。</p>
 
   <div class="flow">
     <div class="flow-node l1">
-      <strong>L1: 代码沙盒验证</strong><br>
-      <small>安全检查 &rarr; 隔离执行 &rarr; 输出格式验证</small>
+      <strong>L1: 代码验证</strong><br>
+      <small>安全白名单 &rarr; 隔离执行(30s) &rarr; 输出格式 &rarr; 数据质量</small>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node l2">
       <strong>L2: 统计验证（阈值自动校准）</strong><br>
-      <small>MI &ge; auto &amp; Redundancy &lt; 0.9 &amp; Cramer's V &ge; auto &amp; Bootstrap p &lt; 0.05（MI/V 阈值从基线分布自动校准）</small>
+      <small>MI &ge; auto &amp; Redundancy &lt; 0.9 &amp; Cramer's V &ge; auto &amp; Bootstrap p &lt; 0.05</small>
     </div>
     <div class="flow-arrow"></div>
     <div class="flow-node l3">
       <strong>L3: 模型验证</strong><br>
       <small>&Delta;PR-AUC &ge; 0.005 &amp; SHAP 排名</small>
     </div>
+    <div class="flow-arrow"></div>
+    <div class="flow-node l4">
+      <strong>L4: 稳定性验证</strong><br>
+      <small>10次 Bootstrap &rarr; Nogueira 稳定性 &gt; 0.8</small>
+    </div>
   </div>
 
-  <!-- ── L1 ── -->
-  <div id="l1">
-    <h3>5.1 L1: 代码沙盒验证</h3>
-    <p><span class="file-ref">src/evaluation/sandbox.py</span></p>
+  <h4>L1: 代码验证（来自 CAAFE）</h4>
+  <table>
+    <tr><th>检查项</th><th>通过条件</th><th>失败处理</th></tr>
+    <tr><td>安全白名单</td><td>仅使用 pandas/numpy/scipy/sklearn</td><td>直接拒绝</td></tr>
+    <tr><td>执行成功</td><td>30s 内无异常退出</td><td>错误信息反馈 LLM 重试（最多2次）</td></tr>
+    <tr><td>输出格式</td><td>返回 DataFrame，含 wallet_id 或 tx_id 列</td><td>反馈格式要求</td></tr>
+    <tr><td>数据质量</td><td>非全 0、非全 1、NaN &lt; 50%</td><td>拒绝并记录</td></tr>
+  </table>
 
-    <p>L1 回答的问题是：<strong>这段代码能不能安全正确地执行？</strong></p>
+  <h4>L2: 统计验证（来自 Balek）</h4>
+  <pre><code><span class="cmt"># 互信息检验</span>
+<span class="kw">from</span> sklearn.feature_selection <span class="kw">import</span> mutual_info_classif
+mi = mutual_info_classif(feature.values.reshape(-<span class="num">1</span>,<span class="num">1</span>), label, random_state=<span class="num">42</span>)[<span class="num">0</span>]
+<span class="kw">assert</span> mi &gt; <span class="num">0.01</span>, <span class="str">"特征与标签的互信息过低"</span>
 
-    <div class="card">
-      <div class="card-title">Step 1: AST 安全检查</div>
-      <p>用 Python AST 解析代码，检查所有 import 和函数调用：</p>
-      <ul>
-        <li><span class="tag tag-green">允许</span> pandas, numpy, scipy, sklearn</li>
-        <li><span class="tag tag-red">禁止</span> os, sys, subprocess, socket, requests, pickle, ctypes...</li>
-        <li><span class="tag tag-red">禁止</span> open(), exec(), eval(), __import__(), getattr()...</li>
-      </ul>
-    </div>
+<span class="cmt"># 冗余度检验</span>
+<span class="kw">for</span> existing <span class="kw">in</span> existing_features:
+    corr = abs(feature.corr(existing))
+    <span class="kw">assert</span> corr &lt; <span class="num">0.9</span>, <span class="str">f"与已有特征 {existing.name} 相关系数 {corr:.3f} 过高"</span>
 
-    <div class="card">
-      <div class="card-title">Step 2: 子进程隔离执行</div>
-      <p>通过 <code>multiprocessing.Process</code> 在独立进程中执行代码，设置 <strong>30 秒超时</strong>。数据通过 Parquet 文件传入（避免序列化开销），结果也通过 Parquet 返回。</p>
-      <p>运行环境中只暴露 <code>open_df</code>、<code>tx_df</code>、<code>close_df</code>、<code>pd</code>、<code>np</code> 五个变量。代码执行完毕后，从 <code>result</code> 变量取出结果 DataFrame。</p>
-    </div>
+<span class="cmt"># Cramer's V</span>
+V = np.sqrt(chi2 / (len(feature) * (min(contingency.shape) - <span class="num">1</span>)))
+<span class="kw">assert</span> V &gt; <span class="num">0.05</span>, <span class="str">"Cramer's V 过低"</span>
 
-    <div class="card">
-      <div class="card-title">Step 3: 输出格式验证</div>
-      <ul>
-        <li>必须包含 <code>wallet_id</code> 或 <code>tx_id</code> 列（用于后续 merge）</li>
-        <li>必须包含至少一个特征列</li>
-        <li>特征不能全为常数（全 0 或全 1 无区分度）</li>
-        <li>NaN 比例不能超过 50%</li>
-      </ul>
-    </div>
+<span class="cmt"># Bootstrap 卡方检验（2500次）</span>
+<span class="kw">assert</span> np.mean(p_values) &lt; <span class="num">0.05</span>, <span class="str">"Bootstrap卡方检验不显著"</span></code></pre>
 
-    <div class="card">
-      <div class="card-title">L1 失败重试机制</div>
-      <p>如果 L1 失败（代码报错），系统不会直接放弃，而是将错误信息反馈给 LLM，让它修复代码并重试，<strong>最多重试 2 次</strong>。这显著提高了特征的通过率。</p>
-    </div>
+  <div class="card">
+    <div class="card-title">L2 阈值自动校准</div>
+    <p><span class="file-ref">src/evaluation/calibration.py</span></p>
+    <ol>
+      <li>对基线特征分别计算 MI 和 Cramer's V</li>
+      <li>取各指标的 <strong>p10 分位数 &times; 0.5</strong> 作为新阈值</li>
+      <li>冗余度和 Bootstrap p 保持不变</li>
+    </ol>
+    <p>核心思想：<strong>新特征只需不比最弱的基线特征差太多</strong>即可通过 L2 粗筛。最终质量由 L3 + 反向淘汰把关。</p>
+  </div>
 
-    <h3>特征 Merge 逻辑</h3>
-    <p><span class="file-ref">src/data/merge.py</span></p>
-    <p>L1 通过后，特征需要 merge 到交易表上才能用于模型训练：</p>
+  <h4>L3: 模型验证（来自 MedFeat）</h4>
+  <div class="card">
+    <div class="card-title">Delta PR-AUC（增量 PR-AUC）</div>
+    <p>通过 XGBoost <strong>5 折分层交叉验证</strong>对比。阈值：<strong>&Delta;PR-AUC &ge; 0.005</strong>。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">为什么用 PR-AUC 而不是 ROC-AUC？</div>
+    <p>AML 数据正样本 ~5%，ROC-AUC 过度乐观。PR-AUC 更能反映模型找到真正可疑交易的能力。</p>
+    <table>
+      <tr><th>论文</th><th>评估指标</th><th>对 AML 场景的问题</th></tr>
+      <tr><td>LLM-FE</td><td>Accuracy</td><td>全预测负可达 95%，完全无用</td></tr>
+      <tr><td>CAAFE</td><td>ROC AUC</td><td>过度乐观，FPR 分母太大</td></tr>
+      <tr><td>MedFeat</td><td>AUC + F1</td><td>AUC 同上，F1 依赖阈值选择</td></tr>
+      <tr><td>OCTree</td><td>错误率</td><td>同 Accuracy 问题</td></tr>
+      <tr><td>CoFEH</td><td>错误率</td><td>同 Accuracy 问题</td></tr>
+    </table>
+  </div>
+
+  <h4>L4: 稳定性验证</h4>
+  <pre><code><span class="cmt"># 在最终特征集确定后执行（不在搜索循环中）</span>
+stability_results = []
+<span class="kw">for</span> _ <span class="kw">in</span> range(<span class="num">10</span>):
+    X_boot, y_boot = resample(X_final, y, stratify=y)
+    model = xgb.XGBClassifier(scale_pos_weight=<span class="num">19</span>)
+    model.fit(X_boot, y_boot)
+    shap_values = shap.TreeExplainer(model).shap_values(X_boot)
+    importance_rank = np.argsort(-np.mean(np.abs(shap_values), axis=<span class="num">0</span>))
+    stability_results.append(importance_rank[:<span class="num">20</span>])
+
+<span class="cmt"># Nogueira 稳定性指数 > 0.8</span>
+stability_index = compute_nogueira_stability(stability_results)</code></pre>
+
+  <h3>6.2 增量贡献实验设计</h3>
+  <table>
+    <tr><th>实验</th><th>特征集</th><th>目的</th></tr>
+    <tr><td>实验 1（基线）</td><td>仅 40 个人工特征</td><td>基准对比</td></tr>
+    <tr><td>实验 2（增量）</td><td>人工 + LLM 特征</td><td>验证增量贡献</td></tr>
+    <tr><td>实验 3（独立）</td><td>仅 LLM 特征</td><td>验证独立预测力</td></tr>
+    <tr><td>实验 4（随机对照）</td><td>人工 + 等量随机特征</td><td>排除过拟合假象</td></tr>
+    <tr><td>实验 5（消融）</td><td>逐个移除 LLM 特征</td><td>识别最关键特征</td></tr>
+  </table>
+  <p>所有实验使用 5 折分层 CV，报告均值 &plusmn; 标准差。</p>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 七、实现路线图 ════════════════════════ -->
+<div class="section" id="sec7">
+  <h2><span class="phase-badge pb-4">七</span> 实现路线图</h2>
+
+  <div class="card">
+    <div class="card-title">Phase 0：数据生成（0.5 天）</div>
     <ul>
-      <li><strong>tx_id 级特征</strong>（如每笔交易的金额异常分数）：直接 <code>merge on tx_id</code></li>
-      <li><strong>wallet_id 级特征</strong>（如每个钱包的多身份证计数）：分别 merge 到交易的 src 和 dst，生成 <code>feature_src</code> 和 <code>feature_dst</code> 两列</li>
+      <li>安装依赖：<code>pip install pandas numpy networkx</code></li>
+      <li>运行开户模块 &rarr; accounts.csv</li>
+      <li>运行图生成 &rarr; 交易网络边文件</li>
+      <li>运行交易生成 &rarr; 交易流水 CSV</li>
+      <li>修复销户模块硬编码路径，运行 &rarr; 销户 CSV</li>
+      <li>验证：字段名一致、is_risk ~5%、三表 wallet_id 关联完整</li>
     </ul>
   </div>
 
-  <!-- ── L2 ── -->
-  <div id="l2">
-    <h3>5.2 L2: 统计验证 + 自动校准</h3>
-    <p><span class="file-ref">src/evaluation/validator.py</span> + <span class="file-ref">src/evaluation/metrics.py</span> + <span class="file-ref">src/evaluation/calibration.py</span></p>
-
-    <p>L2 回答的问题是：<strong>这个特征在统计意义上和标签相关吗？</strong></p>
-
-    <table>
-      <tr>
-        <th>指标</th>
-        <th>含义</th>
-        <th>计算方法</th>
-        <th>阈值</th>
-      </tr>
-      <tr>
-        <td><strong>互信息 (MI)</strong></td>
-        <td>特征与标签的信息量共享程度</td>
-        <td>sklearn <code>mutual_info_classif</code></td>
-        <td>&ge; 0.001 <span class="tag tag-blue">自动校准</span></td>
-      </tr>
-      <tr>
-        <td><strong>冗余度</strong></td>
-        <td>与已有特征的最大皮尔逊相关系数</td>
-        <td>逐列计算 |corr|，取最大值</td>
-        <td>&lt; 0.9</td>
-      </tr>
-      <tr>
-        <td><strong>Cramer's V</strong></td>
-        <td>特征与标签的关联强度（分类变量版）</td>
-        <td>卡方统计量 &rarr; V = &radic;(&chi;&sup2; / (n&middot;k))</td>
-        <td>&ge; 0.05 <span class="tag tag-blue">自动校准</span></td>
-      </tr>
-      <tr>
-        <td><strong>Bootstrap &chi;&sup2; p 值</strong></td>
-        <td>关联性是否具有统计显著性</td>
-        <td>2500 次 bootstrap 重采样取平均 p 值</td>
-        <td>&lt; 0.05</td>
-      </tr>
-    </table>
-
-    <p>四个条件<strong>必须同时满足</strong>才能通过 L2。连续特征在计算 Cramer's V 和 Bootstrap &chi;&sup2; 时会先进行 10 分位分箱。</p>
-
-    <div class="highlight-box">
-      <strong>为什么需要冗余度检查？</strong> 如果新特征和已有特征高度相关（|corr| &ge; 0.9），即使它和标签相关，也不提供新信息。这确保每个通过的特征都是「增量」的。
-    </div>
-
-    <h3>L2 阈值自动校准</h3>
-    <p><span class="file-ref">src/evaluation/calibration.py</span></p>
-
-    <p>上表中的 MI 和 Cramer's V 阈值并非硬编码，而是通过<strong>基线特征分布自动校准</strong>：</p>
-
-    <div class="card">
-      <div class="card-title">校准逻辑</div>
-      <ol>
-        <li>对基线特征分别计算 MI 和 Cramer's V</li>
-        <li>取各指标的 <strong>p10 分位数 &times; 0.5</strong> 作为新阈值</li>
-        <li>冗余度（&lt; 0.9）和 Bootstrap p（&lt; 0.05）保持不变（已足够宽松/标准）</li>
-      </ol>
-      <p>核心思想：<strong>新特征只需不比最弱的基线特征差太多</strong>即可通过 L2 粗筛。最终质量由 L3 增量验证 + 反向淘汰把关。</p>
-    </div>
-
-    <p>校准后的阈值会记录在 <code>search_log.json</code> 的 <code>calibrated_thresholds</code> 字段中，便于复现和审计。</p>
-
-    <pre><code><span class="cmt"># 校准示例（1000 钱包数据集）</span>
-<span class="cmt"># 原硬编码阈值 → 校准后阈值</span>
-MI:        <span class="num">0.001</span>  →  <span class="num">0.000131</span>   <span class="cmt"># 降低 7.6 倍</span>
-Cramer's V: <span class="num">0.05</span>  →  <span class="num">0.006661</span>  <span class="cmt"># 降低 7.5 倍</span>
-Redundancy: <span class="num">0.9</span>   →  <span class="num">0.9</span>       <span class="cmt"># 不变</span>
-Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>      <span class="cmt"># 不变</span></code></pre>
-
-    <div class="highlight-box">
-      <strong>为什么需要自动校准？</strong> 实测发现硬编码阈值在某些数据集上过于严格（例如 39 个候选特征 0 个通过 L2），导致搜索引擎连续 2 轮无新特征直接收敛退出。自动校准后 L2 转变为粗筛角色，L3 增量验证 + 缓刑池反向淘汰承担最终质量控制。
-    </div>
+  <div class="card">
+    <div class="card-title">Phase 1：基础设施搭建（2 天）</div>
+    <ul>
+      <li>数据加载模块（读取三表，生成 schema + 统计摘要）</li>
+      <li>三表关联模块（wallet/tx 级特征自动 merge）</li>
+      <li>领域知识结构化（分层压缩）</li>
+      <li>种子规则转换（15 条检测规则 &rarr; Python 函数示例）</li>
+      <li>System Prompt 组装</li>
+      <li>特征执行沙盒（安全白名单 + 超时 + 内存限制 + 错误捕获）</li>
+      <li>特征评估模块（MI + 冗余度 + Cramer's V + PR-AUC + SHAP）</li>
+      <li>LLM 调用接口（可插拔）</li>
+    </ul>
   </div>
 
-  <!-- ── L3 ── -->
-  <div id="l3">
-    <h3>5.3 L3: 模型验证</h3>
-    <p><span class="file-ref">src/evaluation/metrics.py</span></p>
+  <div class="card">
+    <div class="card-title">Phase 2：核心搜索循环（3 天）</div>
+    <ul>
+      <li>维度岛屿数据结构（4 个维度记忆库 + 全局失败记忆）</li>
+      <li>Boltzmann 采样（从记忆库选 in-context 示例）</li>
+      <li>User Prompt 动态生成</li>
+      <li>搜索循环主程序（4 岛屿 &times; 3 候选/轮 &times; ~10 轮）</li>
+      <li>冷启动处理（第 1 轮用种子规则示例）</li>
+      <li>岛屿间迁移（最优特征广播）</li>
+      <li>收敛判断（连续 2 轮无新特征通过 &rarr; 停止）</li>
+    </ul>
+  </div>
 
-    <p>L3 回答的问题是：<strong>加入这个特征后，下游模型真的变好了吗？</strong></p>
-
-    <div class="card">
-      <div class="card-title">Delta PR-AUC（增量 PR-AUC）</div>
-      <p>通过 XGBoost <strong>5 折分层交叉验证</strong>对比：</p>
-      <ol>
-        <li><strong>基线模型</strong>：只用已有特征训练 &rarr; 得到 PR-AUC<sub>base</sub></li>
-        <li><strong>增强模型</strong>：已有特征 + 新特征训练 &rarr; 得到 PR-AUC<sub>aug</sub></li>
-        <li><strong>&Delta;PR-AUC</strong> = PR-AUC<sub>aug</sub> - PR-AUC<sub>base</sub></li>
-      </ol>
-      <p>阈值：<strong>&Delta;PR-AUC &ge; 0.005</strong>（即新特征至少带来 0.5% 的 PR-AUC 提升）</p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">为什么用 PR-AUC 而不是 ROC-AUC？</div>
-      <p>反洗钱数据高度不平衡（正样本约 5%）。ROC-AUC 在不平衡场景下过度乐观 — 一个全预测负的模型 ROC-AUC 也能很高。PR-AUC（Precision-Recall 曲线下面积）更能反映模型找到真正可疑交易的能力。</p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">SHAP 排名</div>
-      <p>通过 L3 后，还会计算新特征在完整模型中的 <strong>SHAP 重要性排名</strong>（1 = 最重要）。排名信息用于后续的综合打分和反馈。</p>
-    </div>
-
-    <p>XGBoost 训练参数专门为不平衡数据调优，支持 GPU 加速。<code>tree_method</code> 和 <code>device</code> 作为全局配置参数定义在 <span class="file-ref">src/config.py</span> 的 <code>XGBoostParams</code> 中，所有 XGBoost 调用点（metrics、validator、stability、experiments、shap_feedback、visualization、feature_dictionary、baseline）统一读取：</p>
-    <pre><code>XGBClassifier(
-    scale_pos_weight=<span class="num">19</span>,    <span class="cmt"># 正样本权重提升 19 倍</span>
-    eval_metric=<span class="str">"aucpr"</span>,     <span class="cmt"># 评估指标用 PR-AUC</span>
-    n_estimators=<span class="num">200</span>,
-    max_depth=<span class="num">6</span>,
-    learning_rate=<span class="num">0.1</span>,
-    tree_method=<span class="str">"hist"</span>,      <span class="cmt"># 直方图加速算法（全局配置）</span>
-    device=<span class="str">"cpu"</span>,            <span class="cmt"># 可通过 XGB_DEVICE 环境变量切换为 GPU（全局配置）</span>
-)</code></pre>
+  <div class="card">
+    <div class="card-title">Phase 3：验证与产出（2 天）</div>
+    <ul>
+      <li>L4 稳定性验证（10 次 bootstrap）</li>
+      <li>5 组增量贡献实验</li>
+      <li>特征字典生成（每个特征：代码 + 解释 + SHAP + 统计指标）</li>
+      <li>结果报告和可视化</li>
+    </ul>
   </div>
 </div>
 
-<!-- ════════════════════════ 缓刑池 ════════════════════════ -->
-<div class="section" id="pending-pool">
-  <h2><span class="phase-badge pb-2">缓刑池</span> 特征组合效应捕捉</h2>
+<hr class="sep">
+
+<!-- ════════════════════════ 八、预期产出 ════════════════════════ -->
+<div class="section" id="sec8">
+  <h2><span class="phase-badge pb-3">八</span> 预期产出</h2>
+
+  <div class="island-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+    <div class="island-card">
+      <h4>1. 自动发现的特征集</h4>
+      <p>经过四级验证的高质量特征（预计 15-30 个通过全部验证）</p>
+    </div>
+    <div class="island-card">
+      <h4>2. 特征字典</h4>
+      <p>每个特征包含 Python 代码 + 可解释性说明 + 领域知识来源 + SHAP 排名 + 统计指标（MI, Cramer's V）</p>
+    </div>
+    <div class="island-card">
+      <h4>3. 增量贡献报告</h4>
+      <p>LLM 特征 vs 人工特征的 PR-AUC / F1 / Recall@Precision 对比</p>
+    </div>
+    <div class="island-card">
+      <h4>4. 验证报告</h4>
+      <p>四级验证结果 + 5 组实验数据 + 稳定性分析</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">5. 可复用框架</div>
+    <p>LLM 自动特征工程 pipeline 代码（可插拔 LLM，可换数据集）。支持 5 种 LLM 提供商，四级特征验证 + L2 阈值自动校准 + 缓刑池反向淘汰 + 按需数据探索。</p>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 九、核心创新点 ════════════════════════ -->
+<div class="section" id="sec9">
+  <h2><span class="phase-badge pb-1">九</span> 核心创新点（论文贡献）</h2>
+
+  <div class="island-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+    <div class="island-card">
+      <h4>1. 领域知识增强</h4>
+      <p>首次将结构化专家知识（访谈 + 200+ 识别点 + 监管规则）和数据集交易模式说明系统性注入 LLM 特征生成流程。现有方法（LLM-FE、CAAFE、MedFeat）都缺乏深度领域知识注入。</p>
+    </div>
+    <div class="island-card">
+      <h4>2. 多表关联</h4>
+      <p>首次将 LLM 特征工程扩展到多表关系型数据（开户 + 交易 + 销户三表）。所有 6 篇参考论文均仅支持单表输入。</p>
+    </div>
+    <div class="island-card">
+      <h4>3. 维度岛屿 + SHAP 搜索</h4>
+      <p>改进 LLM-FE 的随机岛屿为按风险维度划分的 4 个岛屿，结合 MedFeat 的 SHAP 引导，实现有分工 + 有方向的高效搜索。</p>
+    </div>
+    <div class="island-card">
+      <h4>4. 四级验证框架</h4>
+      <p>代码验证 &rarr; 统计验证 &rarr; 模型验证 &rarr; 稳定性验证，超越现有论文（无一使用统计检验）的验证深度。</p>
+    </div>
+    <div class="island-card">
+      <h4>5. 可解释特征</h4>
+      <p>每个特征附带领域依据说明和知识来源引用，满足金融监管的可解释性要求。</p>
+    </div>
+    <div class="island-card">
+      <h4>6. 缓刑池反向淘汰</h4>
+      <p>解决特征组合效应问题。现有方法（CAAFE、LLM-FE）均逐个评估，无法捕捉交互。</p>
+    </div>
+    <div class="island-card">
+      <h4>7. L2 阈值自动校准</h4>
+      <p>验证阈值从基线特征分布自动校准（p10 &times; 0.5），解决固定阈值过严导致搜索失败的问题。</p>
+    </div>
+  </div>
+
+  <h3>与现有方法对比</h3>
+  <table>
+    <tr><th>能力</th><th>LLM-FE</th><th>CAAFE</th><th>MedFeat</th><th>本系统</th></tr>
+    <tr><td>多表支持</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">&radic;</span></td></tr>
+    <tr><td>领域知识注入</td><td>仅特征名</td><td>数据集描述</td><td>&times;</td><td><span class="tag tag-green">深度注入</span></td></tr>
+    <tr><td>搜索策略</td><td>随机岛屿</td><td>单向</td><td>SHAP 引导</td><td><span class="tag tag-green">维度岛屿 + SHAP</span></td></tr>
+    <tr><td>统计验证</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">MI + Cramer's V + Bootstrap</span></td></tr>
+    <tr><td>阈值自适应</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">L2 基线分布自动校准</span></td></tr>
+    <tr><td>评估指标</td><td>Accuracy</td><td>ROC-AUC</td><td>AUC + F1</td><td><span class="tag tag-green">PR-AUC</span></td></tr>
+    <tr><td>可解释性</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">rationale + 知识溯源</span></td></tr>
+    <tr><td>组合效应</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">缓刑池反向淘汰</span></td></tr>
+    <tr><td>数据探索</td><td>&times;</td><td>&times;</td><td>&times;</td><td><span class="tag tag-green">按需统计查询</span></td></tr>
+  </table>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 十、可行性评估 ════════════════════════ -->
+<div class="section" id="sec10">
+  <h2><span class="phase-badge pb-5">十</span> 可行性评估</h2>
+
+  <h3>10.1 总体判断</h3>
+  <div class="highlight-box">
+    <strong>方案可行，设计合理，可以开始实施。</strong> 理论设计完整 &mdash; 6 篇论文各取所长，融合逻辑清晰，验证体系（L1-L4）比现有论文都严格。核心创新点站得住（领域知识注入 + 多表关联 + SHAP+岛屿融合 + 统计验证）。
+  </div>
+
+  <h3>10.2 高可行性（有把握的部分）</h3>
+  <table>
+    <tr><th>模块</th><th>理由</th></tr>
+    <tr><td><strong>领域知识注入</strong></td><td>数据和文件都已就绪，压缩策略明确，token 预算合理（~5400）</td></tr>
+    <tr><td><strong>代码执行沙盒</strong></td><td>CAAFE 已验证此方案有效，安全白名单 + 错误反馈是成熟方案</td></tr>
+    <tr><td><strong>L1-L2 验证</strong></td><td>代码检查 + MI + 冗余度 + Cramer's V 都是标准库函数</td></tr>
+    <tr><td><strong>三表关联 merge</strong></td><td>代码已写好，wallet/tx 两级自动处理</td></tr>
+    <tr><td><strong>可解释性说明</strong></td><td>要求 LLM 在 JSON 中附带 explanation 和 domain_source，LLM 天然擅长</td></tr>
+  </table>
+
+  <h3>10.3 中等风险（需重点关注）</h3>
+
+  <div class="card">
+    <div class="card-title">风险 1：LLM 代码生成质量 &mdash; 最大的不确定性</div>
+    <ul>
+      <li><strong>三表数据较复杂</strong>：LLM 需理解 src/dst 都是 wallet_id、需要 groupby + merge，比单表难很多</li>
+      <li><strong>之前 458 条规则全部失败</strong>：虽然原因已解决（无 schema + 无执行验证），但说明任务难度不低</li>
+      <li><strong>缓解措施</strong>：错误反馈重试（最多 2 次）+ 种子规则做示例 + 约束列表</li>
+      <li><strong>建议</strong>：第 1 轮先手动跑 3-5 个候选，看实际输出质量</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">风险 2：PR-AUC 增量阈值可能过严或过松</div>
+    <ul>
+      <li><code>deltaPR-AUC &ge; 0.005</code> 在模拟数据上是否合适不确定</li>
+      <li>如果人工基线已 0.90+，0.005 的增量可能太严；如果只有 0.60，又太松</li>
+      <li><strong>建议</strong>：先跑一次基线 PR-AUC，再决定阈值</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-title">风险 3：综合打分公式的量纲问题</div>
+    <ul>
+      <li>四个指标量纲不同，不归一化会被 SHAP_rank 主导</li>
+      <li><strong>建议</strong>：对每个指标做 min-max 归一化到 [0,1]，然后再加权</li>
+    </ul>
+    <pre><code><span class="cmt"># SHAP_rank 需要反转（排名越小越好 -> 归一化后越大越好）</span>
+shap_norm = <span class="num">1</span> - normalize_score(shap_rank, all_shap_ranks)
+mi_norm = normalize_score(mi, all_mi_values)
+redundancy_norm = <span class="num">1</span> - max_corr
+prauc_norm = normalize_score(delta_prauc, all_delta_praucs)
+score = <span class="num">0.35</span> * shap_norm + <span class="num">0.25</span> * mi_norm + <span class="num">0.25</span> * redundancy_norm + <span class="num">0.15</span> * prauc_norm</code></pre>
+  </div>
+
+  <h3>10.4 低风险但需注意</h3>
+  <div class="card">
+    <div class="card-title">SimECNY 数据生成</div>
+    <p>销户模块有硬编码路径需修复。交易模拟器依赖 networkx，需确认边生成正确。建议：先确保三表 CSV 能正确生成并关联。</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">LLM 调用成本与轮次</div>
+    <ul>
+      <li>方案设计 4 岛屿 &times; 3 候选 &times; 10 轮 = 最多 120 次 LLM 调用</li>
+      <li>API（GPT-4o）成本约 $7-20；本地模型（Llama-3.1-8B）约 60 分钟</li>
+      <li>每轮 XGBoost + SHAP 约 10-30s，10 轮约 5-10 分钟</li>
+      <li><strong>总计</strong>：整个流程 1-2 小时可以跑完，计算成本可控</li>
+    </ul>
+  </div>
+
+  <h3>10.5 实施前必须完成的三件事</h3>
+  <div class="highlight-box">
+    <ol>
+      <li><strong>先生成数据、跑基线 PR-AUC</strong> &mdash; 这决定了增量目标和阈值设置</li>
+      <li><strong>第 1 轮手动测试 LLM 输出质量</strong> &mdash; 验证 prompt 是否足够引导 LLM 处理三表数据</li>
+      <li><strong>补充打分公式的归一化实现</strong> &mdash; 避免量纲问题导致评分失真</li>
+    </ol>
+  </div>
+</div>
+
+<hr class="sep">
+
+<!-- ════════════════════════ 附录 A：缓刑池与综合评分 ════════════════════════ -->
+<div class="section" id="appendix-pending">
+  <h2><span class="phase-badge pb-2">附录 A</span> 缓刑池与综合评分</h2>
 
   <p>单独的增量验证（L3）会遗漏需要组合才能发挥作用的特征。缓刑池机制解决这个问题：</p>
 
@@ -940,33 +1449,22 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
     </div>
   </div>
 
-  <h3>两阶段筛选流程</h3>
+  <h3>反向淘汰流程</h3>
   <div class="card">
-    <h4 style="color: var(--accent); margin-bottom: 8px;">阶段 1：反向淘汰去噪</h4>
     <ol style="line-height: 2.2;">
       <li><strong>构造完整矩阵</strong>：已接受 N 个 + 缓刑池 M 个 = N+M 列</li>
       <li><strong>训练 + SHAP</strong>：XGBoost 5 折 CV 得到 score_full，算 SHAP 重要性</li>
       <li><strong>逐个剔除</strong>：从 SHAP 最低的缓刑池特征开始：
         <ul>
           <li>剔除后分数不降 &rarr; 确认没贡献，标记为 rejected</li>
-          <li>剔除后分数下降 &rarr; 在组合中有贡献，保留为 survivor</li>
-        </ul>
-      </li>
-    </ol>
-    <h4 style="color: var(--green); margin-top: 16px; margin-bottom: 8px;">阶段 2：增量验证</h4>
-    <ol style="line-height: 2.2;" start="4">
-      <li><strong>逐个验证</strong>：对每个 survivor，单独加入<strong>原始 baseline</strong> 计算 delta_prauc：
-        <ul>
-          <li>delta &gt; 0 &rarr; <span class="tag tag-green">接受</span></li>
-          <li>delta &le; 0 &rarr; <span class="tag tag-red">拒绝</span></li>
+          <li>剔除后分数下降 &rarr; 在组合中有贡献，保留并接受</li>
         </ul>
       </li>
     </ol>
   </div>
 
   <div class="highlight-box">
-    <strong>为什么需要两阶段？</strong> 旧版仅做反向淘汰，以 full_score 为基准。当多个待定特征共同拉低模型性能时，full_score &lt; baseline_prauc，此时任何特征在这个"已变差的集合"中都可能有相对贡献，导致被错误接受。<br><br>
-    两阶段方案解决了这个问题：<strong>阶段 1</strong> 清除组合中无贡献的噪音，<strong>阶段 2</strong> 用原始 baseline 作为参照，确保每个被接受的特征对 baseline 有正向增益（delta &gt; 0，不要求 &ge; 0.005）。
+    <strong>为什么能捕捉组合效应？</strong> 如果特征 A 和 B 单独无增量，但 A+B 在模型中产生交互，全量矩阵中 score_full 包含了 A+B 的组合增益。尝试剔除 A 时分数下降（因为失去搭档），A 被保留。
   </div>
 
   <h3>淘汰规则</h3>
@@ -979,155 +1477,27 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
     <tr><td>池中超过 20 个</td><td>按 MI 分数淘汰最弱的</td></tr>
   </table>
 
-  <p><span class="file-ref">src/search/pending_pool.py</span> + <span class="file-ref">src/evaluation/validator.py</span></p>
-</div>
-
-<!-- ════════════════════════ 6. 评分 ════════════════════════ -->
-<div class="section" id="scoring">
-  <h2><span class="phase-badge pb-2">评分</span> 综合评分机制</h2>
+  <h3>综合评分机制</h3>
   <p><span class="file-ref">src/evaluation/validator.py</span> &mdash; <code>compute_composite_score()</code></p>
-
-  <p>通过 L3 验证的特征会获得一个综合分数，用于岛屿记忆库的排序和 Boltzmann 采样权重：</p>
 
   <div class="formula">
     Score = 0.35 &times; norm(1/SHAP_rank) + 0.25 &times; norm(MI) + 0.25 &times; norm(1-redundancy) + 0.15 &times; norm(&Delta;PR-AUC)
   </div>
 
-  <p>其中 <code>norm()</code> 是基于历史值的 min-max 归一化，确保各指标在 [0, 1] 范围内可比较。</p>
-
   <table>
     <tr><th>指标</th><th>权重</th><th>含义</th></tr>
-    <tr><td>1/SHAP_rank</td><td>0.35</td><td>在模型中的重要性（权重最高，因为直接反映对预测的贡献）</td></tr>
+    <tr><td>1/SHAP_rank</td><td>0.35</td><td>在模型中的重要性（权重最高，直接反映对预测的贡献）</td></tr>
     <tr><td>MI</td><td>0.25</td><td>与标签的信息量相关性</td></tr>
-    <tr><td>1-redundancy</td><td>0.25</td><td>与已有特征的非冗余程度（越低越好）</td></tr>
+    <tr><td>1-redundancy</td><td>0.25</td><td>与已有特征的非冗余程度</td></tr>
     <tr><td>&Delta;PR-AUC</td><td>0.15</td><td>模型增量贡献</td></tr>
   </table>
 </div>
 
-<!-- ════════════════════════ 7. 收敛 ════════════════════════ -->
-<div class="section" id="convergence">
-  <h2><span class="phase-badge pb-1">循环</span> 搜索循环与收敛</h2>
-  <p><span class="file-ref">src/search/engine.py</span></p>
+<hr class="sep">
 
-  <p>搜索引擎的主循环每一轮执行：</p>
-
-  <div class="card">
-    <ol style="line-height: 2.2;">
-      <li><strong>遍历 4 个岛屿</strong>，根据 SHAP 动态分配每个岛屿的候选预算（薄弱维度分配更多）</li>
-      <li>对每个候选执行 <strong>L1 → L2 → L3</strong> 验证</li>
-      <li>L2 通过但 L3 未通过的特征 &rarr; <strong>进入缓刑池</strong></li>
-      <li>通过验证的特征<strong>加入岛屿记忆库</strong> + 迁移到其他岛屿</li>
-      <li>更新 <strong>existing_features</strong> 矩阵（后续候选的基线随之增长）</li>
-      <li>失败的候选记入<strong>失败记忆</strong>（最多保留 50 条）</li>
-      <li>执行<strong>缓刑池反向淘汰</strong>评估</li>
-      <li>检查<strong>收敛条件</strong></li>
-    </ol>
-  </div>
-
-  <h3>收敛条件</h3>
-  <p>系统在以下任一条件满足时停止搜索：</p>
-  <ul>
-    <li><strong>连续 2 轮</strong>没有任何新特征通过三级验证（包括缓刑池接受的特征也计入新特征）&rarr; 搜索空间已被充分探索</li>
-    <li>达到<strong>最大轮数 T=10</strong>（可配置）</li>
-  </ul>
-
-  <h3>失败记忆机制</h3>
-  <p><span class="file-ref">src/search/memory.py</span></p>
-  <p>每个失败的特征都会被记录（名称、代码、失败原因），最近 5 条失败会注入下一轮的 User Prompt，告诉 LLM「不要再尝试类似的方向」。这避免 LLM 在同一个死胡同里反复浪费 token。</p>
-</div>
-
-<!-- ════════════════════════ 解释 ════════════════════════ -->
-<div class="section" id="explainability">
-  <h2><span class="phase-badge pb-2">解释</span> 特征可解释性报告</h2>
-  <p><span class="file-ref">src/search/engine.py</span> &mdash; <code>_generate_explainability()</code></p>
-
-  <p>每个通过 L3 验证的特征会额外调用一次 LLM，生成结构化的可解释性报告：</p>
-
-  <table>
-    <tr><th>字段</th><th>含义</th><th>示例</th></tr>
-    <tr><td>value_meaning</td><td>不同取值区间的业务含义</td><td>"值=1 表示正常，值&gt;3 表示批量注册嫌疑"</td></tr>
-    <tr><td>risk_threshold</td><td>高风险阈值及判断依据</td><td>"阈值=3，基于异常交易 75 分位"</td></tr>
-    <tr><td>synergy</td><td>建议配合使用的特征</td><td>"与 night_tx_ratio 配合识别夜间批量转账"</td></tr>
-    <tr><td>false_positive_cases</td><td>可能的误判场景</td><td>"企业商户正常批量代发也会触发"</td></tr>
-    <tr><td>regulatory_explanation</td><td>面向监管的一句话解释</td><td>"该指标衡量账户背后的身份复用程度"</td></tr>
-  </table>
-
-  <p>报告输入包含该特征在正常 vs 异常交易上的分布统计（中位数、均值、分位数），帮助 LLM 给出具体的数值阈值。</p>
-</div>
-
-<!-- ════════════════════════ 8. Phase 3 ════════════════════════ -->
-<div class="section" id="phase3">
-  <h2><span class="phase-badge pb-3">Phase 3</span> 最终验证与产出</h2>
-
-  <p>Phase 2 搜索完成后，Phase 3 对最终特征集进行稳定性验证和对比实验：</p>
-
-  <h3>L4: 稳定性验证</h3>
-  <p>10 次 Bootstrap 重采样，每次训练 XGBoost + SHAP，收集 top-20 特征排名，计算 <strong>Nogueira 稳定性指数</strong>（阈值 &gt; 0.8）。确保特征选择在数据扰动下保持一致。所有 SHAP 计算均采用最多 <strong>5000 样本</strong>的采样上限，在保持精度的同时控制计算时间。</p>
-
-  <h3>5 组增量贡献实验</h3>
-  <table>
-    <tr><th>实验</th><th>特征集</th><th>目的</th></tr>
-    <tr><td>实验 1（基线）</td><td>仅 人工特征</td><td>基准对比</td></tr>
-    <tr><td>实验 2（增量）</td><td>人工 + LLM 特征</td><td>验证增量贡献</td></tr>
-    <tr><td>实验 3（独立）</td><td>仅 LLM 特征</td><td>验证独立预测力</td></tr>
-    <tr><td>实验 4（随机对照）</td><td>人工 + 等量随机特征</td><td>排除过拟合假象</td></tr>
-    <tr><td>实验 5（消融）</td><td>逐个移除 LLM 特征</td><td>识别最关键特征</td></tr>
-  </table>
-
-  <h3>最终产出</h3>
-  <ul>
-    <li><strong>特征字典</strong>：每个特征的代码 + 解释 + SHAP 排名 + 统计指标</li>
-    <li><strong>可视化</strong>：SHAP summary plot、实验对比柱状图、消融热力图、稳定性分布图</li>
-    <li><strong>验证报告</strong>：完整的 Markdown 报告</li>
-  </ul>
-</div>
-
-<!-- ════════════════════════ 9. 产出物 ════════════════════════ -->
-<div class="section" id="output">
-  <h2><span class="phase-badge pb-3">产出</span> 产出物说明</h2>
-
-  <p>pipeline 运行完毕后在 <code>output/</code> 目录生成以下文件：</p>
-
-  <table>
-    <tr><th>文件</th><th>内容</th></tr>
-    <tr><td><code>features.json</code></td><td>所有通过验证的特征列表（名称、分数、代码、解释、L2/L3 指标）；包含 <code>accepted_via</code> 字段标识直通接受(direct)还是缓刑池接受(pending_pool)</td></tr>
-    <tr><td><code>search_log.json</code></td><td>搜索日志（每轮每岛屿的候选数、通过数、详情）；包含 <code>calibrated_thresholds</code> 记录自动校准的 L2 阈值</td></tr>
-    <tr><td><code>features/*.py</code></td><td>每个特征的独立 Python 文件，可直接运行；包含可解释性报告（value_meaning, risk_threshold 等）</td></tr>
-  </table>
-
-  <h3>特征 .py 文件结构</h3>
-  <p>每个通过验证的特征被导出为一个独立可执行的 Python 文件：</p>
-
-  <pre><code><span class="str">"""
-特征: cert_phone_multi_wallet_count
-说明: 统计每个钱包的开户证件和手机号关联的钱包数量...
-
-验证指标:
-  - Score: 0.4250
-  - MI: 0.0353
-  - Cramer's V: 0.0835
-  - Delta PR-AUC: 0.005142
-  - SHAP Rank: 1
-"""</span>
-
-<span class="kw">import</span> pandas <span class="kw">as</span> pd
-<span class="kw">import</span> numpy <span class="kw">as</span> np
-
-<span class="kw">def</span> <span class="fn">compute_feature</span>(open_df, tx_df, close_df):
-    <span class="str">"""计算特征，返回 DataFrame(wallet_id, feature_value)"""</span>
-    cert_counts = open_df.groupby(<span class="str">'wallet_open_cert'</span>)[<span class="str">'wallet_id'</span>].nunique()
-    ...
-    <span class="kw">return</span> result
-
-<span class="kw">if</span> __name__ == <span class="str">"__main__"</span>:
-    <span class="cmt"># 命令行直接运行</span>
-    result = compute_feature(open_df, tx_df, close_df)
-    print(result.describe())</code></pre>
-</div>
-
-<!-- ════════════════════════ 10. 示例 ════════════════════════ -->
-<div class="section" id="example">
-  <h2><span class="phase-badge pb-0">示例</span> 实际运行示例</h2>
+<!-- ════════════════════════ 附录 B：实际运行示例 ════════════════════════ -->
+<div class="section" id="appendix-example">
+  <h2><span class="phase-badge pb-0">附录 B</span> 实际运行示例（DeepSeek-V3）</h2>
 
   <p>以下是用 DeepSeek-V3 模型在 1000 个钱包数据集上，启用 L2 自动校准后运行的实际结果：</p>
 
@@ -1146,7 +1516,7 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
   </div>
 
   <div class="highlight-box">
-    <strong>L2 自动校准的关键作用</strong>：首次测试使用硬编码阈值时，39 个候选特征 0 通过 L2，系统直接收敛退出。启用自动校准后，L2 转为粗筛角色，52 个特征通过验证。这验证了阈值应根据数据特性自适应的设计原则。
+    <strong>L2 自动校准的关键作用</strong>：首次测试使用硬编码阈值时，39 个候选特征 0 通过 L2，系统直接收敛退出。启用自动校准后，L2 转为粗筛角色，52 个特征通过验证。
   </div>
 
   <h3>代表性特征示例</h3>
@@ -1218,57 +1588,40 @@ Bootstrap p: <span class="num">0.05</span> →  <span class="num">0.05</span>   
   </div>
 
   <p>52 个通过验证的特征覆盖全部 4 个维度岛屿（金额频次、时间地域、行为序列、主体关联），其中主体关联维度的身份复用类特征贡献最大。基线 PR-AUC 从 0.6305 提升至 ~0.678（+0.048），验证了领域知识注入和 SHAP 引导搜索的有效性。</p>
+
+  <h3>产出物说明</h3>
+  <table>
+    <tr><th>文件</th><th>内容</th></tr>
+    <tr><td><code>features.json</code></td><td>所有通过验证的特征列表（名称、分数、代码、解释、L2/L3 指标）；<code>accepted_via</code> 字段标识直通(direct)/缓刑池(pending_pool)</td></tr>
+    <tr><td><code>search_log.json</code></td><td>搜索日志（每轮每岛屿的候选数、通过数、详情）；含 <code>calibrated_thresholds</code></td></tr>
+    <tr><td><code>features/*.py</code></td><td>每个特征的独立 Python 文件，可直接运行；含可解释性报告</td></tr>
+  </table>
+
+  <h3>特征可解释性报告</h3>
+  <p>每个通过 L3 验证的特征会额外调用一次 LLM，生成结构化的可解释性报告：</p>
+  <table>
+    <tr><th>字段</th><th>含义</th><th>示例</th></tr>
+    <tr><td>value_meaning</td><td>不同取值区间的业务含义</td><td>"值=1 表示正常，值&gt;3 表示批量注册嫌疑"</td></tr>
+    <tr><td>risk_threshold</td><td>高风险阈值及判断依据</td><td>"阈值=3，基于异常交易 75 分位"</td></tr>
+    <tr><td>synergy</td><td>建议配合使用的特征</td><td>"与 night_tx_ratio 配合识别夜间批量转账"</td></tr>
+    <tr><td>false_positive_cases</td><td>可能的误判场景</td><td>"企业商户正常批量代发也会触发"</td></tr>
+    <tr><td>regulatory_explanation</td><td>面向监管的一句话解释</td><td>"该指标衡量账户背后的身份复用程度"</td></tr>
+  </table>
 </div>
 
-<!-- ════════════════════════ 11. 创新 ════════════════════════ -->
-<div class="section" id="innovation">
-  <h2><span class="phase-badge pb-1">创新</span> 核心创新点</h2>
+<hr class="sep">
 
-  <div class="island-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-    <div class="island-card">
-      <h4>1. 领域知识增强</h4>
-      <p>首次将结构化专家知识（访谈 + 200+ 识别点 + 监管规则）系统性注入 LLM 特征生成。现有方法（LLM-FE、CAAFE、MedFeat）都缺乏深度领域知识注入。</p>
-    </div>
-    <div class="island-card">
-      <h4>2. 多表关联</h4>
-      <p>首次将 LLM 特征工程扩展到多表关系型数据（开户 + 交易 + 销户三表）。所有 6 篇参考论文均仅支持单表输入。</p>
-    </div>
-    <div class="island-card">
-      <h4>3. 维度岛屿 + SHAP 搜索</h4>
-      <p>改进 LLM-FE 的随机岛屿为按风险维度划分的 4 个有方向岛屿，结合 MedFeat 的 SHAP 引导，实现有分工 + 有方向的高效搜索。</p>
-    </div>
-    <div class="island-card">
-      <h4>4. 四级验证框架 + 自动校准</h4>
-      <p>代码验证 → 统计验证 → 模型验证 → 稳定性验证。L2 阈值从基线特征分布自动校准（p10 × 0.5），超越现有论文（无一使用统计检验）的验证深度。</p>
-    </div>
-    <div class="island-card">
-      <h4>5. 可解释特征</h4>
-      <p>每个特征附带领域依据说明和知识来源引用，满足金融监管的可解释性要求。</p>
-    </div>
-    <div class="island-card">
-      <h4>6. 缓刑池两阶段筛选</h4>
-      <p>解决特征组合效应问题。L2 通过但 L3 单独不够的特征进入缓刑池，每轮末通过两阶段筛选（反向淘汰去噪 + 对 baseline 增量验证）发现真正有效的特征。现有方法（CAAFE、LLM-FE）均逐个评估，无法捕捉交互。</p>
-    </div>
-    <div class="island-card">
-      <h4>7. L2 阈值自动校准</h4>
-      <p>验证阈值从基线特征分布自动校准（p10 &times; 0.5），而非硬编码。解决了固定阈值过严导致搜索失败的问题。L2 转为粗筛角色，由 L3 + 反向淘汰承担最终质量控制。</p>
-    </div>
-  </div>
-
-  <h3>与现有方法对比</h3>
-  <table>
-    <tr><th>能力</th><th>LLM-FE</th><th>CAAFE</th><th>MedFeat</th><th>本系统</th></tr>
-    <tr><td>多表支持</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">&radic;</span></td></tr>
-    <tr><td>领域知识注入</td><td>仅特征名</td><td>数据集描述</td><td class="tag-red">&times;</td><td><span class="tag tag-green">深度注入</span></td></tr>
-    <tr><td>搜索策略</td><td>随机岛屿</td><td>单向</td><td>SHAP 引导</td><td><span class="tag tag-green">维度岛屿 + SHAP</span></td></tr>
-    <tr><td>统计验证</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">MI + Cramer's V + Bootstrap</span></td></tr>
-    <tr><td>阈值自适应</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">L2 基线分布自动校准</span></td></tr>
-    <tr><td>评估指标</td><td>Accuracy</td><td>ROC-AUC</td><td>AUC + F1</td><td><span class="tag tag-green">PR-AUC</span></td></tr>
-    <tr><td>可解释性</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">rationale + 知识溯源</span></td></tr>
-    <tr><td>组合效应</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">缓刑池反向淘汰</span></td></tr>
-    <tr><td>数据探索</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td class="tag-red">&times;</td><td><span class="tag tag-green">按需统计查询</span></td></tr>
-    <tr><td>阈值校准</td><td>硬编码</td><td>硬编码</td><td>硬编码</td><td><span class="tag tag-green">基线分布自动校准</span></td></tr>
-  </table>
+<!-- ════════════════════════ 参考文献 ════════════════════════ -->
+<div class="section" id="references">
+  <h2><span class="phase-badge pb-5">Ref</span> 参考文献</h2>
+  <ol>
+    <li>Abhyankar et al. &ldquo;LLM-FE: Automated Feature Engineering for Tabular Data with LLMs as Evolutionary Optimizers.&rdquo; ICLR 2026 Workshop. arXiv:2503.14434</li>
+    <li>&ldquo;MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs.&rdquo; arXiv:2603.02221, 2026</li>
+    <li>Hollmann et al. &ldquo;Large Language Models for Automated Data Science: Introducing CAAFE.&rdquo; NeurIPS 2023. arXiv:2305.03403</li>
+    <li>Nam et al. &ldquo;OCTree: Optimized Feature Generation via LLMs with Decision Tree Reasoning.&rdquo; NeurIPS 2024. arXiv:2406.08527</li>
+    <li>Xu et al. &ldquo;CoFEH: LLM-driven Feature Engineering Empowered by Collaborative Bayesian HPO.&rdquo; ASPLOS 2026. arXiv:2602.09851</li>
+    <li>Balek et al. &ldquo;LLM-based Feature Generation from Text for Interpretable ML.&rdquo; Machine Learning, 2025. arXiv:2409.07132</li>
+  </ol>
 </div>
 
 <hr class="sep">
