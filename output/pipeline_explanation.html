@@ -875,13 +875,15 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
       <p>通过 L3 后，还会计算新特征在完整模型中的 <strong>SHAP 重要性排名</strong>（1 = 最重要）。排名信息用于后续的综合打分和反馈。</p>
     </div>
 
-    <p>XGBoost 训练参数专门为不平衡数据调优：</p>
+    <p>XGBoost 训练参数专门为不平衡数据调优，支持 GPU 加速：</p>
     <pre><code>XGBClassifier(
     scale_pos_weight=<span class="num">19</span>,    <span class="cmt"># 正样本权重提升 19 倍</span>
     eval_metric=<span class="str">"aucpr"</span>,     <span class="cmt"># 评估指标用 PR-AUC</span>
     n_estimators=<span class="num">200</span>,
     max_depth=<span class="num">6</span>,
     learning_rate=<span class="num">0.1</span>,
+    tree_method=<span class="str">"hist"</span>,      <span class="cmt"># 直方图加速算法</span>
+    device=<span class="str">"cpu"</span>,            <span class="cmt"># 可通过 XGB_DEVICE 环境变量切换为 GPU</span>
 )</code></pre>
   </div>
 </div>
@@ -1221,7 +1223,7 @@ indices = _weighted_sample_without_replacement(probs, k)</code></pre>
 
 <div style="text-align: center; color: var(--text-dim); padding: 24px 0;">
   <p>LLM Feature Engineering Pipeline &mdash; 数字人民币反洗钱场景</p>
-  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 &middot; 缓刑池反向淘汰 &middot; 按需数据探索</p>
+  <p style="font-size: 0.85em;">总计 3,000+ 行 Python 代码 &middot; 支持 5 种 LLM 提供商 &middot; 四级特征验证 &middot; 缓刑池反向淘汰 &middot; 按需数据探索 &middot; XGBoost hist 加速 + GPU 可选</p>
 </div>
 
 </div>
