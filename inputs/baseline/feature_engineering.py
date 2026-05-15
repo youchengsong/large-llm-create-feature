@@ -574,13 +574,13 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     # 使用closed='left'排除当前时间点，使用历史1小时内的交易统计
     # 修复NaN/inf错误：先填充NaN和inf，再转换为int
     all_accounts['counts_1H_From'] = all_accounts.groupby('Account', group_keys=False).apply(
-        lambda g: g[g['Type']=='From'].rolling('1H', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
+        lambda g: g[g['Type']=='From'].rolling('1h', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
     ).reset_index(level=0, drop=True)
     # 处理NaN和inf值
     all_accounts['counts_1H_From'] = all_accounts['counts_1H_From'].fillna(0).replace([np.inf, -np.inf], 0).astype(int)
 
     all_accounts['counts_1H_To'] = all_accounts.groupby('Account', group_keys=False).apply(
-        lambda g: g[g['Type']=='To'].rolling('1H', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
+        lambda g: g[g['Type']=='To'].rolling('1h', on='Timestamp', closed='left')['Type'].count().reindex(g.index, fill_value=0)
     ).reset_index(level=0, drop=True)
     # 处理NaN和inf值
     all_accounts['counts_1H_To'] = all_accounts['counts_1H_To'].fillna(0).replace([np.inf, -np.inf], 0).astype(int)
