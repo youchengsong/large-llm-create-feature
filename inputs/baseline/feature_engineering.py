@@ -951,6 +951,10 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     # 注意：account_df的wallet_id已经被rename为acct_id，需要重新创建account_info_df
     account_info_df = account_df.copy()
     account_info_df = account_info_df.rename(columns={'acct_id': 'Account'})
+    # 移除开户衍生特征列，避免与后续 account_features_subset merge 产生 _x/_y 后缀冲突
+    _open_feat_cols_in_info = [c for c in account_features_list if c in account_info_df.columns]
+    if _open_feat_cols_in_info:
+        account_info_df = account_info_df.drop(columns=_open_feat_cols_in_info)
     
     # 合并From_Account的账户信息
     df_quantized = df_quantized.merge(account_info_df, left_on='From_Account', right_on='Account', how='left', suffixes=('', '_From'))
