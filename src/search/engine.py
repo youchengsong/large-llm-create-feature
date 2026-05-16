@@ -243,6 +243,10 @@ class SearchEngine:
 
             name = cand.get("feature_name", "unknown")
 
+            if any(f["name"] == name for f in self.accepted):
+                logger.info("Skipped duplicate feature %s (already accepted)", name)
+                continue
+
             try:
                 merged = merge_feature_to_transactions(feature_df, self.tx_df)
             except Exception as e:

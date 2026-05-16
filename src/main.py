@@ -100,10 +100,12 @@ def _generate_feature_file(feature_name: str, code: str, explanation: str,
     indented_code = "\n".join("    " + line if line.strip() else ""
                               for line in clean_code.split("\n"))
 
-    mi = l2_metrics.get("mi", 0)
+    iv = l2_metrics.get("iv", 0)
+    ks = l2_metrics.get("ks", 0)
     redundancy = l2_metrics.get("redundancy", 0)
-    cramers_v = l2_metrics.get("cramers_v", 0)
-    delta_prauc = l3_metrics.get("delta_prauc", 0)
+    delta_f1 = l3_metrics.get("delta_f1", 0)
+    delta_recall = l3_metrics.get("delta_recall", 0)
+    delta_precision = l3_metrics.get("delta_precision", 0)
     shap_rank = l3_metrics.get("shap_rank", 0)
 
     explain_section = ""
@@ -127,10 +129,12 @@ def _generate_feature_file(feature_name: str, code: str, explanation: str,
 
 验证指标:
   - Score: {score:.4f}
-  - MI: {mi:.4f}
+  - IV: {iv:.4f}
+  - KS: {ks:.4f}
   - Redundancy: {redundancy:.4f}
-  - Cramer's V: {cramers_v:.4f}
-  - Delta PR-AUC: {delta_prauc:.6f}
+  - Delta F1: {delta_f1:+.6f}
+  - Delta Recall: {delta_recall:+.6f}
+  - Delta Precision: {delta_precision:+.6f}
   - SHAP Rank: {shap_rank}
 {explain_section}
 
@@ -220,8 +224,25 @@ def save_results(result, output_dir: str) -> None:
             "accepted_via": f.get("accepted_via", "direct"),
         }
         features_data.append(record)
+
+    output_data = {
+        "summary": {
+            "total_features": len(features_data),
+            "total_rounds": result.total_rounds,
+            "converged": result.converged,
+            "calibrated_thresholds": result.calibrated_thresholds,
+            "baseline_metrics": result.baseline_metrics,
+            "combined_metrics": result.combined_metrics,
+            "delta_metrics": {
+                k: result.combined_metrics[k] - result.baseline_metrics[k]
+                for k in result.combined_metrics
+            } if result.combined_metrics and result.baseline_metrics else None,
+        },
+        "features": features_data,
+    }
+
     with open(features_path, "w", encoding="utf-8") as fp:
-        json.dump(features_data, fp, ensure_ascii=False, indent=2)
+        json.dump(output_data, fp, ensure_ascii=False, indent=2)
     logger.info("特征结果已保存: %s (%d 个特征)", features_path, len(features_data))
 
     exported = export_feature_files(features_data, output_dir)
