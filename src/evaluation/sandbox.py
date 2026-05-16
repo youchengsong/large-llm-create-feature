@@ -27,7 +27,6 @@ def check_code_safety(code: str) -> tuple[bool, str]:
     except SyntaxError as e:
         return False, f"语法错误: {e}"
 
-    has_result_assignment = False
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -54,14 +53,6 @@ def check_code_safety(code: str) -> tuple[bool, str]:
         elif isinstance(node, ast.Name):
             if node.id in _FORBIDDEN_NAMES and not isinstance(node.ctx, ast.Store):
                 return False, f"禁止引用: {node.id}"
-
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name) and target.id == "result":
-                    has_result_assignment = True
-
-    if not has_result_assignment:
-        return False, "代码未包含 'result = ...' 赋值语句"
 
     return True, ""
 
@@ -183,21 +174,14 @@ def validate_output(feature_df: pd.DataFrame) -> tuple[bool, str]:
     if feature_df is None or feature_df.empty:
         return False, "输出为空"
 
-    has_wallet_id = "wallet_id" in feature_df.columns
-    has_tx_id = "tx_id" in feature_df.columns
-    if not has_wallet_id and not has_tx_id:
-        return False, "输出必须包含 wallet_id 列（账户级特征）"
+    has_id = "tx_id" in feature_df.columns or "wallet_id" in feature_df.columns
+    if not has_id:
+        return False, "输出必须包含 tx_id 或 wallet_id 列"
 
-    if has_tx_id and not has_wallet_id:
-        return False, "输出使用 tx_id 格式，请改为 wallet_id 格式（按账户聚合）"
-
-    id_col = "wallet_id"
+    id_col = "tx_id" if "tx_id" in feature_df.columns else "wallet_id"
     feature_cols = [c for c in feature_df.columns if c != id_col]
     if not feature_cols:
         return False, "输出不包含任何特征列"
-
-    if feature_df[id_col].duplicated().any():
-        return False, f"wallet_id 存在重复值（{feature_df[id_col].duplicated().sum()} 行），请确保每个 wallet_id 只有一行"
 
     for col in feature_cols:
         series = feature_df[col]

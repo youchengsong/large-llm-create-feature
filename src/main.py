@@ -365,6 +365,7 @@ def main() -> None:
         import numpy as np
         from src.evaluation.metrics import compute_cv_metrics as _compute_cv_metrics
         from src.evaluation.sandbox import execute_feature_code, validate_output
+        from src.data.merge import merge_feature_to_transactions
         combined_df = X_baseline.copy()
         combined_failed = []
         for feat in result.accepted_features:
@@ -379,16 +380,14 @@ def main() -> None:
                 combined_failed.append((name, reason))
                 continue
             try:
-                val_col = [c for c in feat_df.columns if c != "wallet_id"][0]
-                mapping = feat_df.set_index("wallet_id")[val_col]
-                src_col = next((c for c in ["src", "From_Account"] if c in tx_df.columns), None)
-                dst_col = next((c for c in ["dst", "To_Account"] if c in tx_df.columns), None)
-                if src_col and dst_col:
-                    tx_sorted = tx_df.sort_values("timestamp").reset_index(drop=True)
-                    src_vals = tx_sorted[src_col].values[:len(combined_df)]
-                    dst_vals = tx_sorted[dst_col].values[:len(combined_df)]
-                    combined_df[name + "_src"] = pd.Series(src_vals).map(mapping).fillna(0).values
-                    combined_df[name + "_dst"] = pd.Series(dst_vals).map(mapping).fillna(0).values
+                merged = merge_feature_to_transactions(feat_df, tx_df)
+                new_cols = [c for c in merged.columns if c not in tx_df.columns]
+                if not new_cols:
+                    combined_failed.append((name, "merge 后无新列"))
+                    continue
+                tx_sorted = merged.sort_values("timestamp").reset_index(drop=True)
+                for col in new_cols:
+                    combined_df[col] = tx_sorted[col].fillna(0).values[:len(combined_df)]
             except Exception as e:
                 combined_failed.append((name, str(e)))
                 continue

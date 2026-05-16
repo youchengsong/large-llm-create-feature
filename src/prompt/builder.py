@@ -45,10 +45,9 @@ def build_system_prompt(
 - code: Python 代码片段（不要定义函数，直接写代码）
 
 代码中可以直接使用以下变量：open_df, tx_df, close_df, pd, np
-代码最后必须将结果赋值给 result 变量，result 必须是 DataFrame，包含 [wallet_id, feature_value] 两列。
-注意：
-  - 必须按 wallet_id 聚合，每个 wallet_id 只能有一行（不允许重复）
-  - 不接受 tx_id 级别的输出，必须聚合到账户级别
+代码最后必须将结果赋值给 result 变量，result 必须是 DataFrame，包含：
+  - wallet 级特征：[wallet_id, feature_value] 两列
+  - transaction 级特征：[tx_id, feature_value] 两列
 
 示例代码格式：
 ```python
