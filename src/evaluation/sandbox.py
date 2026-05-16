@@ -92,8 +92,25 @@ def _run_in_process(code, data_dir, result_path, error_queue):
         exec(code, global_ns, local_ns)
 
         if "result" not in local_ns:
-            error_queue.put("代码未定义 'result' 变量，请将特征 DataFrame 赋值给 result")
-            return
+            # 自动检测函数定义并调用
+            import inspect
+            func_candidates = [
+                v for k, v in local_ns.items()
+                if callable(v) and not k.startswith("_")
+                and k not in ("pd", "np") and inspect.isfunction(v)
+            ]
+            if func_candidates:
+                func = func_candidates[0]
+                sig = inspect.signature(func)
+                params = list(sig.parameters.keys())
+                kwargs = {}
+                for p in params:
+                    if p in ("open_df", "tx_df", "close_df"):
+                        kwargs[p] = local_ns[p]
+                local_ns["result"] = func(**kwargs)
+            else:
+                error_queue.put("代码未定义 'result' 变量，请将特征 DataFrame 赋值给 result")
+                return
 
         result = local_ns["result"]
         if not isinstance(result, pd.DataFrame):

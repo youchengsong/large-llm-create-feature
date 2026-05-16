@@ -1,0 +1,35 @@
+{
+  "baseline": {
+    "f1": 0.9423488854259542,
+    "recall": 0.8916136626055104,
+    "precision": 0.9992601726263871,
+    "pr_auc": 0.9973891720125654
+  },
+  "combined": {
+    "f1": 0.9393363726752852,
+    "recall": 0.8860392777512344,
+    "precision": 0.9994923825168293,
+    "pr_auc": 0.9971920300492091
+  },
+  "delta": {
+    "f1": -0.0030125127506689386,
+    "recall": -0.005574384854276082,
+    "precision": 0.00023220989044214768,
+    "pr_auc": -0.0001971419633562954
+  },
+  "new_features_count": 12,
+  "new_feature_names": [
+    "tx_night_ratio",
+    "tx_small_amount_ratio",
+    "tx_fan_out_ratio",
+    "tx_unique_counterparties",
+    "tx_amount_cv",
+    "tx_peak_hour_concentration_v2",
+    "tx_net_amount_flow",
+    "tx_amount_ratio_to_balance",
+    "tx_amount_precision_anomaly",
+    "tx_counterparty_repeat_rate",
+    "tx_amount_near_limit_ratio",
+    "tx_device_count_ratio"
+  ]
+}
