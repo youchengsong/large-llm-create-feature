@@ -1,4 +1,4 @@
-"""特征验证流水线：L1 → L2 → L3 → 打分 + 缓刑池反向淘汰。"""
+"""特征验证流水线：L1 → L2(IV+KS) → L3(F1/Recall/Precision) → 打分 + 前向选择。"""
 
 import logging
 
@@ -10,13 +10,14 @@ logger = logging.getLogger(__name__)
 from src.config import DEFAULT_CONFIG, ValidationThresholds
 from src.evaluation.sandbox import execute_feature_code, validate_output
 from src.evaluation.metrics import (
-    compute_mutual_info,
+    compute_iv,
+    compute_ks,
     compute_redundancy,
-    compute_cramers_v,
-    compute_bootstrap_chi2,
-    compute_cv_prauc,
-    compute_delta_prauc,
+    compute_mutual_info,
+    compute_cv_metrics,
+    compute_delta_metrics,
     compute_shap_rank,
+    compute_permutation_importance,
     normalize_score,
 )
 
@@ -45,27 +46,27 @@ def run_l2_validation(
     existing_features: pd.DataFrame,
     thresholds: ValidationThresholds | None = None,
 ) -> tuple[bool, dict]:
-    """L2 统计验证：MI、冗余度、Cramer's V、Bootstrap χ²。返回 (passed, metrics_dict)。"""
+    """L2 统计验证：IV + KS + 冗余度 + 缺失率。返回 (passed, metrics_dict)。"""
     if thresholds is None:
         thresholds = DEFAULT_CONFIG.validation
 
-    mi = compute_mutual_info(feature, label)
+    iv = compute_iv(feature, label)
+    ks = compute_ks(feature, label)
     redundancy = compute_redundancy(feature, existing_features)
-    cramers_v = compute_cramers_v(feature, label)
-    bootstrap_p = compute_bootstrap_chi2(feature, label)
+    missing_rate = float(feature.isna().mean())
 
     metrics = {
-        "mi": mi,
+        "iv": iv,
+        "ks": ks,
         "redundancy": redundancy,
-        "cramers_v": cramers_v,
-        "bootstrap_p": bootstrap_p,
+        "missing_rate": missing_rate,
     }
 
     passed = (
-        mi >= thresholds.mi_min
+        iv >= thresholds.iv_min
+        and ks >= thresholds.ks_min
         and redundancy < thresholds.corr_max
-        and cramers_v >= thresholds.cramers_v_min
-        and bootstrap_p < thresholds.bootstrap_p_max
+        and missing_rate <= thresholds.missing_rate_max
     )
 
     return passed, metrics
@@ -75,12 +76,16 @@ def run_l3_validation(
     X_existing: pd.DataFrame,
     new_feature: pd.Series,
     y: pd.Series,
-    baseline_prauc: float,
+    baseline_metrics: dict,
 ) -> tuple[bool, dict]:
-    """L3 模型验证：ΔPR-AUC + SHAP 排名。返回 (passed, metrics_dict)。"""
-    thresholds = DEFAULT_CONFIG.validation
+    """L3 模型验证：F1/Recall/Precision 增量。
 
-    delta = compute_delta_prauc(X_existing, new_feature, y)
+    接受条件（满足任一）：
+    1. delta_recall > 0 且 delta_precision >= -0.01
+    2. delta_f1 > 0
+    3. delta_precision > 0 且 delta_recall >= -0.01
+    """
+    delta_result = compute_delta_metrics(X_existing, new_feature, y)
 
     X_all = X_existing.copy()
     feat_name = new_feature.name if new_feature.name else "new_feature"
@@ -89,148 +94,137 @@ def run_l3_validation(
     shap_rank = compute_shap_rank(X_all, y, feat_name)
 
     metrics = {
-        "delta_prauc": delta,
+        **delta_result,
         "shap_rank": shap_rank,
         "total_features": X_all.shape[1],
     }
 
-    passed = delta >= thresholds.delta_prauc_min
+    delta_f1 = delta_result["delta_f1"]
+    delta_recall = delta_result["delta_recall"]
+    delta_precision = delta_result["delta_precision"]
+
+    passed = (
+        (delta_recall > 0 and delta_precision >= -0.01)
+        or (delta_f1 > 0)
+        or (delta_precision > 0 and delta_recall >= -0.01)
+    )
 
     return passed, metrics
 
 
 def compute_composite_score(
     shap_rank: int,
-    mi: float,
+    iv: float,
     redundancy: float,
-    delta_prauc: float,
+    delta_f1: float,
     all_scores: dict[str, list[float]],
 ) -> float:
-    """加权打分。all_scores 包含各指标的历史值列表，用于归一化。"""
+    """加权打分。"""
     weights = DEFAULT_CONFIG.scoring
 
     inv_rank = 1.0 / shap_rank
     inv_redundancy = 1.0 - redundancy
 
     all_inv_ranks = [1.0 / r for r in all_scores.get("shap_rank", [shap_rank])]
-    all_mis = all_scores.get("mi", [mi])
+    all_ivs = all_scores.get("iv", [iv])
     all_inv_reds = [1.0 - r for r in all_scores.get("redundancy", [redundancy])]
-    all_deltas = all_scores.get("delta_prauc", [delta_prauc])
+    all_deltas = all_scores.get("delta_f1", [delta_f1])
 
     norm_shap = normalize_score(inv_rank, all_inv_ranks)
-    norm_mi = normalize_score(mi, all_mis)
+    norm_iv = normalize_score(iv, all_ivs)
     norm_red = normalize_score(inv_redundancy, all_inv_reds)
-    norm_delta = normalize_score(delta_prauc, all_deltas)
+    norm_delta = normalize_score(delta_f1, all_deltas)
 
     score = (
         weights.shap * norm_shap
-        + weights.mi * norm_mi
+        + weights.iv * norm_iv
         + weights.redundancy * norm_red
-        + weights.delta_prauc * norm_delta
+        + weights.delta_f1 * norm_delta
     )
 
     return float(score)
+
+
+def forward_select_features(
+    X_baseline: pd.DataFrame,
+    candidate_features: dict[str, np.ndarray],
+    y: pd.Series,
+    baseline_metrics: dict,
+) -> tuple[list[str], dict]:
+    """前向选择：逐个添加使 F1 最高的特征，直到不再提升。
+
+    返回 (selected_names, final_metrics)。
+    """
+    if not candidate_features:
+        return [], baseline_metrics
+
+    remaining = set(candidate_features.keys())
+    selected = []
+    X_current = X_baseline.copy()
+    current_f1 = baseline_metrics["f1"]
+
+    logger.info("Forward selection: %d candidates, baseline F1=%.6f", len(remaining), current_f1)
+
+    while remaining:
+        best_name = None
+        best_f1 = current_f1
+        best_metrics = None
+
+        for name in remaining:
+            X_try = X_current.copy()
+            X_try[name] = candidate_features[name]
+            m = compute_cv_metrics(X_try, y)
+            if m["f1"] > best_f1:
+                best_f1 = m["f1"]
+                best_name = name
+                best_metrics = m
+
+        if best_name is None:
+            logger.info("Forward selection stopped: no feature improves F1")
+            break
+
+        if best_metrics["recall"] < baseline_metrics["recall"] - 0.01:
+            logger.info("Forward selection skipped %s: recall drop too large (%.4f -> %.4f)",
+                        best_name, baseline_metrics["recall"], best_metrics["recall"])
+            remaining.discard(best_name)
+            continue
+
+        selected.append(best_name)
+        X_current[best_name] = candidate_features[best_name]
+        current_f1 = best_f1
+        remaining.discard(best_name)
+
+        logger.info("Forward selection added %s: F1=%.6f, Recall=%.4f, Precision=%.4f",
+                    best_name, best_metrics["f1"], best_metrics["recall"], best_metrics["precision"])
+
+    final_metrics = compute_cv_metrics(X_current, y)
+    logger.info("Forward selection done: %d features selected, final F1=%.6f, Recall=%.4f, Precision=%.4f",
+                len(selected), final_metrics["f1"], final_metrics["recall"], final_metrics["precision"])
+
+    return selected, final_metrics
 
 
 def backward_eliminate_pending(
     X_accepted: pd.DataFrame,
     pending_features: dict[str, np.ndarray],
     y: pd.Series,
-    baseline_prauc: float = 0.0,
+    baseline_metrics: dict | None = None,
 ) -> tuple[set[str], set[str]]:
-    """两阶段筛选：反向淘汰去噪 + 单特征增量验证。
-
-    阶段 1（反向淘汰）：把缓刑池特征全部加入已接受特征，从 SHAP 最弱的开始
-    逐个剔除，移除对组合无贡献的噪音特征。
-
-    阶段 2（增量验证）：对阶段 1 幸存的每个特征，单独加入原始 baseline
-    计算 delta_prauc。只有 delta > 0 的特征才被最终接受。
-
-    返回 (accepted_names, rejected_names)。
-    """
+    """前向选择替代反向淘汰：从候选池中选出能提升 F1 的特征。"""
     if not pending_features:
         return set(), set()
 
-    # ── 阶段 1：反向淘汰，清除组合中无贡献的噪音 ──
-    X_full = X_accepted.copy()
-    for name, values in pending_features.items():
-        X_full[name] = values
+    if baseline_metrics is None:
+        baseline_metrics = compute_cv_metrics(X_accepted, y)
 
-    score_full = compute_cv_prauc(X_full, y)
-    logger.info("Backward elimination phase 1: full score=%.6f (baseline=%.6f) "
-                "with %d accepted + %d pending",
-                score_full, baseline_prauc, X_accepted.shape[1], len(pending_features))
-
-    import shap
-    from xgboost import XGBClassifier
-
-    cfg = DEFAULT_CONFIG.xgboost
-    model = XGBClassifier(
-        scale_pos_weight=cfg.scale_pos_weight,
-        eval_metric=cfg.eval_metric,
-        n_estimators=cfg.n_estimators,
-        max_depth=cfg.max_depth,
-        learning_rate=cfg.learning_rate,
-        random_state=cfg.random_state,
-        n_jobs=cfg.n_jobs,
-        tree_method=cfg.tree_method,
-        device=cfg.device,
-    )
-    model.fit(X_full, y, verbose=False)
-    explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_full)
-    mean_abs = np.mean(np.abs(shap_values), axis=0)
-    importance = dict(zip(X_full.columns, mean_abs))
-
-    pending_names_sorted = sorted(
-        pending_features.keys(),
-        key=lambda n: importance.get(n, 0),
+    selected, final_metrics = forward_select_features(
+        X_accepted, pending_features, y, baseline_metrics,
     )
 
-    current_score = score_full
-    phase1_rejected = set()
-    X_current = X_full.copy()
+    accepted = set(selected)
+    rejected = set(pending_features.keys()) - accepted
 
-    for name in pending_names_sorted:
-        X_without = X_current.drop(columns=[name])
-        score_without = compute_cv_prauc(X_without, y)
+    logger.info("Pending pool evaluation: %d accepted, %d rejected",
+                len(accepted), len(rejected))
 
-        if score_without >= current_score:
-            phase1_rejected.add(name)
-            X_current = X_without
-            current_score = score_without
-            logger.info("  Phase 1 eliminated %s: score %.6f -> %.6f (no loss)",
-                        name, current_score, score_without)
-        else:
-            logger.info("  Phase 1 kept %s: removing would drop score %.6f -> %.6f",
-                        name, current_score, score_without)
-
-    phase1_survivors = set(pending_features.keys()) - phase1_rejected
-    logger.info("Phase 1 done: %d survivors, %d eliminated",
-                len(phase1_survivors), len(phase1_rejected))
-
-    if not phase1_survivors:
-        return set(), set(pending_features.keys())
-
-    # ── 阶段 2：对幸存特征逐个验证对 baseline 的增量 ──
-    logger.info("Phase 2: verifying %d survivors against baseline (prauc=%.6f)",
-                len(phase1_survivors), baseline_prauc)
-
-    accepted = set()
-    phase2_rejected = set()
-
-    for name in phase1_survivors:
-        feat_series = pd.Series(pending_features[name], name=name)
-        delta = compute_delta_prauc(X_accepted, feat_series, y)
-        if delta > 0:
-            accepted.add(name)
-            logger.info("  Phase 2 accepted %s: delta_prauc=+%.6f", name, delta)
-        else:
-            phase2_rejected.add(name)
-            logger.info("  Phase 2 rejected %s: delta_prauc=%.6f (not positive)",
-                        name, delta)
-
-    rejected = phase1_rejected | phase2_rejected
-    logger.info("Final: %d accepted, %d rejected (phase1: %d, phase2: %d)",
-                len(accepted), len(rejected), len(phase1_rejected), len(phase2_rejected))
     return accepted, rejected

@@ -67,19 +67,18 @@ class PendingPoolConfig:
 
 @dataclass
 class ValidationThresholds:
-    mi_min: float = 0.001
-    corr_max: float = 0.9
-    cramers_v_min: float = 0.05
-    delta_prauc_min: float = 0.005
-    bootstrap_p_max: float = 0.05
+    iv_min: float = 0.001         # noise baseline calibrated
+    ks_min: float = 0.001         # noise baseline calibrated
+    corr_max: float = 0.7         # redundancy threshold (tighter than before)
+    missing_rate_max: float = 0.5
 
 
 @dataclass
 class ScoringWeights:
-    shap: float = 0.35
-    mi: float = 0.25
-    redundancy: float = 0.25
-    delta_prauc: float = 0.15
+    shap: float = 0.30
+    iv: float = 0.20
+    redundancy: float = 0.20
+    delta_f1: float = 0.30
 
 
 @dataclass

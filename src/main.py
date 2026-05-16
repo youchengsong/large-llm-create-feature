@@ -271,16 +271,22 @@ def main() -> None:
         X_baseline = baseline_df[available_cols].fillna(0)
         baseline_prauc = compute_baseline_prauc(X_baseline, label)
         logger.info("基线 PR-AUC: %.4f (%d 个特征)", baseline_prauc, len(available_cols))
+
+        from src.evaluation.metrics import compute_cv_metrics
+        baseline_cv_metrics = compute_cv_metrics(X_baseline, label)
+        logger.info("基线 F1: %.4f, Recall: %.4f, Precision: %.4f",
+                    baseline_cv_metrics["f1"], baseline_cv_metrics["recall"], baseline_cv_metrics["precision"])
     except Exception as e:
         logger.warning("基线特征提取失败: %s，使用空基线", e)
         X_baseline = pd.DataFrame(index=range(len(label)))
         baseline_prauc = 0.0
+        baseline_cv_metrics = {"f1": 0.0, "recall": 0.0, "precision": 0.0, "prauc": 0.0}
 
-    logger.info("=== 自动校准 L2 阈值 ===")
+    logger.info("=== 自动校准 L2 阈值（噪声基线法）===")
     calibrated_thresholds = calibrate_l2_thresholds(X_baseline, label)
     logger.info(
-        "校准结果: MI_min=%.6f, cramers_v_min=%.6f (原固定值: 0.001, 0.05)",
-        calibrated_thresholds.mi_min, calibrated_thresholds.cramers_v_min,
+        "校准结果: IV_min=%.6f, KS_min=%.6f, corr_max=%.2f",
+        calibrated_thresholds.iv_min, calibrated_thresholds.ks_min, calibrated_thresholds.corr_max,
     )
 
     logger.info("=== 加载领域知识 ===")
@@ -322,6 +328,7 @@ def main() -> None:
         config=cfg,
         validation_thresholds=calibrated_thresholds,
     )
+    engine._baseline_metrics = baseline_cv_metrics
 
     logger.info("=== 开始搜索 (最多 %d 轮) ===", cfg.search.T)
     result = engine.run(max_rounds=cfg.search.T)
@@ -335,6 +342,7 @@ def main() -> None:
     if result.accepted_features:
         logger.info("=== 组合评估: 基线 + 全部新特征 ===")
         import numpy as np
+        from src.evaluation.metrics import compute_cv_metrics as _compute_cv_metrics
         combined_df = X_baseline.copy()
         for feat in result.accepted_features:
             name = feat["feature_name"]
@@ -365,17 +373,23 @@ def main() -> None:
             except Exception as e:
                 logger.warning("  特征 %s 计算失败: %s", name, e)
 
-        combined_prauc = compute_baseline_prauc(combined_df, label)
-        delta = combined_prauc - baseline_prauc
-        improve_pct = (delta / baseline_prauc * 100) if baseline_prauc > 0 else 0
+        combined_metrics = _compute_cv_metrics(combined_df, label)
         logger.info("========== 组合评估结果 ==========")
-        logger.info("基线 PR-AUC:     %.6f (%d 个特征)", baseline_prauc, len(available_cols))
-        logger.info("组合 PR-AUC:     %.6f (%d 个特征)", combined_prauc, len(combined_df.columns))
-        logger.info("增量 PR-AUC:     %+.6f", delta)
-        logger.info("提升百分比:      %+.2f%%", improve_pct)
+        logger.info("             F1       Recall   Precision  PR-AUC")
+        logger.info("基线:     %.6f  %.6f  %.6f  %.6f",
+                    baseline_cv_metrics["f1"], baseline_cv_metrics["recall"],
+                    baseline_cv_metrics["precision"], baseline_cv_metrics["prauc"])
+        logger.info("组合:     %.6f  %.6f  %.6f  %.6f",
+                    combined_metrics["f1"], combined_metrics["recall"],
+                    combined_metrics["precision"], combined_metrics["prauc"])
+        logger.info("增量:     %+.6f  %+.6f  %+.6f  %+.6f",
+                    combined_metrics["f1"] - baseline_cv_metrics["f1"],
+                    combined_metrics["recall"] - baseline_cv_metrics["recall"],
+                    combined_metrics["precision"] - baseline_cv_metrics["precision"],
+                    combined_metrics["prauc"] - baseline_cv_metrics["prauc"])
 
-        result.combined_prauc = combined_prauc
-        result.baseline_prauc = baseline_prauc
+        result.combined_metrics = combined_metrics
+        result.baseline_metrics = baseline_cv_metrics
     else:
         logger.info("=== 无通过验证的新特征，跳过组合评估 ===")
 

@@ -37,6 +37,8 @@ class SearchResult:
     total_rounds: int = 0
     converged: bool = False
     calibrated_thresholds: dict | None = None
+    baseline_metrics: dict | None = None
+    combined_metrics: dict | None = None
 
 
 class SearchEngine:
@@ -77,9 +79,9 @@ class SearchEngine:
         self.accepted: list[dict] = []
         self.all_scores: dict[str, list[float]] = {
             "shap_rank": [],
-            "mi": [],
+            "iv": [],
             "redundancy": [],
-            "delta_prauc": [],
+            "delta_f1": [],
         }
         self._rounds_without_new = 0
 
@@ -193,9 +195,11 @@ class SearchEngine:
 
 ## 验证指标
 - SHAP Rank: #{l3_metrics.get('shap_rank', 'N/A')}（在模型所有特征中的重要性排名）
-- MI (互信息): {l2_metrics.get('mi', 0):.4f}
-- Cramer's V: {l2_metrics.get('cramers_v', 0):.4f}
-- Delta PR-AUC: {l3_metrics.get('delta_prauc', 0):.6f}
+- IV: {l2_metrics.get('iv', 0):.4f}
+- KS: {l2_metrics.get('ks', 0):.4f}
+- Delta F1: {l3_metrics.get('delta_f1', 0):.6f}
+- Delta Recall: {l3_metrics.get('delta_recall', 0):.6f}
+- Delta Precision: {l3_metrics.get('delta_precision', 0):.6f}
 
 ## 该特征在正常 vs 异常交易上的分布
 - 正常交易: 中位数={normal_vals.median():.4f}, 均值={normal_vals.mean():.4f}, std={normal_vals.std():.4f}
@@ -271,21 +275,22 @@ class SearchEngine:
             if not l2_passed:
                 th = self.validation_thresholds or self.cfg.validation
                 failed_checks = []
-                if l2_metrics["mi"] < th.mi_min:
-                    failed_checks.append(f"MI={l2_metrics['mi']:.6f}<{th.mi_min:.6f}")
+                if l2_metrics["iv"] < th.iv_min:
+                    failed_checks.append(f"IV={l2_metrics['iv']:.6f}<{th.iv_min:.6f}")
+                if l2_metrics["ks"] < th.ks_min:
+                    failed_checks.append(f"KS={l2_metrics['ks']:.6f}<{th.ks_min:.6f}")
                 if l2_metrics["redundancy"] >= th.corr_max:
                     failed_checks.append(f"redundancy={l2_metrics['redundancy']:.4f}>={th.corr_max}")
-                if l2_metrics["cramers_v"] < th.cramers_v_min:
-                    failed_checks.append(f"cramers_v={l2_metrics['cramers_v']:.6f}<{th.cramers_v_min:.6f}")
-                if l2_metrics["bootstrap_p"] >= th.bootstrap_p_max:
-                    failed_checks.append(f"bootstrap_p={l2_metrics['bootstrap_p']:.4e}>={th.bootstrap_p_max}")
+                if l2_metrics["missing_rate"] > th.missing_rate_max:
+                    failed_checks.append(f"missing={l2_metrics['missing_rate']:.2%}>{th.missing_rate_max:.0%}")
                 reason = f"L2 未通过: {'; '.join(failed_checks)}"
                 self.failure_memory.add_failure(name, cand.get("code", ""), reason)
                 logger.info("L2 failed for %s: %s", name, reason)
                 continue
 
             l3_passed, l3_metrics = run_l3_validation(
-                self.existing_features, feature_series, self.label, self.baseline_prauc
+                self.existing_features, feature_series, self.label,
+                baseline_metrics=getattr(self, '_baseline_metrics', {}),
             )
             cand["l3_metrics"] = l3_metrics
 
@@ -301,20 +306,22 @@ class SearchEngine:
                     island_name=island.name,
                 )
                 self.pending_pool.add(pending_feat)
-                logger.info("L3 failed for %s (delta_prauc=%.6f), added to pending pool (%d in pool)",
-                            name, l3_metrics["delta_prauc"], len(self.pending_pool))
+                logger.info("L3 failed for %s (delta_f1=%.6f, delta_recall=%.6f, delta_precision=%.6f), "
+                            "added to pending pool (%d in pool)",
+                            name, l3_metrics.get("delta_f1", 0), l3_metrics.get("delta_recall", 0),
+                            l3_metrics.get("delta_precision", 0), len(self.pending_pool))
                 continue
 
             self.all_scores["shap_rank"].append(l3_metrics["shap_rank"])
-            self.all_scores["mi"].append(l2_metrics["mi"])
+            self.all_scores["iv"].append(l2_metrics["iv"])
             self.all_scores["redundancy"].append(l2_metrics["redundancy"])
-            self.all_scores["delta_prauc"].append(l3_metrics["delta_prauc"])
+            self.all_scores["delta_f1"].append(l3_metrics.get("delta_f1", 0))
 
             score = compute_composite_score(
                 shap_rank=l3_metrics["shap_rank"],
-                mi=l2_metrics["mi"],
+                iv=l2_metrics["iv"],
                 redundancy=l2_metrics["redundancy"],
-                delta_prauc=l3_metrics["delta_prauc"],
+                delta_f1=l3_metrics.get("delta_f1", 0),
                 all_scores=self.all_scores,
             )
             cand["score"] = score
@@ -341,7 +348,7 @@ class SearchEngine:
                 "l2_metrics": l2_metrics,
                 "l3_metrics": l3_metrics,
                 "shap_rank": l3_metrics["shap_rank"],
-                "mi": l2_metrics["mi"],
+                "iv": l2_metrics["iv"],
                 "explainability": explainability,
             }
 
@@ -351,8 +358,8 @@ class SearchEngine:
             accepted_this_step.append(feature_record)
 
             logger.info(
-                "Accepted feature %s: score=%.4f, delta_prauc=%.6f",
-                name, score, l3_metrics["delta_prauc"],
+                "Accepted feature %s: score=%.4f, delta_f1=%.6f, delta_recall=%.6f",
+                name, score, l3_metrics.get("delta_f1", 0), l3_metrics.get("delta_recall", 0),
             )
 
         return accepted_this_step
@@ -362,15 +369,15 @@ class SearchEngine:
         feature_series = pd.Series(pf.feature_values, name=pf.name)
 
         self.all_scores["shap_rank"].append(pf.l3_metrics.get("shap_rank", 999))
-        self.all_scores["mi"].append(pf.l2_metrics.get("mi", 0))
+        self.all_scores["iv"].append(pf.l2_metrics.get("iv", 0))
         self.all_scores["redundancy"].append(pf.l2_metrics.get("redundancy", 0))
-        self.all_scores["delta_prauc"].append(pf.l3_metrics.get("delta_prauc", 0))
+        self.all_scores["delta_f1"].append(pf.l3_metrics.get("delta_f1", 0))
 
         score = compute_composite_score(
             shap_rank=pf.l3_metrics.get("shap_rank", 999),
-            mi=pf.l2_metrics.get("mi", 0),
+            iv=pf.l2_metrics.get("iv", 0),
             redundancy=pf.l2_metrics.get("redundancy", 0),
-            delta_prauc=pf.l3_metrics.get("delta_prauc", 0),
+            delta_f1=pf.l3_metrics.get("delta_f1", 0),
             all_scores=self.all_scores,
         )
 
@@ -395,7 +402,7 @@ class SearchEngine:
             "l2_metrics": pf.l2_metrics,
             "l3_metrics": pf.l3_metrics,
             "shap_rank": pf.l3_metrics.get("shap_rank", 999),
-            "mi": pf.l2_metrics.get("mi", 0),
+            "iv": pf.l2_metrics.get("iv", 0),
             "explainability": explainability,
             "accepted_via": "pending_pool",
         }
@@ -423,7 +430,7 @@ class SearchEngine:
 
         accepted_names, rejected_names = backward_eliminate_pending(
             self.existing_features, pending_features, self.label,
-            baseline_prauc=self.baseline_prauc,
+            baseline_metrics=getattr(self, '_baseline_metrics', None),
         )
 
         logger.info("Pending pool evaluation: %d accepted, %d rejected out of %d",
@@ -512,7 +519,8 @@ class SearchEngine:
             for f in turn_accepted:
                 lines.append(
                     f"  - {f['name']}: score={f['score']:.4f}, "
-                    f"delta_prauc={f.get('l3_metrics', {}).get('delta_prauc', 0):.6f}"
+                    f"delta_f1={f.get('l3_metrics', {}).get('delta_f1', 0):.6f}, "
+                    f"delta_recall={f.get('l3_metrics', {}).get('delta_recall', 0):.6f}"
                 )
             lines.append("")
 
@@ -659,11 +667,10 @@ class SearchEngine:
         if self.validation_thresholds:
             th = self.validation_thresholds
             result.calibrated_thresholds = {
-                "mi_min": th.mi_min,
+                "iv_min": th.iv_min,
+                "ks_min": th.ks_min,
                 "corr_max": th.corr_max,
-                "cramers_v_min": th.cramers_v_min,
-                "delta_prauc_min": th.delta_prauc_min,
-                "bootstrap_p_max": th.bootstrap_p_max,
+                "missing_rate_max": th.missing_rate_max,
             }
 
         for round_num in range(1, max_rounds + 1):

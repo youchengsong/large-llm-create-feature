@@ -1,4 +1,4 @@
-"""L2 阈值自动校准：用基线特征的指标分布来设定合理的验证门槛。"""
+"""L2 阈值自动校准：噪声基线法 —— 用随机特征的指标分布设定验证门槛。"""
 
 import logging
 
@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import ValidationThresholds
-from src.evaluation.metrics import compute_mutual_info, compute_cramers_v, compute_bootstrap_chi2
+from src.evaluation.metrics import compute_iv, compute_ks
 
 logger = logging.getLogger(__name__)
 
@@ -14,95 +14,96 @@ logger = logging.getLogger(__name__)
 def calibrate_l2_thresholds(
     baseline_features: pd.DataFrame,
     label: pd.Series,
-    percentile: float = 10.0,
+    n_random: int = 100,
+    noise_percentile: float = 95.0,
 ) -> ValidationThresholds:
-    """根据基线特征的 MI / Cramer's V / bootstrap p 分布自动校准 L2 阈值。
+    """噪声基线校准：生成随机特征，计算其 IV/KS 分布，取 p95 作为阈值。
 
-    对每个基线特征计算三项指标，然后取 percentile 分位数作为阈值下限。
-    这样新特征只需要达到"不比最弱的基线特征差太多"即可通过 L2。
+    任何候选特征的 IV/KS 超过随机噪声的 95 分位，即认为有真实信号。
 
     Args:
-        baseline_features: 基线特征 DataFrame（不含标签列）
+        baseline_features: 基线特征 DataFrame（用于参考，非校准依据）
         label: 标签 Series
-        percentile: 用于设定阈值的分位数（默认 10，即 p10）
+        n_random: 随机特征数量（默认 100）
+        noise_percentile: 噪声分位数（默认 95，即 p < 0.05 假阳性率）
 
     Returns:
         校准后的 ValidationThresholds
     """
-    if baseline_features.empty or baseline_features.shape[1] == 0:
-        logger.warning("No baseline features for calibration, using defaults")
+    if label is None or len(label) == 0:
+        logger.warning("No label for calibration, using defaults")
         return ValidationThresholds()
 
-    mi_values = []
-    cramers_v_values = []
-    bootstrap_p_values = []
+    rng = np.random.RandomState(42)
+    n = len(label)
+    noise_ivs = []
+    noise_ks_vals = []
 
-    for col in baseline_features.columns:
-        feature = baseline_features[col].fillna(0)
-        if feature.nunique() <= 1:
-            continue
-
+    for i in range(n_random):
+        noise = pd.Series(rng.randn(n), name=f"noise_{i}")
         try:
-            mi = compute_mutual_info(feature, label)
-            mi_values.append(mi)
-        except Exception as e:
-            logger.debug("MI computation failed for %s: %s", col, e)
-
+            noise_ivs.append(compute_iv(noise, label))
+        except Exception:
+            noise_ivs.append(0.0)
         try:
-            cv = compute_cramers_v(feature, label)
-            cramers_v_values.append(cv)
-        except Exception as e:
-            logger.debug("Cramer's V computation failed for %s: %s", col, e)
+            noise_ks_vals.append(compute_ks(noise, label))
+        except Exception:
+            noise_ks_vals.append(0.0)
 
-        try:
-            bp = compute_bootstrap_chi2(feature, label, n_resamples=500)
-            bootstrap_p_values.append(bp)
-        except Exception as e:
-            logger.debug("Bootstrap chi2 failed for %s: %s", col, e)
+    iv_arr = np.array(noise_ivs)
+    ks_arr = np.array(noise_ks_vals)
 
-    if not mi_values or not cramers_v_values:
-        logger.warning("Calibration failed (no valid metrics), using defaults")
-        return ValidationThresholds()
-
-    mi_arr = np.array(mi_values)
-    cv_arr = np.array(cramers_v_values)
-
-    calibrated_mi = float(np.percentile(mi_arr, percentile))
-    calibrated_cv = float(np.percentile(cv_arr, percentile))
-
-    calibrated_mi = max(calibrated_mi * 0.5, 1e-6)
-    calibrated_cv = max(calibrated_cv * 0.5, 1e-4)
+    calibrated_iv = max(float(np.percentile(iv_arr, noise_percentile)), 0.001)
+    calibrated_ks = max(float(np.percentile(ks_arr, noise_percentile)), 0.001)
 
     thresholds = ValidationThresholds(
-        mi_min=calibrated_mi,
-        corr_max=0.9,
-        cramers_v_min=calibrated_cv,
-        delta_prauc_min=0.005,
-        bootstrap_p_max=0.05,
+        iv_min=calibrated_iv,
+        ks_min=calibrated_ks,
+        corr_max=0.7,
+        missing_rate_max=0.5,
     )
 
     logger.info(
-        "L2 thresholds calibrated from %d baseline features:\n"
-        "  MI: baseline p%d=%.6f -> threshold=%.6f (was 0.001)\n"
-        "  Cramer's V: baseline p%d=%.6f -> threshold=%.6f (was 0.05)\n"
-        "  Redundancy: %.2f (unchanged)\n"
-        "  Bootstrap p: %.2f (unchanged)",
-        len(mi_values),
-        percentile, float(np.percentile(mi_arr, percentile)), calibrated_mi,
-        percentile, float(np.percentile(cv_arr, percentile)), calibrated_cv,
-        thresholds.corr_max,
-        thresholds.bootstrap_p_max,
+        "L2 thresholds calibrated from %d random noise features:\n"
+        "  Noise IV distribution: min=%.6f, median=%.6f, p95=%.6f, max=%.6f\n"
+        "  Noise KS distribution: min=%.6f, median=%.6f, p95=%.6f, max=%.6f\n"
+        "  -> IV threshold: %.6f\n"
+        "  -> KS threshold: %.6f",
+        n_random,
+        iv_arr.min(), np.median(iv_arr), np.percentile(iv_arr, 95), iv_arr.max(),
+        ks_arr.min(), np.median(ks_arr), np.percentile(ks_arr, 95), ks_arr.max(),
+        calibrated_iv, calibrated_ks,
     )
 
-    logger.info(
-        "Baseline MI distribution: min=%.6f, p25=%.6f, median=%.6f, p75=%.6f, max=%.6f",
-        mi_arr.min(), np.percentile(mi_arr, 25), np.median(mi_arr),
-        np.percentile(mi_arr, 75), mi_arr.max(),
-    )
-    logger.info(
-        "Baseline Cramer's V distribution: min=%.6f, p25=%.6f, median=%.6f, p75=%.6f, max=%.6f",
-        cv_arr.min(), np.percentile(cv_arr, 25), np.median(cv_arr),
-        np.percentile(cv_arr, 75), cv_arr.max(),
-    )
+    if not baseline_features.empty:
+        baseline_ivs = []
+        baseline_ks_vals = []
+        for col in baseline_features.columns:
+            feat = baseline_features[col].fillna(0)
+            if feat.nunique() <= 1:
+                continue
+            try:
+                baseline_ivs.append(compute_iv(feat, label))
+            except Exception:
+                pass
+            try:
+                baseline_ks_vals.append(compute_ks(feat, label))
+            except Exception:
+                pass
+
+        if baseline_ivs:
+            b_iv = np.array(baseline_ivs)
+            logger.info(
+                "Baseline IV distribution (reference): min=%.6f, p25=%.6f, median=%.6f, p75=%.6f, max=%.6f",
+                b_iv.min(), np.percentile(b_iv, 25), np.median(b_iv),
+                np.percentile(b_iv, 75), b_iv.max(),
+            )
+        if baseline_ks_vals:
+            b_ks = np.array(baseline_ks_vals)
+            logger.info(
+                "Baseline KS distribution (reference): min=%.6f, p25=%.6f, median=%.6f, p75=%.6f, max=%.6f",
+                b_ks.min(), np.percentile(b_ks, 25), np.median(b_ks),
+                np.percentile(b_ks, 75), b_ks.max(),
+            )
 
     return thresholds
