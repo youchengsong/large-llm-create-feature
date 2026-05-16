@@ -1,0 +1,237 @@
+nohup: ignoring input
+2026-05-15 23:06:27,560 [INFO] __main__: === 加载数据 ===
+2026-05-15 23:06:31,644 [INFO] __main__: 数据加载完成: open=100000, tx=1384512, close=500
+2026-05-15 23:06:31,645 [INFO] __main__: === 提取 Schema ===
+2026-05-15 23:06:33,761 [INFO] __main__: === 运行基线特征 ===
+正在进行特征工程（使用Rolling/Expanding Window，避免数据泄露）...
+计算账户对特征（使用Expanding Window）...
+计算交易集中度特征（使用Expanding Window）...
+计算账户交易频率特征（使用Expanding Window）...
+计算账户度特征（使用Expanding Window）...
+计算账户金额统计特征（使用Expanding Window）...
+计算账户活跃时间特征（使用Expanding Window）...
+计算最后交易特征（使用Expanding Window）...
+计算交易时间间隔特征（使用Expanding Window）...
+读取账户开立数据...
+由账户原始字段计算开立衍生特征...
+  已从账户表原始字段计算: open_hour, is_work_hour, is_night_hour, auth_delay_days, wallets_per_cert, days_to_expire_from_current, tel_reuse_count, is_high_risk_region, log_balance
+读取账户开立特征（可选外部文件）...
+合并账户开立信息和特征...
+合并账户开立特征到交易表（open_hour, is_work_hour 等）...
+  已合并 9 个账户开立特征（From和To各9个，共18列）
+计算S指标（S_history_count, S_geo_risk_202308等）...
+    计算S指标（开户静态 + 最近24h交易行为: ibank / counterparty / 限额笔数等）...
+  成功计算S指标，共 100000 个钱包的S指标
+  S指标列: ['wallet_id', 'S_history_count', 'S_geo_risk_202308', 'S_time_risk_202308', 'S_ibank_index', 'S_ibank_amount_ratio', 'S_counterparty_index', 'S_per_deal_match_times', 'S_daily_deal_match_times']
+  已合并 8 个S指标（From和To各8个，共16列）
+  S指标列名: ['S_src_history_count', 'S_src_geo_risk_202308', 'S_src_time_risk_202308', 'S_src_ibank_index', 'S_src_ibank_amount_ratio', 'S_src_counterparty_index', 'S_src_per_deal_match_times', 'S_src_daily_deal_match_times', 'S_dst_history_count', 'S_dst_geo_risk_202308', 'S_dst_time_risk_202308', 'S_dst_ibank_index', 'S_dst_ibank_amount_ratio', 'S_dst_counterparty_index', 'S_dst_per_deal_match_times', 'S_dst_daily_deal_match_times']
+合并 feature_df 中的账户级汇总特征到 df_quantized...
+  已合并 9 个特征 × 2（From/To）: activetime, transaction_frequency, last_direction, last_amount, avg_payment_time_diff, avg_receipt_time_diff, avg_inactive_period, max_inactive_period, min_inactive_period
+删除账户ID列和重复特征...
+  已删除 8 个重复特征: Amount Paid, Amount Received, bank_id_From, bank_id_To, transaction_counts_From, transaction_counts_To, balance_limit_From, balance_limit_To
+保存原始特征（归一化之前）...
+  原始特征已保存到: /tmp/tmpzl5odcl9/features_original.csv
+对特征进行归一化...
+删除指定列...
+  已删除列: id, init_balance_From, init_balance_To, amount, account_is_laundering_From, account_is_laundering_To
+按时间顺序排序...
+归一化后的完整特征已保存到: /tmp/tmpzl5odcl9/features.csv
+
+特征工程已完成。
+2026-05-15 23:22:18,969 [INFO] __main__: 基线 PR-AUC: 0.9966 (107 个特征)
+2026-05-15 23:22:18,969 [INFO] __main__: === 自动校准 L2 阈值 ===
+2026-05-16 00:21:02,727 [INFO] src.evaluation.calibration: L2 thresholds calibrated from 106 baseline features:
+  MI: baseline p10=0.001493 -> threshold=0.000747 (was 0.001)
+  Cramer's V: baseline p10=0.005133 -> threshold=0.002567 (was 0.05)
+  Redundancy: 0.90 (unchanged)
+  Bootstrap p: 0.05 (unchanged)
+2026-05-16 00:21:02,727 [INFO] src.evaluation.calibration: Baseline MI distribution: min=0.000003, p25=0.003259, median=0.007569, p75=0.013512, max=0.249174
+2026-05-16 00:21:02,727 [INFO] src.evaluation.calibration: Baseline Cramer's V distribution: min=0.000000, p25=0.019022, median=0.051846, p75=0.078391, max=0.168371
+2026-05-16 00:21:02,728 [INFO] __main__: 校准结果: MI_min=0.000747, cramers_v_min=0.002567 (原固定值: 0.001, 0.05)
+2026-05-16 00:21:02,728 [INFO] __main__: === 加载领域知识 ===
+2026-05-16 00:21:02,823 [INFO] __main__: === 提取分布差异与关联统计 ===
+2026-05-16 00:21:03,619 [INFO] __main__: 分布差异: 691 chars, 关联统计: 185 chars
+2026-05-16 00:21:03,619 [INFO] __main__: === 组装 System Prompt ===
+[build_system_prompt] 估算 token 数: ~4610
+2026-05-16 00:21:03,619 [INFO] __main__: === 初始化 LLM ===
+2026-05-16 00:21:03,947 [INFO] __main__: LLM provider: deepseek, model: deepseek-chat
+2026-05-16 00:21:03,947 [INFO] __main__: === 初始化搜索引擎 ===
+2026-05-16 00:21:06,231 [INFO] __main__: === 开始搜索 (最多 10 轮) ===
+2026-05-16 00:21:06,231 [INFO] src.search.engine: === Round 1/10 ===
+[build_user_prompt_cold_start] 估算 token 数: ~661
+2026-05-16 00:21:06,964 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:26:54,255 [INFO] src.search.engine: L3 failed for amount_interval_ratio_std (delta_prauc=-0.000333), added to pending pool (1 in pool)
+2026-05-16 00:32:08,471 [INFO] src.search.engine: L3 failed for hour_amount_correlation (delta_prauc=-0.000096), added to pending pool (2 in pool)
+2026-05-16 00:37:16,196 [INFO] src.search.engine: L3 failed for amount_quantile_skew (delta_prauc=-0.000176), added to pending pool (3 in pool)
+2026-05-16 00:37:16,695 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:37:33,141 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:37:39,553 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:43:07,961 [INFO] src.search.engine: L3 failed for amount_entropy_per_wallet (delta_prauc=-0.000332), added to pending pool (4 in pool)
+2026-05-16 00:45:17,039 [INFO] src.search.engine: L2 failed for large_small_amount_ratio: L2 未通过: MI=0.000738<0.000747
+2026-05-16 00:50:46,164 [INFO] src.search.engine: L3 failed for amount_consistency_score (delta_prauc=-0.000245), added to pending pool (5 in pool)
+2026-05-16 00:50:46,165 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~662
+2026-05-16 00:50:46,574 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:50:50,341 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 00:56:34,278 [INFO] src.search.engine: L3 failed for region_shift_count (delta_prauc=-0.000068), added to pending pool (6 in pool)
+2026-05-16 01:01:49,681 [INFO] src.search.engine: L3 failed for night_hour_sent_ratio (delta_prauc=-0.000138), added to pending pool (7 in pool)
+2026-05-16 01:07:02,616 [INFO] src.search.engine: L3 failed for peak_hour_deviation (delta_prauc=-0.000150), added to pending pool (8 in pool)
+2026-05-16 01:07:02,617 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~665
+2026-05-16 01:07:02,990 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:07:51,439 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:08:29,048 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:08:30,624 [INFO] src.search.engine: L1 failed for fan_out_chain_depth: 执行失败: 执行超时 (30s)
+2026-05-16 01:10:56,152 [INFO] src.search.engine: L2 failed for recent_activation_velocity: L2 未通过: MI=0.000121<0.000747
+2026-05-16 01:13:02,484 [INFO] src.search.engine: L2 failed for close_channel_risk_score: L2 未通过: cramers_v=0.001803<0.002567; bootstrap_p=2.4842e-01>=0.05
+2026-05-16 01:13:02,951 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:14:01,785 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:19:25,103 [INFO] src.search.engine: L3 failed for transaction_sequence_entropy (delta_prauc=-0.000284), added to pending pool (9 in pool)
+2026-05-16 01:21:33,779 [INFO] src.search.engine: L2 failed for reciprocal_trade_ratio: L2 未通过: MI=0.000037<0.000747; cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 01:23:37,479 [INFO] src.search.engine: L2 failed for amount_roundness_score: L2 未通过: MI=0.000022<0.000747; cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 01:23:37,479 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~669
+2026-05-16 01:23:37,941 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:23:58,485 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:24:36,354 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:30:11,647 [INFO] src.search.engine: L3 failed for device_overlap_ratio_src (delta_prauc=-0.000251), added to pending pool (10 in pool)
+2026-05-16 01:32:11,616 [INFO] src.search.engine: L2 failed for cert_based_clustering_coefficient: L2 未通过: MI=0.000000<0.000747; cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 01:34:18,249 [INFO] src.search.engine: L2 failed for avg_cross_bank_ratio_24h: L2 未通过: cramers_v=0.002541<0.002567
+2026-05-16 01:34:18,606 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:34:31,954 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 01:36:40,816 [INFO] src.search.engine: L2 failed for tel_cert_mismatch_flag: L2 未通过: cramers_v=0.000116<0.002567; bootstrap_p=5.1346e-01>=0.05
+2026-05-16 01:41:52,104 [INFO] src.search.engine: L3 failed for same_ip_device_cluster_size (delta_prauc=-0.000160), added to pending pool (11 in pool)
+2026-05-16 01:44:00,734 [INFO] src.search.engine: L2 failed for dst_src_overlap_ratio: L2 未通过: MI=0.000039<0.000747; cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 01:44:00,735 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-16 01:44:41,862 [INFO] src.evaluation.validator: Backward elimination phase 1: full score=0.996288 (baseline=0.996577) with 107 accepted + 11 pending
+2026-05-16 01:47:07,722 [INFO] src.evaluation.validator:   Phase 1 eliminated peak_hour_deviation: score 0.996290 -> 0.996290 (no loss)
+2026-05-16 01:47:47,054 [INFO] src.evaluation.validator:   Phase 1 kept same_ip_device_cluster_size: removing would drop score 0.996290 -> 0.996260
+2026-05-16 01:48:27,496 [INFO] src.evaluation.validator:   Phase 1 kept region_shift_count: removing would drop score 0.996290 -> 0.996118
+2026-05-16 01:49:01,924 [INFO] src.evaluation.validator:   Phase 1 kept amount_entropy_per_wallet: removing would drop score 0.996290 -> 0.996226
+2026-05-16 01:49:38,970 [INFO] src.evaluation.validator:   Phase 1 eliminated amount_consistency_score: score 0.996370 -> 0.996370 (no loss)
+2026-05-16 01:50:12,572 [INFO] src.evaluation.validator:   Phase 1 eliminated transaction_sequence_entropy: score 0.996553 -> 0.996553 (no loss)
+2026-05-16 01:50:43,800 [INFO] src.evaluation.validator:   Phase 1 kept amount_quantile_skew: removing would drop score 0.996553 -> 0.996318
+2026-05-16 01:51:25,341 [INFO] src.evaluation.validator:   Phase 1 kept device_overlap_ratio_src: removing would drop score 0.996553 -> 0.996463
+2026-05-16 01:52:04,397 [INFO] src.evaluation.validator:   Phase 1 kept amount_interval_ratio_std: removing would drop score 0.996553 -> 0.996452
+2026-05-16 01:52:43,075 [INFO] src.evaluation.validator:   Phase 1 kept hour_amount_correlation: removing would drop score 0.996553 -> 0.996295
+2026-05-16 01:53:19,547 [INFO] src.evaluation.validator:   Phase 1 eliminated night_hour_sent_ratio: score 0.996569 -> 0.996569 (no loss)
+2026-05-16 01:53:19,547 [INFO] src.evaluation.validator: Phase 1 done: 7 survivors, 4 eliminated
+2026-05-16 01:53:19,547 [INFO] src.evaluation.validator: Phase 2: verifying 7 survivors against baseline (prauc=0.996577)
+2026-05-16 01:54:35,785 [INFO] src.evaluation.validator:   Phase 2 rejected hour_amount_correlation: delta_prauc=-0.000096 (not positive)
+2026-05-16 01:55:35,209 [INFO] src.evaluation.validator:   Phase 2 rejected device_overlap_ratio_src: delta_prauc=-0.000251 (not positive)
+2026-05-16 01:56:35,907 [INFO] src.evaluation.validator:   Phase 2 rejected amount_quantile_skew: delta_prauc=-0.000176 (not positive)
+2026-05-16 01:57:40,037 [INFO] src.evaluation.validator:   Phase 2 rejected amount_entropy_per_wallet: delta_prauc=-0.000332 (not positive)
+2026-05-16 01:58:56,095 [INFO] src.evaluation.validator:   Phase 2 rejected same_ip_device_cluster_size: delta_prauc=-0.000160 (not positive)
+2026-05-16 01:59:58,830 [INFO] src.evaluation.validator:   Phase 2 rejected amount_interval_ratio_std: delta_prauc=-0.000333 (not positive)
+2026-05-16 02:00:58,988 [INFO] src.evaluation.validator:   Phase 2 rejected region_shift_count: delta_prauc=-0.000068 (not positive)
+2026-05-16 02:00:58,989 [INFO] src.evaluation.validator: Final: 0 accepted, 11 rejected (phase1: 4, phase2: 7)
+2026-05-16 02:00:59,214 [INFO] src.search.engine: Pending pool evaluation: 0 accepted, 11 rejected out of 11
+2026-05-16 02:00:59,215 [INFO] src.search.engine: Round 1: 0 new features, 0 total accepted
+2026-05-16 02:00:59,215 [INFO] src.search.engine: === Round 2/10 ===
+[build_user_prompt] 估算 token 数: ~381
+2026-05-16 02:04:51,952 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 02:10:25,324 [INFO] src.search.engine: L3 failed for amount_frequency_ratio_small_large (delta_prauc=-0.000320), added to pending pool (12 in pool)
+2026-05-16 02:15:19,508 [INFO] src.search.engine: L3 failed for amount_interval_correlation (delta_prauc=-0.000110), added to pending pool (13 in pool)
+2026-05-16 02:15:19,903 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 02:15:22,107 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~382
+2026-05-16 02:17:10,461 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 02:22:44,338 [INFO] src.search.engine: L3 failed for night_hour_entropy_src (delta_prauc=-0.000266), added to pending pool (14 in pool)
+2026-05-16 02:27:35,873 [INFO] src.search.engine: L3 failed for geo_region_transition_src (delta_prauc=-0.000173), added to pending pool (15 in pool)
+2026-05-16 02:32:42,272 [INFO] src.search.engine: L3 failed for ip_change_frequency_src (delta_prauc=-0.000280), added to pending pool (16 in pool)
+2026-05-16 02:38:01,068 [INFO] src.search.engine: L3 failed for hourly_amount_volatility_src (delta_prauc=-0.000157), added to pending pool (17 in pool)
+2026-05-16 02:38:01,448 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 02:38:49,307 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 02:44:40,279 [INFO] src.search.engine: L3 failed for active_hour_span_src (delta_prauc=-0.000270), added to pending pool (18 in pool)
+2026-05-16 02:49:42,865 [INFO] src.search.engine: L3 failed for weekday_weekend_ratio_src (delta_prauc=-0.000070), added to pending pool (19 in pool)
+2026-05-16 02:54:52,213 [INFO] src.search.engine: L3 failed for consecutive_hour_burst_src (delta_prauc=-0.000103), added to pending pool (20 in pool)
+2026-05-16 03:00:08,142 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed amount_consistency_score (MI=0.0008)
+2026-05-16 03:00:08,142 [INFO] src.search.engine: L3 failed for time_cluster_density_src (delta_prauc=-0.000295), added to pending pool (20 in pool)
+2026-05-16 03:00:08,142 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~385
+2026-05-16 03:01:56,555 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:08:11,367 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed amount_frequency_ratio_small_large (MI=0.0010)
+2026-05-16 03:08:11,367 [INFO] src.search.engine: L3 failed for tx_sequence_pattern_entropy (delta_prauc=-0.000221), added to pending pool (20 in pool)
+2026-05-16 03:13:22,953 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed night_hour_sent_ratio (MI=0.0011)
+2026-05-16 03:13:22,953 [INFO] src.search.engine: L3 failed for consecutive_same_mode_ratio (delta_prauc=-0.000072), added to pending pool (20 in pool)
+2026-05-16 03:18:23,777 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed hourly_amount_volatility_src (MI=0.0011)
+2026-05-16 03:18:23,778 [INFO] src.search.engine: L3 failed for mode_switch_interval_std (delta_prauc=-0.000312), added to pending pool (20 in pool)
+2026-05-16 03:23:50,210 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed amount_quantile_skew (MI=0.0012)
+2026-05-16 03:23:50,210 [INFO] src.search.engine: L3 failed for night_mode_diversity (delta_prauc=-0.000342), added to pending pool (20 in pool)
+2026-05-16 03:28:55,349 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed mode_switch_interval_std (MI=0.0012)
+2026-05-16 03:28:55,349 [INFO] src.search.engine: L3 failed for mode_chain_length_ratio (delta_prauc=-0.000349), added to pending pool (20 in pool)
+2026-05-16 03:28:55,803 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:32:19,730 [INFO] src.search.engine: L2 failed for amount_sudden_spike_ratio: L2 未通过: MI=0.000267<0.000747; cramers_v=0.002560<0.002567
+2026-05-16 03:37:36,289 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed reverse_tx_ratio (MI=0.0012)
+2026-05-16 03:37:36,290 [INFO] src.search.engine: L3 failed for reverse_tx_ratio (delta_prauc=-0.000160), added to pending pool (20 in pool)
+2026-05-16 03:39:48,674 [INFO] src.search.engine: L2 failed for small_to_large_transition: L2 未通过: MI=0.000000<0.000747; cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 03:41:55,031 [INFO] src.search.engine: L2 failed for amount_trend_slope: L2 未通过: cramers_v=0.000000<0.002567; bootstrap_p=1.0000e+00>=0.05
+2026-05-16 03:47:12,634 [INFO] src.search.pending_pool: Pending pool capacity exceeded, removed burst_tx_density (MI=0.0011)
+2026-05-16 03:47:12,634 [INFO] src.search.engine: L3 failed for burst_tx_density (delta_prauc=-0.000127), added to pending pool (20 in pool)
+2026-05-16 03:47:12,635 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~386
+2026-05-16 03:49:03,897 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:49:32,206 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:49:39,597 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:50:16,249 [INFO] src.search.engine: L1 failed for device_clique_centrality: 执行失败: 执行超时 (30s)
+2026-05-16 03:50:16,650 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-16 03:52:40,186 [INFO] src.search.engine: L2 failed for device_ip_diversity_score: L2 未通过: bootstrap_p=8.9397e-02>=0.05
+2026-05-16 03:52:40,187 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-16 03:53:17,679 [INFO] src.evaluation.validator: Backward elimination phase 1: full score=0.996334 (baseline=0.996577) with 107 accepted + 20 pending
+2026-05-16 03:55:50,847 [INFO] src.evaluation.validator:   Phase 1 kept geo_region_transition_src: removing would drop score 0.996334 -> 0.996059
+2026-05-16 03:56:33,241 [INFO] src.evaluation.validator:   Phase 1 kept tx_sequence_pattern_entropy: removing would drop score 0.996334 -> 0.996042
+2026-05-16 03:57:17,912 [INFO] src.evaluation.validator:   Phase 1 kept same_ip_device_cluster_size: removing would drop score 0.996334 -> 0.996315
+2026-05-16 03:58:03,922 [INFO] src.evaluation.validator:   Phase 1 kept peak_hour_deviation: removing would drop score 0.996334 -> 0.996321
+2026-05-16 03:58:48,556 [INFO] src.evaluation.validator:   Phase 1 kept amount_entropy_per_wallet: removing would drop score 0.996334 -> 0.996325
+2026-05-16 03:59:31,886 [INFO] src.evaluation.validator:   Phase 1 eliminated device_overlap_ratio_src: score 0.996344 -> 0.996344 (no loss)
+2026-05-16 04:00:09,885 [INFO] src.evaluation.validator:   Phase 1 kept mode_chain_length_ratio: removing would drop score 0.996344 -> 0.996305
+2026-05-16 04:00:49,251 [INFO] src.evaluation.validator:   Phase 1 kept region_shift_count: removing would drop score 0.996344 -> 0.996247
+2026-05-16 04:01:29,169 [INFO] src.evaluation.validator:   Phase 1 eliminated weekday_weekend_ratio_src: score 0.996369 -> 0.996369 (no loss)
+2026-05-16 04:02:05,380 [INFO] src.evaluation.validator:   Phase 1 kept amount_interval_ratio_std: removing would drop score 0.996369 -> 0.996364
+2026-05-16 04:02:45,176 [INFO] src.evaluation.validator:   Phase 1 kept consecutive_hour_burst_src: removing would drop score 0.996369 -> 0.996264
+2026-05-16 04:03:27,763 [INFO] src.evaluation.validator:   Phase 1 kept amount_interval_correlation: removing would drop score 0.996369 -> 0.996243
+2026-05-16 04:04:10,763 [INFO] src.evaluation.validator:   Phase 1 kept ip_change_frequency_src: removing would drop score 0.996369 -> 0.996337
+2026-05-16 04:04:47,471 [INFO] src.evaluation.validator:   Phase 1 kept active_hour_span_src: removing would drop score 0.996369 -> 0.996329
+2026-05-16 04:05:26,087 [INFO] src.evaluation.validator:   Phase 1 eliminated night_hour_entropy_src: score 0.996417 -> 0.996417 (no loss)
+2026-05-16 04:06:01,364 [INFO] src.evaluation.validator:   Phase 1 kept consecutive_same_mode_ratio: removing would drop score 0.996417 -> 0.996280
+2026-05-16 04:06:36,115 [INFO] src.evaluation.validator:   Phase 1 kept time_cluster_density_src: removing would drop score 0.996417 -> 0.996208
+2026-05-16 04:07:13,971 [INFO] src.evaluation.validator:   Phase 1 kept night_mode_diversity: removing would drop score 0.996417 -> 0.996160
+2026-05-16 04:07:59,877 [INFO] src.evaluation.validator:   Phase 1 kept transaction_sequence_entropy: removing would drop score 0.996417 -> 0.996224
+2026-05-16 04:08:43,544 [INFO] src.evaluation.validator:   Phase 1 kept hour_amount_correlation: removing would drop score 0.996417 -> 0.996303
+2026-05-16 04:08:43,544 [INFO] src.evaluation.validator: Phase 1 done: 17 survivors, 3 eliminated
+2026-05-16 04:08:43,544 [INFO] src.evaluation.validator: Phase 2: verifying 17 survivors against baseline (prauc=0.996577)
+2026-05-16 04:09:48,440 [INFO] src.evaluation.validator:   Phase 2 rejected peak_hour_deviation: delta_prauc=-0.000150 (not positive)
+2026-05-16 04:10:52,726 [INFO] src.evaluation.validator:   Phase 2 rejected hour_amount_correlation: delta_prauc=-0.000096 (not positive)
+2026-05-16 04:11:58,551 [INFO] src.evaluation.validator:   Phase 2 rejected amount_interval_correlation: delta_prauc=-0.000110 (not positive)
+2026-05-16 04:13:11,867 [INFO] src.evaluation.validator:   Phase 2 rejected consecutive_hour_burst_src: delta_prauc=-0.000103 (not positive)
+2026-05-16 04:14:23,493 [INFO] src.evaluation.validator:   Phase 2 rejected amount_interval_ratio_std: delta_prauc=-0.000333 (not positive)
+2026-05-16 04:15:29,637 [INFO] src.evaluation.validator:   Phase 2 rejected time_cluster_density_src: delta_prauc=-0.000295 (not positive)
+2026-05-16 04:16:35,738 [INFO] src.evaluation.validator:   Phase 2 rejected transaction_sequence_entropy: delta_prauc=-0.000284 (not positive)
+2026-05-16 04:17:53,365 [INFO] src.evaluation.validator:   Phase 2 rejected geo_region_transition_src: delta_prauc=-0.000173 (not positive)
+2026-05-16 04:19:00,874 [INFO] src.evaluation.validator:   Phase 2 rejected tx_sequence_pattern_entropy: delta_prauc=-0.000221 (not positive)
+2026-05-16 04:20:09,685 [INFO] src.evaluation.validator:   Phase 2 rejected amount_entropy_per_wallet: delta_prauc=-0.000332 (not positive)
+2026-05-16 04:21:17,465 [INFO] src.evaluation.validator:   Phase 2 rejected active_hour_span_src: delta_prauc=-0.000270 (not positive)
+2026-05-16 04:22:28,899 [INFO] src.evaluation.validator:   Phase 2 rejected same_ip_device_cluster_size: delta_prauc=-0.000160 (not positive)
+2026-05-16 04:23:45,582 [INFO] src.evaluation.validator:   Phase 2 rejected consecutive_same_mode_ratio: delta_prauc=-0.000072 (not positive)
+2026-05-16 04:24:53,136 [INFO] src.evaluation.validator:   Phase 2 rejected night_mode_diversity: delta_prauc=-0.000342 (not positive)
+2026-05-16 04:26:00,258 [INFO] src.evaluation.validator:   Phase 2 rejected region_shift_count: delta_prauc=-0.000068 (not positive)
+2026-05-16 04:27:01,538 [INFO] src.evaluation.validator:   Phase 2 rejected mode_chain_length_ratio: delta_prauc=-0.000349 (not positive)
+2026-05-16 04:28:07,530 [INFO] src.evaluation.validator:   Phase 2 rejected ip_change_frequency_src: delta_prauc=-0.000280 (not positive)
+2026-05-16 04:28:07,531 [INFO] src.evaluation.validator: Final: 0 accepted, 20 rejected (phase1: 3, phase2: 17)
+2026-05-16 04:28:07,833 [INFO] src.search.engine: Pending pool evaluation: 0 accepted, 20 rejected out of 20
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged amount_interval_ratio_std: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged amount_entropy_per_wallet: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged hour_amount_correlation: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged peak_hour_deviation: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged transaction_sequence_entropy: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged device_overlap_ratio_src: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged same_ip_device_cluster_size: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.pending_pool: Purged region_shift_count: consecutive_rejects=2
+2026-05-16 04:28:07,833 [INFO] src.search.engine: Purged 8 expired features from pending pool: ['amount_interval_ratio_std', 'amount_entropy_per_wallet', 'hour_amount_correlation', 'peak_hour_deviation', 'transaction_sequence_entropy', 'device_overlap_ratio_src', 'same_ip_device_cluster_size', 'region_shift_count']
+2026-05-16 04:28:07,833 [INFO] src.search.engine: Round 2: 0 new features, 0 total accepted
+2026-05-16 04:28:07,834 [INFO] src.search.engine: Converged after 2 rounds
+2026-05-16 04:28:07,834 [INFO] __main__: 搜索完成: 2 轮, 0 个特征通过验证, 收敛=True
+2026-05-16 04:28:07,834 [INFO] __main__: === 保存结果 ===
+2026-05-16 04:28:07,834 [INFO] __main__: 特征结果已保存: output/features.json (0 个特征)
+2026-05-16 04:28:07,836 [INFO] __main__: 搜索日志已保存: output/search_log.json
+2026-05-16 04:28:07,837 [INFO] __main__: === 完成 ===

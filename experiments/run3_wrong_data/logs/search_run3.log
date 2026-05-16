@@ -1,0 +1,151 @@
+nohup: ignoring input
+2026-05-15 21:56:42,166 [INFO] __main__: === 加载数据 ===
+2026-05-15 21:56:42,508 [INFO] __main__: 数据加载完成: open=100000, tx=14983, close=501
+2026-05-15 21:56:42,509 [INFO] __main__: === 提取 Schema ===
+2026-05-15 21:56:42,721 [INFO] __main__: === 运行基线特征 ===
+正在进行特征工程（使用Rolling/Expanding Window，避免数据泄露）...
+计算账户对特征（使用Expanding Window）...
+计算交易集中度特征（使用Expanding Window）...
+计算账户交易频率特征（使用Expanding Window）...
+计算账户度特征（使用Expanding Window）...
+计算账户金额统计特征（使用Expanding Window）...
+计算账户活跃时间特征（使用Expanding Window）...
+计算最后交易特征（使用Expanding Window）...
+计算交易时间间隔特征（使用Expanding Window）...
+读取账户开立数据...
+由账户原始字段计算开立衍生特征...
+  已从账户表原始字段计算: open_hour, is_work_hour, is_night_hour, auth_delay_days, wallets_per_cert, days_to_expire_from_current, tel_reuse_count, is_high_risk_region, log_balance
+读取账户开立特征（可选外部文件）...
+合并账户开立信息和特征...
+合并账户开立特征到交易表（open_hour, is_work_hour 等）...
+  已合并 9 个账户开立特征（From和To各9个，共18列）
+计算S指标（S_history_count, S_geo_risk_202308等）...
+    计算S指标（开户静态 + 最近24h交易行为: ibank / counterparty / 限额笔数等）...
+  成功计算S指标，共 100000 个钱包的S指标
+  S指标列: ['wallet_id', 'S_history_count', 'S_geo_risk_202308', 'S_time_risk_202308', 'S_ibank_index', 'S_ibank_amount_ratio', 'S_counterparty_index', 'S_per_deal_match_times', 'S_daily_deal_match_times']
+  已合并 8 个S指标（From和To各8个，共16列）
+  S指标列名: ['S_src_history_count', 'S_src_geo_risk_202308', 'S_src_time_risk_202308', 'S_src_ibank_index', 'S_src_ibank_amount_ratio', 'S_src_counterparty_index', 'S_src_per_deal_match_times', 'S_src_daily_deal_match_times', 'S_dst_history_count', 'S_dst_geo_risk_202308', 'S_dst_time_risk_202308', 'S_dst_ibank_index', 'S_dst_ibank_amount_ratio', 'S_dst_counterparty_index', 'S_dst_per_deal_match_times', 'S_dst_daily_deal_match_times']
+合并 feature_df 中的账户级汇总特征到 df_quantized...
+  已合并 9 个特征 × 2（From/To）: activetime, transaction_frequency, last_direction, last_amount, avg_payment_time_diff, avg_receipt_time_diff, avg_inactive_period, max_inactive_period, min_inactive_period
+删除账户ID列和重复特征...
+  已删除 8 个重复特征: Amount Paid, Amount Received, bank_id_From, bank_id_To, transaction_counts_From, transaction_counts_To, balance_limit_From, balance_limit_To
+保存原始特征（归一化之前）...
+  原始特征已保存到: /tmp/tmppnxginqz/features_original.csv
+对特征进行归一化...
+删除指定列...
+  已删除列: id, init_balance_From, init_balance_To, amount, account_is_laundering_From, account_is_laundering_To
+按时间顺序排序...
+归一化后的完整特征已保存到: /tmp/tmppnxginqz/features.csv
+
+特征工程已完成。
+2026-05-15 22:00:08,602 [INFO] __main__: 基线 PR-AUC: 0.9982 (107 个特征)
+2026-05-15 22:00:08,602 [INFO] __main__: === 自动校准 L2 阈值 ===
+2026-05-15 22:00:39,837 [INFO] src.evaluation.calibration: L2 thresholds calibrated from 104 baseline features:
+  MI: baseline p10=0.001721 -> threshold=0.000860 (was 0.001)
+  Cramer's V: baseline p10=0.004108 -> threshold=0.002054 (was 0.05)
+  Redundancy: 0.90 (unchanged)
+  Bootstrap p: 0.05 (unchanged)
+2026-05-15 22:00:39,837 [INFO] src.evaluation.calibration: Baseline MI distribution: min=0.000602, p25=0.005501, median=0.017993, p75=0.056635, max=0.164809
+2026-05-15 22:00:39,837 [INFO] src.evaluation.calibration: Baseline Cramer's V distribution: min=0.000000, p25=0.044347, median=0.103951, p75=0.210816, max=0.553915
+2026-05-15 22:00:39,837 [INFO] __main__: 校准结果: MI_min=0.000860, cramers_v_min=0.002054 (原固定值: 0.001, 0.05)
+2026-05-15 22:00:39,837 [INFO] __main__: === 加载领域知识 ===
+2026-05-15 22:00:39,920 [INFO] __main__: === 提取分布差异与关联统计 ===
+2026-05-15 22:00:40,018 [INFO] __main__: 分布差异: 412 chars, 关联统计: 182 chars
+2026-05-15 22:00:40,018 [INFO] __main__: === 组装 System Prompt ===
+[build_system_prompt] 估算 token 数: ~4493
+2026-05-15 22:00:40,018 [INFO] __main__: === 初始化 LLM ===
+2026-05-15 22:00:40,405 [INFO] __main__: LLM provider: deepseek, model: deepseek-chat
+2026-05-15 22:00:40,405 [INFO] __main__: === 初始化搜索引擎 ===
+2026-05-15 22:00:40,425 [INFO] __main__: === 开始搜索 (最多 10 轮) ===
+2026-05-15 22:00:40,425 [INFO] src.search.engine: === Round 1/10 ===
+[build_user_prompt_cold_start] 估算 token 数: ~661
+2026-05-15 22:00:41,148 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:01:07,707 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:01:25,215 [INFO] src.search.engine: L2 failed for amount_rounding_score_src: L2 未通过: bootstrap_p=8.1777e-01>=0.05
+2026-05-15 22:01:26,678 [INFO] src.search.engine: L2 failed for amount_entropy_src: L2 未通过: bootstrap_p=3.8306e-01>=0.05
+2026-05-15 22:01:28,272 [INFO] src.search.engine: L2 failed for amount_consistency_score: L2 未通过: MI=0.000191<0.000860; bootstrap_p=3.6069e-01>=0.05
+2026-05-15 22:01:28,272 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~662
+2026-05-15 22:01:28,666 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:02:08,817 [INFO] src.search.engine: L2 failed for src_ip_region_mismatch_ratio: L2 未通过: cramers_v=0.000819<0.002054; bootstrap_p=5.1048e-01>=0.05
+2026-05-15 22:02:10,305 [INFO] src.search.engine: L2 failed for dst_ip_diversity_hour_weighted: L2 未通过: bootstrap_p=7.6899e-02>=0.05
+2026-05-15 22:02:11,831 [INFO] src.search.engine: L2 failed for tx_time_entropy_by_region: L2 未通过: bootstrap_p=6.2325e-01>=0.05
+2026-05-15 22:02:12,788 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:02:35,965 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:02:57,281 [INFO] src.search.engine: L2 failed for device_ip_anomaly_score: L2 未通过: bootstrap_p=4.7039e-01>=0.05
+2026-05-15 22:02:57,282 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~665
+2026-05-15 22:02:57,818 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:03:34,150 [INFO] src.search.engine: L2 failed for night_tx_density: L2 未通过: bootstrap_p=8.7438e-02>=0.05
+2026-05-15 22:03:35,650 [INFO] src.search.engine: L2 failed for tx_hour_entropy: L2 未通过: bootstrap_p=3.2938e-01>=0.05
+2026-05-15 22:03:37,052 [INFO] src.search.engine: L2 failed for rapid_round_trip_count: L2 未通过: bootstrap_p=2.5279e-01>=0.05
+2026-05-15 22:03:37,497 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:03:55,513 [INFO] src.search.engine: L2 failed for tx_amount_sudden_drop_ratio: L2 未通过: bootstrap_p=1.6672e-01>=0.05
+2026-05-15 22:03:56,829 [INFO] src.search.engine: L2 failed for consecutive_small_tx_ratio: L2 未通过: bootstrap_p=4.2562e-01>=0.05
+2026-05-15 22:03:58,203 [INFO] src.search.engine: L2 failed for tx_motif_transition_entropy: L2 未通过: MI=0.000615<0.000860; bootstrap_p=9.7289e-02>=0.05
+2026-05-15 22:03:58,204 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt_cold_start] 估算 token 数: ~669
+2026-05-15 22:03:58,672 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:04:19,832 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:04:29,870 [INFO] src.search.engine: L2 failed for device_overlap_ratio_src: L2 未通过: bootstrap_p=3.7730e-01>=0.05
+2026-05-15 22:04:31,219 [INFO] src.search.engine: L2 failed for unique_devices_ratio: L2 未通过: bootstrap_p=2.0000e-01>=0.05
+2026-05-15 22:04:32,608 [INFO] src.search.engine: L2 failed for cross_bank_tx_ratio: L2 未通过: cramers_v=0.000000<0.002054; bootstrap_p=5.9032e-01>=0.05
+2026-05-15 22:04:32,834 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:04:58,231 [INFO] src.search.engine: L2 failed for counterparty_tx_entropy_src: L2 未通过: bootstrap_p=4.2958e-01>=0.05
+2026-05-15 22:04:59,570 [INFO] src.search.engine: L2 failed for avg_counterparty_tel_count_src: L2 未通过: bootstrap_p=5.0950e-01>=0.05
+2026-05-15 22:05:01,107 [INFO] src.search.engine: L2 failed for cert_overlap_tx_ratio: L2 未通过: bootstrap_p=3.9638e-01>=0.05
+2026-05-15 22:05:01,107 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-15 22:05:01,107 [INFO] src.search.engine: Round 1: 0 new features, 0 total accepted
+2026-05-15 22:05:01,107 [INFO] src.search.engine: === Round 2/10 ===
+[build_user_prompt] 估算 token 数: ~325
+2026-05-15 22:05:02,636 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:05:10,965 [INFO] src.search.engine: L2 failed for amount_interval_ratio_volatility: L2 未通过: bootstrap_p=2.3798e-01>=0.05
+2026-05-15 22:05:11,241 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:05:20,817 [INFO] src.search.engine: L2 failed for amount_recent_balance_ratio: L2 未通过: bootstrap_p=3.4968e-01>=0.05
+2026-05-15 22:05:20,818 [INFO] src.search.engine: Island 金额频次 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~323
+2026-05-15 22:05:21,619 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:05:44,699 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:05:52,150 [INFO] src.search.engine: L2 failed for hourly_transaction_entropy_src: L2 未通过: bootstrap_p=3.2938e-01>=0.05
+2026-05-15 22:05:53,110 [INFO] src.search.engine: L2 failed for cross_region_tx_ratio_src: L2 未通过: cramers_v=0.000000<0.002054; bootstrap_p=1.0000e+00>=0.05
+2026-05-15 22:05:54,603 [INFO] src.search.engine: L2 failed for night_tx_ratio_7d_src: L2 未通过: bootstrap_p=8.7438e-02>=0.05
+2026-05-15 22:05:56,149 [INFO] src.search.engine: L2 failed for avg_tx_hour_gap_src: L2 未通过: bootstrap_p=3.1132e-01>=0.05
+2026-05-15 22:05:56,552 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:06:23,976 [INFO] src.search.engine: L2 failed for src_weekday_vs_weekend_ratio: L2 未通过: MI=0.000434<0.000860; bootstrap_p=2.9217e-01>=0.05
+2026-05-15 22:06:25,843 [INFO] src.search.engine: L2 failed for src_tx_time_std_hours: L2 未通过: bootstrap_p=2.6213e-01>=0.05
+2026-05-15 22:06:27,333 [INFO] src.search.engine: L2 failed for src_inter_tx_time_skewness: L2 未通过: bootstrap_p=2.8537e-01>=0.05
+2026-05-15 22:06:28,855 [INFO] src.search.engine: L2 failed for src_tx_hour_peak_deviation: L2 未通过: bootstrap_p=1.3516e-01>=0.05
+2026-05-15 22:06:28,856 [INFO] src.search.engine: Island 时间地域 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~328
+2026-05-15 22:06:29,892 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:07:00,489 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:07:10,019 [INFO] src.search.engine: L2 failed for src_tx_sequence_acceleration: L2 未通过: bootstrap_p=2.0820e-01>=0.05
+2026-05-15 22:07:11,361 [INFO] src.search.engine: L2 failed for src_short_burst_ratio: L2 未通过: bootstrap_p=2.9313e-01>=0.05
+2026-05-15 22:07:12,697 [INFO] src.search.engine: L2 failed for src_consecutive_night_tx_ratio: L2 未通过: bootstrap_p=3.3749e-01>=0.05
+2026-05-15 22:07:14,032 [INFO] src.search.engine: L2 failed for src_tx_timing_regularity: L2 未通过: bootstrap_p=2.6338e-01>=0.05
+2026-05-15 22:07:15,351 [INFO] src.search.engine: L2 failed for src_tx_chain_depth: L2 未通过: bootstrap_p=7.9597e-02>=0.05
+2026-05-15 22:07:15,874 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:07:48,588 [INFO] src.search.engine: L2 failed for src_tx_amount_median_deviation_ratio: L2 未通过: bootstrap_p=9.1050e-02>=0.05
+2026-05-15 22:07:50,212 [INFO] src.search.engine: L2 failed for src_night_tx_count_ratio_7d: L2 未通过: bootstrap_p=1.5323e-01>=0.05
+2026-05-15 22:07:51,646 [INFO] src.search.engine: L2 failed for src_tx_count_vs_peer_group: L2 未通过: MI=0.000015<0.000860; bootstrap_p=2.3645e-01>=0.05
+2026-05-15 22:07:52,998 [INFO] src.search.engine: L2 failed for src_interval_iqr: L2 未通过: bootstrap_p=7.3662e-02>=0.05
+2026-05-15 22:07:54,341 [INFO] src.search.engine: L2 failed for src_single_tx_ratio: L2 未通过: bootstrap_p=4.0674e-01>=0.05
+2026-05-15 22:07:54,342 [INFO] src.search.engine: Island 行为序列 turn 2: no new features and no queries, stopping
+[build_user_prompt] 估算 token 数: ~334
+2026-05-15 22:07:55,369 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:08:06,757 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:08:11,949 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:08:20,238 [INFO] src.search.engine: L1 failed for src_device_overlap_ratio: 输出验证失败: 特征 src_device_wallet_count_percentile 只有一个唯一值 (全0/全1)
+2026-05-15 22:08:21,788 [INFO] src.search.engine: L2 failed for dst_cert_overlap_count: L2 未通过: bootstrap_p=3.5479e-01>=0.05
+2026-05-15 22:08:21,924 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:08:43,163 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:08:52,391 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-15 22:09:01,121 [INFO] src.search.engine: L2 failed for tel_cert_mismatch_tx_ratio: L2 未通过: MI=0.000717<0.000860; bootstrap_p=4.3158e-01>=0.05
+2026-05-15 22:09:01,121 [INFO] src.search.engine: Island 主体关联 turn 2: no new features and no queries, stopping
+2026-05-15 22:09:01,121 [INFO] src.search.engine: Round 2: 0 new features, 0 total accepted
+2026-05-15 22:09:01,121 [INFO] src.search.engine: Converged after 2 rounds
+2026-05-15 22:09:01,121 [INFO] __main__: 搜索完成: 2 轮, 0 个特征通过验证, 收敛=True
+2026-05-15 22:09:01,121 [INFO] __main__: === 保存结果 ===
+2026-05-15 22:09:01,122 [INFO] __main__: 特征结果已保存: output/features.json (0 个特征)
+2026-05-15 22:09:01,123 [INFO] __main__: 搜索日志已保存: output/search_log.json
+2026-05-15 22:09:01,123 [INFO] __main__: === 完成 ===

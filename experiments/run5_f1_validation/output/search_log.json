@@ -1,0 +1,3343 @@
+{
+  "total_rounds": 10,
+  "converged": false,
+  "total_features": 71,
+  "calibrated_thresholds": {
+    "iv_min": 0.0038255331593384074,
+    "ks_min": 0.020130346868526095,
+    "corr_max": 0.7,
+    "missing_rate_max": 0.5
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "timestamp": "2026-05-16 10:04:19",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 3,
+          "details": [
+            {
+              "name": "amount_dispersion_ratio",
+              "score": 0.5,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_interval_correlation",
+              "score": 0.2,
+              "status": "accepted"
+            },
+            {
+              "name": "small_amount_burst_count",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.000574<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.0005735943554669998,
+                "redundancy": 0.011906831427028836,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_surge_ratio",
+              "score": 0.5,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_entropy_by_hour",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.003603<0.020130",
+              "l2_metrics": {
+                "iv": 0.0047370691644401984,
+                "ks": 0.01071793790828901,
+                "redundancy": 0.03590664335406132,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_roundness_score",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.003603<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.0036026289419919255,
+                "redundancy": 0.004246170653898028,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 3,
+              "accepted": 3,
+              "queries": 0
+            }
+          ],
+          "candidates": 9,
+          "accepted": 6,
+          "details": [
+            {
+              "name": "ip_region_mismatch_flag",
+              "score": 0.49059041383264484,
+              "status": "accepted"
+            },
+            {
+              "name": "night_hour_transaction_ratio",
+              "score": 0.580556986095442,
+              "status": "accepted"
+            },
+            {
+              "name": "ip_change_frequency",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_entropy_sender",
+              "score": 0.2578821797643298,
+              "status": "accepted"
+            },
+            {
+              "name": "dst_region_repeat_rate_receiver",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018052<0.020130",
+              "l2_metrics": {
+                "iv": 0.0019169126945808401,
+                "ks": 0.017531815350799507,
+                "redundancy": 0.03425012144015022,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "inter_arrival_time_cv_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018052<0.020130",
+              "l2_metrics": {
+                "iv": 0.005901130529765375,
+                "ks": 0.01805150577210879,
+                "redundancy": 0.20637842854203775,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_region_shift_entropy_sender",
+              "score": 0.028915811253345625,
+              "status": "accepted"
+            },
+            {
+              "name": "night_ratio_receiver",
+              "score": 0.3178984102402395,
+              "status": "accepted"
+            },
+            {
+              "name": "weekend_transaction_ratio_sender",
+              "score": 0.4688600147879066,
+              "status": "accepted"
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 3,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 3,
+              "accepted": 3,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 3,
+              "accepted": 2,
+              "queries": 0
+            }
+          ],
+          "candidates": 9,
+          "accepted": 7,
+          "details": [
+            {
+              "name": "transaction_mode_sequence_entropy_sender",
+              "score": 0.4484847277613981,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_mode_switch_rate_sender",
+              "score": 0.11045336094416348,
+              "status": "accepted"
+            },
+            {
+              "name": "consecutive_similar_mode_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8055>=0.7",
+              "l2_metrics": {
+                "iv": 0.02578042974236872,
+                "ks": 0.07283733518321067,
+                "redundancy": 0.805494927878237,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "mode_transition_diversity_sender",
+              "score": 0.40972623617159354,
+              "status": "accepted"
+            },
+            {
+              "name": "fan_out_forward_ratio_change_sender",
+              "score": 0.3792472623192289,
+              "status": "accepted"
+            },
+            {
+              "name": "mode_repeat_cycle_length_sender",
+              "score": 0.1964871560629707,
+              "status": "accepted"
+            },
+            {
+              "name": "interval_sequence_entropy_sender",
+              "score": 0.37038083844764425,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_direction_consistency_sender",
+              "score": 0.5213679890238031,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_sequence_autocorrelation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7286>=0.7",
+              "l2_metrics": {
+                "iv": 0.026907850446146273,
+                "ks": 0.07284598088556543,
+                "redundancy": 0.7286287131186442,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 3,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "device_cluster_density_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "same_cert_flow_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000345<0.003826; KS=0.000028<0.020130",
+              "l2_metrics": {
+                "iv": 0.000344906467115868,
+                "ks": 2.7535673189249543e-05,
+                "redundancy": 0.013845003998553452,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 16,
+      "budgets": {
+        "amount_frequency": 3,
+        "time_region": 3,
+        "behavior_sequence": 3,
+        "entity_association": 3
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 2,
+      "timestamp": "2026-05-16 11:17:02",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 4,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "amount_interval_interaction_sender",
+              "score": 0.2866432794366034,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_above_median_burst_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8324>=0.7",
+              "l2_metrics": {
+                "iv": 0.02177737253991347,
+                "ks": 0.06789065731169652,
+                "redundancy": 0.8324397956927698,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_surge_ratio_receiver",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003238<0.003826",
+              "l2_metrics": {
+                "iv": 0.005920487224036316,
+                "ks": 0.01711869363433538,
+                "redundancy": 0.02166830731866575,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_outlier_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003238<0.003826",
+              "l2_metrics": {
+                "iv": 0.0032375851918301957,
+                "ks": 0.020521890948096977,
+                "redundancy": 0.28072422214745374,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 8,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "region_cross_bank_ratio_sender",
+              "score": 0.30341076519407195,
+              "status": "accepted"
+            },
+            {
+              "name": "region_shift_count_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8301>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004852680502698492,
+                "redundancy": 0.7207184086515622,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8301>=0.7",
+              "l2_metrics": {
+                "iv": 0.03537671982233927,
+                "ks": 0.08519616728251267,
+                "redundancy": 0.9908182801037635,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_std_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8301>=0.7",
+              "l2_metrics": {
+                "iv": 0.03613504330365768,
+                "ks": 0.08444243721365541,
+                "redundancy": 0.8300660797207619,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "timezone_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7367>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_region_concentration",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7367>=0.7",
+              "l2_metrics": {
+                "iv": 0.004841939866886743,
+                "ks": 0.02989782128223084,
+                "redundancy": 0.8947087422627017,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "weekday_weekend_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7367>=0.7",
+              "l2_metrics": {
+                "iv": 0.013862650974670754,
+                "ks": 0.029974838814825877,
+                "redundancy": 0.8999402761150153,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_burstiness_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7367>=0.7",
+              "l2_metrics": {
+                "iv": 0.03220882878263342,
+                "ks": 0.08519828556039044,
+                "redundancy": 0.7366727014161139,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 3,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 3,
+          "details": [
+            {
+              "name": "fan_out_to_single_ratio_change_sender",
+              "score": 0.18037226028238046,
+              "status": "accepted"
+            },
+            {
+              "name": "mode_switch_frequency_trend_sender",
+              "score": 0.5288908434868245,
+              "status": "accepted"
+            },
+            {
+              "name": "fan_out_amount_volatility_sender",
+              "score": 0.17680078617615752,
+              "status": "accepted"
+            },
+            {
+              "name": "consecutive_fan_out_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8233>=0.7",
+              "l2_metrics": {
+                "iv": 0.030296103218596986,
+                "ks": 0.08320428343220443,
+                "redundancy": 0.7257805688376828,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "single_to_fan_out_sequence_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8233>=0.7",
+              "l2_metrics": {
+                "iv": 0.016536953634078404,
+                "ks": 0.04951581843171271,
+                "redundancy": 0.8232720486537469,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "counterparty_repeat_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8608>=0.7",
+              "l2_metrics": {
+                "iv": 0.03377495679388257,
+                "ks": 0.08660409356986581,
+                "redundancy": 0.8607674831860394,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "device_ip_cluster_suspicion_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "cert_tel_mismatch_chain_sender",
+              "score": 0.35320088795931637,
+              "status": "accepted"
+            }
+          ]
+        }
+      ],
+      "new_features": 6,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 3,
+      "timestamp": "2026-05-16 11:53:49",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 0,
+          "accepted": 0,
+          "details": []
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 3,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 8,
+          "accepted": 4,
+          "details": [
+            {
+              "name": "hourly_amount_std_ratio_sender",
+              "score": 0.7037705400967135,
+              "status": "accepted"
+            },
+            {
+              "name": "timezone_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003257<0.003826; KS=0.017237<0.020130",
+              "l2_metrics": {
+                "iv": 0.03111819330535371,
+                "ks": 0.08332867230321905,
+                "redundancy": 0.7270284495955528,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "ip_diversity_per_region_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003257<0.003826; KS=0.017237<0.020130",
+              "l2_metrics": {
+                "iv": 0.002999984325327048,
+                "ks": 0.018919619614332084,
+                "redundancy": 0.01897617337780803,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "region_crossing_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003257<0.003826; KS=0.017237<0.020130",
+              "l2_metrics": {
+                "iv": 0.003256851184884581,
+                "ks": 0.017236799422965854,
+                "redundancy": 0.012019940904611798,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "fan_out_to_same_opponent_ratio_sender",
+              "score": 0.2639978319857799,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_amount_z_score_variance_sender",
+              "score": 0.4345985492323189,
+              "status": "accepted"
+            },
+            {
+              "name": "night_tx_to_receive_ratio_sender",
+              "score": 0.4666492230969854,
+              "status": "accepted"
+            },
+            {
+              "name": "top_counterparty_time_cluster_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003257<0.003826; KS=0.017237<0.020130",
+              "l2_metrics": {
+                "iv": 0.012602421249619047,
+                "ks": 0.03223338586050539,
+                "redundancy": 0.3586684419269785,
+                "missing_rate": 0.0
+              },
+              "l3_metrics": {
+                "base_f1": 0.9771459200630341,
+                "base_recall": 0.9678837693103997,
+                "base_precision": 0.9866228015163887,
+                "aug_f1": 0.9768102460969974,
+                "aug_recall": 0.9676595596432552,
+                "aug_precision": 0.9862178803557067,
+                "delta_f1": -0.0003356739660367314,
+                "delta_recall": -0.00022420966714442603,
+                "delta_precision": -0.00040492116068202577,
+                "shap_rank": 64,
+                "total_features": 131
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 4,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 11,
+          "accepted": 6,
+          "details": [
+            {
+              "name": "night_to_total_ratio_rolling_7d_sender",
+              "score": 0.19638880747687998,
+              "status": "accepted"
+            },
+            {
+              "name": "last_n_tx_amount_trend_sender",
+              "score": 0.5377553151808393,
+              "status": "accepted"
+            },
+            {
+              "name": "tx_mode_sequence_shannon_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.022349433919826474,
+                "ks": 0.0647678373780659,
+                "redundancy": 0.9989643328605612,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "interval_cv_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.005964264991351205,
+                "ks": 0.01807976606827666,
+                "redundancy": 0.6779311751314359,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_interval_correlation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.03011789679458181,
+                "ks": 0.07492545167999756,
+                "redundancy": 0.7418151703448344,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_ratio_volatility_sender",
+              "score": 0.36314118811028107,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_roundness_score_sender",
+              "score": 0.19814220981987002,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_breakdown_entropy_sender",
+              "score": 0.412299507260732,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_sudden_spike_sender",
+              "score": 0.21262139068449978,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_zero_freq_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.002527<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.0025271171436264117,
+                "redundancy": 0.26200181420731505,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_chain_break_count_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8780>=0.7",
+              "l2_metrics": {
+                "iv": 0.02907291938058922,
+                "ks": 0.07742288836984307,
+                "redundancy": 0.8779901892714262,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 3,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "device_cert_cluster_risk_src",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.004817<0.020130; redundancy=0.7754>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004816815220496595,
+                "redundancy": 0.7754018964481376,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_dst_device_overlap_ratio",
+              "score": 0.3260938441551261,
+              "status": "accepted"
+            },
+            {
+              "name": "device_ip_cluster_density_src",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.004853<0.020130; redundancy=0.9793>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004852680502698402,
+                "redundancy": 0.9792665965444797,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 11,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 1
+    },
+    {
+      "round": 4,
+      "timestamp": "2026-05-16 12:58:18",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "amount_sudden_change_ratio_sender",
+              "score": 0.5856426265014463,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_roundness_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.006184<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.006183799986351435,
+                "redundancy": 0.09137066106877266,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 12,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "ip_region_change_count_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004852680502698492,
+                "redundancy": 0.7207184086515622,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_ip_diversity_receiver",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.0037232839623055217,
+                "ks": 0.02359753217278837,
+                "redundancy": 0.360700413057608,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_ip_switch_frequency_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.006879288725701316,
+                "redundancy": 0.6470094866611505,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "region_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.006282170547460776,
+                "ks": 0.035067265451829976,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "time_regularity_score_sender",
+              "score": 0.32049241199677386,
+              "status": "accepted"
+            },
+            {
+              "name": "hour_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.019015<0.020130",
+              "l2_metrics": {
+                "iv": 0.019400802218971277,
+                "ks": 0.0643797419802834,
+                "redundancy": 0.9999999999999999,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_ratio_anomaly_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.019015<0.020130",
+              "l2_metrics": {
+                "iv": 0.03537671982233927,
+                "ks": 0.08519616728251267,
+                "redundancy": 0.9908182801037615,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "peak_hour_deviation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.019015<0.020130",
+              "l2_metrics": {
+                "iv": 0.007397055108537045,
+                "ks": 0.019015188400151595,
+                "redundancy": 0.23484216276560407,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "time_cluster_density_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7146>=0.7",
+              "l2_metrics": {
+                "iv": 0.032674631376904455,
+                "ks": 0.08747815953375515,
+                "redundancy": 0.7983607708267577,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "weekend_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7146>=0.7",
+              "l2_metrics": {
+                "iv": 0.01179346850058346,
+                "ks": 0.03337212860904942,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "time_gap_std_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7146>=0.7",
+              "l2_metrics": {
+                "iv": 0.030997397624213146,
+                "ks": 0.08230402244459756,
+                "redundancy": 0.7198893213838239,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "time_cluster_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7146>=0.7",
+              "l2_metrics": {
+                "iv": 0.033748621614062245,
+                "ks": 0.08397066628445538,
+                "redundancy": 0.7145949199833026,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 3,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 5,
+              "accepted": 1,
+              "queries": 0
+            }
+          ],
+          "candidates": 15,
+          "accepted": 6,
+          "details": [
+            {
+              "name": "mode_chain_length_sender",
+              "score": 0.462423990795545,
+              "status": "accepted"
+            },
+            {
+              "name": "mode_sequence_reversal_rate_sender",
+              "score": 0.28108748109446796,
+              "status": "accepted"
+            },
+            {
+              "name": "time_interval_autocorr_sender",
+              "score": 0.2907399927159959,
+              "status": "accepted"
+            },
+            {
+              "name": "hour_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003638<0.003826; KS=0.016080<0.020130",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "first_tx_delay_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003638<0.003826; KS=0.016080<0.020130",
+              "l2_metrics": {
+                "iv": 0.003638385963518211,
+                "ks": 0.016079553901771293,
+                "redundancy": 0.1424103817379096,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "burst_activity_ratio_sender",
+              "score": 0.2425392965634776,
+              "status": "accepted"
+            },
+            {
+              "name": "night_to_day_amount_ratio_sender",
+              "score": 0.4148246475132525,
+              "status": "accepted"
+            },
+            {
+              "name": "mode_transition_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.022349433919826474,
+                "ks": 0.0647678373780659,
+                "redundancy": 0.9989643328610993,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sequence_autocorr_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.02542612501990732,
+                "ks": 0.07229354991664738,
+                "redundancy": 0.714421986333742,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "device_ip_consistency_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sequence_volatility_sender",
+              "score": 0.4407521418068079,
+              "status": "accepted"
+            },
+            {
+              "name": "interval_regime_change_count_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7399>=0.7",
+              "l2_metrics": {
+                "iv": 0.031294166486549445,
+                "ks": 0.08401728649718254,
+                "redundancy": 0.8757462365499851,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_concentration_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7399>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_direction_consistency_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7399>=0.7",
+              "l2_metrics": {
+                "iv": 0.027898388488165733,
+                "ks": 0.07917635962483299,
+                "redundancy": 0.779690585823668,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_autocorrelation_lag1_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7399>=0.7",
+              "l2_metrics": {
+                "iv": 0.02708303176958628,
+                "ks": 0.07284598088556543,
+                "redundancy": 0.7398781717224835,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "cert_device_diversity_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7627>=0.7",
+              "l2_metrics": {
+                "iv": 0.023128998924232168,
+                "ks": 0.07089112132638029,
+                "redundancy": 0.7626792347029114,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "device_ip_cluster_risk_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9948>=0.7",
+              "l2_metrics": {
+                "iv": 0.02980675753488678,
+                "ks": 0.07681049662706169,
+                "redundancy": 0.9948128239760211,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 9,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_accepted": [
+        {
+          "name": "top_counterparty_time_cluster_score_sender",
+          "score": 0.4316185838962625
+        }
+      ],
+      "pending_pool_size": 0
+    },
+    {
+      "round": 5,
+      "timestamp": "2026-05-16 13:48:06",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "amount_frequency_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.030975356942708032,
+                "ks": 0.08704168763365305,
+                "redundancy": 0.7894992707550978,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_interval_correlation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.03011789679458181,
+                "ks": 0.07492545167999756,
+                "redundancy": 0.7418151703448344,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 4,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "region_concentration_sender",
+              "score": 0.2515084601663459,
+              "status": "accepted"
+            },
+            {
+              "name": "region_src_dst_mismatch_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.003256851184884581,
+                "ks": 0.017236799422965854,
+                "redundancy": 0.014256966804631782,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_hour_amount_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.031637649065382634,
+                "ks": 0.0814480875689585,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 4,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 5,
+              "accepted": 2,
+              "queries": 0
+            }
+          ],
+          "candidates": 14,
+          "accepted": 6,
+          "details": [
+            {
+              "name": "mode_switch_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8512>=0.7",
+              "l2_metrics": {
+                "iv": 0.022349433919826474,
+                "ks": 0.0647678373780659,
+                "redundancy": 0.9989643328610993,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "consecutive_same_mode_max_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8512>=0.7",
+              "l2_metrics": {
+                "iv": 0.030721199160524258,
+                "ks": 0.07888003278227967,
+                "redundancy": 0.9999999999999999,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "mode_sequence_autocorrelation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8512>=0.7",
+              "l2_metrics": {
+                "iv": 0.004386761478267549,
+                "ks": 0.016973070271929958,
+                "redundancy": 0.3515021416923778,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "mode_sequence_compression_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8512>=0.7",
+              "l2_metrics": {
+                "iv": 0.026976337165074568,
+                "ks": 0.07693992101369074,
+                "redundancy": 0.851155687411164,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "inactive_sudden_activation_amount_sender",
+              "score": 0.379968837380786,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_reversal_ratio_sender",
+              "score": 0.2864390621877299,
+              "status": "accepted"
+            },
+            {
+              "name": "night_concentration_sender",
+              "score": 0.3530467829223619,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_roundness_score_sender",
+              "score": 0.1966535201396658,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_sequence_volatility_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8512>=0.7",
+              "l2_metrics": {
+                "iv": 0.03584204875338291,
+                "ks": 0.08458693905878345,
+                "redundancy": 0.22228349646809234,
+                "missing_rate": 0.0
+              },
+              "l3_metrics": {
+                "base_f1": 0.9773588644876015,
+                "base_recall": 0.9721230988214684,
+                "base_precision": 0.9826691241268362,
+                "aug_f1": 0.976489721386249,
+                "aug_recall": 0.9719001333811116,
+                "aug_precision": 0.9812093638143569,
+                "delta_f1": -0.0008691431013524431,
+                "delta_recall": -0.00022296544035682597,
+                "delta_precision": -0.0014597603124792968,
+                "shap_rank": 127,
+                "total_features": 151
+              }
+            },
+            {
+              "name": "chain_length_ratio_sender",
+              "score": 0.17912836516739472,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_consecutive_increase_sender",
+              "score": 0.2907192587076083,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_structure_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7558>=0.7",
+              "l2_metrics": {
+                "iv": 0.02473282014541829,
+                "ks": 0.07383093420382758,
+                "redundancy": 0.8953796644577201,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "interval_burst_factor_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7558>=0.7",
+              "l2_metrics": {
+                "iv": 0.019241613275199743,
+                "ks": 0.08951012712260659,
+                "redundancy": 0.781628778977524,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_decimal_precision_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7558>=0.7",
+              "l2_metrics": {
+                "iv": 0.027596431846633178,
+                "ks": 0.07178579670546031,
+                "redundancy": 0.7558480351880619,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 1,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "device_ip_entropy_src",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.004853<0.020130; redundancy=0.9427>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004852680502698492,
+                "redundancy": 0.9426762252896903,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 7,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 1
+    },
+    {
+      "round": 6,
+      "timestamp": "2026-05-16 14:40:38",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 3,
+          "details": [
+            {
+              "name": "amount_roundness_ratio_sender",
+              "score": 0.35893128214613534,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_interval_correlation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7418>=0.7",
+              "l2_metrics": {
+                "iv": 0.03011789679458181,
+                "ks": 0.07492545167999756,
+                "redundancy": 0.7418151703448344,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_clustering_anomaly_score_sender",
+              "score": 0.3690658825533025,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_peak_hour_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7329>=0.7",
+              "l2_metrics": {
+                "iv": 0.031396590271544345,
+                "ks": 0.08868336268511035,
+                "redundancy": 0.732937196657093,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sequence_autocorrelation_sender",
+              "score": 0.2907947999779832,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_roundness_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7938>=0.7",
+              "l2_metrics": {
+                "iv": 0.00632050080925052,
+                "ks": 0.04229777460435863,
+                "redundancy": 0.7937585683530533,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            }
+          ],
+          "candidates": 12,
+          "accepted": 5,
+          "details": [
+            {
+              "name": "night_tx_ratio_src",
+              "score": 0.1896898792632078,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_amount_skewness_src",
+              "score": 0.4659707887499962,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_tx_entropy_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "region_diversity_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.0346472517591981,
+                "ks": 0.08453468928180896,
+                "redundancy": 0.8855834106472653,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_night_active_count_src",
+              "score": 0.268551688949808,
+              "status": "accepted"
+            },
+            {
+              "name": "night_avg_amount_ratio_src",
+              "score": 0.37414042461272407,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_peak_deviation_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7152>=0.7",
+              "l2_metrics": {
+                "iv": 0.007397055108537045,
+                "ks": 0.019015188400151595,
+                "redundancy": 0.31444975422797056,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_geo_time_cluster_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7152>=0.7",
+              "l2_metrics": {
+                "iv": 0.02411743905147728,
+                "ks": 0.06390253217709346,
+                "redundancy": 0.7152478993645864,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_night_inflow_concentration_src",
+              "score": 0.5168821162652766,
+              "status": "accepted"
+            },
+            {
+              "name": "night_balance_drain_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.03251077210786517,
+                "ks": 0.08254880926577901,
+                "redundancy": 0.9379546901609918,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hourly_amount_cv_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.0037077361963140042,
+                "ks": 0.01713624230929056,
+                "redundancy": 0.8690788965148504,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "weekend_transaction_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.01179346850058346,
+                "ks": 0.03337212860904942,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 5,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "mode_switch_frequency_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7470>=0.7",
+              "l2_metrics": {
+                "iv": 0.027859255778199917,
+                "ks": 0.07756286148295632,
+                "redundancy": 0.8813816010514072,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sudden_spike_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7470>=0.7",
+              "l2_metrics": {
+                "iv": 0.0032375851918301957,
+                "ks": 0.020521890948096977,
+                "redundancy": 0.38483474965971165,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "mode_chain_length_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7470>=0.7",
+              "l2_metrics": {
+                "iv": 0.030721199160524258,
+                "ks": 0.07888003278227967,
+                "redundancy": 0.9999999999999999,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hourly_entropy_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7470>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "last_24h_tx_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7470>=0.7",
+              "l2_metrics": {
+                "iv": 0.030546226609685194,
+                "ks": 0.08310307797165362,
+                "redundancy": 0.74695014148564,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "device_ip_mismatch_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9998>=0.7",
+              "l2_metrics": {
+                "iv": 0.028719346687626175,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9998003460782201,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "cert_tel_overlap_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.005477<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.005476818765344449,
+                "redundancy": 0.4637804941999863,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 9,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_accepted": [
+        {
+          "name": "amount_sequence_volatility_ratio_sender",
+          "score": 0.36718419979626454
+        }
+      ],
+      "pending_pool_size": 0
+    },
+    {
+      "round": 7,
+      "timestamp": "2026-05-16 15:30:23",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "hourly_amount_peak_ratio_src",
+              "score": 0.1950544721810416,
+              "status": "accepted"
+            },
+            {
+              "name": "amount_interval_correlation_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9740>=0.7",
+              "l2_metrics": {
+                "iv": 0.021169818448257945,
+                "ks": 0.0690458336819948,
+                "redundancy": 0.9740454757878328,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            }
+          ],
+          "candidates": 12,
+          "accepted": 2,
+          "details": [
+            {
+              "name": "ip_city_switch_rate_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.028792564539811268,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999577938964465,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_peak_hour_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.03468304579784971,
+                "ks": 0.08592432481822165,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "region_concentration_entropy_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.006285090299258666,
+                "ks": 0.035067265451829976,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_region_diversity_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8856>=0.7",
+              "l2_metrics": {
+                "iv": 0.0346472517591981,
+                "ks": 0.08453468928180896,
+                "redundancy": 0.8855834106472653,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_temporal_regularity_score",
+              "score": 0.3180815903604657,
+              "status": "accepted"
+            },
+            {
+              "name": "src_workday_night_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.030293025159287133,
+                "ks": 0.08115207100207844,
+                "redundancy": 0.7070645503499849,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_weekend_activity_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.01179346850058346,
+                "ks": 0.03337212860904942,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_hourly_entropy",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.019404695416881484,
+                "ks": 0.0643797419802834,
+                "redundancy": 0.9999999999999996,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_weekend_volume_ratio",
+              "score": 0.3404819658632535,
+              "status": "accepted"
+            },
+            {
+              "name": "src_night_peak_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.03468304579784971,
+                "ks": 0.08592432481822165,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_temporal_cluster_density",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.005901130529765375,
+                "ks": 0.01805150577210879,
+                "redundancy": 0.6774212773950465,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_geo_mobility_score",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 2,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 5,
+              "accepted": 1,
+              "queries": 0
+            }
+          ],
+          "candidates": 15,
+          "accepted": 4,
+          "details": [
+            {
+              "name": "src_consecutive_small_amount_ratio",
+              "score": 0.23758116057849893,
+              "status": "accepted"
+            },
+            {
+              "name": "src_mode_shift_entropy",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8016>=0.7",
+              "l2_metrics": {
+                "iv": 0.022349433919826474,
+                "ks": 0.0647678373780659,
+                "redundancy": 0.9989643328605599,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_night_to_day_ratio_std",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8016>=0.7",
+              "l2_metrics": {
+                "iv": 0.024054075386317108,
+                "ks": 0.0708545753769203,
+                "redundancy": 0.80022477110509,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_interval_sequence_volatility",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8016>=0.7",
+              "l2_metrics": {
+                "iv": 0.029183375872839305,
+                "ks": 0.0793003910324156,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_motif_transition_consistency",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8016>=0.7",
+              "l2_metrics": {
+                "iv": 0.03367113286541666,
+                "ks": 0.08276346379423033,
+                "redundancy": 0.8016097842518074,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_fan_out_depth",
+              "score": 0.48376729841443067,
+              "status": "accepted"
+            },
+            {
+              "name": "src_sleep_activation_flag",
+              "score": 0.10625729731960615,
+              "status": "accepted"
+            },
+            {
+              "name": "src_reverse_flow_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7035>=0.7",
+              "l2_metrics": {
+                "iv": 0.024160227769201525,
+                "ks": 0.06946821454167607,
+                "redundancy": 0.7516296205824857,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_amount_spike_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7035>=0.7",
+              "l2_metrics": {
+                "iv": 0.0032375851918301957,
+                "ks": 0.020521890948096977,
+                "redundancy": 0.38483474965971165,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_amount_roundness_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7035>=0.7",
+              "l2_metrics": {
+                "iv": 0.010938077002017956,
+                "ks": 0.028088852698219452,
+                "redundancy": 0.7034829523208747,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_peer_change_frequency",
+              "score": 0.3432525760151982,
+              "status": "accepted"
+            },
+            {
+              "name": "src_multi_hop_transfer_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.002819<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004358358349718884,
+                "redundancy": 0.3187255018742233,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_forward_chain_length",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.002819<0.020130",
+              "l2_metrics": {
+                "iv": 0.002206704120851895,
+                "ks": 0.00884622317983863,
+                "redundancy": 0.07592894589477689,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_circular_tx_indicator",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.002819<0.020130",
+              "l2_metrics": {
+                "iv": 0.00047711031506649686,
+                "ks": 0.00270567045108272,
+                "redundancy": 0.044823703130015984,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_rapid_chain_reaction_score",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.002819<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.002818871944852086,
+                "redundancy": 0.017500741351282555,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "device_overlap_ratio",
+              "score": 0.2529209157105379,
+              "status": "accepted"
+            },
+            {
+              "name": "ip_device_co_occurrence_risk",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7679>=0.7",
+              "l2_metrics": {
+                "iv": 0.024686643193435658,
+                "ks": 0.07093883784648647,
+                "redundancy": 0.7679484554409489,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 8,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 8,
+      "timestamp": "2026-05-16 16:21:37",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 2,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 6,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "src_amount_interval_corr",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7948>=0.7",
+              "l2_metrics": {
+                "iv": 0.03011789679458181,
+                "ks": 0.07492545167999756,
+                "redundancy": 0.7418151703448344,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_regular_large_deviation",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7948>=0.7",
+              "l2_metrics": {
+                "iv": 0.037466592196716685,
+                "ks": 0.09060091159458228,
+                "redundancy": 0.794753502325407,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_amount_peak_to_median_ratio",
+              "score": 0.344073854590583,
+              "status": "accepted"
+            },
+            {
+              "name": "src_amount_entropy_normalized",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9548>=0.7",
+              "l2_metrics": {
+                "iv": 0.018199276798714772,
+                "ks": 0.05700992098967017,
+                "redundancy": 0.9548305233000197,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_rapid_round_trip_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7481>=0.7",
+              "l2_metrics": {
+                "iv": 0.001803888863218048,
+                "ks": 0.0001282582672235133,
+                "redundancy": 0.0187966867396932,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_night_small_amount_burst_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7481>=0.7",
+              "l2_metrics": {
+                "iv": 0.018849494881555642,
+                "ks": 0.05338411122284514,
+                "redundancy": 0.7480662491735154,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "cross_region_tx_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.003257<0.003826; KS=0.017237<0.020130",
+              "l2_metrics": {
+                "iv": 0.003256851184884581,
+                "ks": 0.017236799422965854,
+                "redundancy": 0.014256966804631782,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_hour_tx_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.03468304579784971,
+                "ks": 0.08592432481822165,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 5,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "sender_interval_coefficient_of_variation",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9430>=0.7",
+              "l2_metrics": {
+                "iv": 0.005901130529765375,
+                "ks": 0.01805150577210879,
+                "redundancy": 0.6774212773950465,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "sender_consecutive_fanout_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9430>=0.7",
+              "l2_metrics": {
+                "iv": 0.030465118812210607,
+                "ks": 0.08677889318808296,
+                "redundancy": 0.8277703700222808,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "sender_night_regular_large_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9430>=0.7",
+              "l2_metrics": {
+                "iv": 0.027770477985158703,
+                "ks": 0.08602647144831493,
+                "redundancy": 0.8115730948219705,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "sender_tx_mode_sequence_entropy",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9430>=0.7",
+              "l2_metrics": {
+                "iv": 0.022349433919826474,
+                "ks": 0.0647678373780659,
+                "redundancy": 0.9989643328605603,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "sender_fanout_to_single_transition_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9430>=0.7",
+              "l2_metrics": {
+                "iv": 0.011508250768453143,
+                "ks": 0.02653294042849022,
+                "redundancy": 0.9429853854821554,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "sender_device_ip_cluster_diversity",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8930>=0.7",
+              "l2_metrics": {
+                "iv": 0.028808350359795305,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.892996468016106,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "cert_to_tel_mapping_anomaly",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000582<0.003826; redundancy=0.8817>=0.7",
+              "l2_metrics": {
+                "iv": 0.0005817947180339575,
+                "ks": 0.06873305576468067,
+                "redundancy": 0.8816871385186121,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 1,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 9,
+      "timestamp": "2026-05-16 16:42:18",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "amount_interval_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9954>=0.7",
+              "l2_metrics": {
+                "iv": 0.03172977904130647,
+                "ks": 0.08673372028209014,
+                "redundancy": 0.7701531922766288,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_night_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9954>=0.7",
+              "l2_metrics": {
+                "iv": 0.021150864648142198,
+                "ks": 0.056769779253880936,
+                "redundancy": 0.9954489568931384,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 4,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 1
+            }
+          ],
+          "candidates": 8,
+          "accepted": 2,
+          "details": [
+            {
+              "name": "workday_weekend_amount_ratio_src",
+              "score": 0.2849476456873001,
+              "status": "accepted"
+            },
+            {
+              "name": "region_transition_entropy_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.006282170547460776,
+                "ks": 0.035067265451829976,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_hour_transaction_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.030245492503618177,
+                "ks": 0.08155086509292075,
+                "redundancy": 0.8074280851098649,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "ip_region_diversity_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028791415535890017,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999956438970594,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hourly_amount_cv_src",
+              "score": 0.4785347815684996,
+              "status": "accepted"
+            },
+            {
+              "name": "hourly_amount_std_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.03913483539036952,
+                "ks": 0.08842013643922836,
+                "redundancy": 0.7319310315574653,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "early_morning_amount_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.031637649065382634,
+                "ks": 0.0814480875689585,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "weekend_transaction_ratio_src",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.01179346850058346,
+                "ks": 0.03337212860904942,
+                "redundancy": 1.0,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 3,
+              "candidates": 5,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 15,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "sequence_mode_transition_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.001088<0.003826; KS=0.001739<0.020130",
+              "l2_metrics": {
+                "iv": 0.02195112193447441,
+                "ks": 0.06773424088071411,
+                "redundancy": 0.9802087584400245,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "burst_tx_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.001088<0.003826; KS=0.001739<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.014910601937986434,
+                "redundancy": 0.2948480704552225,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_reversal_pattern_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.001088<0.003826; KS=0.001739<0.020130",
+              "l2_metrics": {
+                "iv": 0.026617068358112273,
+                "ks": 0.06878287052402743,
+                "redundancy": 0.7538015029214823,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_roundness_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.001088<0.003826; KS=0.001739<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.007052791650167256,
+                "redundancy": 0.5699633834622951,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "close_zs_channel_risk_score",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.001088<0.003826; KS=0.001739<0.020130",
+              "l2_metrics": {
+                "iv": 0.0010883760017522765,
+                "ks": 0.001739164314413011,
+                "redundancy": 0.0212834488744563,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "dst_diversity_temporal_sender",
+              "score": 0.2511036855193562,
+              "status": "accepted"
+            },
+            {
+              "name": "dst_chain_length_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7362>=0.7",
+              "l2_metrics": {
+                "iv": 0.001921201679784857,
+                "ks": 0.009173948627713702,
+                "redundancy": 0.6591405866110248,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sequence_autocorr_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7362>=0.7",
+              "l2_metrics": {
+                "iv": 0.026907850446146273,
+                "ks": 0.07284598088556543,
+                "redundancy": 0.9759071329922815,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "sequential_round_amount_count_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7362>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.0036026289419919255,
+                "redundancy": 0.06539663984533016,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_up_down_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.7362>=0.7",
+              "l2_metrics": {
+                "iv": 0.01018034666105838,
+                "ks": 0.021059497850315745,
+                "redundancy": 0.7362311798827057,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_sent_amount_zigzag_count",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8861>=0.7",
+              "l2_metrics": {
+                "iv": 0.030128477346205138,
+                "ks": 0.0790086840653561,
+                "redundancy": 0.8781340477604407,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_reverse_direction_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8861>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.00270567045108272,
+                "redundancy": 0.03879522663405409,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_high_low_amount_transition_rate",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8861>=0.7",
+              "l2_metrics": {
+                "iv": 0.03369170117952764,
+                "ks": 0.08755276531939793,
+                "redundancy": 0.8918321040526792,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_self_loop_tx_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8861>=0.7",
+              "l2_metrics": {
+                "iv": 0.012648825229812925,
+                "ks": 0.022625074560860325,
+                "redundancy": 0.9302619528683509,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_large_amount_burst_count",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8861>=0.7",
+              "l2_metrics": {
+                "iv": 0.03940647441210617,
+                "ks": 0.08813993164994077,
+                "redundancy": 0.8861427571832547,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 1,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "src_device_ip_cert_link_strength",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000076<0.003826; redundancy=0.7079>=0.7",
+              "l2_metrics": {
+                "iv": 7.649400501204548e-05,
+                "ks": 0.06873305576468067,
+                "redundancy": 0.707918191882984,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 3,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 0
+    },
+    {
+      "round": 10,
+      "timestamp": "2026-05-16 17:11:59",
+      "islands": [
+        {
+          "island": "金额频次",
+          "budget": 2,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 2,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "src_amount_interval_irregularity",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8032>=0.7",
+              "l2_metrics": {
+                "iv": 0.005585417379012949,
+                "ks": 0.021429786656489647,
+                "redundancy": 0.8800174760089003,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_night_large_amount_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.8032>=0.7",
+              "l2_metrics": {
+                "iv": 0.0313677214655624,
+                "ks": 0.08102419734740829,
+                "redundancy": 0.8032382018624513,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "时间地域",
+          "budget": 4,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 4,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 0,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 4,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "src_region_entropy",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018080<0.020130",
+              "l2_metrics": {
+                "iv": 0.006954533412869319,
+                "ks": 0.03496752475102011,
+                "redundancy": 0.8038464350482467,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_night_tx_ratio_7d",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018080<0.020130",
+              "l2_metrics": {
+                "iv": 0.021637333408035093,
+                "ks": 0.06328687349003537,
+                "redundancy": 0.9092498314490751,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_ip_change_frequency",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018080<0.020130",
+              "l2_metrics": {
+                "iv": 0.028752321469886676,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9878179821696403,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "src_temporal_cluster_ratio",
+              "status": "rejected",
+              "reason": "L2 未通过: KS=0.018080<0.020130",
+              "l2_metrics": {
+                "iv": 0.005964264991351205,
+                "ks": 0.01807976606827666,
+                "redundancy": 0.6779311751314359,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "行为序列",
+          "budget": 5,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 5,
+              "accepted": 1,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 5,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 10,
+          "accepted": 1,
+          "details": [
+            {
+              "name": "hour_mode_correlation_sender",
+              "score": 0.37283220601682754,
+              "status": "accepted"
+            },
+            {
+              "name": "mode_transition_entropy_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.000405<0.020130",
+              "l2_metrics": {
+                "iv": 0.02007748818195703,
+                "ks": 0.06162888052379345,
+                "redundancy": 0.9193334195247537,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "burst_tx_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.000405<0.020130",
+              "l2_metrics": {
+                "iv": 0.03581586072000451,
+                "ks": 0.08676104845842286,
+                "redundancy": 0.8241108194749653,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "reverse_direction_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.000405<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.003370755406488235,
+                "redundancy": 0.02669530372985933,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "closing_surge_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.000405<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.00040506424507325,
+                "redundancy": 0.013029352002462522,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "hour_regularity_std_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9794>=0.7",
+              "l2_metrics": {
+                "iv": 0.03613504330365768,
+                "ks": 0.08444243721365541,
+                "redundancy": 0.8300660797207619,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_roundness_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9794>=0.7",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.007155262130494444,
+                "redundancy": 0.5697011729165743,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_interval_correlation_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9794>=0.7",
+              "l2_metrics": {
+                "iv": 0.021091638991374125,
+                "ks": 0.06872721805716919,
+                "redundancy": 0.9999999999999999,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "night_workday_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9794>=0.7",
+              "l2_metrics": {
+                "iv": 0.026723092070476184,
+                "ks": 0.07680722063307788,
+                "redundancy": 0.9156742780232103,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "amount_sequence_autocorr_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=0.9794>=0.7",
+              "l2_metrics": {
+                "iv": 0.025122879566022525,
+                "ks": 0.07183382091560919,
+                "redundancy": 0.9794346557301319,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        },
+        {
+          "island": "主体关联",
+          "budget": 1,
+          "turns": [
+            {
+              "turn": 1,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            },
+            {
+              "turn": 2,
+              "candidates": 1,
+              "accepted": 0,
+              "queries": 0
+            }
+          ],
+          "candidates": 2,
+          "accepted": 0,
+          "details": [
+            {
+              "name": "device_ip_anomaly_score_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: IV=0.000000<0.003826; KS=0.004853<0.020130",
+              "l2_metrics": {
+                "iv": 0.0,
+                "ks": 0.004852680502698492,
+                "redundancy": 0.5537833247884835,
+                "missing_rate": 0.0
+              }
+            },
+            {
+              "name": "device_ip_mismatch_ratio_sender",
+              "status": "rejected",
+              "reason": "L2 未通过: redundancy=1.0000>=0.7",
+              "l2_metrics": {
+                "iv": 0.028801509814528597,
+                "ks": 0.07681049662706163,
+                "redundancy": 0.9999999999999998,
+                "missing_rate": 0.0
+              }
+            }
+          ]
+        }
+      ],
+      "new_features": 1,
+      "budgets": {
+        "amount_frequency": 2,
+        "time_region": 4,
+        "behavior_sequence": 5,
+        "entity_association": 1
+      },
+      "pending_pool_size": 0
+    }
+  ]
+}
