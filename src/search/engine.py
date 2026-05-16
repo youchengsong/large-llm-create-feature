@@ -127,8 +127,9 @@ class SearchEngine:
             code = cand.get("code", "")
             name = cand.get("feature_name", "unknown")
 
-            feature_df, error = self._try_l1_with_retry(code, name, max_retries=2)
+            feature_df, error, final_code = self._try_l1_with_retry(code, name, max_retries=2)
             if feature_df is not None:
+                cand["code"] = final_code
                 cand["_feature_df"] = feature_df
                 validated.append(cand)
             else:
@@ -139,13 +140,13 @@ class SearchEngine:
 
     def _try_l1_with_retry(
         self, code: str, name: str, max_retries: int = 2
-    ) -> tuple[pd.DataFrame | None, str]:
-        """L1 验证，失败时让 LLM 修复代码并重试。"""
+    ) -> tuple[pd.DataFrame | None, str, str]:
+        """L1 验证，失败时让 LLM 修复代码并重试。返回 (feature_df, error, final_code)。"""
         feature_df, error = run_l1_validation(
             code, self.open_df, self.tx_df, self.close_df
         )
         if feature_df is not None:
-            return feature_df, ""
+            return feature_df, "", code
 
         for attempt in range(max_retries):
             fix_prompt = (
@@ -164,12 +165,12 @@ class SearchEngine:
                     code, self.open_df, self.tx_df, self.close_df
                 )
                 if feature_df is not None:
-                    return feature_df, ""
+                    return feature_df, "", code
             except Exception as e:
                 error = str(e)
                 logger.warning("L1 retry %d failed for %s: %s", attempt + 1, name, e)
 
-        return None, error
+        return None, error, code
 
     def _generate_explainability(
         self,
@@ -589,8 +590,9 @@ class SearchEngine:
                         for cand in candidates:
                             code = cand.get("code", "")
                             name = cand.get("feature_name", "unknown")
-                            feature_df, error = self._try_l1_with_retry(code, name, max_retries=2)
+                            feature_df, error, final_code = self._try_l1_with_retry(code, name, max_retries=2)
                             if feature_df is not None:
+                                cand["code"] = final_code
                                 cand["_feature_df"] = feature_df
                                 validated.append(cand)
                             else:

@@ -197,7 +197,7 @@ def _compute_s_transaction_behavior(df_quantized, account_df, transaction_config
 def calculate_s_indicators(df_quantized, account_df, transaction_config_path=None):
     """
     计算账户 S 指标：
-      - S_history_count / S_geo_risk_202308 / S_time_risk_202308：来自账户开立表（历史无交易泄露）。
+      - S_history_count / S_geo_risk / S_time_risk：来自账户开立表（历史无交易泄露）。
       - S_ibank_index / S_ibank_amount_ratio / S_counterparty_index / S_per_deal_match_times /
         S_daily_deal_match_times：来自全量交易表中「全局最近 24 小时」子窗口（各钱包在该窗口内的
         转入+转出笔数/金额等）；跨机构以本方与对手方 bank_account_number 是否不同判定；
@@ -222,7 +222,7 @@ def calculate_s_indicators(df_quantized, account_df, transaction_config_path=Non
                 account_df['wallet_open_date'], errors='coerce'
             )
         else:
-            print("  警告: 账户开立数据中没有开立时间信息，无法计算 S_time_risk_202308 / S_history_count")
+            print("  警告: 账户开立数据中没有开立时间信息，无法计算 S_time_risk / S_history_count")
             return pd.DataFrame(columns=['wallet_id'])
     else:
         account_df['wallet_open_timestamp'] = pd.to_datetime(
@@ -236,7 +236,7 @@ def calculate_s_indicators(df_quantized, account_df, transaction_config_path=Non
 
     # 地域代码
     if 'region_code' not in account_df.columns:
-        print("  警告: 账户开立数据中没有地域代码信息，S_geo_risk_202308 将置 0")
+        print("  警告: 账户开立数据中没有地域代码信息，S_geo_risk 将置 0")
         account_df['region_code'] = 0
 
     # wallet_id
@@ -296,10 +296,10 @@ def calculate_s_indicators(df_quantized, account_df, transaction_config_path=Non
             else:
                 S_history_count = 0
 
-            # S_geo_risk_202308：是否高风险地区
+            # S_geo_risk：是否高风险地区
             S_geo = 1.0 if region_code in high_risk_codes_set else 0.0
 
-            # S_time_risk_202308：开户时间是否在夜间
+            # S_time_risk：开户时间是否在夜间
             hour = pd.to_datetime(open_time).hour
             S_time = 1.0 if hour in night_hours else 0.0
 
@@ -307,8 +307,8 @@ def calculate_s_indicators(df_quantized, account_df, transaction_config_path=Non
             {
                 "wallet_id": wid,
                 "S_history_count": S_history_count,
-                "S_geo_risk_202308": S_geo,
-                "S_time_risk_202308": S_time,
+                "S_geo_risk": S_geo,
+                "S_time_risk": S_time,
             }
         )
 
@@ -345,7 +345,7 @@ def _resolve_transaction_config_path(data_path, account_path):
     return None
 
 
-def compute_account_open_features_from_raw(account_df, transaction_config_path=None):
+def compute_account_open_features_from_raw(account_df):
     """
     由 accounts 原始字段就地推导开立衍生特征（与 account_features_list 对齐）：
     - open_hour / is_work_hour / is_night_hour：由 wallet_open_timestamp，工作时间 9<=hour<18
@@ -353,27 +353,8 @@ def compute_account_open_features_from_raw(account_df, transaction_config_path=N
     - wallets_per_cert：同一 wallet_open_cert 下 wallet 数量
     - days_to_expire_from_current：wallet_open_cert_expire - 当前日期（剩余天数，已过期为负）
     - tel_reuse_count：同一 wallet_open_tel（手机号）上注册了多少个钱包（计数，无手机号则为 0）
-    - is_high_risk_region：region_code 是否属于高风险行政区代码；默认与配置均为 ["540000","650000"]
     - log_balance：对 init_balance 取自然对数 ln，余额 <=0 时为 0
     """
-    import json
-
-    high_risk_codes = ["540000", "650000"]
-    if transaction_config_path and os.path.exists(transaction_config_path):
-        try:
-            with open(transaction_config_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                if "region_code" in config and "high_risk_codes" in config.get("region_code", {}):
-                    high_risk_codes = [str(c) for c in config["region_code"]["high_risk_codes"]]
-                elif "distribution_based_generation" in config:
-                    nd = config["distribution_based_generation"].get("normal_wallet_distributions", {})
-                    rc = nd.get("region_code", {})
-                    if "high_risk_codes" in rc:
-                        high_risk_codes = [str(c) for c in rc["high_risk_codes"]]
-        except Exception as e:
-            print(f"  警告: 读取 transaction_config 高风险地区失败，使用默认: {e}")
-    risk_set = set(str(c) for c in high_risk_codes)
-
     if "wallet_open_timestamp" in account_df.columns:
         open_ts = pd.to_datetime(account_df["wallet_open_timestamp"], errors="coerce")
         hour = open_ts.dt.hour
@@ -420,13 +401,6 @@ def compute_account_open_features_from_raw(account_df, transaction_config_path=N
     else:
         account_df["tel_reuse_count"] = 0
 
-    if "region_code" in account_df.columns:
-        # 与 high_risk_codes 同一套字符串编码对齐（如 540000、650000）
-        rc_num = pd.to_numeric(account_df["region_code"], errors="coerce").fillna(0).astype(np.int64).astype(str)
-        account_df["is_high_risk_region"] = rc_num.isin(risk_set).astype(np.int64)
-    else:
-        account_df["is_high_risk_region"] = 0
-
     if "init_balance" in account_df.columns:
         bal = pd.to_numeric(account_df["init_balance"], errors="coerce").fillna(0.0)
         account_df["log_balance"] = np.where(bal > 0, np.log(bal), 0.0)
@@ -435,7 +409,7 @@ def compute_account_open_features_from_raw(account_df, transaction_config_path=N
 
     print(
         "  已从账户表原始字段计算: open_hour, is_work_hour, is_night_hour, auth_delay_days, "
-        "wallets_per_cert, days_to_expire_from_current, tel_reuse_count, is_high_risk_region, log_balance"
+        "wallets_per_cert, days_to_expire_from_current, tel_reuse_count, log_balance"
     )
 
 
@@ -890,12 +864,11 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
     account_features_list = [
         'open_hour', 'is_work_hour', 'is_night_hour',
         'auth_delay_days', 'wallets_per_cert', 'days_to_expire_from_current',
-        'tel_reuse_count', 'is_high_risk_region', 'log_balance',
+        'tel_reuse_count', 'log_balance',
     ]
 
-    cfg_path_early = _resolve_transaction_config_path(data_path, account_path)
     print("由账户原始字段计算开立衍生特征...")
-    compute_account_open_features_from_raw(account_df, transaction_config_path=cfg_path_early)
+    compute_account_open_features_from_raw(account_df)
 
     # 可选：外部账户特征 CSV（仅补充账户表中仍不存在的列；已计算列优先）
     print("读取账户开立特征（可选外部文件）...")
@@ -1007,7 +980,7 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
         print("  警告: 账户表中无 wallet_id 或未生成任何开立衍生列，跳过开立特征合并")
 
     # 计算S指标
-    print("计算S指标（S_history_count, S_geo_risk_202308等）...")
+    print("计算S指标（S_history_count, S_geo_risk等）...")
     # 注意：df_quantized的Timestamp在第459行已经被转换为Unix时间戳（秒）
     # 但calculate_s_indicators需要datetime类型，所以需要先恢复Timestamp为datetime
     # 保存当前Timestamp（可能是数值类型）
@@ -1106,8 +1079,8 @@ def feature_eng(data_path, account_path, save_path, close_path=None, account_fea
         # 即使没有S指标，也要创建默认的S指标列（全为0）
         s_indicator_cols = [
             'S_history_count',
-            'S_geo_risk_202308',
-            'S_time_risk_202308',
+            'S_geo_risk',
+            'S_time_risk',
             'S_ibank_index',
             'S_ibank_amount_ratio',
             'S_counterparty_index',
