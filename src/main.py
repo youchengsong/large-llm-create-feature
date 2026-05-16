@@ -364,35 +364,38 @@ def main() -> None:
         logger.info("=== 组合评估: 基线 + 全部新特征 ===")
         import numpy as np
         from src.evaluation.metrics import compute_cv_metrics as _compute_cv_metrics
+        from src.evaluation.sandbox import execute_feature_code, validate_output
         combined_df = X_baseline.copy()
+        combined_failed = []
         for feat in result.accepted_features:
             name = feat["feature_name"]
             code = feat["code"]
+            feat_df, error = execute_feature_code(code, open_df, tx_df, close_df)
+            if error:
+                combined_failed.append((name, error))
+                continue
+            valid, reason = validate_output(feat_df)
+            if not valid:
+                combined_failed.append((name, reason))
+                continue
             try:
-                local_ns = {"tx_df": tx_df.copy(), "pd": pd, "np": np}
-                exec(code, local_ns)
-                feat_result = local_ns["result"]
-                val_col = [c for c in feat_result.columns if c != "wallet_id"][0]
-                mapping = feat_result.set_index("wallet_id")[val_col]
-                src_col = None
-                for c in ["src", "From_Account"]:
-                    if c in tx_df.columns:
-                        src_col = c
-                        break
-                dst_col = None
-                for c in ["dst", "To_Account"]:
-                    if c in tx_df.columns:
-                        dst_col = c
-                        break
+                val_col = [c for c in feat_df.columns if c != "wallet_id"][0]
+                mapping = feat_df.set_index("wallet_id")[val_col]
+                src_col = next((c for c in ["src", "From_Account"] if c in tx_df.columns), None)
+                dst_col = next((c for c in ["dst", "To_Account"] if c in tx_df.columns), None)
                 if src_col and dst_col:
                     tx_sorted = tx_df.sort_values("timestamp").reset_index(drop=True)
                     src_vals = tx_sorted[src_col].values[:len(combined_df)]
                     dst_vals = tx_sorted[dst_col].values[:len(combined_df)]
                     combined_df[name + "_src"] = pd.Series(src_vals).map(mapping).fillna(0).values
                     combined_df[name + "_dst"] = pd.Series(dst_vals).map(mapping).fillna(0).values
-                    logger.info("  已添加特征: %s (_src, _dst)", name)
             except Exception as e:
-                logger.warning("  特征 %s 计算失败: %s", name, e)
+                combined_failed.append((name, str(e)))
+                continue
+        if combined_failed:
+            logger.warning("组合评估: %d 个特征计算失败:", len(combined_failed))
+            for fname, err in combined_failed:
+                logger.warning("  %s: %s", fname, err)
 
         combined_metrics = _compute_cv_metrics(combined_df, label)
         logger.info("========== 组合评估结果 ==========")
