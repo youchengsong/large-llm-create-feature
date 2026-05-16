@@ -417,6 +417,13 @@ def main() -> None:
     logger.info("=== 保存结果 ===")
     save_results(result, cfg.paths.output_dir)
 
+    logger.info("=== 生成可视化报告 ===")
+    from src.visualization.report import generate_report_html
+    features_json_path = str(Path(cfg.paths.output_dir) / "features.json")
+    report_html_path = str(Path(cfg.paths.output_dir) / "feature_report.html")
+    generate_report_html(features_json_path, report_html_path)
+    logger.info("可视化报告已生成: %s", report_html_path)
+
     logger.info("=== 完成 ===")
 
 

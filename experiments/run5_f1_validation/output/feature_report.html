@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 特征搜索结果报告</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f7fa; color: #333; line-height: 1.6; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; margin: 30px 0; color: #1a1a2e; font-size: 28px; }
+        h2 { color: #16213e; margin: 25px 0 15px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .summary-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .summary-card h3 { font-size: 14px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-card .value { font-size: 32px; font-weight: 700; color: #1e293b; }
+        .summary-card .delta { font-size: 16px; margin-top: 4px; }
+        .positive { color: #16a34a; }
+        .negative { color: #dc2626; }
+        .metrics-comparison { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .metric-box { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .metric-box .label { font-size: 13px; color: #64748b; margin-bottom: 6px; }
+        .metric-box .baseline { font-size: 20px; color: #475569; }
+        .metric-box .combined { font-size: 24px; font-weight: 700; color: #1e293b; }
+        .metric-box .change { font-size: 14px; margin-top: 4px; font-weight: 600; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+        .chart-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .chart-container h3 { margin-bottom: 15px; font-size: 16px; color: #334155; }
+        .bar-chart { width: 100%; }
+        .bar-row { display: flex; align-items: center; margin: 6px 0; }
+        .bar-label { width: 180px; font-size: 12px; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .bar-track { flex: 1; height: 22px; background: #f1f5f9; border-radius: 4px; overflow: hidden; position: relative; }
+        .bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; color: white; font-weight: 600; min-width: 35px; }
+        .bar-fill.pos { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .bar-fill.neg { background: linear-gradient(90deg, #ef4444, #dc2626); }
+        .table-container { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8fafc; padding: 12px 8px; text-align: left; font-weight: 600; color: #475569; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; }
+        td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; }
+        tr:hover { background: #f8fafc; }
+        .feature-name { font-weight: 600; color: #1e293b; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .explainability-section { margin-top: 30px; }
+        .feat-detail { background: white; border-radius: 10px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .feat-detail h4 { color: #1e293b; margin-bottom: 10px; }
+        .feat-detail .meta { display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap; }
+        .feat-detail .meta span { font-size: 12px; background: #f1f5f9; padding: 3px 8px; border-radius: 4px; }
+        .feat-detail .explain-content { font-size: 13px; color: #475569; }
+        .feat-detail .explain-content dt { font-weight: 600; margin-top: 8px; color: #334155; }
+        .feat-detail .explain-content dd { margin-left: 16px; margin-bottom: 4px; }
+        footer { text-align: center; margin-top: 40px; padding: 20px; color: #94a3b8; font-size: 13px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>LLM 特征搜索结果报告</h1>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <h3>通过验证的特征</h3>
+            <div class="value">71</div>
+            <div class="delta">N/A 轮搜索</div>
+        </div>
+        <div class="summary-card">
+            <h3>组合 F1 增量</h3>
+            <div class="value positive">+0.0077</div>
+            <div class="delta">0.9769 → 0.9846</div>
+        </div>
+        <div class="summary-card">
+            <h3>组合 Recall 增量</h3>
+            <div class="value positive">+0.0129</div>
+            <div class="delta">0.9708 → 0.9837</div>
+        </div>
+        <div class="summary-card">
+            <h3>组合 Precision 增量</h3>
+            <div class="value positive">+0.0024</div>
+            <div class="delta">0.9832 → 0.9855</div>
+        </div>
+    </div>
+
+    <h2>基线 vs 组合 指标对比</h2>
+    <div class="metrics-comparison">
+        <div class="metric-box">
+            <div class="label">F1 Score</div>
+            <div class="baseline">基线: 0.9769</div>
+            <div class="combined">0.9846</div>
+            <div class="change positive">+0.007711</div>
+        </div>
+        <div class="metric-box">
+            <div class="label">Recall</div>
+            <div class="baseline">基线: 0.9708</div>
+            <div class="combined">0.9837</div>
+            <div class="change positive">+0.012931</div>
+        </div>
+        <div class="metric-box">
+            <div class="label">Precision</div>
+            <div class="baseline">基线: 0.9832</div>
+            <div class="combined">0.9855</div>
+            <div class="change positive">+0.002360</div>
+        </div>
+        <div class="metric-box">
+            <div class="label">PR-AUC</div>
+            <div class="baseline">基线: 0.9966</div>
+            <div class="combined">0.9984</div>
+            <div class="change positive">+0.001816</div>
+        </div>
+    </div>
+
+    <h2>Top 10 特征（按 Delta F1 排序）</h2>
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>Delta F1 (×10⁴)</h3>
+            <div class="bar-chart" id="chart-f1"></div>
+        </div>
+        <div class="chart-container">
+            <h3>Delta Recall (×10⁴)</h3>
+            <div class="bar-chart" id="chart-recall"></div>
+        </div>
+    </div>
+
+    <h2>维度岛屿贡献</h2>
+    <div class="charts-grid">
+        <div class="chart-container">
+            <h3>各岛屿产出特征数</h3>
+            <div class="bar-chart" id="chart-island"></div>
+        </div>
+        <div class="chart-container">
+            <h3>IV vs KS 分布</h3>
+            <div style="padding: 20px; font-size: 13px; color: #475569;">
+                <p>IV 均值: 0.0173 | 中位数: 0.0130</p>
+                <p>KS 均值: 0.0518 | 中位数: 0.0518</p>
+                <p>Redundancy 均值: 0.421</p>
+                <p style="margin-top: 10px;">IV > 0.1 的特征: 0 个</p>
+                <p>KS > 0.1 的特征: 0 个</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>全部特征详情</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>特征名</th>
+                    <th>说明</th>
+                    <th>Score</th>
+                    <th>IV</th>
+                    <th>KS</th>
+                    <th>Redund.</th>
+                    <th>ΔF1</th>
+                    <th>ΔRecall</th>
+                    <th>ΔPrecis.</th>
+                    <th>SHAP</th>
+                    <th>来源</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+        <tr>
+            <td>1</td>
+            <td class="feature-name">transaction_mode_sequence_entropy_sender</td>
+            <td>根据数字人民币洗钱模式，线上跑分（模式3）和商户收款码跑分（模式4）都涉及大量fan_out（分散转出）交易，导致交易模式序列的多样性降低。通过计算交易模式序列</td>
+            <td>0.448</td>
+            <td>0.0223</td>
+            <td>0.0646</td>
+            <td>0.612</td>
+            <td class="positive">+0.0013</td>
+            <td class="positive">+0.0047</td>
+            <td class="negative">-0.0022</td>
+            <td>86</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td class="feature-name">amount_surge_ratio</td>
+            <td>线下跑分模式中，个人钱包收到大额转入后立即转出，金额接近限额，导致单笔金额远超该钱包历史均值。正常交易金额波动更平缓。</td>
+            <td>0.500</td>
+            <td>0.0223</td>
+            <td>0.0720</td>
+            <td>0.294</td>
+            <td class="positive">+0.0012</td>
+            <td class="negative">-0.0013</td>
+            <td class="positive">+0.0037</td>
+            <td>75</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td class="feature-name">src_fan_out_depth</td>
+            <td>异常交易中fan_out模式占比高，且领域知识中&#x27;线上跑分&#x27;模式明确提到&#x27;分散转出(fan_out)模式&#x27;。通过计算每个钱包的对手中，有多少也表现出fan_ou</td>
+            <td>0.484</td>
+            <td>0.0061</td>
+            <td>0.0318</td>
+            <td>0.165</td>
+            <td class="positive">+0.0010</td>
+            <td class="positive">+0.0004</td>
+            <td class="positive">+0.0016</td>
+            <td>103</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td class="feature-name">amount_dispersion_ratio</td>
+            <td>异常交易常通过混合不同金额的交易来掩盖其真实意图，导致金额分布偏离正态分布。均值与中位数的比值（离散比率）能有效衡量这种偏斜。高离散比率意味着存在极端值，这与&#x27;</td>
+            <td>0.500</td>
+            <td>0.0179</td>
+            <td>0.0554</td>
+            <td>0.003</td>
+            <td class="positive">+0.0009</td>
+            <td class="negative">-0.0020</td>
+            <td class="positive">+0.0039</td>
+            <td>58</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td class="feature-name">mode_chain_length_sender</td>
+            <td>线上跑分模式中，交易模式通常为连续的fan_out（分散转出），链条越长越可疑。参考领域知识中&#x27;线下跑分&#x27;和&#x27;线上跑分&#x27;模式，均涉及连续分散转出行为。</td>
+            <td>0.462</td>
+            <td>0.0307</td>
+            <td>0.0789</td>
+            <td>0.694</td>
+            <td class="positive">+0.0009</td>
+            <td class="negative">-0.0069</td>
+            <td class="positive">+0.0089</td>
+            <td>95</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td class="feature-name">hourly_amount_skewness_src</td>
+            <td>洗钱行为（如线上跑分模式3、class4_laundering模式6）通常集中在特定时段进行交易，且金额分布不均匀（大部分交易金额接近，但偶尔有异常大额或小额交</td>
+            <td>0.466</td>
+            <td>0.0108</td>
+            <td>0.0516</td>
+            <td>0.608</td>
+            <td class="positive">+0.0008</td>
+            <td class="negative">-0.0029</td>
+            <td class="positive">+0.0047</td>
+            <td>69</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td class="feature-name">hourly_amount_cv_src</td>
+            <td>线上跑分和商户收款码跑分模式中，交易金额集中在10-1000元固定区间，导致每小时交易金额的变异系数偏低。</td>
+            <td>0.479</td>
+            <td>0.0251</td>
+            <td>0.0700</td>
+            <td>0.285</td>
+            <td class="positive">+0.0007</td>
+            <td class="positive">+0.0029</td>
+            <td class="negative">-0.0014</td>
+            <td>139</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td class="feature-name">dst_night_inflow_concentration_src</td>
+            <td>线上跑分模式中，中间层钱包在夜间集中接收来自多个上游账户的资金，然后快速分散转出。夜间收款比例高是洗钱账户的典型特征。</td>
+            <td>0.517</td>
+            <td>0.0058</td>
+            <td>0.0289</td>
+            <td>0.077</td>
+            <td class="positive">+0.0007</td>
+            <td class="negative">-0.0022</td>
+            <td class="positive">+0.0036</td>
+            <td>85</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td class="feature-name">mode_transition_diversity_sender</td>
+            <td>根据数字人民币洗钱模式中的&#x27;线上跑分&#x27;特征，异常交易倾向于使用固定的fan_out模式进行分散转出，行为序列的模式切换多样性较低。通过计算模式转移对的唯一数量，</td>
+            <td>0.410</td>
+            <td>0.0326</td>
+            <td>0.0793</td>
+            <td>0.665</td>
+            <td class="positive">+0.0007</td>
+            <td class="positive">+0.0045</td>
+            <td class="negative">-0.0032</td>
+            <td>100</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td class="feature-name">mode_switch_frequency_trend_sender</td>
+            <td>洗钱账户在操作过程中，为了快速完成资金转移并规避监测，会不断尝试不同的交易模式，导致模式切换频率逐渐增加。这种时间趋势是区分正常和异常行为的重要序列特征。</td>
+            <td>0.529</td>
+            <td>0.0113</td>
+            <td>0.0315</td>
+            <td>0.235</td>
+            <td class="positive">+0.0006</td>
+            <td class="negative">-0.0020</td>
+            <td class="positive">+0.0033</td>
+            <td>70</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td class="feature-name">cert_tel_mismatch_chain_sender</td>
+            <td>洗钱分子常批量注册钱包，可能使用同一证件但不同手机号（或反之）来规避单一维度的检测。证件-手机号关联数量的比值异常可以揭示这种主体关联层面的异常模式，与已有特征</td>
+            <td>0.353</td>
+            <td>0.0242</td>
+            <td>0.0691</td>
+            <td>0.634</td>
+            <td class="positive">+0.0006</td>
+            <td class="negative">-0.0031</td>
+            <td class="positive">+0.0044</td>
+            <td>117</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td class="feature-name">amount_sudden_change_ratio_sender</td>
+            <td>洗钱分子常通过突然改变金额模式来规避检测，如休眠账户突然大额交易。金额突变比例能捕捉这种异常行为模式。</td>
+            <td>0.586</td>
+            <td>0.0364</td>
+            <td>0.0886</td>
+            <td>0.094</td>
+            <td class="positive">+0.0006</td>
+            <td class="positive">+0.0009</td>
+            <td class="positive">+0.0002</td>
+            <td>112</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td class="feature-name">amount_breakdown_entropy_sender</td>
+            <td>洗钱行为中资金常被拆分成特定金额区间进行转移，金额区间的熵值能反映这种刻意拆分的模式。</td>
+            <td>0.412</td>
+            <td>0.0186</td>
+            <td>0.0603</td>
+            <td>0.578</td>
+            <td class="positive">+0.0005</td>
+            <td class="negative">-0.0011</td>
+            <td class="positive">+0.0022</td>
+            <td>82</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td class="feature-name">hourly_amount_std_ratio_sender</td>
+            <td>线上跑分模式中凌晨时段(20时-1时)交易金额集中在小额(10-1000元)，而白天可能有不同模式。夜间与白天金额波动差异能区分正常和异常账户。</td>
+            <td>0.704</td>
+            <td>0.0238</td>
+            <td>0.0646</td>
+            <td>0.330</td>
+            <td class="positive">+0.0005</td>
+            <td class="positive">+0.0027</td>
+            <td class="negative">-0.0018</td>
+            <td>52</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td class="feature-name">src_peer_change_frequency</td>
+            <td>洗钱行为中，跑分团伙的交易对手通常是固定的（上下家），而正常用户的交易对手会随时间自然变化。通过计算交易对手的更换频率（新对手占总对手的比例）可以区分固定对手的</td>
+            <td>0.343</td>
+            <td>0.0196</td>
+            <td>0.0518</td>
+            <td>0.578</td>
+            <td class="positive">+0.0005</td>
+            <td class="positive">+0.0067</td>
+            <td class="negative">-0.0060</td>
+            <td>131</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td class="feature-name">amount_ratio_volatility_sender</td>
+            <td>洗钱模式中，资金常被拆分成不同金额转出以规避监管，相邻交易金额比值的波动能反映这种刻意拆分的特征。</td>
+            <td>0.363</td>
+            <td>0.0240</td>
+            <td>0.0670</td>
+            <td>0.580</td>
+            <td class="positive">+0.0005</td>
+            <td class="positive">+0.0007</td>
+            <td class="positive">+0.0002</td>
+            <td>107</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td class="feature-name">hour_entropy_sender</td>
+            <td>洗钱机器人通常集中在特定时段交易（如凌晨），导致小时分布熵低；正常用户交易时间分散，熵高。该特征从时间集中度角度补充已有比例类特征，能识别虽然凌晨比例不高但集中</td>
+            <td>0.258</td>
+            <td>0.0194</td>
+            <td>0.0644</td>
+            <td>0.341</td>
+            <td class="positive">+0.0003</td>
+            <td class="positive">+0.0045</td>
+            <td class="negative">-0.0039</td>
+            <td>83</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td class="feature-name">weekend_transaction_ratio_sender</td>
+            <td>洗钱者常在非工作日进行操作以规避监控，周末交易比例异常可反映非正常交易模式。与hour相关特征互补，关注周维度的时间异常。</td>
+            <td>0.469</td>
+            <td>0.0118</td>
+            <td>0.0334</td>
+            <td>0.012</td>
+            <td class="positive">+0.0003</td>
+            <td class="positive">+0.0027</td>
+            <td class="negative">-0.0021</td>
+            <td>80</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td class="feature-name">amount_roundness_ratio_sender</td>
+            <td>洗钱交易（如merchant_laundering、online_laundering）通常涉及固定金额或整数金额，以便于计算佣金和统计流水。正常消费交易（如n</td>
+            <td>0.359</td>
+            <td>0.0073</td>
+            <td>0.0368</td>
+            <td>0.295</td>
+            <td class="positive">+0.0003</td>
+            <td class="positive">+0.0058</td>
+            <td class="negative">-0.0054</td>
+            <td>101</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td class="feature-name">amount_sequence_autocorrelation_sender</td>
+            <td>线上跑分模式中，交易金额呈现规律性特征（10-1000元区间内固定金额），而正常消费的金额序列更随机。自相关系数能有效区分这种规律性模式。</td>
+            <td>0.291</td>
+            <td>0.0248</td>
+            <td>0.0692</td>
+            <td>0.683</td>
+            <td class="positive">+0.0002</td>
+            <td class="positive">+0.0004</td>
+            <td class="positive">+0.0000</td>
+            <td>136</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td class="feature-name">interval_sequence_entropy_sender</td>
+            <td>洗钱跑分账户的交易间隔呈现&#x27;密集爆发+长时间静默&#x27;的交替模式，间隔序列的熵值较高；正常消费账户的间隔相对均匀，熵值较低。</td>
+            <td>0.370</td>
+            <td>0.0233</td>
+            <td>0.0446</td>
+            <td>0.563</td>
+            <td class="positive">+0.0002</td>
+            <td class="positive">+0.0047</td>
+            <td class="negative">-0.0043</td>
+            <td>87</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td class="feature-name">hourly_amount_z_score_variance_sender</td>
+            <td>通过计算每个钱包每小时交易金额的z-score，再计算这些z-score的方差，可以量化该钱包在不同时间段金额行为的『异常稳定性』。如果某个钱包在特定小时的金额</td>
+            <td>0.435</td>
+            <td>0.0126</td>
+            <td>0.0226</td>
+            <td>0.408</td>
+            <td class="positive">+0.0002</td>
+            <td class="negative">-0.0022</td>
+            <td class="positive">+0.0026</td>
+            <td>71</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td class="feature-name">amount_sequence_volatility_sender</td>
+            <td>异常交易中金额波动剧烈，与历史均值偏离过大是金额异常风险的重要指标。通过计算序列化的金额变化率，可以捕捉到短时间内金额大幅波动的异常行为模式。</td>
+            <td>0.441</td>
+            <td>0.0053</td>
+            <td>0.0312</td>
+            <td>0.220</td>
+            <td class="positive">+0.0001</td>
+            <td class="negative">-0.0002</td>
+            <td class="positive">+0.0005</td>
+            <td>72</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td class="feature-name">night_to_total_ratio_rolling_7d_sender</td>
+            <td>线上跑分模式中异常交易集中在20时-1时，class4_laundering集中在0-1时和23时。通过计算深夜时段交易占比的滚动均值，可以识别出近期突然在深夜</td>
+            <td>0.196</td>
+            <td>0.0066</td>
+            <td>0.0305</td>
+            <td>0.659</td>
+            <td class="positive">+0.0001</td>
+            <td class="positive">+0.0045</td>
+            <td class="negative">-0.0044</td>
+            <td>109</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td class="feature-name">inactive_sudden_activation_amount_sender</td>
+            <td>洗钱模式中，休眠账户突然激活并进行交易是典型特征（风险分类：休眠账户突然激活并发生大额交易）。结合激活后的金额行为，能更准确识别异常。</td>
+            <td>0.380</td>
+            <td>0.0087</td>
+            <td>0.0308</td>
+            <td>0.158</td>
+            <td class="positive">+0.0001</td>
+            <td class="negative">-0.0009</td>
+            <td class="positive">+0.0012</td>
+            <td>103</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>26</td>
+            <td class="feature-name">night_concentration_sender</td>
+            <td>线上跑分（模式3）和online_laundering（模式7）都强调凌晨高频交易。正常用户夜间交易分散，而洗钱行为往往在特定时段集中操作。通过夜间交易集中度变</td>
+            <td>0.353</td>
+            <td>0.0247</td>
+            <td>0.0673</td>
+            <td>0.620</td>
+            <td class="positive">+0.0001</td>
+            <td class="negative">-0.0009</td>
+            <td class="positive">+0.0011</td>
+            <td>96</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>27</td>
+            <td class="feature-name">region_cross_bank_ratio_sender</td>
+            <td>商户收款码跑分模式中跨行交易占比高(90%)，且同地区占80%，结合地域和银行双重维度能提高辨别精度。交易地域与账户注册地或常用地严重不符 是风险分类指标。</td>
+            <td>0.303</td>
+            <td>0.0130</td>
+            <td>0.0570</td>
+            <td>0.357</td>
+            <td class="positive">+0.0001</td>
+            <td class="negative">-0.0016</td>
+            <td class="positive">+0.0018</td>
+            <td>109</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>28</td>
+            <td class="feature-name">night_tx_to_receive_ratio_sender</td>
+            <td>计算夜间（22-5时）交易中，转出交易笔数与转入交易笔数的比值。对于正常用户，夜间行为较少，比值可能接近1或偏向转入（如网购）。对于洗钱钱包，夜间是活跃的『转出</td>
+            <td>0.467</td>
+            <td>0.0098</td>
+            <td>0.0308</td>
+            <td>0.477</td>
+            <td class="positive">+0.0001</td>
+            <td class="negative">-0.0018</td>
+            <td class="positive">+0.0020</td>
+            <td>58</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td class="feature-name">amount_interval_interaction_sender</td>
+            <td>根据领域知识，&#x27;休眠账户突然激活并发生大额交易&#x27;是洗钱的重要特征。通过计算每笔交易金额与上一笔交易间隔的乘积或比值，可以量化这种&#x27;长时间等待后的大额交易&#x27;模式。</td>
+            <td>0.287</td>
+            <td>0.0058</td>
+            <td>0.0208</td>
+            <td>0.314</td>
+            <td class="positive">+0.0000</td>
+            <td class="positive">+0.0004</td>
+            <td class="negative">-0.0004</td>
+            <td>92</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td class="feature-name">night_avg_amount_ratio_src</td>
+            <td>夜间交易金额如果显著偏离白天交易金额，可能表明夜间交易有特殊目的（如测试金额或跑分标准金额）。正常用户在夜间的交易金额通常与白天相似或更小，而洗钱交易可能有特定</td>
+            <td>0.374</td>
+            <td>0.0196</td>
+            <td>0.0548</td>
+            <td>0.529</td>
+            <td class="positive">+0.0000</td>
+            <td class="positive">+0.0047</td>
+            <td class="negative">-0.0047</td>
+            <td>87</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>31</td>
+            <td class="feature-name">src_temporal_regularity_score</td>
+            <td>异常交易中regular_large_low_freq模式占比高，意味着交易时间间隔更规律；而正常消费的normal_small_high_freq模式时间间隔</td>
+            <td>0.318</td>
+            <td>0.0292</td>
+            <td>0.0793</td>
+            <td>0.694</td>
+            <td class="positive">+0.0000</td>
+            <td class="positive">+0.0002</td>
+            <td class="negative">-0.0002</td>
+            <td>114</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>32</td>
+            <td class="feature-name">burst_activity_ratio_sender</td>
+            <td>洗钱交易常表现为在短时间内完成大量交易（如线上跑分模式在凌晨20时-1时高频交易），然后账户休眠。这种&#x27;爆发-静默&#x27;模式是洗钱行为的典型特征，与正常用户的规律性</td>
+            <td>0.243</td>
+            <td>0.0070</td>
+            <td>0.0312</td>
+            <td>0.603</td>
+            <td class="negative">-0.0000</td>
+            <td class="positive">+0.0040</td>
+            <td class="negative">-0.0042</td>
+            <td>95</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>33</td>
+            <td class="feature-name">last_n_tx_amount_trend_sender</td>
+            <td>small_amount_testing模式中先进行0.01-0.1元的小额测试，随后进行大额交易。这种从小到大的金额变化趋势是洗钱的典型特征。通过最近交易的金</td>
+            <td>0.538</td>
+            <td>0.0262</td>
+            <td>0.0707</td>
+            <td>0.371</td>
+            <td class="negative">-0.0000</td>
+            <td class="negative">-0.0009</td>
+            <td class="positive">+0.0008</td>
+            <td>64</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>34</td>
+            <td class="feature-name">amount_sudden_spike_sender</td>
+            <td>洗钱行为中休眠账户突然激活并发生大额交易，或正常账户突然收到大额资金后立即转出，金额突变能反映这种异常行为。</td>
+            <td>0.213</td>
+            <td>0.0117</td>
+            <td>0.0492</td>
+            <td>0.654</td>
+            <td class="negative">-0.0000</td>
+            <td class="negative">-0.0011</td>
+            <td class="positive">+0.0011</td>
+            <td>108</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>35</td>
+            <td class="feature-name">src_amount_peak_to_median_ratio</td>
+            <td>线上跑分和商户跑分模式中，交易金额集中在10-1000元（异常中位数更高），且因模式固定，峰值与中位数接近；正常消费有少量大额拉高均值，导致峰值与中位数差异大。</td>
+            <td>0.344</td>
+            <td>0.0110</td>
+            <td>0.0374</td>
+            <td>0.447</td>
+            <td class="negative">-0.0000</td>
+            <td class="negative">-0.0013</td>
+            <td class="positive">+0.0013</td>
+            <td>91</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>36</td>
+            <td class="feature-name">amount_direction_consistency_sender</td>
+            <td>洗钱跑分中，资金从同一账户以相近金额分散转出（如固定佣金比例），导致fan_out交易中金额标准差显著低于其他模式；正常交易中不同模式的金额变异差异不大。</td>
+            <td>0.521</td>
+            <td>0.0232</td>
+            <td>0.0634</td>
+            <td>0.363</td>
+            <td class="negative">-0.0001</td>
+            <td class="negative">-0.0025</td>
+            <td class="positive">+0.0023</td>
+            <td>63</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>37</td>
+            <td class="feature-name">amount_clustering_anomaly_score_sender</td>
+            <td>洗钱交易常表现为金额集中在特定阈值附近（如接近限额），而非自然分散。通过KL散度可以量化单个钱包的金额分布与全局正常分布的偏离程度，识别出金额分布异常聚集的钱包</td>
+            <td>0.369</td>
+            <td>0.0326</td>
+            <td>0.0793</td>
+            <td>0.526</td>
+            <td class="negative">-0.0001</td>
+            <td class="negative">-0.0042</td>
+            <td class="positive">+0.0040</td>
+            <td>111</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>38</td>
+            <td class="feature-name">src_weekend_volume_ratio</td>
+            <td>洗钱行为可能集中在周末以规避工作日监管，或在工作日伪装正常交易。周末金额占比能反映时间偏好差异。</td>
+            <td>0.340</td>
+            <td>0.0110</td>
+            <td>0.0300</td>
+            <td>0.388</td>
+            <td class="negative">-0.0001</td>
+            <td class="negative">-0.0002</td>
+            <td class="positive">+0.0000</td>
+            <td>91</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>39</td>
+            <td class="feature-name">amount_reversal_ratio_sender</td>
+            <td>线下跑分模式（模式2）的核心特征是收到大额后立即转出。通过识别交易序列中金额方向反转的模式（先收大额后发小额），能有效捕捉洗钱行为。</td>
+            <td>0.286</td>
+            <td>0.0191</td>
+            <td>0.0606</td>
+            <td>0.583</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0011</td>
+            <td class="positive">+0.0008</td>
+            <td>103</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>40</td>
+            <td class="feature-name">mode_repeat_cycle_length_sender</td>
+            <td>根据洗钱模式中的&#x27;线上跑分&#x27;和&#x27;商户收款码跑分&#x27;，异常交易通常采用固定的操作模式反复进行（如连续多次fan_out转出），形成规律性的行为序列。通过计算连续相同</td>
+            <td>0.196</td>
+            <td>0.0116</td>
+            <td>0.0491</td>
+            <td>0.642</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0025</td>
+            <td class="positive">+0.0022</td>
+            <td>94</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>41</td>
+            <td class="feature-name">amount_consecutive_increase_sender</td>
+            <td>洗钱模式中，犯罪分子会先进行小额测试交易（small_amount_testing），确认安全后再逐步增大金额。这种金额递增的序列模式在正常交易中很少出现。连续</td>
+            <td>0.291</td>
+            <td>0.0096</td>
+            <td>0.0298</td>
+            <td>0.254</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0040</td>
+            <td class="positive">+0.0037</td>
+            <td>119</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>42</td>
+            <td class="feature-name">workday_weekend_amount_ratio_src</td>
+            <td>根据正常交易模式&#x27;normal_small_high_freq&#x27;对应日常消费，周末消费模式与工作日不同。而洗钱活动通常不受工作日限制，周末也可能进行大量交易。工</td>
+            <td>0.285</td>
+            <td>0.0106</td>
+            <td>0.0304</td>
+            <td>0.461</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0047</td>
+            <td class="positive">+0.0043</td>
+            <td>103</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>43</td>
+            <td class="feature-name">night_hour_transaction_ratio</td>
+            <td>创建这个特征是为了捕捉钱包在夜间(20-1时)的交易活跃度。根据领域知识，线上跑分和class4_laundering都集中在深夜时段。正常用户的夜间交易比例通</td>
+            <td>0.581</td>
+            <td>0.0347</td>
+            <td>0.0859</td>
+            <td>0.521</td>
+            <td class="negative">-0.0003</td>
+            <td class="negative">-0.0020</td>
+            <td class="positive">+0.0015</td>
+            <td>49</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>44</td>
+            <td class="feature-name">night_ratio_receiver</td>
+            <td>线上跑分模式中，交易集中在20时-1时，收款方在此时段接收大量交易。与is_night_hour_From不同，本特征是聚合统计，能更稳定地识别收款方的夜间活动</td>
+            <td>0.318</td>
+            <td>0.0044</td>
+            <td>0.0212</td>
+            <td>0.084</td>
+            <td class="negative">-0.0003</td>
+            <td class="negative">-0.0029</td>
+            <td class="positive">+0.0024</td>
+            <td>77</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>45</td>
+            <td class="feature-name">src_consecutive_small_amount_ratio</td>
+            <td>small_amount_testing 模式中，金额0.01-0.1元，休眠账户突然激活后先进行小额测试。洗钱者常使用连续小额交易测试账户功能，这种行为在正常</td>
+            <td>0.238</td>
+            <td>0.0255</td>
+            <td>0.0745</td>
+            <td>0.667</td>
+            <td class="negative">-0.0003</td>
+            <td class="positive">+0.0016</td>
+            <td class="negative">-0.0022</td>
+            <td>140</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>46</td>
+            <td class="feature-name">src_dst_device_overlap_ratio</td>
+            <td>数字人民币洗钱模式中，线下跑分和线上跑分都涉及团伙作案，同一设备可能被多个钱包使用。受害者模式中，诱导模式设备IP一致（同一设备控制多个钱包）。通过计算src与</td>
+            <td>0.326</td>
+            <td>0.0323</td>
+            <td>0.0839</td>
+            <td>0.488</td>
+            <td class="negative">-0.0003</td>
+            <td class="positive">+0.0011</td>
+            <td class="negative">-0.0017</td>
+            <td>123</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>47</td>
+            <td class="feature-name">top_counterparty_time_cluster_score_sender</td>
+            <td>洗钱行为通常需要快速完成资金转移，与固定对手的交易在时间上会高度集中。通过计算与主要交易对手的交易在时间上的聚集程度（例如，交易间隔的变异系数倒数），可以量化这</td>
+            <td>0.432</td>
+            <td>0.0126</td>
+            <td>0.0322</td>
+            <td>0.359</td>
+            <td class="negative">-0.0003</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0004</td>
+            <td>64</td>
+            <td>pending_pool</td>
+        </tr>
+        <tr>
+            <td>48</td>
+            <td class="feature-name">dst_diversity_temporal_sender</td>
+            <td>线上跑分和线下跑分模式中，资金快速分散到多个收款方，形成 fan_out 模式。通过统计短时间内转向不同收款方的数量，可以识别这种快速分散的洗钱行为。</td>
+            <td>0.251</td>
+            <td>0.0043</td>
+            <td>0.0235</td>
+            <td>0.277</td>
+            <td class="negative">-0.0003</td>
+            <td class="positive">+0.0036</td>
+            <td class="negative">-0.0043</td>
+            <td>126</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>49</td>
+            <td class="feature-name">mode_sequence_reversal_rate_sender</td>
+            <td>洗钱行为通常遵循固定模式（如持续fan_out分散转出），较少出现模式反转。正常交易行为（如消费、转账）的模式序列更随机，反转更频繁。低反转率是异常信号。</td>
+            <td>0.281</td>
+            <td>0.0081</td>
+            <td>0.0217</td>
+            <td>0.459</td>
+            <td class="negative">-0.0004</td>
+            <td class="positive">+0.0022</td>
+            <td class="negative">-0.0031</td>
+            <td>84</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>50</td>
+            <td class="feature-name">hourly_amount_peak_ratio_src</td>
+            <td>线上跑分（模式3）在20时-1时高频交易，金额10-1000元；线下跑分（模式2）大额转入后立即转出。这些模式会导致金额在特定时段高度集中，而正常消费的金额分布</td>
+            <td>0.195</td>
+            <td>0.0093</td>
+            <td>0.0334</td>
+            <td>0.660</td>
+            <td class="negative">-0.0004</td>
+            <td class="positive">+0.0009</td>
+            <td class="negative">-0.0018</td>
+            <td>100</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>51</td>
+            <td class="feature-name">time_regularity_score_sender</td>
+            <td>正常模式中的regular_large_low_freq有固定时间间隔(1H-3天)，而洗钱模式(如线上跑分)的交易时间更随机。时间间隔的变异系数能区分规律性交</td>
+            <td>0.320</td>
+            <td>0.0321</td>
+            <td>0.0849</td>
+            <td>0.667</td>
+            <td class="negative">-0.0004</td>
+            <td class="positive">+0.0049</td>
+            <td class="negative">-0.0058</td>
+            <td>94</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>52</td>
+            <td class="feature-name">fan_out_to_single_ratio_change_sender</td>
+            <td>洗钱账户为了规避监管，会交替使用不同的交易模式，如先进行fan_out分散转出再通过single单笔转出洗白资金。这种模式切换的频率和幅度是区分正常和异常行为的</td>
+            <td>0.180</td>
+            <td>0.0089</td>
+            <td>0.0250</td>
+            <td>0.574</td>
+            <td class="negative">-0.0004</td>
+            <td class="positive">+0.0000</td>
+            <td class="negative">-0.0009</td>
+            <td>97</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>53</td>
+            <td class="feature-name">night_to_day_amount_ratio_sender</td>
+            <td>洗钱分子为了规避监管常在非工作时间（夜间）进行大额资金转移，而正常用户在夜间的交易通常是小额消费。夜间交易金额占比能有效区分这种异常行为模式。</td>
+            <td>0.415</td>
+            <td>0.0316</td>
+            <td>0.0814</td>
+            <td>0.127</td>
+            <td class="negative">-0.0005</td>
+            <td class="negative">-0.0051</td>
+            <td class="positive">+0.0044</td>
+            <td>119</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>54</td>
+            <td class="feature-name">region_concentration_sender</td>
+            <td>洗钱模式4（商户收款码跑分）中，商户钱包大量收款后转至个人钱包，资金可能集中在少数地区。风险分类指标中&#x27;收款方地域信息&#x27;和&#x27;交易地域与账户常用地严重不符&#x27;是重要</td>
+            <td>0.252</td>
+            <td>0.0103</td>
+            <td>0.0461</td>
+            <td>0.244</td>
+            <td class="negative">-0.0005</td>
+            <td class="positive">+0.0029</td>
+            <td class="negative">-0.0040</td>
+            <td>127</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>55</td>
+            <td class="feature-name">dst_night_active_count_src</td>
+            <td>线上跑分模式中，跑分团伙成员通常在凌晨(20时-1时)高频交易，这些成员之间互相转账形成网络。一个钱包如果与多个夜间活跃的对手方交易，其本身参与跑分的嫌疑更高。</td>
+            <td>0.269</td>
+            <td>0.0048</td>
+            <td>0.0226</td>
+            <td>0.290</td>
+            <td class="negative">-0.0005</td>
+            <td class="positive">+0.0004</td>
+            <td class="negative">-0.0016</td>
+            <td>97</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>56</td>
+            <td class="feature-name">hour_mode_correlation_sender</td>
+            <td>线上跑分模式中，fan_out模式集中在20时-1时的凌晨时段，而正常交易中各种模式在各时段分布均匀。通过计算模式与小时的关联强度，可以识别出这种时段-模式绑定</td>
+            <td>0.373</td>
+            <td>0.0230</td>
+            <td>0.0620</td>
+            <td>0.100</td>
+            <td class="negative">-0.0006</td>
+            <td class="negative">-0.0042</td>
+            <td class="positive">+0.0031</td>
+            <td>133</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>57</td>
+            <td class="feature-name">time_interval_autocorr_sender</td>
+            <td>线上跑分和线下跑分模式中，交易通常有规律的时间间隔（如固定时间批量转出），导致时间间隔序列自相关高。正常消费行为的时间间隔更随机，自相关低。高自相关是异常信号。</td>
+            <td>0.291</td>
+            <td>0.0096</td>
+            <td>0.0326</td>
+            <td>0.306</td>
+            <td class="negative">-0.0006</td>
+            <td class="negative">-0.0011</td>
+            <td class="positive">+0.0000</td>
+            <td>90</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>58</td>
+            <td class="feature-name">device_overlap_ratio</td>
+            <td>线下跑分模式中，洗钱团伙会使用同一设备控制多个钱包进行批量转账操作。通过计算钱包交易对手中设备复用比例，可以识别出那些与共享设备的对手频繁交易的可疑钱包。这直接</td>
+            <td>0.253</td>
+            <td>0.0071</td>
+            <td>0.0390</td>
+            <td>0.650</td>
+            <td class="negative">-0.0006</td>
+            <td class="negative">-0.0031</td>
+            <td class="positive">+0.0019</td>
+            <td>73</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>59</td>
+            <td class="feature-name">dst_region_shift_entropy_sender</td>
+            <td>洗钱者常通过跨地域分散转账规避地域监控，对手地域熵值能有效捕捉这种异常模式。与send_concentration不同，它关注地域多样性而非金额集中度。</td>
+            <td>0.029</td>
+            <td>0.0063</td>
+            <td>0.0351</td>
+            <td>0.512</td>
+            <td class="negative">-0.0006</td>
+            <td class="negative">-0.0033</td>
+            <td class="positive">+0.0021</td>
+            <td>94</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>60</td>
+            <td class="feature-name">fan_out_forward_ratio_change_sender</td>
+            <td>根据洗钱模式中的&#x27;线下跑分&#x27;和&#x27;线上跑分&#x27;描述，异常交易倾向于持续使用fan_out模式进行分散转出，很少切换回forward模式。通过计算fan_out-&gt;f</td>
+            <td>0.379</td>
+            <td>0.0115</td>
+            <td>0.0528</td>
+            <td>0.259</td>
+            <td class="negative">-0.0007</td>
+            <td class="negative">-0.0022</td>
+            <td class="positive">+0.0008</td>
+            <td>66</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>61</td>
+            <td class="feature-name">amount_roundness_score_sender</td>
+            <td>洗钱交易常使用整数金额或接近限额的金额以简化计算，金额的规整度能反映这种人为构造的特征。</td>
+            <td>0.198</td>
+            <td>0.0217</td>
+            <td>0.0657</td>
+            <td>0.597</td>
+            <td class="negative">-0.0007</td>
+            <td class="positive">+0.0011</td>
+            <td class="negative">-0.0026</td>
+            <td>110</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>62</td>
+            <td class="feature-name">night_tx_ratio_src</td>
+            <td>线上跑分（模式3）在凌晨20时-1时高频交易，class4_laundering（模式6）在深夜0-1时、23时交易，small_amount_testing（</td>
+            <td>0.190</td>
+            <td>0.0216</td>
+            <td>0.0608</td>
+            <td>0.682</td>
+            <td class="negative">-0.0007</td>
+            <td class="positive">+0.0007</td>
+            <td class="negative">-0.0022</td>
+            <td>114</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>63</td>
+            <td class="feature-name">ip_region_mismatch_flag</td>
+            <td>创建这个特征是为了检测交易IP地址与钱包注册地域是否一致。根据领域知识中的&#x27;victim_laundering&#x27;模式，盗用场景下交易使用的设备IP与账户注册地不</td>
+            <td>0.491</td>
+            <td>0.0288</td>
+            <td>0.0768</td>
+            <td>0.032</td>
+            <td class="negative">-0.0008</td>
+            <td class="positive">+0.0002</td>
+            <td class="negative">-0.0017</td>
+            <td>68</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>64</td>
+            <td class="feature-name">amount_interval_correlation</td>
+            <td>洗钱行为（特别是&#x27;线上跑分&#x27;和&#x27;线下跑分&#x27;）通常表现为在短时间内进行多笔固定金额或相近金额的交易，导致交易金额与时间间隔之间存在特定的关联模式。通过计算每个钱包</td>
+            <td>0.200</td>
+            <td>0.0211</td>
+            <td>0.0687</td>
+            <td>0.039</td>
+            <td class="negative">-0.0008</td>
+            <td class="positive">+0.0029</td>
+            <td class="negative">-0.0046</td>
+            <td>68</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>65</td>
+            <td class="feature-name">amount_roundness_score_sender</td>
+            <td>洗钱行为中，交易金额常呈现&#x27;整数&#x27;特征（如10000、5000、2000等）或接近钱包限额（如4类钱包日限额5000）。通过分析金额的整数程度，可识别异常的资金</td>
+            <td>0.197</td>
+            <td>0.0115</td>
+            <td>0.0398</td>
+            <td>0.311</td>
+            <td class="negative">-0.0008</td>
+            <td class="positive">+0.0020</td>
+            <td class="negative">-0.0038</td>
+            <td>129</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>66</td>
+            <td class="feature-name">fan_out_to_same_opponent_ratio_sender</td>
+            <td>通过计算fan_out交易中，交易次数与唯一对手方数量的比值，可以量化『重复交易』的程度。高比值意味着频繁与相同对手进行fan_out交易，这比单纯的fan_o</td>
+            <td>0.264</td>
+            <td>0.0400</td>
+            <td>0.0881</td>
+            <td>0.698</td>
+            <td class="negative">-0.0009</td>
+            <td class="positive">+0.0004</td>
+            <td class="negative">-0.0022</td>
+            <td>106</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>67</td>
+            <td class="feature-name">amount_sequence_volatility_ratio_sender</td>
+            <td>洗钱行为往往表现为短时间内金额剧烈波动，如收到大额后立即分散转出（模式2：线下跑分），这种局部波动模式与正常交易的平稳波动不同。通过局部与全局波动率的比值，可以</td>
+            <td>0.367</td>
+            <td>0.0358</td>
+            <td>0.0846</td>
+            <td>0.222</td>
+            <td class="negative">-0.0009</td>
+            <td class="negative">-0.0002</td>
+            <td class="negative">-0.0015</td>
+            <td>127</td>
+            <td>pending_pool</td>
+        </tr>
+        <tr>
+            <td>68</td>
+            <td class="feature-name">chain_length_ratio_sender</td>
+            <td>洗钱模式2（线下跑分）中，个人钱包收到大额转入后立即转出，形成短链；模式3（线上跑分）则是分散扇出模式。正常交易中链式转发更常见（如A→B→C的支付链）。链式交</td>
+            <td>0.179</td>
+            <td>0.0207</td>
+            <td>0.0744</td>
+            <td>0.635</td>
+            <td class="negative">-0.0009</td>
+            <td class="positive">+0.0022</td>
+            <td class="negative">-0.0042</td>
+            <td>108</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>69</td>
+            <td class="feature-name">src_sleep_activation_flag</td>
+            <td>领域知识明确提到&#x27;休眠账户(&gt;=90天)突然激活&#x27;是风险模式small_amount_testing的特征，且&#x27;账户状态&#x27;风险指标也强调&#x27;休眠账户突然激活并发生</td>
+            <td>0.106</td>
+            <td>0.0056</td>
+            <td>0.0259</td>
+            <td>0.413</td>
+            <td class="negative">-0.0011</td>
+            <td class="negative">-0.0038</td>
+            <td class="positive">+0.0019</td>
+            <td>149</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>70</td>
+            <td class="feature-name">fan_out_amount_volatility_sender</td>
+            <td>洗钱者在进行fan_out分散转出时，为了快速完成资金转移并保持隐蔽，通常会等额或近似等额地转出资金，导致fan_out交易的金额变异系数较低。正常用户的fan</td>
+            <td>0.177</td>
+            <td>0.0105</td>
+            <td>0.0226</td>
+            <td>0.460</td>
+            <td class="negative">-0.0011</td>
+            <td class="positive">+0.0004</td>
+            <td class="negative">-0.0026</td>
+            <td>88</td>
+            <td>direct</td>
+        </tr>
+        <tr>
+            <td>71</td>
+            <td class="feature-name">hourly_mode_switch_rate_sender</td>
+            <td>洗钱行为往往在特定时段（如凌晨）使用特定交易模式（如fan_out），而在其他时段可能切换为正常模式。这种模式切换的节奏性可以帮助识别异常行为。正常用户的模式切</td>
+            <td>0.110</td>
+            <td>0.0111</td>
+            <td>0.0423</td>
+            <td>0.503</td>
+            <td class="negative">-0.0012</td>
+            <td class="negative">-0.0051</td>
+            <td class="positive">+0.0027</td>
+            <td>86</td>
+            <td>direct</td>
+        </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2 class="explainability-section">Top 10 特征可解释性</h2>
+    
+    <div class="feat-detail">
+        <h4>#1 transaction_mode_sequence_entropy_sender</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">根据数字人民币洗钱模式，线上跑分（模式3）和商户收款码跑分（模式4）都涉及大量fan_out（分散转出）交易，导致交易模式序列的多样性降低。通过计算交易模式序列的熵值，可以有效识别这种异常模式偏好。</p>
+        <div class="meta">
+    <span>IV=0.0223</span>
+    <span>KS=0.0646</span>
+    <span>ΔF1=+0.0013</span>
+    <span>ΔRecall=+0.0047</span>
+    <span>SHAP#86</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>0-0.5</b>: 交易模式高度集中，钱包几乎只使用一种交易模式（如全是fan_out），可能为洗钱账户或特定自动化脚本操作</dd><dd><b>0.5-1.0</b>: 交易模式多样性较低，存在明显偏好，线上跑分模式（模式3）或商户收款码跑分（模式4）的典型特征</dd><dd><b>1.0-1.5</b>: 交易模式多样性正常，混合使用多种交易模式，符合正常用户行为特征</dd><dd><b>1.5-2.32</b>: 交易模式高度多样，钱包频繁切换多种交易模式，可能为正常活跃用户或存在异常分散行为</dd><dt>风险阈值</dt><dd>高风险阈值为 0.5121（异常交易75%分位数）。选择依据：异常交易的中位数（0.7011）和75%分位数（0.5121）均低于正常交易，说明异常交易的模式熵值整体偏低。当熵值低于0.5121时，意味着该钱包的交易模式多样性低于75%的异常账户，应触发警报。</dd><dt>协同特征</dt><dd>fan_out_ratio（fan_out交易占比）, night_transaction_ratio（凌晨交易占比）, small_amount_testing_flag（小额测试交易标记）</dd><dt>误判场景</dt><dd>[&#x27;新注册的商户钱包：由于业务刚启动，可能仅使用fan_out模式进行收款，导致熵值偏低，但属于正常经营行为&#x27;, &#x27;定期定额理财账户：用户设置自动定投后，交易模式长期保持single模式，熵值接近0，但无洗钱风险&#x27;, &#x27;单一用途的福利发放钱包：企业批量发放红包时仅使用fan_out模式，交易模式单一但无异常&#x27;]</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#2 amount_surge_ratio</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">线下跑分模式中，个人钱包收到大额转入后立即转出，金额接近限额，导致单笔金额远超该钱包历史均值。正常交易金额波动更平缓。</p>
+        <div class="meta">
+    <span>IV=0.0223</span>
+    <span>KS=0.0720</span>
+    <span>ΔF1=+0.0012</span>
+    <span>ΔRecall=-0.0013</span>
+    <span>SHAP#75</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>0.00 - 0.05</b>: 金额突增比例极低，该钱包几乎每笔交易金额都接近其历史平均水平，交易模式非常稳定，属于典型的正常消费或固定收支行为。</dd><dd><b>0.05 - 0.15</b>: 金额突增比例在正常范围内，偶尔会出现金额高于历史均值2倍的情况，可能是正常的大额消费、工资入账或朋友转账，属于大多数正常钱包的典型表现。</dd><dd><b>0.15 - 0.30</b>: 金额突增比例偏高，约15%-30%的交易金额显著偏离历史均值。可能是经营类账户（收入/支出波动大），或存在一定程度的异常交易（如跑分、洗钱），需要结合其他特征判断。</dd><dd><b>0.30 - 0.50</b>: 金额突增比例较高，近1/3到1/2的交易金额远超历史均值。高度可疑，尤其是当这些突增交易集中在短时间内发生，极有可能是线下跑分模式中&#x27;快进快出&#x27;的典型行为。</dd><dd><b>&gt; 0.50</b>: 金额突增比例极高，超过一半的交易金额都远高于历史均值。几乎可以确定该钱包的交易模式发生了根本性改变，极大概率是洗钱账户，建议立即冻结并启动调查。</dd><dt>风险阈值</dt><dd>{&#x27;threshold&#x27;: 0.2, &#x27;justification&#x27;: &#x27;选择0.20作为高风险阈值，基于以下三个原因：1) 正常钱包的中位数是0.10，均值是0.11，75分位是0.20，说明75%的正常钱包该特征值≤0.20；2) 异常钱包的中位数是0.068，均值是0.098，75分位是0.182，说明超过0.20后异常比例显著上升；3) 该阈值在业务上也有意义——如果一个钱包有超过20%的交易金额都远超历史均值，说明其交易行为已经出现系统性异常，而非偶发事件。&#x27;}</dd><dt>协同特征</dt><dd>{&#x27;recommended_features&#x27;: [&#x27;transaction_frequency_From&#x27;, &#x27;avg_inactive_period_From&#x27;, &#x27;From_To_Ratio&#x27;, &#x27;S_src_counterparty_index&#x27;], &#x27;synergy_explanation&#x27;: &quot;1) 与transaction_frequency_From配合：金额突增+交易频率激增，是跑分账户的典型双指标异常，比单一特征更可靠。2) 与avg_inactive_period_From配合：金额突增+平均交易间隔显著缩短（如从几天缩短到几分钟），说明账户从休眠状态突然活跃，是洗钱账户激活的典型模式。3) 与From_To_Ratio配合：金额突增+转出/转入比&gt;1，说明该钱包在&#x27;收大钱、转小钱&#x27;，符合洗钱账户的资金漏斗特征。4) 与S_src_counterparty_index配合：金额突增+交易对手数量激增，说明该钱包突然开始与大量陌生账户交易，是&#x27;跑分&#x27;网络的典型特征。&quot;}</dd><dt>误判场景</dt><dd>{&#x27;case_1&#x27;: &#x27;季节性大额消费：例如双十一、618等购物节期间，用户集中购买高价商品（如家电、电子产品），导致单笔金额远超平时的小额消费均值，但这是正常的周期性消费行为。&#x27;, &#x27;case_2&#x27;: &#x27;工资入账或奖金发放：个人钱包突然收到大额工资或年终奖，金额远超日常转账均值，但这是正常的收入行为，后续资金会正常消费或理财。&#x27;, &#x27;case_3&#x27;: &#x27;二手交易平台：用户偶尔出售高价值二手物品（</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#3 src_fan_out_depth</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">异常交易中fan_out模式占比高，且领域知识中&#x27;线上跑分&#x27;模式明确提到&#x27;分散转出(fan_out)模式&#x27;。通过计算每个钱包的对手中，有多少也表现出fan_out行为（即对手也有多个下游），可以捕捉多层分散的资金链路特征。</p>
+        <div class="meta">
+    <span>IV=0.0061</span>
+    <span>KS=0.0318</span>
+    <span>ΔF1=+0.0010</span>
+    <span>ΔRecall=+0.0004</span>
+    <span>SHAP#103</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd>该特征表示一个钱包在资金流出时，其下游接收方（直接交易对手）作为发送方时的平均下游分散程度。具体来说：特征值约为13-14表示中等水平的资金分散深度，值越高说明资金经过该钱包后，下游钱包继续向外分散的程度越深，资金链路越长。正常交易和异常交易的中位数分别为13.68和13.53，差异很小，说明该特征在区分正常与异常方面能力有限。</dd><dt>风险阈值</dt><dd>由于正常与异常分布的差异极小（KS=0.0318），没有明显的自然分界点。建议不使用单一阈值判断，而是将特征值&gt;15.32（异常交易的75分位）作为辅助参考阈值，此时仅有约25%的异常交易被覆盖，但同时也会有约25%的正常交易被误判。该阈值的选择依据是异常交易的上四分位数，但实际区分能力很弱。</dd><dt>协同特征</dt><dd>建议与以下特征配合使用：1) &#x27;transaction_mode&#x27;（交易模式），直接识别fan_out模式；2) &#x27;send_concentration&#x27;（发送集中度），高分散深度+低发送集中度更符合跑分模式；3) &#x27;hour&#x27;（交易小时），结合凌晨交易时段可增强对线上跑分模式的识别。这些特征的组合能弥补该特征单独区分能力不足的问题。</dd><dt>误判场景</dt><dd>1) 正常的大型商户钱包，其下游可能是众多分销商或零售商，这些下游钱包也会继续向下游支付，导致较高的分散深度；2) 正常的资金归集场景，如电商平台收款后向众多供应商付款，形成多层分散结构；3) 正常的工资代发场景，企业向员工发薪，员工再向各自供应商付款。</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#4 amount_dispersion_ratio</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">异常交易常通过混合不同金额的交易来掩盖其真实意图，导致金额分布偏离正态分布。均值与中位数的比值（离散比率）能有效衡量这种偏斜。高离散比率意味着存在极端值，这与&#x27;线下跑分&#x27;模式（个人钱包收到大额转入后立即转出）或&#x27;线上跑分&#x27;模式（分散转出，金额10-1000元）中的金额分布特征相符。</p>
+        <div class="meta">
+    <span>IV=0.0179</span>
+    <span>KS=0.0554</span>
+    <span>ΔF1=+0.0009</span>
+    <span>ΔRecall=-0.0020</span>
+    <span>SHAP#58</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>≈1</b>: 金额分布均匀，均值与中位数接近，通常为正常交易模式，如regular_large_low_freq或normal_small_high_freq</dd><dd><b>&gt;1且&lt;1.5</b>: 轻微偏斜，可能存在少量大额交易或小额测试交易，常见于正常消费结合偶尔大额转账</dd><dd><b>&gt;1.5且&lt;3</b>: 中等偏斜，可能存在&#x27;线上跑分&#x27;模式（分散转出10-1000元）或&#x27;线下跑分&#x27;模式（大额转入后立即转出），需关注交易对手和时段</dd><dd><b>&gt;3</b>: 高度偏斜，强烈提示异常交易模式，如&#x27;薅羊毛&#x27;批量小额交易叠加单笔大额转移，或&#x27;商户收款码跑分&#x27;中的佣金抽取行为</dd><dd><b>&lt;0.5</b>: 均值远小于中位数（罕见），可能为大量小额测试交易（small_amount_testing模式）或数据异常</dd><dt>风险阈值</dt><dd>高风险阈值设为1.5。依据：正常交易75%分位为1.6399，但异常交易中位数仅1.0694且75%分位为1.4857，说明正常交易中也有部分偏斜。取1.5作为阈值可以覆盖异常交易中75%以上的高偏斜样本，同时避免将正常交易的尾部误判。IV=0.0179说明该特征区分度中等，需配合其他特征使用</dd><dt>协同特征</dt><dd>hour（交易时段）, transaction_mode=fan_out（分散转出模式）, Receive_Send_Ratio（收付比）</dd><dt>误判场景</dt><dd>[&#x27;正常用户偶尔大额消费：如购买电子产品（单笔5000元）后连续多笔小额日常消费（50-100元），均值被拉高，中位数保持低位，导致比值&gt;1.5&#x27;, &#x27;新钱包初期交易：刚激活的钱包仅有2-3笔交易（如1笔大额充值+1笔小额消费），均值受极端值影响大，比值偏高&#x27;, &#x27;商户收款场景：商户钱包日常收款金额波动大（如餐饮店既有几元的饮料也有几百元的套餐），均值与中位数差异明显&#x27;, &#x27;红包/优惠活动：参与薅</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#5 mode_chain_length_sender</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">线上跑分模式中，交易模式通常为连续的fan_out（分散转出），链条越长越可疑。参考领域知识中&#x27;线下跑分&#x27;和&#x27;线上跑分&#x27;模式，均涉及连续分散转出行为。</p>
+        <div class="meta">
+    <span>IV=0.0307</span>
+    <span>KS=0.0789</span>
+    <span>ΔF1=+0.0009</span>
+    <span>ΔRecall=-0.0069</span>
+    <span>SHAP#95</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd>该特征表示一个钱包在其交易历史中，连续出现相同交易模式（如 fan_out）的最大链条长度。值越低（如0-10）通常代表交易模式切换频繁，行为更接近正常用户；值中等（如10-30）代表有一定规律性但未达异常阈值；值较高（如30-60）代表持续使用同一种交易模式，可能存在自动化交易或跑分行为；值很高（&gt;60）代表高度机械化的交易模式，洗钱嫌疑显著增大。</dd><dt>风险阈值</dt><dd>高风险阈值为 40。判断依据：1) 异常交易的中位数（26）和75%分位（43）均高于正常交易的中位数（21）和75%分位（40），表明异常钱包的链条长度整体偏长；2) 在40这个阈值处，异常交易中有约25%的钱包超过此值，而正常交易中仅有约25%超过，区分度较好；3) 结合领域知识中&#x27;线上跑分&#x27;模式的特征（连续fan_out、凌晨高频交易），链条长度超过40意味着至少连续40笔交易保持相同模式，这已远超正常消费行为的规律性。</dd><dt>协同特征</dt><dd>建议与以下特征配合使用：
+1. **night_transaction_ratio**（凌晨交易占比）：线上跑分通常在深夜进行，两者结合可精准识别&#x27;长时间连续fan_out + 深夜交易&#x27;的高危组合。
+2. **unique_outdegree**（唯一对手数）：跑分模式中虽然连续fan_out，但对手数量可能有限（固定跑分团伙），链条长但对手少是典型特征。
+3. **avg_inactive_period**（平均静默期）：跑分钱包的交易间隔通常很短（秒级或分钟级），链条长+间隔短是自动化脚本的典型特征。
+4. **S_counterparty_index**（对手集中度指数）：跑分账户的对手集中度通常偏低（分散转出），但结合链条长度可区分&#x27;正常高频消费&#x27;与&#x27;跑分分散转出&#x27;。</dd><dt>误判场景</dt><dd>以下正常场景可能误判：
+1. **商户日常收款**：商户钱包每天大量收款（fan_in模式），如果持续多天使用同一模式收款，链条长度可能很高，但这是正常经营行为。
+2. **自动还款/代扣服务**：如水电煤代扣、信用卡自动还款，每月固定时间固定金额转出，链条长度可能累积很长，但属于正常场景。
+3. **工资代发账户**：企业钱包每月固定时间向员工集中转账（fan_out模式），链条长度随月份累积。</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#6 hourly_amount_skewness_src</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">洗钱行为（如线上跑分模式3、class4_laundering模式6）通常集中在特定时段进行交易，且金额分布不均匀（大部分交易金额接近，但偶尔有异常大额或小额交易），导致小时级平均金额的分布呈现偏斜。正常消费行为的金额在时间上分布更均匀。</p>
+        <div class="meta">
+    <span>IV=0.0108</span>
+    <span>KS=0.0516</span>
+    <span>ΔF1=+0.0008</span>
+    <span>ΔRecall=-0.0029</span>
+    <span>SHAP#69</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>负值区间（-2 ~ -0.5）</b>: 小时平均金额分布左偏，即大部分小时的平均交易金额偏低，但个别小时有特别低的异常值。异常钱包在此区间集中（中位数-0.088），表明洗钱钱包倾向于在少数特定时段进行大额交易，其他时段交易极少或为零，造成左偏分布。</dd><dd><b>接近零区间（-0.5 ~ 0.5）</b>: 小时平均金额分布接近对称，各小时交易金额相对均衡。正常钱包集中在此区间（中位数0.041），表明日常消费行为在时间上分布较为均匀。</dd><dd><b>正值区间（0.5 ~ 2）</b>: 小时平均金额分布右偏，即大部分小时的平均交易金额偏低，但个别小时有特别高的异常值。可能反映正常用户的偶尔大额消费（如节日购物），但若值过大且伴随其他异常特征，也可能指向洗钱行为。</dd><dt>风险阈值</dt><dd>{&#x27;threshold&#x27;: -0.5, &#x27;rationale&#x27;: &#x27;异常钱包的中位数为-0.088，且25%分位为-0.766，即约25%的异常钱包偏度小于-0.766。取-0.5作为阈值，能覆盖约30%的异常钱包，同时正常钱包中仅有约25%低于此值（正常25%分位为-0.709），具有较好的区分能力。该阈值与领域知识一致：洗钱行为（线上跑分、class4洗钱）通常在特定时段集中交易，导致小时平均金额左偏。&#x27;, &#x27;indicator&#x27;: &#x27;当 hourly_amount_skewness_src &lt; -0.5 时，该钱包的小时平均金额分布异常左偏，应列为可疑对象进一步核查&#x27;}</dd><dt>协同特征</dt><dd>is_night_hour_From, transaction_frequency_From, large_transaction_ratio</dd><dt>误判场景</dt><dd>[&#x27;定时自动转账：用户设置了每月固定日期的自动还款/转账，导致该小时平均金额显著高于其他小时，造成左偏。这类用户通常有规律的生活作息，可通过检查交易对手是否固定、交易是否定期等进一步排除。&#x27;, &#x27;季节性大额消费：如双11购物节、春节红包等集中消费场景，用户可能在1-2小时内进行多笔大额交易，导致小时平均金额偏斜。这类情况通常伴随正常的消费场景和交易对手。&#x27;, &#x27;新开户用户：刚开户的用户交易记录少，</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#7 hourly_amount_cv_src</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">线上跑分和商户收款码跑分模式中，交易金额集中在10-1000元固定区间，导致每小时交易金额的变异系数偏低。</p>
+        <div class="meta">
+    <span>IV=0.0251</span>
+    <span>KS=0.0700</span>
+    <span>ΔF1=+0.0007</span>
+    <span>ΔRecall=+0.0029</span>
+    <span>SHAP#139</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>0-0.45</b>: 每小时交易金额非常稳定，变异系数极低，强烈提示存在固定金额的自动化交易模式，如线上跑分或商户收款码跑分洗钱行为</dd><dd><b>0.45-0.60</b>: 每小时交易金额较为稳定，有一定洗钱嫌疑，需结合其他特征进一步判断</dd><dd><b>0.60-0.82</b>: 正常用户常见区间，每小时交易金额存在合理波动，对应正常消费或转账行为</dd><dd><b>0.82以上</b>: 每小时交易金额波动剧烈，可能对应大额零散交易或存在金额分散转移行为，需结合交易对手特征判断</dd><dt>风险阈值</dt><dd>0.6</dd><dt>协同特征</dt><dd>transaction_frequency_From, is_night_hour_From, large_transaction_ratio</dd><dt>误判场景</dt><dd>[&#x27;定期自动缴费用户：如每月固定日期固定金额缴纳水电煤、话费等，每小时交易金额高度稳定&#x27;, &#x27;固定薪资发放账户：企业定期向员工发放工资，每笔金额相同，导致小时级CV偏低&#x27;, &#x27;自动理财定投用户：每日或每周固定金额自动转入理财产品&#x27;, &#x27;商户固定收款场景：如自动售货机、停车场等每小时产生固定金额的收款交易&#x27;]</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#8 dst_night_inflow_concentration_src</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">线上跑分模式中，中间层钱包在夜间集中接收来自多个上游账户的资金，然后快速分散转出。夜间收款比例高是洗钱账户的典型特征。</p>
+        <div class="meta">
+    <span>IV=0.0058</span>
+    <span>KS=0.0289</span>
+    <span>ΔF1=+0.0007</span>
+    <span>ΔRecall=-0.0022</span>
+    <span>SHAP#85</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd><b>0-0.005</b>: 正常夜间收款比例。绝大多数正常钱包的夜间收款金额占总收款金额的比例极低（中位数0.002），符合日常消费行为特征</dd><dd><b>0.005-0.5</b>: 夜间收款比例略高。可能涉及少量夜间消费或跨时区交易，需要结合其他特征进一步观察</dd><dd><b>0.5-1.0</b>: 夜间收款比例显著偏高。超过50%的收款发生在夜间20点至次日6点，与线上跑分模式的典型行为特征一致</dd><dd><b>=1.0</b>: 所有收款均在夜间完成。高度可疑，极有可能为专门用于夜间洗钱操作的中间层钱包</dd><dt>风险阈值</dt><dd>高风险阈值为 0.5（即夜间收款占比超过50%）。判断依据：1）正常钱包中位数仅0.002，75%分位仅0.0056，说明正常用户几乎不在夜间收款；2）异常钱包的75%分位为0.0061，但均值高达14.1，说明异常钱包中存在大量极端高值；3）结合线上跑分模式领域知识，中间层钱包在夜间集中接收资金是核心行为特征，50%的占比意味着夜间已成为该钱包的主要收款时段</dd><dt>协同特征</dt><dd>fan_out_ratio（分散转出比例）, src_avg_payment_time_diff_From（平均转出时间间隔）, amount_velocity_ratio（资金周转速度）</dd><dt>误判场景</dt><dd>[&#x27;夜间营业的商户钱包：如24小时便利店、夜店、酒吧等，其收款集中在夜间，但交易对手固定、金额符合消费特征，可通过交易对手多样性特征排除&#x27;, &#x27;跨时区个人钱包：如用户与海外亲友有资金往来，对方白天对应本地夜间，可通过交易IP地域特征辅助判断&#x27;, &#x27;夜间自动还款/转账：如设置了夜间自动执行的定期转账，可通过交易间隔规律性特征排除&#x27;]</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#9 mode_transition_diversity_sender</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">根据数字人民币洗钱模式中的&#x27;线上跑分&#x27;特征，异常交易倾向于使用固定的fan_out模式进行分散转出，行为序列的模式切换多样性较低。通过计算模式转移对的唯一数量，可以量化这种多样性的缺失。</p>
+        <div class="meta">
+    <span>IV=0.0326</span>
+    <span>KS=0.0793</span>
+    <span>ΔF1=+0.0007</span>
+    <span>ΔRecall=+0.0045</span>
+    <span>SHAP#100</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd>该特征取值范围为[0,1]，表示钱包交易模式转移的多样性程度。值接近0表示该钱包的交易模式高度单一（如始终使用fan_out模式），值接近1表示模式切换非常多样化。正常交易均值=0.1945，异常交易均值=0.1702，异常交易的模式多样性略低，说明洗钱交易倾向于重复使用固定模式（如持续fan_out分散转出）。</dd><dt>风险阈值</dt><dd>高风险阈值为&lt;0.05，判断依据：(1)异常交易的25%分位=0.0464，即约25%的异常交易该值低于0.05；(2)当模式转移多样性低于0.05时，意味着钱包在超过95%的交易中都在重复使用同一种模式，这符合线上跑分&#x27;固定fan_out模式分散转出&#x27;的特征；(3)正常交易的25%分位=0.0474，两者接近但异常交易在该区间占比更高。</dd><dt>协同特征</dt><dd>建议与以下特征配合使用：(1)send_concentration（发送集中度）——当模式多样性低且发送集中度高时，可能指向&#x27;固定金额分散转出&#x27;的跑分行为；(2)hour的凌晨交易占比——线上跑分通常在凌晨20-1时进行，结合低模式多样性和凌晨交易可提高识别精度；(3)Out_Degree（出度）——低模式多样性+高出度=典型的fan_out跑分模式。</dd><dt>误判场景</dt><dd>以下正常场景可能误判：(1)自动扣费类钱包（如水电费代扣）——始终使用single模式扣款，模式多样性极低但无风险；(2)红包发放类钱包——持续使用fan_out模式发送小额红包，模式单一但属于正常商业行为；(3)工资代发钱包——定期使用forward模式向员工转账，模式固定但合理。</dd></dl>
+    </div>
+    <div class="feat-detail">
+        <h4>#10 mode_switch_frequency_trend_sender</h4>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 8px;">洗钱账户在操作过程中，为了快速完成资金转移并规避监测，会不断尝试不同的交易模式，导致模式切换频率逐渐增加。这种时间趋势是区分正常和异常行为的重要序列特征。</p>
+        <div class="meta">
+    <span>IV=0.0113</span>
+    <span>KS=0.0315</span>
+    <span>ΔF1=+0.0006</span>
+    <span>ΔRecall=-0.0020</span>
+    <span>SHAP#70</span>
+    </div>
+        <dl class="explain-content"><dt>取值含义</dt><dd>该特征表示钱包在交易生命周期中，后半段交易模式切换频率相对于前半段的变化趋势。值越正（&gt;0.05），表示后半段切换频率明显增加，即交易模式越来越不稳定，是异常行为的信号；值接近0（-0.05~0.05），表示前后半段切换频率基本一致，属于正常行为；值越负（&lt;-0.1），表示后半段切换频率明显降低，即交易模式趋于稳定，常见于正常用户的固定场景消费。</dd><dt>风险阈值</dt><dd>高风险阈值建议设为 &gt;0.08。判断依据：异常交易的75分位值为0.0615，而正常交易的75分位值为0.0603，两者非常接近，说明在75分位处区分度不足。但异常交易的均值（-0.0180）高于正常交易（-0.0271），且中位数（-0.0009）明显高于正常交易（-0.0053），说明异常交易整体上更倾向于正向趋势。考虑到IV=0.0113较低，该特征应作为辅助信号而非主信号，选择0.08作为阈值可以捕捉到那些模式切换频率显著加速的极端异常账户，同时避免误伤正常用户。</dd><dt>协同特征</dt><dd>建议与以下特征配合使用：
+1. **transaction_frequency**（交易频率）：洗钱账户通常同时具有高频交易和模式切换增加的特征，两者结合能更准确识别线上跑分模式。
+2. **avg_inactive_period**（平均不活跃间隔）：正常用户如果模式切换增加，通常是因为长时间未使用后重新激活，而洗钱账户的模式切换增加伴随的是不活跃间隔缩短（即频繁操作）。
+3. **send_concentration**（发送集中度）：洗钱账户的fan_out模式会导致发送集中度降低（分散转出），与模式切换增加结合，能识别从集中到分散的转型行为。</dd><dt>误判场景</dt><dd>以下场景可能导致误判：
+1. **新功能体验用户**：用户刚开通数字人民币钱包，前期仅小额测试（一种模式），后期开始正常消费（多种模式），导致后半段切换频率增加。
+2. **季节性消费变化**：如用户平时只用于日常小额支付（模式单一），但在双十一等购物节期间大量使用不同商户钱包（模式多样）。
+3. **账户恢复使用**：用户长期未使用钱包，近期重新激活并尝试不同交易功能（如从仅收款变为也付款）。
+</dd></dl>
+    </div>
+
+    <footer>
+        由 LLM 特征搜索引擎自动生成 | 特征数: 71 | 搜索轮数: N/A
+    </footer>
+</div>
+
+<script>
+function renderBarChart(containerId, labels, values) {
+    const container = document.getElementById(containerId);
+    const maxAbs = Math.max(...values.map(Math.abs), 1);
+    let html = '';
+    for (let i = 0; i < labels.length; i++) {
+        const pct = Math.abs(values[i]) / maxAbs * 80;
+        const cls = values[i] >= 0 ? 'pos' : 'neg';
+        html += `<div class="bar-row">
+            <span class="bar-label">${labels[i]}</span>
+            <div class="bar-track">
+                <div class="bar-fill ${cls}" style="width: ${pct}%">${values[i]}</div>
+            </div>
+        </div>`;
+    }
+    container.innerHTML = html;
+}
+
+renderBarChart('chart-f1', ["transaction_mode_sequence", "amount_surge_ratio", "src_fan_out_depth", "amount_dispersion_ratio", "mode_chain_length_sender", "hourly_amount_skewness_sr", "hourly_amount_cv_src", "dst_night_inflow_concentr", "mode_transition_diversity", "mode_switch_frequency_tre"], [13.1, 11.7, 9.9, 9.4, 9.3, 8.1, 7.4, 7.1, 6.7, 6.1]);
+renderBarChart('chart-recall', ["src_peer_change_frequency", "amount_roundness_ratio_se", "time_regularity_score_sen", "transaction_mode_sequence", "night_avg_amount_ratio_sr", "interval_sequence_entropy", "night_to_total_ratio_roll", "mode_transition_diversity", "hour_entropy_sender", "burst_activity_ratio_send"], [66.9, 58.0, 49.1, 46.9, 46.8, 46.8, 44.6, 44.6, 44.6, 40.1]);
+renderBarChart('chart-island', ["金额频次", "时间地域", "行为序列", "主体关联"], [31, 20, 8, 12]);
+</script>
+</body>
+</html>
