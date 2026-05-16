@@ -133,10 +133,12 @@ def compute_cv_metrics(
     for train_idx, val_idx in cv.split(X_arr, y_arr):
         model = XGBClassifier(**params)
         model.fit(X_arr[train_idx], y_arr[train_idx], verbose=False)
+
+        y_prob_train = model.predict_proba(X_arr[train_idx])[:, 1]
+        thr = _find_best_threshold(y_arr[train_idx], y_prob_train)
+
         y_prob = model.predict_proba(X_arr[val_idx])[:, 1]
         y_val = y_arr[val_idx]
-
-        thr = _find_best_threshold(y_val, y_prob)
         y_pred = (y_prob >= thr).astype(int)
 
         f1_scores.append(f1_score(y_val, y_pred, zero_division=0))
@@ -179,8 +181,9 @@ def compute_delta_metrics(
         if has_base:
             m_base = XGBClassifier(**params)
             m_base.fit(X_base[train_idx], y_arr[train_idx], verbose=False)
+            prob_base_train = m_base.predict_proba(X_base[train_idx])[:, 1]
+            thr_base = _find_best_threshold(y_arr[train_idx], prob_base_train)
             prob_base = m_base.predict_proba(X_base[val_idx])[:, 1]
-            thr_base = _find_best_threshold(y_val, prob_base)
             pred_base = (prob_base >= thr_base).astype(int)
             base_f1.append(f1_score(y_val, pred_base, zero_division=0))
             base_recall.append(recall_score(y_val, pred_base, zero_division=0))
@@ -192,8 +195,9 @@ def compute_delta_metrics(
 
         m_aug = XGBClassifier(**params)
         m_aug.fit(X_aug[train_idx], y_arr[train_idx], verbose=False)
+        prob_aug_train = m_aug.predict_proba(X_aug[train_idx])[:, 1]
+        thr_aug = _find_best_threshold(y_arr[train_idx], prob_aug_train)
         prob_aug = m_aug.predict_proba(X_aug[val_idx])[:, 1]
-        thr_aug = _find_best_threshold(y_val, prob_aug)
         pred_aug = (prob_aug >= thr_aug).astype(int)
         aug_f1.append(f1_score(y_val, pred_aug, zero_division=0))
         aug_recall.append(recall_score(y_val, pred_aug, zero_division=0))
