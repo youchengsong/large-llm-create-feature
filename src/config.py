@@ -96,8 +96,8 @@ class XGBoostParams:
 
 @dataclass
 class LLMConfig:
-    provider: str = "mock"  # openai / gemini / deepseek / local / mock
-    model_name: str = ""
+    provider: str = "deepseek"  # openai / gemini / deepseek / local / mock
+    model_name: str = "deepseek-chat"
     api_key: str = ""
     base_url: str | None = None
     temperature: float = 0.7
