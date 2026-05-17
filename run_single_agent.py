@@ -116,7 +116,17 @@ logger.info(f"  校准结果: IV_min={calibrated_thresholds.iv_min:.6f}, "
 # ============================================================
 # Step 3: 运行单Agent
 # ============================================================
-logger.info("\n[Step 3] 初始化并运行单Agent...")
+logger.info("\n[Step 3] 计算基线CV指标（用于L3验证）...")
+
+from src.evaluation.metrics import compute_cv_metrics
+
+baseline_cv_metrics = compute_cv_metrics(baseline_features, label)
+logger.info(f"  基线CV指标: F1={baseline_cv_metrics.get('f1', 0):.6f}, "
+            f"Recall={baseline_cv_metrics.get('recall', 0):.6f}, "
+            f"PR-AUC={baseline_cv_metrics.get('prauc', 0):.6f}")
+
+# ============================================================
+logger.info("\n[Step 4] 初始化并运行单Agent...")
 
 from src.agent.single_agent import FeatureEngineerAgent
 
@@ -130,6 +140,7 @@ agent = FeatureEngineerAgent(
     label=label,
     baseline_features=baseline_features,
     validation_thresholds=calibrated_thresholds,
+    baseline_metrics=baseline_cv_metrics,
     max_steps=MAX_STEPS,
     max_features=MAX_FEATURES,
     temperature=0.7,

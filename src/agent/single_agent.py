@@ -1,4 +1,4 @@
-"""单Agent特征工程系统：基于ReAct范式的自主特征生成Agent。"""
+"""单Agent特征工程系统：基于ReAct范式，完整复刻原系统逻辑（含SHAP反馈、Pending Pool、岛屿预算）。"""
 
 from __future__ import annotations
 
@@ -8,11 +8,19 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
+import numpy as np
 import pandas as pd
 from openai import OpenAI
 
+from src.config import DEFAULT_CONFIG, ISLANDS, ValidationThresholds
 from src.data.merge import merge_feature_to_transactions
-from src.evaluation.validator import run_l1_validation, run_l2_validation, run_l3_validation
+from src.evaluation.validator import (
+    run_l1_validation,
+    run_l2_validation,
+    run_l3_validation,
+    compute_composite_score,
+    backward_eliminate_pending,
+)
 from src.prompt.domain_knowledge import (
     load_transaction_patterns,
     load_expert_interview,
@@ -20,6 +28,8 @@ from src.prompt.domain_knowledge import (
     load_detection_rules,
     rules_to_python_examples,
 )
+from src.search.shap_feedback import generate_shap_feedback, shap_feedback_to_prompt, compute_island_budgets
+from src.search.pending_pool import PendingPool, PendingFeature
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +112,7 @@ TOOLS = [
         "type": "function",
         "function": {
             "name": "execute_sandbox",
-            "description": "在沙箱中执行特征代码，验证代码正确性和输出格式。返回执行结果或错误信息。",
+            "description": "在沙箱中执行特征代码，验证代码正确性和输出格式。通过后自动进行L2/L3质量评估。",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -169,8 +179,8 @@ class AgentState:
     """Agent的运行状态。"""
     accepted_features: list[dict] = field(default_factory=list)
     failed_features: list[dict] = field(default_factory=list)
-    pending_sandbox: dict[str, dict] = field(default_factory=dict)  # name -> {code, explanation, ...}
-    sandbox_results: dict[str, pd.DataFrame] = field(default_factory=dict)  # name -> feature_df
+    pending_sandbox: dict[str, dict] = field(default_factory=dict)
+    sandbox_results: dict[str, pd.DataFrame] = field(default_factory=dict)
     total_attempts: int = 0
     dimensions_explored: set = field(default_factory=set)
     finished: bool = False
@@ -178,19 +188,20 @@ class AgentState:
 
 
 # ============================================================
-# Single Agent
+# Single Agent (with full original system logic)
 # ============================================================
 
 class FeatureEngineerAgent:
     """
     单Agent特征工程系统。
 
-    使用ReAct范式，通过Tool Use自主决定：
-    1. 检索哪些领域知识
-    2. 探索哪个特征维度
-    3. 生成什么特征代码
-    4. 如何修复失败的代码
-    5. 何时停止生成
+    完整复刻原系统（src/search/engine.py）逻辑：
+    - SHAP反馈驱动维度探索（弱维度获得更多关注）
+    - Pending Pool（L2通过但L3失败的特征进入缓刑池，每轮重新评估）
+    - 岛屿预算分配（基于SHAP重要性反比分配候选数）
+    - Composite Score（30%SHAP + 20%IV + 20%冗余度 + 30%delta_f1）
+    - 失败记忆（避免重复类似失败方向）
+    - 收敛检测（连续2轮无新特征则终止）
     """
 
     def __init__(
@@ -203,14 +214,12 @@ class FeatureEngineerAgent:
         close_df: pd.DataFrame = None,
         label: pd.Series = None,
         baseline_features: pd.DataFrame = None,
-        max_steps: int = 50,
-        max_features: int = 20,
+        max_steps: int = 250,
+        max_features: int = 30,
         temperature: float = 0.7,
         validation_thresholds=None,
         baseline_metrics: dict = None,
     ):
-        from src.config import DEFAULT_CONFIG
-
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
         self.open_df = open_df
@@ -225,46 +234,239 @@ class FeatureEngineerAgent:
         self.validation_thresholds = validation_thresholds or DEFAULT_CONFIG.validation
         self.baseline_metrics = baseline_metrics or {}
 
+        # 原系统组件
+        self.pending_pool = PendingPool(
+            max_size=DEFAULT_CONFIG.pending_pool.max_size,
+            max_age=DEFAULT_CONFIG.pending_pool.max_age,
+            max_rejects=DEFAULT_CONFIG.pending_pool.max_rejects,
+        )
+        self.all_scores: dict[str, list[float]] = {
+            "shap_rank": [],
+            "iv": [],
+            "redundancy": [],
+            "delta_f1": [],
+        }
+        self._rounds_without_new = 0
+        self._current_round_new_count = 0
+        self._round_num = 0
+        self._steps_in_round = 0
+        self._steps_per_round = 25  # ~12 candidates per round (generate+sandbox each)
+
         self.state = AgentState()
         self.messages: list[dict] = []
         self.step_log: list[dict] = []
 
+    @staticmethod
+    def _clean_code(code: str) -> str:
+        """清理LLM返回的代码中的转义字符。"""
+        code = code.replace('\\"', '"')
+        code = code.replace('\\n', '\n') if '\\n' in code and '\n' not in code else code
+        return code
+
+    def _get_shap_feedback(self) -> str:
+        """生成SHAP反馈文本（与原系统 generate_shap_feedback + shap_feedback_to_prompt 一致）。"""
+        if self.existing_features.shape[1] == 0:
+            return "暂无已接受特征，所有维度均需探索。"
+
+        try:
+            shap_fb = generate_shap_feedback(self.existing_features, self.label)
+            island_dims = [ic.dimension for ic in ISLANDS]
+            return shap_feedback_to_prompt(shap_fb, island_dims)
+        except Exception as e:
+            logger.warning("SHAP feedback failed: %s", e)
+            return "SHAP分析暂时不可用。"
+
+    def _get_island_budgets(self) -> dict[str, int]:
+        """计算每个维度的探索预算（与原系统 _compute_budgets 一致）。"""
+        island_dims = [ic.dimension for ic in ISLANDS]
+
+        if self._round_num <= 1 or self.existing_features.shape[1] == 0:
+            return {dim: DEFAULT_CONFIG.search.b for dim in island_dims}
+
+        try:
+            shap_fb = generate_shap_feedback(self.existing_features, self.label)
+            dim_importance = {}
+            for ic in ISLANDS:
+                dim_vals = [
+                    shap_fb["feature_importance"].get(f, 0.0)
+                    for f in self.existing_features.columns
+                    if any(field.lower() in f.lower() for field in ic.fields)
+                ]
+                dim_importance[ic.dimension] = sum(dim_vals) if dim_vals else 0.0
+
+            return compute_island_budgets(
+                dim_importance, island_dims,
+                B_total=DEFAULT_CONFIG.search.B_total,
+                b_min=DEFAULT_CONFIG.search.b_min,
+                b_max=DEFAULT_CONFIG.search.b_max,
+            )
+        except Exception as e:
+            logger.warning("Budget computation failed: %s, using uniform", e)
+            return {dim: DEFAULT_CONFIG.search.b for dim in island_dims}
+
+    def _run_pending_pool_evaluation(self) -> list[dict]:
+        """每轮结束时评估缓刑池（与原系统 run_pending_pool_evaluation 一致）。"""
+        if self.pending_pool.is_empty():
+            return []
+
+        if self.existing_features.shape[1] == 0:
+            return []
+
+        pending_features = {
+            pf.name: pf.feature_values
+            for pf in self.pending_pool.get_all()
+        }
+
+        accepted_names, rejected_names = backward_eliminate_pending(
+            self.existing_features, pending_features, self.label,
+            baseline_metrics=self.baseline_metrics or None,
+        )
+
+        logger.info("Pending pool evaluation: %d accepted, %d rejected out of %d",
+                    len(accepted_names), len(rejected_names), len(pending_features))
+
+        self.pending_pool.mark_rejected(rejected_names)
+
+        accepted_pfs = self.pending_pool.remove_accepted(accepted_names)
+        new_records = []
+        for pf in accepted_pfs:
+            self.all_scores["shap_rank"].append(pf.l3_metrics.get("shap_rank", 999))
+            self.all_scores["iv"].append(pf.l2_metrics.get("iv", 0))
+            self.all_scores["redundancy"].append(pf.l2_metrics.get("redundancy", 0))
+            self.all_scores["delta_f1"].append(pf.l3_metrics.get("delta_f1", 0))
+
+            score = compute_composite_score(
+                shap_rank=pf.l3_metrics.get("shap_rank", 999),
+                iv=pf.l2_metrics.get("iv", 0),
+                redundancy=pf.l2_metrics.get("redundancy", 0),
+                delta_f1=pf.l3_metrics.get("delta_f1", 0),
+                all_scores=self.all_scores,
+            )
+
+            self.existing_features[pf.name] = pf.feature_values
+
+            feature_record = {
+                "name": pf.name,
+                "code": pf.code,
+                "explanation": pf.explanation,
+                "reasoning": pf.reasoning,
+                "dimension": pf.island_name,
+                "l2_metrics": pf.l2_metrics,
+                "l3_metrics": pf.l3_metrics,
+                "score": score,
+                "accepted_via": "pending_pool",
+            }
+            self.state.accepted_features.append(feature_record)
+            new_records.append(feature_record)
+            logger.info("Accepted from pending pool: %s (score=%.4f)", pf.name, score)
+
+        self.pending_pool.tick_age()
+        purged = self.pending_pool.purge_expired()
+        if purged:
+            logger.info("Purged %d expired features from pending pool", len(purged))
+
+        return new_records
+
     def _build_system_prompt(self) -> str:
         """构建Agent的system prompt。"""
-        return """你是一个专业的反洗钱特征工程Agent。你的任务是为数字人民币交易数据自动生成有效的检测特征。
+        island_desc = "\n".join(
+            f"  - {ic.name}({ic.dimension}): {ic.description}, 字段: {', '.join(ic.fields)}"
+            for ic in ISLANDS
+        )
+
+        return f"""你是一个专业的反洗钱特征工程Agent。你的任务是为数字人民币交易数据自动生成有效的检测特征。
 
 ## 你的能力
 你可以使用以下工具：
 1. retrieve_knowledge - 检索领域知识（交易模式、专家访谈、风险指标、检测规则）
 2. inspect_schema - 查看数据表结构
 3. generate_feature - 生成特征代码
-4. execute_sandbox - 在沙箱中验证代码
-5. evaluate_feature - 评估特征质量和增量效果
+4. execute_sandbox - 在沙箱中验证代码（通过后自动评估L2/L3质量）
+5. evaluate_feature - 手动评估特征质量
 6. finish - 结束生成过程
 
 ## 工作流程
 1. 首先检索领域知识，了解洗钱模式
 2. 查看数据schema，了解可用字段
-3. 基于知识和数据，设计并生成特征（generate_feature）
+3. 基于知识和数据，围绕指定维度设计并生成特征（generate_feature）
 4. 在沙箱中验证代码（execute_sandbox）— 通过后系统自动评估质量
-5. 根据评估反馈调整策略，生成更多特征
-6. 覆盖多个维度后���用finish结束
+5. 根据评估反馈和SHAP分析调整策略，重点探索薄弱维度
+6. 每轮生成约12个候选特征（4个维度各3个），覆盖多维度后用finish结束
 
-注意：execute_sandbox通过后会自动进行质量评估（IV/KS/冗余度/增量F1），不需要单独调用evaluate_feature。
+## 维度岛屿
+你需要覆盖以下4个维度，每轮根据SHAP反馈动态分配各维度的探索量：
+{island_desc}
 
 ## 特征代码要求
 - 写一个Python函数，签名: def feature_xxx(open_df, tx_df, close_df) -> pd.DataFrame
-- 代码最后必须调用该函数并将返回值赋给 result 变量，例如:
+- 代码最后必须调用该函数并将返回值赋给 result 变量:
   result = feature_xxx(open_df, tx_df, close_df)
 - 返回的DataFrame必须包含 wallet_id 或 tx_id 列作为索引
 - 不能使用标签列(is_risk, is_laundering等)
 - 需要处理空值情况(fillna)
+- 只能使用 pandas, numpy, scipy, sklearn, datetime, collections, math
 
 ## 策略建议
-- 优先探索与已有特征低相关的方向
+- 重点关注SHAP分析中的薄弱维度（获得更多预算的维度）
 - 从领域知识中寻找灵感，特别是裁判文书中的真实模式
-- 考虑时间、金额、网络、账户、设备等多个维度
-- 如果某个维度连续失败，换方向探索"""
+- 如果某个方向连续失败，换方向探索（参考失败记忆）
+- L3未通过的特征不会立即丢弃，会进入缓刑池等待后续评估"""
+
+    def _build_round_prompt(self) -> str:
+        """构建每轮开始时的引导prompt（含SHAP反馈和预算分配）。"""
+        self._round_num += 1
+
+        # SHAP反馈
+        shap_text = self._get_shap_feedback()
+
+        # 岛屿预算
+        budgets = self._get_island_budgets()
+        budget_text = "\n".join(
+            f"  - {ic.name}({ic.dimension}): {budgets.get(ic.dimension, 3)} 个候选"
+            for ic in ISLANDS
+        )
+
+        # 失败记忆（最近5个）
+        recent_failures = self.state.failed_features[-5:] if self.state.failed_features else []
+        fail_text = "\n".join(
+            f"  - {f.get('name', '?')}: {f.get('error', '?')}"
+            for f in recent_failures
+        ) if recent_failures else "（暂无）"
+
+        # 已接受特征摘要
+        accepted_text = "\n".join(
+            f"  - {f['name']}: score={f.get('score', 0):.4f}, "
+            f"delta_f1={f.get('l3_metrics', {}).get('delta_f1', 0):.6f}, "
+            f"SHAP_rank={f.get('l3_metrics', {}).get('shap_rank', '?')}"
+            for f in self.state.accepted_features[-10:]
+        ) if self.state.accepted_features else "（暂无）"
+
+        # Pending pool状态
+        pool_text = f"缓刑池中有 {len(self.pending_pool)} 个待评估特征" if not self.pending_pool.is_empty() else ""
+
+        total_budget = sum(budgets.values())
+
+        prompt = f"""## 第 {self._round_num} 轮迭代
+
+{shap_text}
+
+## 本轮预算分配（共 {total_budget} 个候选）
+{budget_text}
+
+## 近期失败特征（避免重复类似方向）
+{fail_text}
+
+## 已接受的高分特征
+{accepted_text}
+
+{pool_text}
+
+## 任务
+请按照预算分配，为每个维度生成指定数量的候选特征。
+重点探索薄弱维度（预算更多的维度），尝试与已有特征不冗余的角度。
+对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。"""
+
+        return prompt
 
     def _execute_tool(self, tool_name: str, arguments: dict) -> str:
         """执行工具调用，返回观察结果。"""
@@ -320,13 +522,6 @@ class FeatureEngineerAgent:
             lines.append(f"| {col} | {dtype} | {non_null} | {sample} |")
         return "\n".join(lines)
 
-    @staticmethod
-    def _clean_code(code: str) -> str:
-        """清理LLM返回的代码中的转义字符。"""
-        code = code.replace('\\"', '"')
-        code = code.replace('\\n', '\n') if '\\n' in code and '\n' not in code else code
-        return code
-
     def _tool_generate_feature(self, args: dict) -> str:
         name = args.get("feature_name", "")
         code = self._clean_code(args.get("code", ""))
@@ -355,7 +550,7 @@ class FeatureEngineerAgent:
         feature_df, error = run_l1_validation(code, self.open_df, self.tx_df, self.close_df)
 
         if feature_df is None:
-            self.state.failed_features.append({"name": name, "error": error})
+            self.state.failed_features.append({"name": name, "error": f"L1: {error}"})
             return (
                 f"✗ 沙箱执行失败\n"
                 f"错误信息: {error}\n"
@@ -366,7 +561,6 @@ class FeatureEngineerAgent:
         shape = feature_df.shape
         cols = list(feature_df.columns)
 
-        # 自动触发评估（沙箱通过后直接评估，不再需要额外调用evaluate_feature）
         eval_result = self._tool_evaluate_feature({"feature_name": name})
         return (
             f"✓ 沙箱执行成功！\n"
@@ -385,19 +579,22 @@ class FeatureEngineerAgent:
         try:
             merged = merge_feature_to_transactions(feature_df, self.tx_df)
         except Exception as e:
+            self.state.failed_features.append({"name": name, "error": f"merge失败: {e}"})
             return f"特征合并失败: {e}"
 
         if len(merged) != len(self.tx_df):
+            self.state.failed_features.append({"name": name, "error": f"行数不匹配: {len(merged)} vs {len(self.tx_df)}"})
             return f"合并后行数不匹配: {len(merged)} vs {len(self.tx_df)}"
 
         feat_cols = [c for c in merged.columns if c not in self.tx_df.columns]
         if not feat_cols:
+            self.state.failed_features.append({"name": name, "error": "合并后无新列"})
             return "合并后无新列产生"
 
         feature_series = merged[feat_cols[0]].fillna(0)
         feature_series.name = name
 
-        # L2验证：使用与原系统相同的校准阈值
+        # === L2验证（与原系统 evaluate_candidates 完全一致） ===
         l2_passed, l2_metrics = run_l2_validation(
             feature_series, self.label, self.existing_features,
             thresholds=self.validation_thresholds,
@@ -414,7 +611,8 @@ class FeatureEngineerAgent:
                 reasons.append(f"redundancy={l2_metrics['redundancy']:.4f}>={th.corr_max}")
             if l2_metrics.get("missing_rate", 0) > th.missing_rate_max:
                 reasons.append(f"missing={l2_metrics['missing_rate']:.2%}>{th.missing_rate_max:.0%}")
-            self.state.failed_features.append({"name": name, "error": f"L2未通过: {'; '.join(reasons)}"})
+            reason_str = f"L2未通过: {'; '.join(reasons)}"
+            self.state.failed_features.append({"name": name, "error": reason_str})
             return (
                 f"✗ L2统计质量未通过\n"
                 f"IV: {l2_metrics.get('iv', 0):.4f}\n"
@@ -425,47 +623,78 @@ class FeatureEngineerAgent:
                 f"建议: 尝试不同的计算逻辑或探索其他维度。"
             )
 
-        # L3验证：与原系统相同，使用baseline_metrics
+        # === L3验证（与原系统完全一致） ===
         l3_passed, l3_metrics = run_l3_validation(
             self.existing_features, feature_series, self.label,
             baseline_metrics=self.baseline_metrics,
         )
 
-        if l3_passed:
-            self.existing_features[name] = feature_series.values
+        if not l3_passed:
+            # === 进入Pending Pool（与原系统一致：L2通过但L3失败不直接丢弃） ===
             info = self.state.pending_sandbox.get(name, {})
-            feature_record = {
-                "name": name,
-                "code": info.get("code", ""),
-                "explanation": info.get("explanation", ""),
-                "reasoning": info.get("reasoning", ""),
-                "dimension": info.get("dimension", ""),
-                "l2_metrics": l2_metrics,
-                "l3_metrics": l3_metrics,
-            }
-            self.state.accepted_features.append(feature_record)
-
-            return (
-                f"✓ 特征评估通过！已接受。\n"
-                f"IV: {l2_metrics.get('iv', 0):.4f}\n"
-                f"KS: {l2_metrics.get('ks', 0):.4f}\n"
-                f"冗余度: {l2_metrics.get('redundancy', 0):.4f}\n"
-                f"Delta F1: {l3_metrics.get('delta_f1', 0):.6f}\n"
-                f"Delta Recall: {l3_metrics.get('delta_recall', 0):.6f}\n"
-                f"当前已接受特征数: {len(self.state.accepted_features)}/{self.max_features}"
+            pending_feat = PendingFeature(
+                name=name,
+                code=info.get("code", ""),
+                explanation=info.get("explanation", ""),
+                reasoning=info.get("reasoning", ""),
+                feature_values=feature_series.values,
+                l2_metrics=l2_metrics,
+                l3_metrics=l3_metrics,
+                island_name=info.get("dimension", ""),
             )
-        else:
-            self.state.failed_features.append({
-                "name": name,
-                "error": f"L3未通过: dF1={l3_metrics.get('delta_f1',0):.6f}, dRecall={l3_metrics.get('delta_recall',0):.6f}"
-            })
+            self.pending_pool.add(pending_feat)
+            logger.info("L3 failed for %s (delta_f1=%.6f), added to pending pool (%d in pool)",
+                        name, l3_metrics.get("delta_f1", 0), len(self.pending_pool))
             return (
-                f"△ L3模型增量不足\n"
+                f"△ L3模型增量不足，已加入缓刑池（{len(self.pending_pool)}个待评估）\n"
                 f"IV: {l2_metrics.get('iv', 0):.4f}, KS: {l2_metrics.get('ks', 0):.4f}\n"
                 f"Delta F1: {l3_metrics.get('delta_f1', 0):.6f}\n"
                 f"Delta Recall: {l3_metrics.get('delta_recall', 0):.6f}\n"
-                f"建议: 该特征统计上有区分力但对模型增量贡献不大，可能与已有特征信息重叠。尝试探索不同方向。"
+                f"注: 该特征统计上有区分力，将在后续轮次中与其他特征组合重新评估。\n"
+                f"建议: 继续探索其他方向，缓刑池特征可能在后续被接受。"
             )
+
+        # === 接受特征（与原系统完全一致：记分 + 加入existing_features） ===
+        self.all_scores["shap_rank"].append(l3_metrics["shap_rank"])
+        self.all_scores["iv"].append(l2_metrics["iv"])
+        self.all_scores["redundancy"].append(l2_metrics["redundancy"])
+        self.all_scores["delta_f1"].append(l3_metrics.get("delta_f1", 0))
+
+        score = compute_composite_score(
+            shap_rank=l3_metrics["shap_rank"],
+            iv=l2_metrics["iv"],
+            redundancy=l2_metrics["redundancy"],
+            delta_f1=l3_metrics.get("delta_f1", 0),
+            all_scores=self.all_scores,
+        )
+
+        self.existing_features[name] = feature_series.values
+        self._current_round_new_count += 1
+
+        info = self.state.pending_sandbox.get(name, {})
+        feature_record = {
+            "name": name,
+            "code": info.get("code", ""),
+            "explanation": info.get("explanation", ""),
+            "reasoning": info.get("reasoning", ""),
+            "dimension": info.get("dimension", ""),
+            "l2_metrics": l2_metrics,
+            "l3_metrics": l3_metrics,
+            "score": score,
+        }
+        self.state.accepted_features.append(feature_record)
+
+        return (
+            f"✓ 特征评估通过！已接受。(score={score:.4f})\n"
+            f"IV: {l2_metrics.get('iv', 0):.4f}\n"
+            f"KS: {l2_metrics.get('ks', 0):.4f}\n"
+            f"冗余度: {l2_metrics.get('redundancy', 0):.4f}\n"
+            f"SHAP Rank: #{l3_metrics.get('shap_rank', '?')}\n"
+            f"Delta F1: {l3_metrics.get('delta_f1', 0):.6f}\n"
+            f"Delta Recall: {l3_metrics.get('delta_recall', 0):.6f}\n"
+            f"当前已接受特征数: {len(self.state.accepted_features)}/{self.max_features}\n"
+            f"缓刑池: {len(self.pending_pool)} 个待评估"
+        )
 
     def _tool_finish(self, args: dict) -> str:
         reason = args.get("reason", "")
@@ -478,8 +707,43 @@ class FeatureEngineerAgent:
             f"原因: {reason}\n"
             f"共生成 {n} 个有效特征\n"
             f"覆盖维度: {dims}\n"
-            f"总尝试次数: {self.state.total_attempts}"
+            f"总尝试次数: {self.state.total_attempts}\n"
+            f"缓刑池剩余: {len(self.pending_pool)} 个"
         )
+
+    def _check_round_boundary(self, step_num: int) -> bool:
+        """检查是否到达轮次边界，如果是则触发Pending Pool评估和SHAP反馈。"""
+        self._steps_in_round += 1
+        if self._steps_in_round >= self._steps_per_round:
+            self._steps_in_round = 0
+
+            # 轮末：评估Pending Pool（与原系统 run_round 末尾一致）
+            pool_accepted = self._run_pending_pool_evaluation()
+            if pool_accepted:
+                self._current_round_new_count += len(pool_accepted)
+
+            # 收敛检测（与原系统一致：连续2轮无新特征则终止）
+            if self._current_round_new_count == 0:
+                self._rounds_without_new += 1
+            else:
+                self._rounds_without_new = 0
+
+            if self._rounds_without_new >= 2:
+                self.state.finished = True
+                self.state.finish_reason = "连续2轮无新特征，收敛终止"
+                logger.info("Converged: 2 rounds without new features")
+                return True
+
+            # 重置轮计数
+            self._current_round_new_count = 0
+
+            # 注入新轮引导prompt（含SHAP反馈和预算分配）
+            round_prompt = self._build_round_prompt()
+            self.messages.append({"role": "user", "content": round_prompt})
+            logger.info("=== Round %d started (budget injected) ===", self._round_num)
+            return True
+
+        return False
 
     def step(self) -> dict:
         """执行一步Agent推理。"""
@@ -547,7 +811,7 @@ class FeatureEngineerAgent:
             f"数据规模: {len(self.tx_df)} 条交易, {self.open_df.shape[0]} 个钱包\n"
             f"已有基线特征: {self.baseline_features.shape[1]} 个\n"
             f"正样本率: {self.label.mean()*100:.4f}%\n\n"
-            f"请开始工作。建议先检索领域知识和查看数据结构。"
+            f"请开始工作。建议先检索领域知识和查看数据结构，然后按维度逐步生成特征。"
         )
         self.messages.append({"role": "user", "content": initial_prompt})
 
@@ -566,8 +830,6 @@ class FeatureEngineerAgent:
                 self.step()
             except Exception as e:
                 logger.error("Step %d error: %s", step_num + 1, e)
-                # 修复消息链：如果最后一条是带tool_calls的assistant消息但没有tool响应，
-                # 移除它以保持消息格式合法
                 if (self.messages and self.messages[-1].get("role") == "assistant"
                         and self.messages[-1].get("tool_calls")):
                     self.messages.pop()
@@ -575,6 +837,14 @@ class FeatureEngineerAgent:
                     "role": "user",
                     "content": f"上一步出现系统错误: {e}。请继续工作，尝试生成新的特征。"
                 })
+
+            # 轮次边界检查：触发Pending Pool评估和SHAP反馈
+            self._check_round_boundary(step_num)
+
+        # 最终Pending Pool评估
+        final_pool = self._run_pending_pool_evaluation()
+        if final_pool:
+            logger.info("Final pending pool evaluation: %d accepted", len(final_pool))
 
         result = {
             "accepted_features": self.state.accepted_features,
@@ -584,51 +854,16 @@ class FeatureEngineerAgent:
             "dimensions_explored": list(self.state.dimensions_explored),
             "finish_reason": self.state.finish_reason,
             "step_log": self.step_log,
+            "pending_pool_remaining": len(self.pending_pool),
+            "rounds_completed": self._round_num,
         }
 
         logger.info("=== Agent 完成 ===")
-        logger.info("接受: %d, 失败: %d, 步数: %d",
+        logger.info("接受: %d, 失败: %d, 步数: %d, 轮数: %d, 缓刑池剩余: %d",
                    len(self.state.accepted_features),
                    len(self.state.failed_features),
-                   len(self.step_log))
+                   len(self.step_log),
+                   self._round_num,
+                   len(self.pending_pool))
 
         return result
-
-    def save_results(self, output_path: str = "outputs/agent_features.json"):
-        """保存生成结果。"""
-        from pathlib import Path
-        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
-        results = {
-            "agent_type": "single",
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "config": {
-                "model": self.model,
-                "max_steps": self.max_steps,
-                "max_features": self.max_features,
-            },
-            "features": [
-                {
-                    "name": f["name"],
-                    "code": f["code"],
-                    "explanation": f["explanation"],
-                    "reasoning": f.get("reasoning", ""),
-                    "dimension": f.get("dimension", ""),
-                    "l2_metrics": f.get("l2_metrics", {}),
-                    "l3_metrics": f.get("l3_metrics", {}),
-                }
-                for f in self.state.accepted_features
-            ],
-            "summary": {
-                "total_accepted": len(self.state.accepted_features),
-                "total_failed": len(self.state.failed_features),
-                "total_steps": len(self.step_log),
-                "dimensions": list(self.state.dimensions_explored),
-                "finish_reason": self.state.finish_reason,
-            }
-        }
-
-        with open(output_path, "w", encoding="utf-8") as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
-
-        logger.info("Results saved to %s", output_path)
