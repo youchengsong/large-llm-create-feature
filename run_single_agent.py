@@ -25,8 +25,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 API_KEY = "sk-59bd25d3db384cf09f63814989d7200c"
 BASE_URL = "https://api.deepseek.com"
 MODEL = "deepseek-chat"
-MAX_FEATURES = 25
-MAX_STEPS = 80
+MAX_FEATURES = 30
+MAX_STEPS = 250
 DATA_DIR = str(PROJECT_ROOT / "data")
 
 # ============================================================
@@ -72,10 +72,19 @@ logger.info(f"  close_df: {close_df.shape}")
 # ============================================================
 logger.info("\n[Step 2] 运行基线特征工程...")
 
-from src.data.baseline import run_baseline
+import pandas as pd
 
-baseline_df = run_baseline(open_df, tx_df, close_df)
-logger.info(f"  基线特征矩阵: {baseline_df.shape}")
+BASELINE_CACHE = PROJECT_ROOT / "outputs" / "baseline_cache.parquet"
+
+if BASELINE_CACHE.exists():
+    logger.info("  从缓存加载基线特征...")
+    baseline_df = pd.read_parquet(BASELINE_CACHE)
+    logger.info(f"  基线特征矩阵(缓存): {baseline_df.shape}")
+else:
+    from src.data.baseline import run_baseline
+    baseline_df = run_baseline(open_df, tx_df, close_df)
+    baseline_df.to_parquet(BASELINE_CACHE)
+    logger.info(f"  基线特征矩阵: {baseline_df.shape} (已缓存)")
 
 label_col = "is_laundering"
 if label_col not in baseline_df.columns:
@@ -94,6 +103,17 @@ logger.info(f"  特征列数: {len(feature_cols)}")
 logger.info(f"  标签分布: pos={int(label.sum())}, neg={int((label==0).sum())}, rate={label.mean()*100:.4f}%")
 
 # ============================================================
+# Step 2.5: 校准L2阈值（与原系统一致）
+# ============================================================
+logger.info("\n[Step 2.5] 校准L2验证阈值...")
+
+from src.evaluation.calibration import calibrate_l2_thresholds
+
+calibrated_thresholds = calibrate_l2_thresholds(baseline_features, label)
+logger.info(f"  校准结果: IV_min={calibrated_thresholds.iv_min:.6f}, "
+            f"KS_min={calibrated_thresholds.ks_min:.6f}, corr_max={calibrated_thresholds.corr_max:.2f}")
+
+# ============================================================
 # Step 3: 运行单Agent
 # ============================================================
 logger.info("\n[Step 3] 初始化并运行单Agent...")
@@ -109,6 +129,7 @@ agent = FeatureEngineerAgent(
     close_df=close_df,
     label=label,
     baseline_features=baseline_features,
+    validation_thresholds=calibrated_thresholds,
     max_steps=MAX_STEPS,
     max_features=MAX_FEATURES,
     temperature=0.7,

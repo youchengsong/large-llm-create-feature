@@ -9,7 +9,7 @@ import traceback
 import numpy as np
 import pandas as pd
 
-ALLOWED_MODULES = {"pandas", "numpy", "scipy", "sklearn"}
+ALLOWED_MODULES = {"pandas", "numpy", "scipy", "sklearn", "datetime", "collections", "math"}
 
 _FORBIDDEN_NAMES = {"os", "sys", "subprocess", "shutil", "pathlib", "socket",
                     "http", "urllib", "requests", "ftplib", "smtplib",
@@ -148,7 +148,7 @@ def execute_feature_code(
     open_df: pd.DataFrame,
     tx_df: pd.DataFrame,
     close_df: pd.DataFrame,
-    timeout: int = 30,
+    timeout: int = 90,
 ) -> tuple[pd.DataFrame | None, str | None]:
     """沙盒执行特征代码。返回 (feature_df, error_msg)。"""
     safe, reason = check_code_safety(code)

@@ -206,7 +206,11 @@ class FeatureEngineerAgent:
         max_steps: int = 50,
         max_features: int = 20,
         temperature: float = 0.7,
+        validation_thresholds=None,
+        baseline_metrics: dict = None,
     ):
+        from src.config import DEFAULT_CONFIG
+
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
         self.open_df = open_df
@@ -218,6 +222,8 @@ class FeatureEngineerAgent:
         self.max_steps = max_steps
         self.max_features = max_features
         self.temperature = temperature
+        self.validation_thresholds = validation_thresholds or DEFAULT_CONFIG.validation
+        self.baseline_metrics = baseline_metrics or {}
 
         self.state = AgentState()
         self.messages: list[dict] = []
@@ -314,9 +320,16 @@ class FeatureEngineerAgent:
             lines.append(f"| {col} | {dtype} | {non_null} | {sample} |")
         return "\n".join(lines)
 
+    @staticmethod
+    def _clean_code(code: str) -> str:
+        """清理LLM返回的代码中的转义字符。"""
+        code = code.replace('\\"', '"')
+        code = code.replace('\\n', '\n') if '\\n' in code and '\n' not in code else code
+        return code
+
     def _tool_generate_feature(self, args: dict) -> str:
         name = args.get("feature_name", "")
-        code = args.get("code", "")
+        code = self._clean_code(args.get("code", ""))
         explanation = args.get("explanation", "")
         dimension = args.get("dimension", "")
         reasoning = args.get("reasoning", "")
@@ -334,7 +347,7 @@ class FeatureEngineerAgent:
 
     def _tool_execute_sandbox(self, args: dict) -> str:
         name = args.get("feature_name", "")
-        code = args.get("code", "")
+        code = self._clean_code(args.get("code", ""))
 
         if not code and name in self.state.pending_sandbox:
             code = self.state.pending_sandbox[name]["code"]
@@ -384,34 +397,39 @@ class FeatureEngineerAgent:
         feature_series = merged[feat_cols[0]].fillna(0)
         feature_series.name = name
 
+        # L2验证：使用与原系统相同的校准阈值
         l2_passed, l2_metrics = run_l2_validation(
-            feature_series, self.label, self.existing_features
+            feature_series, self.label, self.existing_features,
+            thresholds=self.validation_thresholds,
         )
 
         if not l2_passed:
+            th = self.validation_thresholds
             reasons = []
-            if l2_metrics.get("iv", 0) < 0.02:
-                reasons.append(f"IV过低({l2_metrics['iv']:.4f}<0.02)")
-            if l2_metrics.get("redundancy", 0) >= 0.7:
-                reasons.append(f"冗余度过高({l2_metrics['redundancy']:.4f}>=0.7)")
+            if l2_metrics.get("iv", 0) < th.iv_min:
+                reasons.append(f"IV={l2_metrics['iv']:.6f}<{th.iv_min:.6f}")
+            if l2_metrics.get("ks", 0) < th.ks_min:
+                reasons.append(f"KS={l2_metrics['ks']:.6f}<{th.ks_min:.6f}")
+            if l2_metrics.get("redundancy", 0) >= th.corr_max:
+                reasons.append(f"redundancy={l2_metrics['redundancy']:.4f}>={th.corr_max}")
+            if l2_metrics.get("missing_rate", 0) > th.missing_rate_max:
+                reasons.append(f"missing={l2_metrics['missing_rate']:.2%}>{th.missing_rate_max:.0%}")
+            self.state.failed_features.append({"name": name, "error": f"L2未通过: {'; '.join(reasons)}"})
             return (
-                f"✗ 统计质量评估未通过\n"
+                f"✗ L2统计质量未通过\n"
                 f"IV: {l2_metrics.get('iv', 0):.4f}\n"
                 f"KS: {l2_metrics.get('ks', 0):.4f}\n"
                 f"冗余度: {l2_metrics.get('redundancy', 0):.4f}\n"
+                f"缺失率: {l2_metrics.get('missing_rate', 0):.2%}\n"
                 f"原因: {'; '.join(reasons)}\n"
                 f"建议: 尝试不同的计算逻辑或探索其他维度。"
             )
 
-        try:
-            l3_passed, l3_metrics = run_l3_validation(
-                self.existing_features, feature_series, self.label,
-                baseline_metrics={},
-            )
-        except Exception as e:
-            logger.warning("L3 validation error for %s: %s", name, e)
-            l3_passed = True
-            l3_metrics = {"delta_f1": 0, "delta_recall": 0, "note": f"L3跳过({e})"}
+        # L3验证：与原系统相同，使用baseline_metrics
+        l3_passed, l3_metrics = run_l3_validation(
+            self.existing_features, feature_series, self.label,
+            baseline_metrics=self.baseline_metrics,
+        )
 
         if l3_passed:
             self.existing_features[name] = feature_series.values
@@ -437,8 +455,12 @@ class FeatureEngineerAgent:
                 f"当前已接受特征数: {len(self.state.accepted_features)}/{self.max_features}"
             )
         else:
+            self.state.failed_features.append({
+                "name": name,
+                "error": f"L3未通过: dF1={l3_metrics.get('delta_f1',0):.6f}, dRecall={l3_metrics.get('delta_recall',0):.6f}"
+            })
             return (
-                f"△ 统计质量合格但模型增量不足\n"
+                f"△ L3模型增量不足\n"
                 f"IV: {l2_metrics.get('iv', 0):.4f}, KS: {l2_metrics.get('ks', 0):.4f}\n"
                 f"Delta F1: {l3_metrics.get('delta_f1', 0):.6f}\n"
                 f"Delta Recall: {l3_metrics.get('delta_recall', 0):.6f}\n"
