@@ -145,13 +145,35 @@ def compute_composite_score(
     return float(score)
 
 
+def _check_accept_condition(current_metrics: dict, new_metrics: dict) -> bool:
+    """与L3验证一致的三条件接受逻辑（满足任一即可）：
+    1. delta_recall > 0 且 delta_precision >= -0.01
+    2. delta_f1 > 0
+    3. delta_precision > 0 且 delta_recall >= -0.01
+    """
+    delta_f1 = new_metrics["f1"] - current_metrics["f1"]
+    delta_recall = new_metrics["recall"] - current_metrics["recall"]
+    delta_precision = new_metrics["precision"] - current_metrics["precision"]
+
+    return (
+        (delta_recall > 0 and delta_precision >= -0.01)
+        or (delta_f1 > 0)
+        or (delta_precision > 0 and delta_recall >= -0.01)
+    )
+
+
 def forward_select_features(
     X_baseline: pd.DataFrame,
     candidate_features: dict[str, np.ndarray],
     y: pd.Series,
     baseline_metrics: dict,
 ) -> tuple[list[str], dict]:
-    """前向选择：逐个添加使 F1 最高的特征，直到不再提升。
+    """前向选择：逐个添加满足接受条件的特征，按F1增量排序优先选最优。
+
+    接受条件（与L3一致，满足任一）：
+    1. delta_recall > 0 且 delta_precision >= -0.01
+    2. delta_f1 > 0
+    3. delta_precision > 0 且 delta_recall >= -0.01
 
     返回 (selected_names, final_metrics)。
     """
@@ -161,37 +183,31 @@ def forward_select_features(
     remaining = set(candidate_features.keys())
     selected = []
     X_current = X_baseline.copy()
-    current_f1 = baseline_metrics["f1"]
+    current_metrics = baseline_metrics.copy()
 
-    logger.info("Forward selection: %d candidates, baseline F1=%.6f", len(remaining), current_f1)
+    logger.info("Forward selection: %d candidates, baseline F1=%.6f", len(remaining), current_metrics["f1"])
 
     while remaining:
         best_name = None
-        best_f1 = current_f1
+        best_f1 = current_metrics["f1"]
         best_metrics = None
 
         for name in remaining:
             X_try = X_current.copy()
             X_try[name] = candidate_features[name]
             m = compute_cv_metrics(X_try, y)
-            if m["f1"] > best_f1:
+            if _check_accept_condition(current_metrics, m) and m["f1"] >= best_f1:
                 best_f1 = m["f1"]
                 best_name = name
                 best_metrics = m
 
         if best_name is None:
-            logger.info("Forward selection stopped: no feature improves F1")
+            logger.info("Forward selection stopped: no feature meets accept condition")
             break
-
-        if best_metrics["recall"] < baseline_metrics["recall"] - 0.01:
-            logger.info("Forward selection skipped %s: recall drop too large (%.4f -> %.4f)",
-                        best_name, baseline_metrics["recall"], best_metrics["recall"])
-            remaining.discard(best_name)
-            continue
 
         selected.append(best_name)
         X_current[best_name] = candidate_features[best_name]
-        current_f1 = best_f1
+        current_metrics = best_metrics
         remaining.discard(best_name)
 
         logger.info("Forward selection added %s: F1=%.6f, Recall=%.4f, Precision=%.4f",

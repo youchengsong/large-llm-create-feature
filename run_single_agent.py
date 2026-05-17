@@ -96,10 +96,16 @@ if label_col not in baseline_df.columns:
 else:
     label = baseline_df[label_col].astype(int)
 
-feature_cols = [c for c in baseline_df.columns if c != label_col]
+# 去掉10个指定特征，以95个基线特征为基准
+DROP_FEATURES = [
+    "Min_Received", "Min_Sent", "wallets_per_cert_From", "Max_Sent",
+    "S_src_counterparty_index", "Timestamp_Hour", "S_dst_counterparty_index",
+    "1H_frequency_From", "1H_frequency_To", "min_inactive_period_From",
+]
+feature_cols = [c for c in baseline_df.columns if c != label_col and c not in DROP_FEATURES]
 baseline_features = baseline_df[feature_cols].fillna(0)
 
-logger.info(f"  特征列数: {len(feature_cols)}")
+logger.info(f"  特征列数: {len(feature_cols)} (去掉{len(DROP_FEATURES)}个指定特征)")
 logger.info(f"  标签分布: pos={int(label.sum())}, neg={int((label==0).sum())}, rate={label.mean()*100:.4f}%")
 
 # ============================================================
