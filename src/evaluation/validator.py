@@ -189,17 +189,19 @@ def forward_select_features(
 
     while remaining:
         best_name = None
-        best_f1 = current_metrics["f1"]
+        best_score = -float("inf")
         best_metrics = None
 
         for name in remaining:
             X_try = X_current.copy()
             X_try[name] = candidate_features[name]
             m = compute_cv_metrics(X_try, y)
-            if _check_accept_condition(current_metrics, m) and m["f1"] >= best_f1:
-                best_f1 = m["f1"]
-                best_name = name
-                best_metrics = m
+            if _check_accept_condition(current_metrics, m):
+                score = (m["f1"] - current_metrics["f1"]) + (m["recall"] - current_metrics["recall"])
+                if score > best_score:
+                    best_score = score
+                    best_name = name
+                    best_metrics = m
 
         if best_name is None:
             logger.info("Forward selection stopped: no feature meets accept condition")
