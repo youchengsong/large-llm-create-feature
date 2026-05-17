@@ -222,7 +222,8 @@ def compute_cv_prauc(X: pd.DataFrame | np.ndarray, y: pd.Series | np.ndarray) ->
 
 
 def compute_shap_rank(
-    X_all: pd.DataFrame, y: pd.Series, feature_name: str
+    X_all: pd.DataFrame, y: pd.Series, feature_name: str,
+    max_samples: int = 50000,
 ) -> int:
     """训练 XGBoost 并用 SHAP 计算指定特征的重要性排名（1-based，1=最重要）。"""
     import shap
@@ -232,7 +233,11 @@ def compute_shap_rank(
     model.fit(X_all, y, verbose=False)
 
     explainer = shap.TreeExplainer(model)
-    shap_values = explainer.shap_values(X_all)
+    if len(X_all) > max_samples:
+        X_sample = X_all.sample(n=max_samples, random_state=42)
+    else:
+        X_sample = X_all
+    shap_values = explainer.shap_values(X_sample)
     mean_abs = np.mean(np.abs(shap_values), axis=0)
 
     sorted_indices = np.argsort(-mean_abs)

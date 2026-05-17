@@ -91,7 +91,7 @@ class XGBoostParams:
     random_state: int = 42
     n_jobs: int = -1
     tree_method: str = "hist"
-    device: str = os.environ.get("XGB_DEVICE", "cpu")
+    device: str = os.environ.get("XGB_DEVICE", "cuda")
 
 
 @dataclass
