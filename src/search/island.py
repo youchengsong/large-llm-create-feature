@@ -45,7 +45,12 @@ class IslandManager:
 
     def get_island(self, name: str) -> Island | None:
         for island in self.islands:
-            if island.name == name:
+            if island.name == name or island.dimension == name:
+                return island
+        # 模糊匹配：检查是否部分包含
+        name_lower = name.lower()
+        for island in self.islands:
+            if island.name in name or island.dimension in name_lower:
                 return island
         return None
 
