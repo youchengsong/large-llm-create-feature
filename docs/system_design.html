@@ -1061,54 +1061,70 @@ section[id] {
 
     <!-- Single Agent Tab -->
     <div class="tab-panel active" id="tab-single">
-        <h3>ReAct循环架构</h3>
-        <p>单Agent系统基于<span class="tooltip-trigger">ReAct范式<span class="tooltip-content">Reasoning + Acting: 大语言模型交替进行推理和行动</span></span>，通过Tool Use自主完成特征工程全流程。Agent在每一步先进行思考（Thought），然后选择调用一个工具（Action），最后根据观察结果（Observation）决定下一步。</p>
+        <h3>ReAct循环架构 + 原系统完整逻辑</h3>
+        <p>单Agent系统基于<span class="tooltip-trigger">ReAct范式<span class="tooltip-content">Reasoning + Acting: 大语言模型交替进行推理和行动</span></span>，通过Tool Use自主完成特征工程全流程，同时<strong>完整复刻原搜索引擎系统的所有机制</strong>：SHAP反馈驱动维度预算、Pending Pool缓刑池、岛屿Boltzmann采样、可解释性报告、L1重试等。</p>
+
+        <div class="highlight-box info">
+            <strong>核心设计原则：</strong>Agent系统不是原系统的简化版，而是将原系统的所有搜索策略和验证逻辑完整嵌入到Agent的工具执行和轮次管理中。Agent自主决策生成方向，但验证、评分、缓刑、反馈等机制与原系统100%一致。
+        </div>
 
         <div class="diagram-container">
-<svg width="750" height="400" viewBox="0 0 750 400">
+<svg width="800" height="500" viewBox="0 0 800 500">
     <!-- Central Loop -->
-    <ellipse cx="375" cy="200" rx="280" ry="160" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5 3"/>
+    <ellipse cx="400" cy="200" rx="300" ry="160" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5 3"/>
 
     <!-- Thought -->
-    <rect x="300" y="30" width="150" height="50" rx="25" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
-    <text x="375" y="60" font-size="13" fill="#1d4ed8" text-anchor="middle" font-weight="600">Thought (思考)</text>
+    <rect x="325" y="20" width="150" height="50" rx="25" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+    <text x="400" y="50" font-size="13" fill="#1d4ed8" text-anchor="middle" font-weight="600">Thought (思考)</text>
 
     <!-- Action -->
-    <rect x="530" y="160" width="150" height="50" rx="25" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
-    <text x="605" y="190" font-size="13" fill="#065f46" text-anchor="middle" font-weight="600">Action (行动)</text>
+    <rect x="560" y="160" width="150" height="50" rx="25" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
+    <text x="635" y="190" font-size="13" fill="#065f46" text-anchor="middle" font-weight="600">Action (行动)</text>
 
     <!-- Observation -->
-    <rect x="300" y="310" width="150" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-    <text x="375" y="340" font-size="13" fill="#92400e" text-anchor="middle" font-weight="600">Observation (观察)</text>
+    <rect x="325" y="310" width="150" height="50" rx="25" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+    <text x="400" y="340" font-size="13" fill="#92400e" text-anchor="middle" font-weight="600">Observation (观察)</text>
 
     <!-- LLM -->
-    <rect x="70" y="160" width="150" height="50" rx="25" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
-    <text x="145" y="190" font-size="13" fill="#5b21b6" text-anchor="middle" font-weight="600">LLM推理</text>
+    <rect x="90" y="160" width="150" height="50" rx="25" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
+    <text x="165" y="190" font-size="13" fill="#5b21b6" text-anchor="middle" font-weight="600">LLM推理</text>
 
-    <!-- Arrows forming the loop -->
-    <path d="M 450 55 Q 550 55 555 158" fill="none" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-blue)" class="flow-arrow"/>
-    <path d="M 555 210 Q 550 310 452 335" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
-    <path d="M 300 335 Q 200 335 145 212" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
-    <path d="M 145 160 Q 145 55 298 55" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
+    <!-- Arrows -->
+    <path d="M 475 45 Q 580 45 585 158" fill="none" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrowhead-blue)" class="flow-arrow"/>
+    <path d="M 585 210 Q 580 310 477 335" fill="none" stroke="#10b981" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
+    <path d="M 325 335 Q 220 335 165 212" fill="none" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
+    <path d="M 165 160 Q 165 45 323 45" fill="none" stroke="#8b5cf6" stroke-width="2" marker-end="url(#arrowhead)" class="flow-arrow"/>
 
-    <!-- Tools on the right -->
-    <text x="680" y="40" font-size="11" fill="#64748b" font-weight="600">可用工具</text>
-    <rect x="650" y="52" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="68" font-size="9" fill="#475569" text-anchor="middle">retrieve_knowledge</text>
-    <rect x="650" y="82" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="98" font-size="9" fill="#475569" text-anchor="middle">inspect_schema</text>
-    <rect x="650" y="112" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="128" font-size="9" fill="#475569" text-anchor="middle">generate_feature</text>
-    <rect x="650" y="142" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="158" font-size="9" fill="#475569" text-anchor="middle">execute_sandbox</text>
-    <rect x="650" y="172" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="188" font-size="9" fill="#475569" text-anchor="middle">evaluate_feature</text>
-    <rect x="650" y="202" width="90" height="24" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
-    <text x="695" y="218" font-size="9" fill="#475569" text-anchor="middle">finish</text>
+    <!-- Tools -->
+    <text x="720" y="30" font-size="11" fill="#64748b" font-weight="600">可用工具</text>
+    <rect x="690" y="42" width="100" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="740" y="57" font-size="9" fill="#475569" text-anchor="middle">retrieve_knowledge</text>
+    <rect x="690" y="68" width="100" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="740" y="83" font-size="9" fill="#475569" text-anchor="middle">inspect_schema</text>
+    <rect x="690" y="94" width="100" height="22" rx="4" fill="#dbeafe" stroke="#3b82f6"/>
+    <text x="740" y="109" font-size="9" fill="#1d4ed8" text-anchor="middle">explore_data</text>
+    <rect x="690" y="120" width="100" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="740" y="135" font-size="9" fill="#475569" text-anchor="middle">generate_feature</text>
+    <rect x="690" y="146" width="100" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="740" y="161" font-size="9" fill="#475569" text-anchor="middle">execute_sandbox</text>
+    <rect x="690" y="172" width="100" height="22" rx="4" fill="#f1f5f9" stroke="#e2e8f0"/>
+    <text x="740" y="187" font-size="9" fill="#475569" text-anchor="middle">finish</text>
 
     <!-- Center label -->
-    <text x="375" y="195" font-size="11" fill="#94a3b8" text-anchor="middle">ReAct Loop</text>
-    <text x="375" y="212" font-size="10" fill="#94a3b8" text-anchor="middle">max_steps = 50</text>
+    <text x="400" y="190" font-size="11" fill="#94a3b8" text-anchor="middle">ReAct Loop</text>
+    <text x="400" y="207" font-size="10" fill="#94a3b8" text-anchor="middle">max_steps = 250</text>
+
+    <!-- Round boundary -->
+    <rect x="50" y="390" width="700" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="400" y="415" font-size="12" fill="#1e293b" text-anchor="middle" font-weight="700">每轮边界（每25步触发）</text>
+    <text x="150" y="440" font-size="10" fill="#475569" text-anchor="middle">SHAP反馈生成</text>
+    <text x="300" y="440" font-size="10" fill="#475569" text-anchor="middle">岛屿预算分配</text>
+    <text x="450" y="440" font-size="10" fill="#475569" text-anchor="middle">Pending Pool评估</text>
+    <text x="600" y="440" font-size="10" fill="#475569" text-anchor="middle">收敛检测</text>
+    <text x="150" y="465" font-size="9" fill="#94a3b8" text-anchor="middle">弱维度识别</text>
+    <text x="300" y="465" font-size="9" fill="#94a3b8" text-anchor="middle">反比分配B=12</text>
+    <text x="450" y="465" font-size="9" fill="#94a3b8" text-anchor="middle">forward_select</text>
+    <text x="600" y="465" font-size="9" fill="#94a3b8" text-anchor="middle">2轮无新特征→停止</text>
 </svg>
         </div>
 
@@ -1129,6 +1145,12 @@ section[id] {
                     <td>初始阶段，了解可用字段</td>
                 </tr>
                 <tr>
+                    <td><span class="inline-code">explore_data</span></td>
+                    <td>执行数据探索查询</td>
+                    <td>question, code (赋值给query_result)</td>
+                    <td>需要查看数据分布或统计信息时</td>
+                </tr>
+                <tr>
                     <td><span class="inline-code">generate_feature</span></td>
                     <td>生成特征代码</td>
                     <td>feature_name, dimension, code, explanation, reasoning</td>
@@ -1136,22 +1158,35 @@ section[id] {
                 </tr>
                 <tr>
                     <td><span class="inline-code">execute_sandbox</span></td>
-                    <td>沙箱验证代码</td>
+                    <td>沙箱验证 + 自动L2/L3评估</td>
                     <td>feature_name, code</td>
-                    <td>生成代码后立即验证</td>
-                </tr>
-                <tr>
-                    <td><span class="inline-code">evaluate_feature</span></td>
-                    <td>L2+L3评估</td>
-                    <td>feature_name</td>
-                    <td>沙箱通过后评估质量</td>
+                    <td>生成代码后立即验证（含L1重试2次）</td>
                 </tr>
                 <tr>
                     <td><span class="inline-code">finish</span></td>
                     <td>结束生成过程</td>
-                    <td>reason, summary</td>
+                    <td>reason</td>
                     <td>达到目标或维度覆盖完成</td>
                 </tr>
+            </tbody>
+        </table>
+
+        <h3>与原系统完全一致的12项机制</h3>
+        <table class="data-table">
+            <thead><tr><th>#</th><th>机制</th><th>原系统实现</th><th>Agent系统对应</th></tr></thead>
+            <tbody>
+                <tr><td>1</td><td>L1重试</td><td>_try_l1_with_retry (max_retries=2, LLM修复代码)</td><td>_try_l1_with_retry() 完全相同逻辑</td></tr>
+                <tr><td>2</td><td>L2验证</td><td>IV + KS + 冗余度 + 缺失率（校准阈值）</td><td>run_l2_validation() 同参数同阈值</td></tr>
+                <tr><td>3</td><td>L3验证</td><td>5-fold CV delta_f1/recall/precision + SHAP rank</td><td>run_l3_validation() 同参数</td></tr>
+                <tr><td>4</td><td>Pending Pool</td><td>L2通过+L3失败→缓刑池, backward_eliminate_pending()</td><td>PendingPool + _run_pending_pool_evaluation()</td></tr>
+                <tr><td>5</td><td>SHAP反馈</td><td>generate_shap_feedback() → 弱维度识别</td><td>_get_shap_feedback() + shap_feedback_to_prompt()</td></tr>
+                <tr><td>6</td><td>岛屿预算</td><td>compute_island_budgets() 反比分配 B=12</td><td>_get_island_budgets() 同函数同参数</td></tr>
+                <tr><td>7</td><td>Composite Score</td><td>30%SHAP + 20%IV + 20%redundancy + 30%delta_f1</td><td>compute_composite_score() 同权重同归一化</td></tr>
+                <tr><td>8</td><td>岛屿管理</td><td>island.add_feature() + migrate_best()</td><td>IslandManager + Boltzmann采样</td></tr>
+                <tr><td>9</td><td>失败记忆</td><td>FailureMemory.get_recent(5) 反馈给LLM</td><td>failure_memory.get_recent(5) 注入round prompt</td></tr>
+                <tr><td>10</td><td>可解释性报告</td><td>_generate_explainability() LLM生成JSON报告</td><td>_generate_explainability() 完全相同prompt</td></tr>
+                <tr><td>11</td><td>数据探索</td><td>execute_stats_query() 沙盒执行查询</td><td>explore_data工具调用execute_stats_query()</td></tr>
+                <tr><td>12</td><td>收敛检测</td><td>连续2轮无新特征→终止</td><td>_check_round_boundary() 同逻辑</td></tr>
             </tbody>
         </table>
 
@@ -1159,20 +1194,20 @@ section[id] {
         <p>Agent的决策由LLM自主完成，系统通过以下机制引导：</p>
         <ul class="step-list">
             <li class="step-item">
-                <div class="step-title">初始探索阶段</div>
-                <div class="step-desc">Agent倾向于先调用 retrieve_knowledge 和 inspect_schema，建立对问题的理解。System Prompt建议"先检索领域知识和查看数据结构"。</div>
+                <div class="step-title">初始探索阶段（第1轮）</div>
+                <div class="step-desc">Agent先调用 retrieve_knowledge 和 inspect_schema 建立理解。第1轮每个维度均匀分配3个候选（共12个）。</div>
             </li>
             <li class="step-item">
                 <div class="step-title">特征生成阶段</div>
-                <div class="step-desc">基于知识和数据结构设计特征。Agent在Thought中推理特征的业务含义，然后调用 generate_feature + execute_sandbox + evaluate_feature。</div>
+                <div class="step-desc">按维度预算生成候选特征。每个特征经 generate_feature → execute_sandbox（含L1重试2次 + 自动L2/L3评估）。L3失败进入缓刑池而非直接丢弃。</div>
             </li>
             <li class="step-item">
-                <div class="step-title">反馈调整阶段</div>
-                <div class="step-desc">如果特征被拒绝（L2/L3未通过），Agent收到详细反馈信息（IV值、冗余度等），自主决定修复代码或换方向。</div>
+                <div class="step-title">轮次边界反馈（每25步）</div>
+                <div class="step-desc">触发：(1) Pending Pool forward_select评估; (2) SHAP反馈生成; (3) 岛屿预算重新分配; (4) 收敛检测。新轮prompt注入SHAP分析、预算分配、失败记忆、Boltzmann采样的高分特征。</div>
             </li>
             <li class="step-item">
-                <div class="step-title">终止判断</div>
-                <div class="step-desc">满足以下任一条件时终止：(1) 接受特征数达到 max_features; (2) Agent自主调用finish; (3) 步数达到 max_steps=50。</div>
+                <div class="step-title">终止条件</div>
+                <div class="step-desc">(1) 接受特征数达到 max_features=30; (2) 连续2轮无新特征（收敛）; (3) Agent自主调用finish; (4) 步数达到 max_steps=250。</div>
             </li>
         </ul>
 
@@ -1180,10 +1215,15 @@ section[id] {
         <table class="data-table">
             <thead><tr><th>参数</th><th>默认值</th><th>说明</th></tr></thead>
             <tbody>
-                <tr><td>max_steps</td><td>50</td><td>最大推理步数</td></tr>
-                <tr><td>max_features</td><td>20</td><td>目标特征数量</td></tr>
+                <tr><td>max_steps</td><td>250</td><td>最大推理步数（对应原系统10轮×12候选×2步/候选）</td></tr>
+                <tr><td>max_features</td><td>30</td><td>目标特征数量</td></tr>
+                <tr><td>steps_per_round</td><td>25</td><td>每轮步数（触发Pending Pool评估和SHAP反馈）</td></tr>
                 <tr><td>temperature</td><td>0.7</td><td>LLM生成温度</td></tr>
                 <tr><td>model</td><td>deepseek-chat</td><td>使用的LLM模型</td></tr>
+                <tr><td>B_total</td><td>12</td><td>每轮总候选预算（4维度动态分配）</td></tr>
+                <tr><td>b_min / b_max</td><td>1 / 5</td><td>单维度候选数范围</td></tr>
+                <tr><td>pending_pool_max_size</td><td>20</td><td>缓刑池最大容量</td></tr>
+                <tr><td>pending_pool_max_age</td><td>3</td><td>缓刑池最大轮龄</td></tr>
             </tbody>
         </table>
     </div>

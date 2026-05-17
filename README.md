@@ -54,13 +54,66 @@ L2 通过但 L3 单独增量不够的特征进入缓刑池。每轮结束后：
 3. 剔除后分数下降 → 说明在组合中有贡献 → 接受
 4. 剔除后分数不降 → 确认无贡献 → 留池等下轮或淘汰
 
+## 两种运行模式
+
+### 模式一：多岛搜索引擎（原始架构）
+
+传统的多维度岛屿搜索方式，每个岛屿独立对话，适合大规模搜索。
+
+```bash
+DEEPSEEK_API_KEY=your_key python src/main.py --provider deepseek --model deepseek-chat
+```
+
+### 模式二：单 Agent 系统（推荐）
+
+基于 ReAct 范式的单智能体架构，通过 Function Calling 工具调用实现全流程自主控制。
+逻辑与多岛搜索引擎 **100% 一致**，但以更灵活的方式执行：
+
+```bash
+DEEPSEEK_API_KEY=your_key python run_single_agent.py --provider deepseek --model deepseek-chat
+```
+
+**单 Agent 核心机制（与原系统完全对齐）：**
+
+| # | 机制 | 说明 |
+|---|------|------|
+| 1 | 维度岛屿搜索 | 4 个维度岛屿，Boltzmann 采样历史特征作为 in-context 示例 |
+| 2 | SHAP 动态预算 | 每轮通过 SHAP 反馈识别弱维度，反比分配各岛屿候选数量 |
+| 3 | L1 沙盒验证 + 重试 | AST 安全检查 + 隔离执行，失败后 LLM 修复代码（最多 2 次重试） |
+| 4 | L2 统计验证 | MI ≥ 0.001、冗余度 < 0.9、Cramer's V ≥ 0.05 |
+| 5 | L3 增量验证 | Delta PR-AUC ≥ 0.005（XGBoost 5 折 CV，GPU 加速） |
+| 6 | 缓刑池 + 反向淘汰 | L2 通过 + L3 未通过 → 缓刑池，每轮按 SHAP 反向淘汰 |
+| 7 | 复合评分 | 30% SHAP rank + 20% IV + 20% redundancy + 30% delta_f1 |
+| 8 | 失败记忆 | 最近 50 条失败记录，prompt 中展示最近 5 条避免重复 |
+| 9 | 岛屿迁移 | 高分特征迁移到其他岛屿作为灵感 |
+| 10 | 按需数据探索 | Agent 可主动调用 `explore_data` 工具查询数据统计 |
+| 11 | 可解释性报告 | 每个接受的特征生成结构化解释（阈值/协同/误判/监管） |
+| 12 | 收敛检测 | 连续 2 轮无新特征自动终止 |
+
+**Agent 工具列表：**
+
+| 工具 | 功能 |
+|------|------|
+| `generate_feature` | 生成特征代码，触发 L1→L2→L3 验证 |
+| `explore_data` | 执行数据统计查询（沙盒隔离） |
+| `finish` | 声明搜索完成，结束流程 |
+
+### Phase 3: 最终验证与产出
+
+```bash
+python src/phase3_main.py
+```
+
 ## 快速开始
 
 ```bash
 # 安装依赖
 pip install -r requirements.txt
 
-# Phase 0-2: 搜索生成特征（使用 DeepSeek）
+# 单 Agent 模式运行（推荐）
+DEEPSEEK_API_KEY=your_key python run_single_agent.py --provider deepseek --model deepseek-chat
+
+# 或使用多岛搜索引擎
 DEEPSEEK_API_KEY=your_key python src/main.py --provider deepseek --model deepseek-chat
 
 # Phase 3: 最终验证与产出
@@ -74,8 +127,10 @@ python src/phase3_main.py
 ```
 src/
 ├── config.py              # 超参数配置
-├── main.py                # Phase 0-2 主入口
+├── main.py                # Phase 0-2 主入口（多岛搜索引擎）
 ├── phase3_main.py         # Phase 3 主入口
+├── agent/
+│   └── single_agent.py    # 单 Agent 系统（ReAct + Function Calling）
 ├── data/
 │   ├── loader.py          # 数据加载 + schema + 分布差异 + 关联统计
 │   ├── merge.py           # 特征 merge 到交易表
@@ -94,7 +149,7 @@ src/
 │   ├── stability.py       # L4 稳定性验证
 │   └── experiments.py     # 5 组增量实验
 ├── search/
-│   ├── engine.py          # 搜索引擎主程序
+│   ├── engine.py          # 多岛搜索引擎主程序
 │   ├── island.py          # 维度岛屿 + Boltzmann 采样
 │   ├── memory.py          # 失败记忆
 │   ├── pending_pool.py    # 缓刑池管理
@@ -103,6 +158,7 @@ src/
     ├── feature_dictionary.py
     ├── visualization.py
     └── generator.py
+run_single_agent.py        # 单 Agent 系统入口
 ```
 
 ## 核心创新
