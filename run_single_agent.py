@@ -203,58 +203,22 @@ with open(result_file, "w", encoding="utf-8") as f:
 logger.info(f"  结果JSON: {result_file}")
 
 # ============================================================
-# Step 5: 评估增量效果 (5-fold CV)
+# Step 5: 评估增量效果 (5-fold CV) — 与原系统一致使用 compute_cv_metrics + forward_select
 # ============================================================
 logger.info("\n[Step 6] 评估增量效果...")
 
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import f1_score, recall_score, precision_score, average_precision_score, precision_recall_curve
-from xgboost import XGBClassifier
-from src.evaluation.validator import run_l1_validation
+from src.evaluation.validator import run_l1_validation, forward_select_features
 from src.data.merge import merge_feature_to_transactions
 import pandas as pd
 
-y = label.values
-X_baseline = baseline_features.values
-cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-spw = (y == 0).sum() / max((y == 1).sum(), 1)
-
-
-def eval_cv(X, y, cv, spw):
-    """5-fold CV评估，返回平均指标。"""
-    metrics_list = []
-    for train_idx, val_idx in cv.split(X, y):
-        model = XGBClassifier(
-            n_estimators=300, max_depth=6, learning_rate=0.1,
-            scale_pos_weight=spw, eval_metric="aucpr",
-            use_label_encoder=False, verbosity=0, random_state=42,
-        )
-        model.fit(X[train_idx], y[train_idx],
-                  eval_set=[(X[val_idx], y[val_idx])], verbose=False)
-        prob_train = model.predict_proba(X[train_idx])[:, 1]
-        prec_arr, rec_arr, thr_arr = precision_recall_curve(y[train_idx], prob_train)
-        f1_arr = 2 * prec_arr * rec_arr / (prec_arr + rec_arr + 1e-10)
-        best_thr = thr_arr[np.argmax(f1_arr[:-1])]
-        prob_val = model.predict_proba(X[val_idx])[:, 1]
-        y_pred = (prob_val >= best_thr).astype(int)
-        metrics_list.append({
-            "f1": f1_score(y[val_idx], y_pred),
-            "recall": recall_score(y[val_idx], y_pred),
-            "precision": precision_score(y[val_idx], y_pred),
-            "pr_auc": average_precision_score(y[val_idx], prob_val),
-        })
-    return {k: float(np.mean([m[k] for m in metrics_list])) for k in ["f1", "recall", "precision", "pr_auc"]}
-
-
-# 基线评估
-logger.info("  计算基线指标...")
-baseline_metrics = eval_cv(X_baseline, y, cv, spw)
+# 基线评估：直接复用Step 3已计算的baseline_cv_metrics（与原系统一致的compute_cv_metrics）
+baseline_metrics = baseline_cv_metrics
 logger.info(f"  基线: F1={baseline_metrics['f1']:.6f}, Recall={baseline_metrics['recall']:.6f}, "
-            f"Precision={baseline_metrics['precision']:.6f}, PR-AUC={baseline_metrics['pr_auc']:.6f}")
+            f"Precision={baseline_metrics['precision']:.6f}, PR-AUC={baseline_metrics['prauc']:.6f}")
 
-# 重新执行接受的特征代码，构建组合特征
+# 重新执行接受的特征代码，构建候选特征
 eval_results = {"baseline": baseline_metrics}
-new_feature_list = []
+candidate_features = {}
 
 if result["accepted_features"]:
     logger.info("  重新执行Agent生成的特征代码...")
@@ -265,9 +229,8 @@ if result["accepted_features"]:
                 merged = merge_feature_to_transactions(feature_df, tx_df)
                 feat_cols_new = [c for c in merged.columns if c not in tx_df.columns]
                 if feat_cols_new:
-                    series = merged[feat_cols_new[0]].fillna(0)
-                    series.name = feat["name"]
-                    new_feature_list.append(series)
+                    series = merged[feat_cols_new[0]].fillna(0).values
+                    candidate_features[feat["name"]] = series
                     logger.info(f"    OK: {feat['name']}")
                 else:
                     logger.warning(f"    SKIP: {feat['name']} (无新列)")
@@ -276,24 +239,32 @@ if result["accepted_features"]:
         except Exception as e:
             logger.warning(f"    ERROR: {feat['name']} ({e})")
 
-    if new_feature_list:
-        new_features_df = pd.concat(new_feature_list, axis=1)
-        X_combined = np.hstack([X_baseline, new_features_df.values])
-        logger.info(f"  组合特征矩阵: baseline({X_baseline.shape[1]}) + new({new_features_df.shape[1]}) = {X_combined.shape[1]}")
+    if candidate_features:
+        logger.info(f"  候选特征: {len(candidate_features)} 个，开始Forward Selection...")
 
-        logger.info("  计算组合指标...")
-        combined_metrics = eval_cv(X_combined, y, cv, spw)
-        delta_metrics = {k: combined_metrics[k] - baseline_metrics[k] for k in combined_metrics}
+        # Forward Selection：与原系统一致，只选出能提升F1的特征子集
+        selected_names, final_metrics = forward_select_features(
+            baseline_features, candidate_features, label, baseline_metrics,
+        )
 
-        eval_results["combined"] = combined_metrics
-        eval_results["delta"] = delta_metrics
-        eval_results["new_features_count"] = len(new_feature_list)
-        eval_results["new_feature_names"] = [s.name for s in new_feature_list]
+        if selected_names:
+            delta_metrics = {k: final_metrics[k] - baseline_metrics[k] for k in final_metrics}
+            eval_results["combined"] = final_metrics
+            eval_results["delta"] = delta_metrics
+            eval_results["new_features_count"] = len(selected_names)
+            eval_results["new_feature_names"] = selected_names
 
-        logger.info(f"  组合: F1={combined_metrics['f1']:.6f}, Recall={combined_metrics['recall']:.6f}, "
-                    f"Precision={combined_metrics['precision']:.6f}, PR-AUC={combined_metrics['pr_auc']:.6f}")
-        logger.info(f"  增量: dF1={delta_metrics['f1']:+.6f}, dRecall={delta_metrics['recall']:+.6f}, "
-                    f"dPrecision={delta_metrics['precision']:+.6f}, dPR-AUC={delta_metrics['pr_auc']:+.6f}")
+            logger.info(f"  Forward Selection选出: {len(selected_names)} 个特征: {selected_names}")
+            logger.info(f"  组合: F1={final_metrics['f1']:.6f}, Recall={final_metrics['recall']:.6f}, "
+                        f"Precision={final_metrics['precision']:.6f}, PR-AUC={final_metrics['prauc']:.6f}")
+            logger.info(f"  增量: dF1={delta_metrics['f1']:+.6f}, dRecall={delta_metrics['recall']:+.6f}, "
+                        f"dPrecision={delta_metrics['precision']:+.6f}, dPR-AUC={delta_metrics['prauc']:+.6f}")
+        else:
+            logger.info("  Forward Selection未选出任何特征（无增量效果）")
+            eval_results["combined"] = baseline_metrics
+            eval_results["delta"] = {k: 0.0 for k in baseline_metrics}
+            eval_results["new_features_count"] = 0
+            eval_results["new_feature_names"] = []
 
 eval_file = OUTPUT_DIR / f"evaluation_{timestamp}.json"
 with open(eval_file, "w", encoding="utf-8") as f:
