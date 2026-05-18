@@ -132,6 +132,23 @@ logger.info(f"  基线CV指标: F1={baseline_cv_metrics.get('f1', 0):.6f}, "
             f"PR-AUC={baseline_cv_metrics.get('prauc', 0):.6f}")
 
 # ============================================================
+# Step 3.5: 提取Schema、分布差异、关联统计（注入system prompt）
+# ============================================================
+logger.info("\n[Step 3.5] 提取数据Schema和分布差异...")
+
+from src.data.loader import extract_schema, extract_distribution_diff, extract_join_statistics
+
+schema_parts = [
+    extract_schema(open_df, "开户表(accounts)"),
+    extract_schema(tx_df, "交易表(transactions)"),
+    extract_schema(close_df, "销户表(close)"),
+]
+schema_text = "\n\n".join(schema_parts)
+distribution_diff = extract_distribution_diff(open_df, tx_df, close_df, label)
+join_statistics = extract_join_statistics(open_df, tx_df, close_df)
+logger.info(f"  Schema: {len(schema_text)} chars, 分布差异: {len(distribution_diff)} chars, 关联统计: {len(join_statistics)} chars")
+
+# ============================================================
 logger.info("\n[Step 4] 初始化并运行单Agent...")
 
 from src.agent.single_agent import FeatureEngineerAgent
@@ -150,6 +167,9 @@ agent = FeatureEngineerAgent(
     max_steps=MAX_STEPS,
     max_features=MAX_FEATURES,
     temperature=0.7,
+    schema_text=schema_text,
+    distribution_diff=distribution_diff,
+    join_statistics=join_statistics,
 )
 
 start_time = time.time()

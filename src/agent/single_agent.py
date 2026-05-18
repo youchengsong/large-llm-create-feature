@@ -46,42 +46,6 @@ TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "retrieve_knowledge",
-            "description": "检索领域知识。可获取交易模式说明、专家访谈知识、风险指标或检测规则示例。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "knowledge_type": {
-                        "type": "string",
-                        "enum": ["transaction_patterns", "expert_interview", "risk_indicators", "detection_rules"],
-                        "description": "要检索的知识类型"
-                    }
-                },
-                "required": ["knowledge_type"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "inspect_schema",
-            "description": "查看数据表结构，了解可用字段和数据类型。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "table": {
-                        "type": "string",
-                        "enum": ["open_df", "tx_df", "close_df"],
-                        "description": "要查看的数据表"
-                    }
-                },
-                "required": ["table"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "explore_data",
             "description": "执行数据探索查询，查看数据分布或统计信息。代码中将结果赋值给query_result变量。",
             "parameters": {
@@ -228,6 +192,9 @@ class FeatureEngineerAgent:
         temperature: float = 0.7,
         validation_thresholds=None,
         baseline_metrics: dict = None,
+        schema_text: str = "",
+        distribution_diff: str = "",
+        join_statistics: str = "",
     ):
         self.client = OpenAI(api_key=api_key, base_url=base_url)
         self.model = model
@@ -242,6 +209,9 @@ class FeatureEngineerAgent:
         self.temperature = temperature
         self.validation_thresholds = validation_thresholds or DEFAULT_CONFIG.validation
         self.baseline_metrics = baseline_metrics or {}
+        self.schema_text = schema_text
+        self.distribution_diff = distribution_diff
+        self.join_statistics = join_statistics
 
         # 原系统组件（与engine.py完全对应）
         self.island_manager = IslandManager(DEFAULT_CONFIG.islands)
@@ -544,41 +514,100 @@ class FeatureEngineerAgent:
             for ic in ISLANDS
         )
 
-        return f"""你是一个专业的反洗钱特征工程Agent。你的任务是为数字人民币交易数据自动生成有效的检测特征。
+        # 加载领域知识（直接注入，与原系统build_system_prompt一致）
+        transaction_patterns = load_transaction_patterns()
+        expert_knowledge = load_expert_interview()
+        try:
+            risk_indicators = load_risk_indicators()
+        except Exception:
+            risk_indicators = "（风险分类表未提供）"
+        try:
+            rules = load_detection_rules()
+            seed_examples = rules_to_python_examples(rules, n=2)
+        except Exception:
+            seed_examples = "（检测规则示例未提供）"
 
-## 你的能力
-你可以使用以下工具：
-1. retrieve_knowledge - 检索领域知识（交易模式、专家访谈、风险指标、检测规则）
-2. inspect_schema - 查看数据表结构
-3. explore_data - 执行数据探索查询（查看分布、统计信息）
-4. generate_feature - 生成特征代码
-5. execute_sandbox - 在沙箱中验证代码（通过后自动评估L2/L3质量）
-6. finish - 结束生成过程
+        # 基线特征列表
+        baseline_list = "\n".join(f"- {f}" for f in self.baseline_features.columns)
+
+        # 基线代码示例
+        from src.data.baseline import get_baseline_feature_code_samples
+        baseline_code_samples = get_baseline_feature_code_samples()
+
+        return f"""你是数字人民币反洗钱领域的特征工程师。你的任务是为反洗钱检测模型生成新特征。
+
+## 思考过程
+生成每个特征前，请先按以下步骤推理：
+1. 分析下方的「分布差异」，找出正常和异常之间差异最大的维度
+2. 思考哪些领域知识能解释这些差异
+3. 设计一个能捕捉该差异的特征，确保它与已有特征不冗余
+4. 编写代码实现
+
+## 你的工具
+1. explore_data - 执行数据探索查询（写Python代码查看具体数据分布）
+2. generate_feature - 生成特征代码
+3. execute_sandbox - 在沙箱中验证代码（通过后自动评估L2/L3质量）
+4. finish - 结束生成过程
 
 ## 工作流程
-1. 首先检索领域知识，了解洗钱模式
-2. 查看数据schema，了解可用字段
-3. 可选：用explore_data查看数据分布，发现异常模式
-4. 基于知识和数据，围绕指定维度设计并生成特征（generate_feature）
-5. 在沙箱中验证代码（execute_sandbox）— 通过后系统自动评估质量
-6. 根据评估反馈和SHAP分析调整策略，重点探索薄弱维度
-7. 每轮生成约12个候选特征（4个维度各3个），覆盖多维度后用finish结束
+1. 阅读下方已注入的领域知识和数据结构
+2. 可选：用explore_data查看具体数据分布，发现异常模式
+3. 基于知识和数据，围绕指定维度设计并生成特征（generate_feature）
+4. 在沙箱中验证代码（execute_sandbox）— 通过后系统自动评估质量
+5. 根据评估反馈和SHAP分析调整策略，重点探索薄弱维度
+6. 每轮生成约12个候选特征（4个维度各3个），覆盖多维度后用finish结束
 
 ## 维度岛屿（4个探索方向）
 {island_desc}
+
+## 数据结构
+
+{self.schema_text}
+
+{self.join_statistics}
+
+{self.distribution_diff}
+
+## 三表关联
+- 交易表的 src 和 dst 字段是 wallet_id，关联到开户表和销户表
+- 一个钱包可以在多笔交易中出现
+
+{transaction_patterns}
+
+## 领域知识
+
+{expert_knowledge}
+
+{risk_indicators}
+
+## 已有特征（不要重复，可以组合改进）
+以下特征已经由人工实现：
+{baseline_list}
+
+{baseline_code_samples}
+
+{seed_examples}
 
 ## 特征代码要求
 - 写一个Python函数，签名: def feature_xxx(open_df, tx_df, close_df) -> pd.DataFrame
 - 代码最后必须调用该函数并将返回值赋给 result 变量:
   result = feature_xxx(open_df, tx_df, close_df)
 - 返回的DataFrame必须包含 wallet_id 或 tx_id 列作为索引
-- 不能使用标签列(is_risk, is_laundering等)
+- 不能使用标签列(is_risk, is_laundering, is_abnormal, is_zs_laundering, is_src_victim)
 - 需要处理空值情况(fillna)
 - 只能使用 pandas, numpy, scipy, sklearn, datetime, collections, math
+- 特征值应有区分度（不能全0或全1，NaN不超过50%）
+
+## 约束
+1. 代码必须在 30 秒内执行完毕
+2. 只能使用 pandas, numpy, scipy.stats, sklearn.preprocessing
+3. 不要引用数据中不存在的字段
+4. 不要使用标签列（is_risk, is_abnormal, is_zs_laundering, is_src_victim）作为特征
+5. 特征值应有区分度（不能全0或全1，NaN不超过50%）
 
 ## 策略建议
 - 重点关注SHAP分析中的薄弱维度（预算更高的维度）
-- 从领域知识中寻找灵感
+- 从上方领域知识中寻找灵感，特别是分布差异大的维度
 - 如果某个方向连续失败，换方向探索
 - L3未通过的特征不会立即丢弃，会进入缓刑池等待后续评估
 - 优先探索与已有特征低相关的方向"""
@@ -683,11 +712,7 @@ class FeatureEngineerAgent:
     # ----------------------------------------------------------
 
     def _execute_tool(self, tool_name: str, arguments: dict) -> str:
-        if tool_name == "retrieve_knowledge":
-            return self._tool_retrieve_knowledge(arguments)
-        elif tool_name == "inspect_schema":
-            return self._tool_inspect_schema(arguments)
-        elif tool_name == "explore_data":
+        if tool_name == "explore_data":
             return self._tool_explore_data(arguments)
         elif tool_name == "generate_feature":
             return self._tool_generate_feature(arguments)
@@ -697,43 +722,6 @@ class FeatureEngineerAgent:
             return self._tool_finish(arguments)
         else:
             return f"未知工具: {tool_name}"
-
-    def _tool_retrieve_knowledge(self, args: dict) -> str:
-        knowledge_type = args.get("knowledge_type", "")
-        if knowledge_type == "transaction_patterns":
-            return load_transaction_patterns()
-        elif knowledge_type == "expert_interview":
-            return load_expert_interview()
-        elif knowledge_type == "risk_indicators":
-            try:
-                return load_risk_indicators()
-            except Exception as e:
-                return f"风险指标加载失败: {e}"
-        elif knowledge_type == "detection_rules":
-            try:
-                rules = load_detection_rules()
-                return rules_to_python_examples(rules, n=2)
-            except Exception as e:
-                return f"检测规则加载失败: {e}"
-        return "未知的知识类型"
-
-    def _tool_inspect_schema(self, args: dict) -> str:
-        table = args.get("table", "")
-        df_map = {"open_df": self.open_df, "tx_df": self.tx_df, "close_df": self.close_df}
-        df = df_map.get(table)
-        if df is None:
-            return f"未知数据表: {table}"
-        lines = [f"## {table} (shape: {df.shape})"]
-        lines.append("| 列名 | 类型 | 非空数 | 示例值 |")
-        lines.append("|------|------|--------|--------|")
-        for col in df.columns:
-            dtype = str(df[col].dtype)
-            non_null = df[col].notna().sum()
-            sample = str(df[col].dropna().iloc[0]) if df[col].notna().any() else "N/A"
-            if len(sample) > 30:
-                sample = sample[:30] + "..."
-            lines.append(f"| {col} | {dtype} | {non_null} | {sample} |")
-        return "\n".join(lines)
 
     def _tool_explore_data(self, args: dict) -> str:
         """执行数据探索查询（与engine.py _execute_queries一致）。"""
@@ -1084,7 +1072,8 @@ class FeatureEngineerAgent:
             f"数据规模: {len(self.tx_df)} 条交易, {self.open_df.shape[0]} 个钱包\n"
             f"已有基线特征: {self.baseline_features.shape[1]} 个\n"
             f"正样本率: {self.label.mean()*100:.4f}%\n\n"
-            f"请开始工作。建议先检索领域知识和查看数据结构，然后按维度逐步生成特征。"
+            f"上方已注入完整的领域知识、数据结构和分布差异。请直接基于这些信息按维度逐步生成特征。"
+            f"如需查看具体数据分布可用explore_data工具。"
         )
         self.messages.append({"role": "user", "content": initial_prompt})
 
