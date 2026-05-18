@@ -613,97 +613,76 @@ class FeatureEngineerAgent:
 - 优先探索与已有特征低相关的方向"""
 
     # ----------------------------------------------------------
-    # 轮次引导Prompt（含SHAP反馈 + 预算 + 反馈）
+    # 岛屿级Prompt（为单个岛屿批量生成特征）
     # ----------------------------------------------------------
 
-    def _build_round_prompt(self) -> str:
-        """构建每轮开始时的引导prompt（与engine.py run_round对应）。"""
-        self._round_num += 1
-
-        # SHAP反馈文本
+    def _build_island_prompt(self, island, n_candidates: int, round_num: int) -> str:
+        """构建单个岛屿的生成prompt（要求一次生成n_candidates个特征）。"""
+        # SHAP反馈
         shap_fb = self._get_shap_feedback()
         island_dims = [ic.dimension for ic in ISLANDS]
-        shap_text = shap_feedback_to_prompt(shap_fb, island_dims) if shap_fb else "暂无SHAP反馈，所有维度均需探索。"
+        shap_text = shap_feedback_to_prompt(shap_fb, island_dims) if shap_fb else ""
 
-        # 岛屿预算
-        budgets = self._get_island_budgets()
-        budget_text = "\n".join(
-            f"  - {ic.name}({ic.dimension}): {budgets.get(ic.dimension, 3)} 个候选"
-            for ic in ISLANDS
-        )
-
-        # 失败记忆（与engine.py failure_memory.get_recent(5)一致）
-        recent_failures = self.failure_memory.get_recent(5)
-        fail_text = "\n".join(
-            f"  - {f.get('feature_name', '?')}: {f.get('failure_reason', '?')}"
-            for f in recent_failures
-        ) if recent_failures else "（暂无）"
-
-        # 上轮最佳特征（与engine.py island.boltzmann_sample对应）
-        top_features = []
-        for island in self.island_manager.islands:
-            sampled = island.boltzmann_sample(k=DEFAULT_CONFIG.search.k, tau=DEFAULT_CONFIG.search.tau)
-            for f in sampled:
-                if f not in top_features:
-                    top_features.append(f)
+        # 该岛屿的高分示例
+        top_features = island.boltzmann_sample(k=DEFAULT_CONFIG.search.k, tau=DEFAULT_CONFIG.search.tau)
         top_text = "\n".join(
             f"  - {f.get('name', '?')}: score={f.get('score', 0):.4f}, "
             f"SHAP_rank={f.get('shap_rank', f.get('l3_metrics', {}).get('shap_rank', '?'))}"
-            for f in top_features[:10]
+            for f in top_features[:5]
         ) if top_features else "（暂无）"
 
-        # Pending pool状态
+        # 该维度的失败记忆
+        recent_failures = self.failure_memory.get_recent(5)
+        dim_failures = [f for f in recent_failures if island.dimension in f.get("failure_reason", "")
+                        or island.name.lower() in f.get("feature_name", "").lower()]
+        if not dim_failures:
+            dim_failures = recent_failures[:3]
+        fail_text = "\n".join(
+            f"  - {f.get('feature_name', '?')}: {f.get('failure_reason', '?')}"
+            for f in dim_failures
+        ) if dim_failures else "（暂无）"
+
         pool_text = f"\n缓刑池: {len(self.pending_pool)} 个特征待评估" if not self.pending_pool.is_empty() else ""
 
-        total_budget = sum(budgets.values())
+        return f"""## 第 {round_num} 轮 — 维度: {island.name}({island.dimension})
 
-        return f"""## 第 {self._round_num} 轮迭代
+重点探索字段: {', '.join(island.fields)}
 
 {shap_text}
 
-## 本轮预算分配（共 {total_budget} 个候选特征）
-{budget_text}
-
-## 上轮最佳特征（记忆库中的高分示例）
+## 该维度高分特征示例
 {top_text}
 
-## 近期失败特征（避免重复类似方向）
+## 近期失败特征（避免重复）
 {fail_text}
 {pool_text}
 
 ## 任务
-请按照预算分配，为每个维度生成指定数量的候选特征。
-- 薄弱维度（预算更多的）应重点探索
-- 对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证
-- 如果需要了解数据分布，可先用 explore_data 查询"""
+请为 {island.name}({island.dimension}) 维度一次性生成 **{n_candidates}** 个候选特征。
+对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。
+生成 {n_candidates} 个后停下等待下一个维度的指令。"""
 
-    # ----------------------------------------------------------
-    # 轮内反馈Prompt（对应engine.py _build_turn_feedback_prompt）
-    # ----------------------------------------------------------
+    def _build_island_feedback_prompt(self, island, prev_accepted: list, prev_failed: list, n_candidates: int) -> str:
+        """岛屿内第2+轮对话的反馈prompt。"""
+        lines = [f"## {island.name} 上一批结果反馈\n"]
 
-    def _build_turn_feedback_prompt(self, turn_accepted: list[dict], turn_failed: list[dict]) -> str:
-        """构建轮内多轮对话的反馈prompt（与engine.py完全一致）。"""
-        lines = [f"## 上一轮生成结果反馈\n"]
-
-        if turn_accepted:
+        if prev_accepted:
             lines.append("通过验证的特征：")
-            for f in turn_accepted:
+            for f in prev_accepted:
                 lines.append(
                     f"  - {f['name']}: score={f.get('score', 0):.4f}, "
-                    f"delta_f1={f.get('l3_metrics', {}).get('delta_f1', 0):.6f}, "
-                    f"delta_recall={f.get('l3_metrics', {}).get('delta_recall', 0):.6f}"
+                    f"delta_f1={f.get('l3_metrics', {}).get('delta_f1', 0):.6f}"
                 )
             lines.append("")
 
-        if turn_failed:
-            lines.append("未通过的特征（请避免类似方向）：")
-            for f in turn_failed:
-                lines.append(f"  - {f.get('name', 'unknown')}: {f.get('reason', '')}")
+        if prev_failed:
+            lines.append("未通过的特征（请换方向）：")
+            for f in prev_failed:
+                lines.append(f"  - {f.get('name', '?')}: {f.get('reason', '?')}")
             lines.append("")
 
         lines.append(
-            "请基于以上反馈，继续生成不同角度的新特征。"
-            "尝试与上轮不同的思路，探索还未覆盖的维度。"
+            f"请继续为 {island.name}({island.dimension}) 生成 {n_candidates} 个不同角度的新候选特征。"
         )
         return "\n".join(lines)
 
@@ -962,52 +941,11 @@ class FeatureEngineerAgent:
         )
 
     # ----------------------------------------------------------
-    # 轮次边界检查
+    # Step & Run（结构化岛屿遍历模式）
     # ----------------------------------------------------------
 
-    def _check_round_boundary(self) -> bool:
-        """检查是否到达轮次边界，触发Pending Pool评估和新轮引导。"""
-        self._steps_in_round += 1
-        if self._steps_in_round < self._steps_per_round:
-            return False
-
-        self._steps_in_round = 0
-
-        # 轮末：评估Pending Pool（与engine.py run_round末尾一致）
-        pool_accepted = self._run_pending_pool_evaluation()
-        if pool_accepted:
-            self._current_round_new_count += len(pool_accepted)
-
-        # 收敛检测（与engine.py check_convergence一致）
-        if self._current_round_new_count == 0:
-            self._rounds_without_new += 1
-        else:
-            self._rounds_without_new = 0
-
-        logger.info("Round %d finished: %d new features, rounds_without_new=%d",
-                    self._round_num, self._current_round_new_count, self._rounds_without_new)
-
-        if self._rounds_without_new >= 2:
-            self.state.finished = True
-            self.state.finish_reason = "连续2轮无新特征，收敛终止"
-            logger.info("Converged: 2 consecutive rounds without new features")
-            return True
-
-        # 重置轮计数
-        self._current_round_new_count = 0
-
-        # 注入新轮引导prompt（含SHAP反馈 + 预算 + 轮内反馈）
-        round_prompt = self._build_round_prompt()
-        self.messages.append({"role": "user", "content": round_prompt})
-        logger.info("=== Round %d started (SHAP feedback + budget injected) ===", self._round_num)
-        return True
-
-    # ----------------------------------------------------------
-    # Step & Run
-    # ----------------------------------------------------------
-
-    def step(self) -> dict:
-        """执行一步Agent推理。"""
+    def _agent_step(self) -> dict:
+        """执行一步Agent推理（单次LLM调用+工具执行）。"""
         response = self.client.chat.completions.create(
             model=self.model,
             messages=self.messages,
@@ -1062,25 +1000,13 @@ class FeatureEngineerAgent:
         self.step_log.append(step_info)
         return step_info
 
-    def run(self) -> dict:
-        """运行Agent直到完成或达到最大步数。"""
-        self.messages = [{"role": "system", "content": self._build_system_prompt()}]
+    def _run_island_turn(self, island, n_candidates: int, max_steps: int = 30) -> tuple[list, list]:
+        """为单个岛屿执行一轮生成+验证，返回(accepted, failed)。"""
+        accepted = []
+        failed = []
+        steps_used = 0
 
-        initial_prompt = (
-            f"开始自动特征工程任务。\n"
-            f"目标: 生成最多 {self.max_features} 个高质量反洗钱特征\n"
-            f"数据规模: {len(self.tx_df)} 条交易, {self.open_df.shape[0]} 个钱包\n"
-            f"已有基线特征: {self.baseline_features.shape[1]} 个\n"
-            f"正样本率: {self.label.mean()*100:.4f}%\n\n"
-            f"上方已注入完整的领域知识、数据结构和分布差异。请直接基于这些信息按维度逐步生成特征。"
-            f"如需查看具体数据分布可用explore_data工具。"
-        )
-        self.messages.append({"role": "user", "content": initial_prompt})
-
-        logger.info("=== FeatureEngineerAgent 启动 ===")
-        logger.info("目标: %d 个特征, 最大步数: %d", self.max_features, self.max_steps)
-
-        for step_num in range(self.max_steps):
+        while steps_used < max_steps:
             if self.state.finished:
                 break
             if len(self.state.accepted_features) >= self.max_features:
@@ -1089,24 +1015,143 @@ class FeatureEngineerAgent:
                 break
 
             try:
-                self.step()
+                step_info = self._agent_step()
+                steps_used += 1
             except Exception as e:
-                logger.error("Step %d error: %s", step_num + 1, e)
+                logger.error("Island %s step error: %s", island.name, e)
                 if (self.messages and self.messages[-1].get("role") == "assistant"
                         and self.messages[-1].get("tool_calls")):
                     self.messages.pop()
                 self.messages.append({
                     "role": "user",
-                    "content": f"上一步出现系统错误: {e}。请继续工作，尝试生成新的特征。"
+                    "content": f"系统错误: {e}。请继续生成特征。"
                 })
+                steps_used += 1
+                continue
 
-            # 轮次边界检查
-            self._check_round_boundary()
+            # 检查是否调用了finish
+            if self.state.finished:
+                break
+
+            # 统计本轮已验证的特征数（通过execute_sandbox的）
+            verified_count = sum(
+                1 for tc in step_info.get("tool_calls", [])
+                if tc["tool"] == "execute_sandbox"
+            )
+
+            # 收集本轮结果
+            for tc in step_info.get("tool_calls", []):
+                if tc["tool"] == "execute_sandbox":
+                    feat_name = tc["arguments"].get("feature_name", "")
+                    obs = tc["observation"]
+                    if "✓ 特征评估通过" in obs:
+                        rec = next((f for f in self.state.accepted_features if f["name"] == feat_name), None)
+                        if rec:
+                            accepted.append(rec)
+                    elif "✗" in obs or "行数不匹配" in obs or "合并后无新列" in obs:
+                        failed.append({"name": feat_name, "reason": obs[:100]})
+
+            # 如果本岛已生成够n_candidates个验证（不管通过还是失败），结束本岛
+            total_verified = len(accepted) + len(failed)
+            if total_verified >= n_candidates:
+                break
+
+        return accepted, failed
+
+    def run(self) -> dict:
+        """结构化运行：外层轮次 × 内层岛屿遍历，与原系统engine.py对齐。"""
+        self.messages = [{"role": "system", "content": self._build_system_prompt()}]
+
+        initial_prompt = (
+            f"开始自动特征工程任务。\n"
+            f"目标: 生成最多 {self.max_features} 个高质量反洗钱特征\n"
+            f"数据规模: {len(self.tx_df)} 条交易, {self.open_df.shape[0]} 个钱包\n"
+            f"已有基线特征: {self.baseline_features.shape[1]} 个\n"
+            f"正样本率: {self.label.mean()*100:.4f}%\n\n"
+            f"上方已注入完整的领域知识、数据结构和分布差异。\n"
+            f"系统将逐维度分配任务，请按指令为每个维度生成候选特征。"
+        )
+        self.messages.append({"role": "user", "content": initial_prompt})
+
+        logger.info("=== FeatureEngineerAgent 启动（结构化岛屿遍历模式）===")
+        logger.info("目标: %d 个特征, 最大轮数: %d", self.max_features, DEFAULT_CONFIG.search.T)
+
+        max_rounds = DEFAULT_CONFIG.search.T
+        intra_turns = DEFAULT_CONFIG.search.intra_island_turns
+
+        for round_num in range(1, max_rounds + 1):
+            if self.state.finished:
+                break
+
+            self._round_num = round_num
+            budgets = self._get_island_budgets()
+            round_new_count = 0
+
+            logger.info("=== Round %d/%d, budgets: %s ===", round_num, max_rounds, budgets)
+
+            for island in self.island_manager.islands:
+                if self.state.finished:
+                    break
+
+                n_candidates = budgets.get(island.dimension, DEFAULT_CONFIG.search.b)
+                self.state.dimensions_explored.add(island.dimension)
+
+                # 岛屿内最多intra_turns轮对话
+                for turn in range(1, intra_turns + 1):
+                    if self.state.finished:
+                        break
+
+                    # 注入岛屿级prompt
+                    if turn == 1:
+                        island_prompt = self._build_island_prompt(island, n_candidates, round_num)
+                    else:
+                        island_prompt = self._build_island_feedback_prompt(
+                            island, prev_accepted, prev_failed, n_candidates
+                        )
+                    self.messages.append({"role": "user", "content": island_prompt})
+
+                    # 执行该岛屿的生成+验证
+                    prev_accepted, prev_failed = self._run_island_turn(
+                        island, n_candidates, max_steps=n_candidates * 5
+                    )
+                    round_new_count += len(prev_accepted)
+
+                    logger.info("Round %d, Island %s, Turn %d: accepted=%d, failed=%d",
+                                round_num, island.name, turn,
+                                len(prev_accepted), len(prev_failed))
+
+                    # 如果本轮有产出或无需继续，停止岛屿内多轮
+                    if len(prev_accepted) > 0 or turn >= 2:
+                        break
+                    if len(prev_failed) == 0:
+                        break
+
+            # 轮末：Pending Pool评估
+            pool_accepted = self._run_pending_pool_evaluation()
+            if pool_accepted:
+                round_new_count += len(pool_accepted)
+
+            logger.info("Round %d finished: %d new features total", round_num, round_new_count)
+
+            # 收敛检测
+            if round_new_count == 0:
+                self._rounds_without_new += 1
+            else:
+                self._rounds_without_new = 0
+
+            if self._rounds_without_new >= 2:
+                self.state.finished = True
+                self.state.finish_reason = "连续2轮无新特征，收敛终止"
+                logger.info("Converged: 2 consecutive rounds without new features")
+                break
 
         # 最终Pending Pool评估
         final_pool = self._run_pending_pool_evaluation()
         if final_pool:
             logger.info("Final pending pool evaluation: %d accepted", len(final_pool))
+
+        if not self.state.finish_reason:
+            self.state.finish_reason = f"完成 {self._round_num} 轮迭代"
 
         result = {
             "accepted_features": self.state.accepted_features,
