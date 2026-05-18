@@ -146,7 +146,9 @@ def compute_composite_score(
 
 
 def _check_accept_condition(current_metrics: dict, new_metrics: dict) -> bool:
-    """与L3验证一致的三条件接受逻辑（满足任一即可）：
+    """Forward Selection接受条件：必须保证F1不降。
+
+    要求 delta_f1 >= 0，且满足以下任一：
     1. delta_recall > 0 且 delta_precision >= -0.01
     2. delta_f1 > 0
     3. delta_precision > 0 且 delta_recall >= -0.01
@@ -154,6 +156,9 @@ def _check_accept_condition(current_metrics: dict, new_metrics: dict) -> bool:
     delta_f1 = new_metrics["f1"] - current_metrics["f1"]
     delta_recall = new_metrics["recall"] - current_metrics["recall"]
     delta_precision = new_metrics["precision"] - current_metrics["precision"]
+
+    if delta_f1 < 0:
+        return False
 
     return (
         (delta_recall > 0 and delta_precision >= -0.01)

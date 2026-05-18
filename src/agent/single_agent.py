@@ -118,23 +118,6 @@ TOOLS = [
             }
         }
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "finish",
-            "description": "结束特征生成过程。当认为已生成足够多的特征或所有维度已覆盖时调用。",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "reason": {
-                        "type": "string",
-                        "description": "结束的原因"
-                    }
-                },
-                "required": ["reason"]
-            }
-        }
-    }
 ]
 
 
@@ -547,7 +530,6 @@ class FeatureEngineerAgent:
 1. explore_data - 执行数据探索查询（写Python代码查看具体数据分布）
 2. generate_feature - 生成特征代码
 3. execute_sandbox - 在沙箱中验证代码（通过后自动评估L2/L3质量）
-4. finish - 结束生成过程
 
 ## 工作流程
 1. 阅读下方已注入的领域知识和数据结构
@@ -555,7 +537,8 @@ class FeatureEngineerAgent:
 3. 基于知识和数据，围绕指定维度设计并生成特征（generate_feature）
 4. 在沙箱中验证代码（execute_sandbox）— 通过后系统自动评估质量
 5. 根据评估反馈和SHAP分析调整策略，重点探索薄弱维度
-6. 每轮生成约12个候选特征（4个维度各3个），覆盖多维度后用finish结束
+6. 系统会逐维度分配任务，按指令为当前维度生成指定数量的候选特征
+7. 轮次由系统控制，不需要你决定何时结束
 
 ## 维度岛屿（4个探索方向）
 {island_desc}
@@ -698,7 +681,7 @@ class FeatureEngineerAgent:
         elif tool_name == "execute_sandbox":
             return self._tool_execute_sandbox(arguments)
         elif tool_name == "finish":
-            return self._tool_finish(arguments)
+            return "finish工具已禁用，系统将自动控制轮次。请继续生成特征。"
         else:
             return f"未知工具: {tool_name}"
 
