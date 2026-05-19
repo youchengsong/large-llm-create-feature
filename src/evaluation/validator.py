@@ -81,9 +81,8 @@ def run_l3_validation(
     """L3 模型验证（Recall优先）。
 
     接受条件：
-    - delta_recall > 0（必须提升Recall）
-    - delta_f1 >= -0.001（F1允许微降）
-    - delta_precision >= -0.001（Precision允许微降）
+    - delta_recall > 0（Recall必须提升）
+    - new_precision >= 0.95（Precision绝对值不低于95%）
     """
     delta_result = compute_delta_metrics(X_existing, new_feature, y)
 
@@ -99,14 +98,12 @@ def run_l3_validation(
         "total_features": X_all.shape[1],
     }
 
-    delta_f1 = delta_result["delta_f1"]
     delta_recall = delta_result["delta_recall"]
-    delta_precision = delta_result["delta_precision"]
+    aug_precision = delta_result["aug_precision"]
 
     passed = (
         delta_recall > 0
-        and delta_f1 >= -0.001
-        and delta_precision >= -0.001
+        and aug_precision >= 0.95
     )
 
     return passed, metrics
@@ -149,18 +146,14 @@ def _check_accept_condition(current_metrics: dict, new_metrics: dict) -> bool:
     """Forward Selection接受条件（Recall优先，与L3一致）。
 
     要求：
-    - delta_recall > 0（必须提升Recall）
-    - delta_f1 >= -0.001（F1允许微降）
-    - delta_precision >= -0.001（Precision允许微降）
+    - delta_recall > 0（Recall必须提升）
+    - new_precision >= 0.95（Precision绝对值不低于95%）
     """
-    delta_f1 = new_metrics["f1"] - current_metrics["f1"]
     delta_recall = new_metrics["recall"] - current_metrics["recall"]
-    delta_precision = new_metrics["precision"] - current_metrics["precision"]
 
     return (
         delta_recall > 0
-        and delta_f1 >= -0.001
-        and delta_precision >= -0.001
+        and new_metrics["precision"] >= 0.95
     )
 
 
