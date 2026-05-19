@@ -744,7 +744,7 @@ while 还有候选:
   <p>Agent 不是随机探索。环境通过<strong>分组任务指派</strong>和<strong>SHAP 反馈</strong>引导 Agent 的搜索方向。</p>
 
   <h3>6.1 分组搜索</h3>
-  <p>特征空间按业务含义划分为 4 个<strong>维度组</strong>，借鉴进化计算中的岛屿模型（Island Model）<sup>[5]</sup>的分治思路。环境在每轮中依次向 Agent 指派维度任务，每组有独立的候选预算。</p>
+  <p>特征空间按业务含义划分为 4 个<strong>维度组</strong><sup>[5]</sup>，环境在每轮中依次向 Agent 指派维度任务，每组有独立的候选预算，保证多维度均衡探索。</p>
 
   <table>
     <tr><th>维度组</th><th>关联字段</th><th>探索方向</th></tr>
@@ -770,7 +770,7 @@ while 还有候选:
     </tr>
   </table>
 
-  <p class="ref">[5] Whitley, D. et al. "The Island Model Genetic Algorithm: On Separability, Population Size and Convergence." J. Computing and Information Technology, 1999.</p>
+  <p class="ref">[5] 分组搜索的思路借鉴了进化计算中的分治策略：将搜索空间分割为独立子群，各自探索后交换优秀个体。参见 Whitley, D. et al. "The Island Model Genetic Algorithm: On Separability, Population Size and Convergence." J. Computing and Information Technology, 1999.</p>
 
   <h3>6.2 SHAP 驱动的预算分配 <span class="role-tag role-env">ENV</span></h3>
   <p>每轮开始时，环境计算当前模型各维度的 SHAP 重要性，按<strong>反比</strong>分配预算：薄弱维度获得更多探索资源（借鉴 MedFeat<sup>[6]</sup>）。</p>
@@ -853,7 +853,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <h3>7.2 失败记忆（FailureMemory） <span class="role-tag role-env">ENV</span></h3>
   <p>环境维护一个结构化的失败记录库，每个失败特征记录名称、代码、失败原因。每轮注入 prompt 时取最近的失败案例，显式告诉 Agent "避免重复这些错误"。</p>
 
-  <h3>7.3 岛屿知识传播 <span class="role-tag role-env">ENV</span></h3>
+  <h3>7.3 跨维度知识传播 <span class="role-tag role-env">ENV</span></h3>
   <p>当一个维度组产出高分特征，环境自动将该特征的信息传播到其他维度组（<code>migrate_best</code>）。下次 Agent 在其他维度探索时，能看到跨维度的高分示例作为参考。</p>
 
   <h3>7.4 可解释性报告 <span class="role-tag role-agent">AGENT</span></h3>
@@ -1077,12 +1077,21 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   </table>
   </div>
 
-  <div class="callout callout-agent" style="margin-top: 16px;">
+  <div class="callout callout-env" style="margin-top: 16px;">
+    <strong>特征说明</strong>
+    <ul style="margin-top: 8px; padding-left: 20px;">
+      <li><strong>amount_concentration_pattern</strong>：检测钱包中交易金额是否集中在特定值附近（100/500/1000 元整数倍）。洗钱交易因限额控制或佣金抽成，金额常集中在固定区间。</li>
+      <li><strong>region_night_risk_score</strong>：结合钱包所在 region 的风险水平和夜间交易倾向。高风险 region 中异常交易夜间占比 11.78%（正常仅 3.78%），差异 3 倍。</li>
+      <li><strong>fan_in_without_single_pattern</strong>：检测钱包是否使用 fan_in（资金汇聚）但从不使用 single（单笔交易）。异常钱包中该比例 18.5%（正常 0.6%），差异 30 倍。</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-agent" style="margin-top: 12px;">
     <strong>Agent 的推理过程</strong>
     <ul style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>amount_concentration_pattern</strong>：Agent 从分布差异中发现异常交易金额中位数 17410（正常 10660），结合"四类钱包洗钱存在日累计额度控制特征"的领域知识，设计了金额在 100/500/1000 元整数倍上的集中度特征。</li>
-      <li><strong>region_night_risk_score</strong>：Agent 注意到高风险 region 中异常交易夜间占比 11.78%（正常 3.78%，差异 3 倍），设计了地域风险 &times; 夜间交易的交叉特征。</li>
-      <li><strong>fan_in_without_single_pattern</strong>：Agent 发现异常钱包"有 fan_in 但无 single"的比例 18.5%（正常 0.6%，差异 30 倍），设计了交易模式组合特征。</li>
+      <li><strong>amount_concentration_pattern</strong>：Agent 从分布差异中发现异常交易金额中位数 17410（正常 10660），结合"四类钱包洗钱存在日累计额度控制特征"的领域知识，设计了金额在整数倍上的集中度特征。</li>
+      <li><strong>region_night_risk_score</strong>：Agent 注意到高风险 region 中夜间交易占比差异 3 倍，结合"交易地域与账户常用地不符"的风险指标，设计了地域风险 &times; 夜间交易的交叉特征。</li>
+      <li><strong>fan_in_without_single_pattern</strong>：Agent 发现异常钱包"有 fan_in 但无 single"的比例差异 30 倍，结合"洗钱交易包含扇入、扇出等复杂资金流转模式"的领域知识，设计了交易模式组合特征。</li>
     </ul>
   </div>
 
