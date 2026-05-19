@@ -290,7 +290,7 @@ class FeatureEngineerAgent:
 
         accepted_names, rejected_names = backward_eliminate_pending(
             self.existing_features, pending_features, self.label,
-            baseline_metrics=self.baseline_metrics or None,
+            baseline_metrics=None,
         )
 
         logger.info("Pending pool evaluation: %d accepted, %d rejected out of %d",
