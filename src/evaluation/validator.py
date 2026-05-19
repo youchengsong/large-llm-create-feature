@@ -78,12 +78,12 @@ def run_l3_validation(
     y: pd.Series,
     baseline_metrics: dict,
 ) -> tuple[bool, dict]:
-    """L3 模型验证：F1/Recall/Precision 增量。
+    """L3 模型验证（Recall优先）。
 
-    接受条件（满足任一）：
-    1. delta_recall > 0 且 delta_precision >= -0.01
-    2. delta_f1 > 0
-    3. delta_precision > 0 且 delta_recall >= -0.01
+    接受条件：
+    - delta_recall > 0（必须提升Recall）
+    - delta_f1 >= -0.001（F1允许微降）
+    - delta_precision >= -0.001（Precision允许微降）
     """
     delta_result = compute_delta_metrics(X_existing, new_feature, y)
 
@@ -104,9 +104,9 @@ def run_l3_validation(
     delta_precision = delta_result["delta_precision"]
 
     passed = (
-        (delta_recall > 0 and delta_precision >= -0.01)
-        or (delta_f1 > 0)
-        or (delta_precision > 0 and delta_recall >= -0.01)
+        delta_recall > 0
+        and delta_f1 >= -0.001
+        and delta_precision >= -0.001
     )
 
     return passed, metrics
@@ -146,24 +146,21 @@ def compute_composite_score(
 
 
 def _check_accept_condition(current_metrics: dict, new_metrics: dict) -> bool:
-    """Forward Selection接受条件：必须保证F1不降。
+    """Forward Selection接受条件（Recall优先，与L3一致）。
 
-    要求 delta_f1 >= 0，且满足以下任一：
-    1. delta_recall > 0 且 delta_precision >= -0.01
-    2. delta_f1 > 0
-    3. delta_precision > 0 且 delta_recall >= -0.01
+    要求：
+    - delta_recall > 0（必须提升Recall）
+    - delta_f1 >= -0.001（F1允许微降）
+    - delta_precision >= -0.001（Precision允许微降）
     """
     delta_f1 = new_metrics["f1"] - current_metrics["f1"]
     delta_recall = new_metrics["recall"] - current_metrics["recall"]
     delta_precision = new_metrics["precision"] - current_metrics["precision"]
 
-    if delta_f1 < 0:
-        return False
-
     return (
-        (delta_recall > 0 and delta_precision >= -0.01)
-        or (delta_f1 > 0)
-        or (delta_precision > 0 and delta_recall >= -0.01)
+        delta_recall > 0
+        and delta_f1 >= -0.001
+        and delta_precision >= -0.001
     )
 
 
@@ -173,12 +170,12 @@ def forward_select_features(
     y: pd.Series,
     baseline_metrics: dict,
 ) -> tuple[list[str], dict]:
-    """前向选择：逐个添加满足接受条件的特征，按F1增量排序优先选最优。
+    """前向选择（Recall优先）：逐个添加特征，按Recall增量排序。
 
-    接受条件（与L3一致，满足任一）：
-    1. delta_recall > 0 且 delta_precision >= -0.01
-    2. delta_f1 > 0
-    3. delta_precision > 0 且 delta_recall >= -0.01
+    接受条件（与L3一致）：
+    - delta_recall > 0
+    - delta_f1 >= -0.001
+    - delta_precision >= -0.001
 
     返回 (selected_names, final_metrics)。
     """
@@ -190,7 +187,7 @@ def forward_select_features(
     X_current = X_baseline.copy()
     current_metrics = baseline_metrics.copy()
 
-    logger.info("Forward selection: %d candidates, baseline F1=%.6f", len(remaining), current_metrics["f1"])
+    logger.info("Forward selection: %d candidates, baseline Recall=%.6f", len(remaining), current_metrics["recall"])
 
     while remaining:
         best_name = None
@@ -202,7 +199,7 @@ def forward_select_features(
             X_try[name] = candidate_features[name]
             m = compute_cv_metrics(X_try, y)
             if _check_accept_condition(current_metrics, m):
-                score = (m["f1"] - current_metrics["f1"]) + (m["recall"] - current_metrics["recall"])
+                score = (m["recall"] - current_metrics["recall"]) + 0.3 * (m["f1"] - current_metrics["f1"])
                 if score > best_score:
                     best_score = score
                     best_name = name
@@ -217,12 +214,12 @@ def forward_select_features(
         current_metrics = best_metrics
         remaining.discard(best_name)
 
-        logger.info("Forward selection added %s: F1=%.6f, Recall=%.4f, Precision=%.4f",
-                    best_name, best_metrics["f1"], best_metrics["recall"], best_metrics["precision"])
+        logger.info("Forward selection added %s: Recall=%.4f, F1=%.6f, Precision=%.4f",
+                    best_name, best_metrics["recall"], best_metrics["f1"], best_metrics["precision"])
 
     final_metrics = compute_cv_metrics(X_current, y)
-    logger.info("Forward selection done: %d features selected, final F1=%.6f, Recall=%.4f, Precision=%.4f",
-                len(selected), final_metrics["f1"], final_metrics["recall"], final_metrics["precision"])
+    logger.info("Forward selection done: %d features selected, final Recall=%.4f, F1=%.6f, Precision=%.4f",
+                len(selected), final_metrics["recall"], final_metrics["f1"], final_metrics["precision"])
 
     return selected, final_metrics
 
