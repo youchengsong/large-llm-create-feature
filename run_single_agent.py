@@ -245,6 +245,7 @@ logger.info(f"  基线: F1={baseline_metrics['f1']:.6f}, Recall={baseline_metric
 # 重新执行接受的特征代码，构建候选特征
 eval_results = {"baseline": baseline_metrics}
 candidate_features = {}
+execution_status = {}
 
 if result["accepted_features"]:
     logger.info("  重新执行Agent生成的特征代码...")
@@ -257,40 +258,75 @@ if result["accepted_features"]:
                 if feat_cols_new:
                     series = merged[feat_cols_new[0]].fillna(0).values
                     candidate_features[feat["name"]] = series
+                    execution_status[feat["name"]] = "OK"
                     logger.info(f"    OK: {feat['name']}")
                 else:
+                    execution_status[feat["name"]] = "SKIP: 无新列"
                     logger.warning(f"    SKIP: {feat['name']} (无新列)")
             else:
+                execution_status[feat["name"]] = f"FAIL: {error[:80]}"
                 logger.warning(f"    FAIL: {feat['name']} ({error[:80]})")
         except Exception as e:
+            execution_status[feat["name"]] = f"ERROR: {e}"
             logger.warning(f"    ERROR: {feat['name']} ({e})")
 
+    # 保存候选特征数组为parquet，避免重新执行代码
     if candidate_features:
-        logger.info(f"  候选特征: {len(candidate_features)} 个，开始Forward Selection...")
+        candidate_df = pd.DataFrame(candidate_features)
+        candidate_parquet = OUTPUT_DIR / f"candidate_features_{timestamp}.parquet"
+        candidate_df.to_parquet(candidate_parquet)
+        logger.info(f"  候选特征已保存: {candidate_parquet} ({len(candidate_features)} 个特征)")
 
-        # Forward Selection：与原系统一致，只选出能提升F1的特征子集
+        # 全部特征的CV指标
+        logger.info(f"  评估全部 {len(candidate_features)} 个候选特征...")
+        X_all = baseline_features.copy()
+        for name, vals in candidate_features.items():
+            X_all[name] = vals
+        all_metrics = compute_cv_metrics(X_all, label)
+        all_delta = {k: all_metrics[k] - baseline_metrics[k] for k in all_metrics}
+        logger.info(f"  全部特征: F1={all_metrics['f1']:.6f} (dF1={all_delta['f1']:+.6f}), "
+                    f"Recall={all_metrics['recall']:.6f} (dRecall={all_delta['recall']:+.6f}), "
+                    f"Precision={all_metrics['precision']:.6f} (dPrecision={all_delta['precision']:+.6f}), "
+                    f"PR-AUC={all_metrics['prauc']:.6f} (dPR-AUC={all_delta['prauc']:+.6f})")
+
+        # Forward Selection
+        logger.info(f"  开始Forward Selection...")
         selected_names, final_metrics = forward_select_features(
             baseline_features, candidate_features, label, baseline_metrics,
         )
 
-        if selected_names:
-            delta_metrics = {k: final_metrics[k] - baseline_metrics[k] for k in final_metrics}
-            eval_results["combined"] = final_metrics
-            eval_results["delta"] = delta_metrics
-            eval_results["new_features_count"] = len(selected_names)
-            eval_results["new_feature_names"] = selected_names
+        fs_delta = {k: final_metrics[k] - baseline_metrics[k] for k in final_metrics}
 
+        if selected_names:
             logger.info(f"  Forward Selection选出: {len(selected_names)} 个特征: {selected_names}")
-            logger.info(f"  组合: F1={final_metrics['f1']:.6f}, Recall={final_metrics['recall']:.6f}, "
-                        f"Precision={final_metrics['precision']:.6f}, PR-AUC={final_metrics['prauc']:.6f}")
-            logger.info(f"  增量: dF1={delta_metrics['f1']:+.6f}, dRecall={delta_metrics['recall']:+.6f}, "
-                        f"dPrecision={delta_metrics['precision']:+.6f}, dPR-AUC={delta_metrics['prauc']:+.6f}")
+            logger.info(f"  FS特征: F1={final_metrics['f1']:.6f} (dF1={fs_delta['f1']:+.6f}), "
+                        f"Recall={final_metrics['recall']:.6f} (dRecall={fs_delta['recall']:+.6f}), "
+                        f"Precision={final_metrics['precision']:.6f} (dPrecision={fs_delta['precision']:+.6f}), "
+                        f"PR-AUC={final_metrics['prauc']:.6f} (dPR-AUC={fs_delta['prauc']:+.6f})")
         else:
             logger.info("  Forward Selection未选出任何特征（无增量效果）")
-            eval_results["combined"] = baseline_metrics
-            eval_results["delta"] = {k: 0.0 for k in baseline_metrics}
-            eval_results["new_features_count"] = 0
-            eval_results["new_feature_names"] = []
+
+        # 写入评估结果：包含全部中间结果
+        eval_results["all_features"] = {
+            "metrics": all_metrics,
+            "delta": all_delta,
+            "count": len(candidate_features),
+            "names": list(candidate_features.keys()),
+        }
+        eval_results["forward_selection"] = {
+            "metrics": final_metrics,
+            "delta": fs_delta,
+            "count": len(selected_names),
+            "names": selected_names,
+        }
+        eval_results["execution_status"] = execution_status
+        eval_results["candidate_parquet"] = str(candidate_parquet)
+
+        # 保持向后兼容的字段
+        eval_results["combined"] = final_metrics
+        eval_results["delta"] = fs_delta
+        eval_results["new_features_count"] = len(selected_names)
+        eval_results["new_feature_names"] = selected_names
 
 eval_file = OUTPUT_DIR / f"evaluation_{timestamp}.json"
 with open(eval_file, "w", encoding="utf-8") as f:
