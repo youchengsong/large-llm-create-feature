@@ -314,6 +314,7 @@
     <a href="#sec13"><span class="toc-num">13</span>LLM 配置与工具</a>
     <a href="#sec7"><span class="toc-num">7</span>前向选择 (Forward Selection)</a>
     <a href="#sec14"><span class="toc-num">14</span>关键参数总览</a>
+    <a href="#sec15" style="grid-column: 1 / -1; background: var(--success-light); border-color: var(--success);"><span class="toc-num">15</span>实验结果</a>
   </div>
 </div>
 
@@ -881,6 +882,177 @@ budget[dim] = clamp(budget[dim], min=1, max=5)      # B_total = 12</code></pre>
     <tr><td>沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
     <tr><td>L1 修复</td><td>自动修复次数</td><td>2</td><td>代码执行失败后 LLM 修复重试</td></tr>
   </table>
+</div>
+
+<!-- ====== 15. 实验结果 ====== -->
+<div class="section" id="sec15">
+  <h2><span class="num">15</span>实验结果</h2>
+
+  <h3>15.1 实验配置</h3>
+  <table>
+    <tr><th>配置项</th><th>值</th></tr>
+    <tr><td>LLM 模型</td><td>DeepSeek-Chat (deepseek-chat)</td></tr>
+    <tr><td>最大步数</td><td>250（实际运行 393 步）</td></tr>
+    <tr><td>目标特征数</td><td>30</td></tr>
+    <tr><td>交易数据规模</td><td>1,384,512 笔交易 / 100,000 个钱包</td></tr>
+    <tr><td>正样本率</td><td>0.3239%（4,484 / 1,384,512）</td></tr>
+    <tr><td>基线特征数</td><td>95（从 105 个人工特征中去除 10 个弱特征）</td></tr>
+    <tr><td>运行时长</td><td>273.9 分钟（约 4.6 小时）</td></tr>
+    <tr><td>搜索轮数</td><td>4 轮（第 3-4 轮无新特征，收敛终止）</td></tr>
+  </table>
+
+  <h3>15.2 搜索过程统计</h3>
+  <table>
+    <tr><th>统计项</th><th>值</th></tr>
+    <tr><td>总候选特征</td><td>43 个（3 个通过 + 40 个失败）</td></tr>
+    <tr><td>通过率</td><td>7.0%（3 / 43）</td></tr>
+    <tr><td>候选缓冲池最大容量</td><td>20（满载）</td></tr>
+    <tr><td>前向选择轮次</td><td>4 次（R1-R4 轮末各一次 + 终止后一次）</td></tr>
+    <tr><td>FS 从缓冲池选出</td><td>0 个（所有组合均无增量效果）</td></tr>
+    <tr><td>终止原因</td><td>连续 2 轮无新特征，收敛终止</td></tr>
+  </table>
+
+  <h3>15.3 接受的特征</h3>
+  <p>系统最终接受 3 个 LLM 生成特征，全部在 Round 1-2 通过 L3 单特征验证后直接接受：</p>
+
+  <div style="overflow-x: auto;">
+  <table>
+    <tr>
+      <th>特征名</th>
+      <th>维度组</th>
+      <th>IV</th>
+      <th>KS</th>
+      <th>冗余度</th>
+      <th>&Delta;Recall</th>
+      <th>&Delta;F1</th>
+      <th>&Delta;Precision</th>
+      <th>SHAP Rank</th>
+    </tr>
+    <tr>
+      <td><strong>amount_concentration_pattern</strong></td>
+      <td>金额频次</td>
+      <td>0.0329</td>
+      <td>0.0815</td>
+      <td>0.079</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0029</td>
+      <td style="color: var(--success);">+0.0006</td>
+      <td style="color: var(--danger);">−0.0021</td>
+      <td>82 / 96</td>
+    </tr>
+    <tr>
+      <td><strong>region_night_risk_score</strong></td>
+      <td>时间地域</td>
+      <td>0.0236</td>
+      <td>0.0641</td>
+      <td>0.558</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0018</td>
+      <td style="color: var(--success);">+0.0008</td>
+      <td style="color: var(--danger);">−0.0005</td>
+      <td>76 / 97</td>
+    </tr>
+    <tr>
+      <td><strong>fan_in_without_single_pattern</strong></td>
+      <td>行为序列</td>
+      <td>0.0103</td>
+      <td>0.0380</td>
+      <td>0.415</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0020</td>
+      <td style="color: var(--success);">+0.0014</td>
+      <td style="color: var(--success);">+0.0008</td>
+      <td>75 / 98</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="note" style="margin-top: 16px;">
+    <strong>特征说明</strong>
+    <ul style="margin-top: 8px; padding-left: 20px;">
+      <li><strong>amount_concentration_pattern</strong>：检测钱包中交易金额是否集中在特定值附近（100/500/1000 元整数倍）。洗钱交易因限额控制或佣金抽成，金额常集中在固定区间。</li>
+      <li><strong>region_night_risk_score</strong>：结合钱包所在 region 的风险水平和夜间交易倾向。高风险 region 中异常交易夜间占比 11.78%（正常仅 3.78%），差异 3 倍。</li>
+      <li><strong>fan_in_without_single_pattern</strong>：检测钱包是否使用 fan_in（资金汇聚）但从不使用 single（单笔交易）。异常钱包中该比例 18.5%（正常 0.6%），差异 30 倍。</li>
+    </ul>
+  </div>
+
+  <h3>15.4 整体增量效果</h3>
+  <p>将 3 个 LLM 特征加入 95 个基线特征后，5-fold StratifiedKFold CV 结果：</p>
+
+  <table>
+    <tr>
+      <th>指标</th>
+      <th>基线（95 特征）</th>
+      <th>增强后（98 特征）</th>
+      <th>变化量</th>
+      <th>变化率</th>
+    </tr>
+    <tr>
+      <td><strong>Recall</strong></td>
+      <td>0.9041</td>
+      <td>0.9108</td>
+      <td style="color: var(--success); font-weight: 700;">+0.0067</td>
+      <td style="color: var(--success);">+0.74%</td>
+    </tr>
+    <tr>
+      <td><strong>F1</strong></td>
+      <td>0.9450</td>
+      <td>0.9478</td>
+      <td style="color: var(--success); font-weight: 700;">+0.0028</td>
+      <td style="color: var(--success);">+0.30%</td>
+    </tr>
+    <tr>
+      <td><strong>Precision</strong></td>
+      <td>0.9900</td>
+      <td>0.9882</td>
+      <td style="color: var(--danger);">−0.0018</td>
+      <td style="color: var(--danger);">−0.19%</td>
+    </tr>
+    <tr>
+      <td><strong>PR-AUC</strong></td>
+      <td>0.9833</td>
+      <td>0.9828</td>
+      <td style="color: var(--danger);">−0.0004</td>
+      <td style="color: var(--danger);">−0.05%</td>
+    </tr>
+  </table>
+
+  <h3>15.5 最终前向选择验证</h3>
+  <p>实验结束后，对 3 个接受特征再次执行独立前向选择（以 95 个基线特征为起点），验证其组合效果：</p>
+  <table>
+    <tr><th>选择顺序</th><th>特征</th><th>累计 Recall</th><th>累计 F1</th><th>累计 Precision</th></tr>
+    <tr>
+      <td>1</td>
+      <td>amount_concentration_pattern</td>
+      <td>0.9070 <span style="color: var(--success);">(+0.0029)</span></td>
+      <td>0.9456</td>
+      <td>0.9879</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>region_night_risk_score</td>
+      <td>0.9088 <span style="color: var(--success);">(+0.0018)</span></td>
+      <td>0.9464</td>
+      <td>0.9874</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>fan_in_without_single_pattern</td>
+      <td>0.9108 <span style="color: var(--success);">(+0.0020)</span></td>
+      <td>0.9478</td>
+      <td>0.9882</td>
+    </tr>
+  </table>
+  <p style="margin-top: 8px; color: var(--text-secondary);">3 个特征全部通过前向选择验证，每一步 Recall 均严格递增，符合 L3/FS 接受条件（&Delta;Recall &gt; 0 且 Precision &ge; 95%）。</p>
+
+  <h3>15.6 结果分析</h3>
+  <div class="note">
+    <strong>关键发现</strong>
+    <ol style="margin-top: 8px; padding-left: 20px;">
+      <li><strong>Recall 优先策略有效</strong>：系统以 Recall 提升为核心接受条件，3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
+      <li><strong>Precision 代价可控</strong>：Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平，符合反洗钱场景对误报率的要求。</li>
+      <li><strong>动态基线严格过滤</strong>：FS 修复为动态基线后，候选缓冲池的 4 次前向选择均未选出任何特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
+      <li><strong>特征覆盖 3 个维度</strong>：3 个特征分别来自金额频次、时间地域、行为序列三个维度组，主体关联维度未产出有效特征，分组搜索策略保证了多维度探索。</li>
+      <li><strong>高淘汰率符合预期</strong>：43 个候选中仅 3 个通过（7.0%），三级验证流水线起到了严格的质量控制作用。</li>
+    </ol>
+  </div>
 </div>
 
 <!-- ====== Footer ====== -->
