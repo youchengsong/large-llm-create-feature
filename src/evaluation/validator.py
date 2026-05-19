@@ -180,7 +180,8 @@ def forward_select_features(
     X_current = X_baseline.copy()
     current_metrics = baseline_metrics.copy()
 
-    logger.info("Forward selection: %d candidates, baseline Recall=%.6f", len(remaining), current_metrics["recall"])
+    logger.info("Forward selection: %d candidates, baseline Recall=%.6f, F1=%.6f, Precision=%.4f",
+                len(remaining), current_metrics["recall"], current_metrics["f1"], current_metrics["precision"])
 
     while remaining:
         best_name = None

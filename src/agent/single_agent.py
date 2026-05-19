@@ -832,10 +832,10 @@ class FeatureEngineerAgent:
                 island_name=info.get("dimension", ""),
             )
             self.pending_pool.add(pending_feat)
-            logger.info("L3 failed for %s (delta_f1=%.6f, delta_recall=%.6f, delta_precision=%.6f), "
+            logger.info("L3 failed for %s (delta_f1=%.6f, delta_recall=%.6f, delta_precision=%.6f, aug_precision=%.4f), "
                         "added to pending pool (%d in pool)",
                         name, l3_metrics.get("delta_f1", 0), l3_metrics.get("delta_recall", 0),
-                        l3_metrics.get("delta_precision", 0), len(self.pending_pool))
+                        l3_metrics.get("delta_precision", 0), l3_metrics.get("aug_precision", 0), len(self.pending_pool))
             return (
                 f"△ L3模型增量不足，已加入缓刑池（{len(self.pending_pool)}个待评估）\n"
                 f"IV: {l2_metrics.get('iv', 0):.4f}, KS: {l2_metrics.get('ks', 0):.4f}\n"
@@ -893,8 +893,9 @@ class FeatureEngineerAgent:
         self.island_manager.migrate_best(feature_record)
         self.state.accepted_features.append(feature_record)
 
-        logger.info("Accepted feature %s: score=%.4f, delta_f1=%.6f, delta_recall=%.6f",
-                    name, score, l3_metrics.get("delta_f1", 0), l3_metrics.get("delta_recall", 0))
+        logger.info("Accepted feature %s: score=%.4f, delta_f1=%.6f, delta_recall=%.6f, delta_precision=%.6f, aug_precision=%.4f",
+                    name, score, l3_metrics.get("delta_f1", 0), l3_metrics.get("delta_recall", 0),
+                    l3_metrics.get("delta_precision", 0), l3_metrics.get("aug_precision", 0))
 
         return (
             f"✓ 特征评估通过！已接受。(score={score:.4f})\n"
