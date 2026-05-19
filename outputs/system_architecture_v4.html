@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Agent 自动特征工程系统 — 技术方案 v4</title>
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --card: #ffffff;
+    --border: #e2e8f0;
+    --primary: #1a56db;
+    --primary-light: #e1effe;
+    --primary-dark: #1e40af;
+    --success: #059669;
+    --success-light: #d1fae5;
+    --warning: #d97706;
+    --warning-light: #fef3c7;
+    --danger: #dc2626;
+    --danger-light: #fee2e2;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --accent: #7c3aed;
+    --accent-light: #ede9fe;
+    --code-bg: #1e293b;
+    --agent: #0d9488;
+    --agent-light: #ccfbf1;
+    --env: #6366f1;
+    --env-light: #e0e7ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.8;
+  }
+
+  .header {
+    background: linear-gradient(135deg, #0f172a 0%, #134e4a 40%, #0d9488 100%);
+    color: white;
+    padding: 60px 0 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .header h1 { font-size: 2.4em; margin-bottom: 12px; position: relative; font-weight: 700; letter-spacing: 0.02em; }
+  .header .subtitle { font-size: 1.15em; opacity: 0.85; max-width: 700px; margin: 0 auto; position: relative; }
+  .header .tags { margin-top: 20px; position: relative; }
+  .header .tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+    font-size: 0.85em;
+    margin: 4px;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
+    transition: box-shadow 0.2s;
+  }
+  .section:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04); }
+  .section h2 {
+    font-size: 1.45em;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 3px solid var(--agent);
+    color: #134e4a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--agent);
+    color: white;
+    font-size: 0.85em;
+    flex-shrink: 0;
+  }
+  .section h3 { font-size: 1.12em; margin: 24px 0 12px; color: var(--text); }
+  p, li { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+  th { background: #f0fdfa; font-weight: 600; color: #134e4a; }
+  tr:nth-child(even) { background: #fafbfc; }
+  tr:hover { background: #f1f5f9; }
+
+  code {
+    background: #f1f5f9;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.88em;
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    color: var(--primary-dark);
+  }
+  pre {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: 24px;
+    border-radius: 12px;
+    overflow-x: auto;
+    font-size: 0.86em;
+    line-height: 1.65;
+    margin: 14px 0;
+    border: 1px solid #334155;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fafbfc;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .card-title { font-weight: 700; margin-bottom: 8px; font-size: 0.95em; }
+
+  .callout {
+    padding: 18px 22px;
+    border-radius: 12px;
+    margin: 16px 0;
+    border-left: 5px solid;
+  }
+  .callout-agent { border-color: var(--agent); background: var(--agent-light); }
+  .callout-env { border-color: var(--env); background: var(--env-light); }
+  .callout-green { border-color: var(--success); background: var(--success-light); }
+  .callout-yellow { border-color: var(--warning); background: var(--warning-light); }
+  .callout-red { border-color: var(--danger); background: var(--danger-light); }
+  .callout strong { display: block; margin-bottom: 6px; }
+
+  /* Agent vs Environment distinction */
+  .role-tag {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.78em;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    vertical-align: middle;
+  }
+  .role-agent { background: var(--agent-light); color: var(--agent); border: 1px solid var(--agent); }
+  .role-env { background: var(--env-light); color: var(--env); border: 1px solid var(--env); }
+  .role-tool { background: var(--warning-light); color: var(--warning); border: 1px solid var(--warning); }
+
+  .flow-container {
+    background: linear-gradient(135deg, #f0fdfa, #f0f4f8);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .flow-box {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88em;
+    text-align: center;
+    min-width: 120px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  }
+  .flow-arrow { color: var(--text-secondary); font-size: 1.4em; font-weight: 300; }
+  .flow-arrow-down { display: block; text-align: center; color: var(--text-secondary); font-size: 1.4em; margin: 4px 0; }
+  .flow-group {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+    position: relative;
+  }
+  .flow-group-label {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: #f0fdfa;
+    padding: 0 10px;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .metric-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+  .metric-item {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #f0fdfa, #f0f4f8);
+  }
+  .metric-value { font-size: 2em; font-weight: 800; color: var(--agent); }
+  .metric-label { font-size: 0.82em; color: var(--text-secondary); margin-top: 4px; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+  }
+  .badge-agent { background: var(--agent-light); color: var(--agent); }
+  .badge-env { background: var(--env-light); color: var(--env); }
+
+  .ref { font-size: 0.85em; color: var(--text-secondary); margin-top: 8px; }
+
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .toc h3 { margin-bottom: 14px; color: #134e4a; }
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 32px; }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.92em;
+    display: block;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+  }
+  .toc a:hover { color: var(--agent); border-bottom-color: var(--agent); }
+  .toc .toc-num { color: var(--agent); font-weight: 600; margin-right: 8px; }
+
+  .footer {
+    text-align: center;
+    padding: 36px 0;
+    color: var(--text-secondary);
+    font-size: 0.88em;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
+  }
+
+  /* Conversation illustration */
+  .conv-block {
+    margin: 12px 0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    font-size: 0.9em;
+    line-height: 1.7;
+    position: relative;
+  }
+  .conv-agent {
+    background: var(--agent-light);
+    border-left: 4px solid var(--agent);
+    margin-right: 40px;
+  }
+  .conv-env {
+    background: var(--env-light);
+    border-left: 4px solid var(--env);
+    margin-right: 40px;
+  }
+  .conv-tool {
+    background: var(--warning-light);
+    border-left: 4px solid var(--warning);
+    margin-right: 40px;
+  }
+  .conv-label {
+    font-weight: 700;
+    font-size: 0.82em;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .toc-grid { grid-template-columns: 1fr; }
+    .metric-row { flex-direction: column; }
+    .header h1 { font-size: 1.6em; }
+    .section { padding: 24px 18px; }
+    .flow-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== Header ====== -->
+<div class="header">
+  <h1>LLM Agent 自动特征工程系统</h1>
+  <p class="subtitle">一个 LLM Agent 自主探索特征空间，外围模块为它提供工具和反馈</p>
+  <div class="tags">
+    <span class="tag">ReAct Agent</span>
+    <span class="tag">Tool Use (Function Calling)</span>
+    <span class="tag">DeepSeek LLM</span>
+    <span class="tag">三级验证环境</span>
+    <span class="tag">SHAP 反馈驱动</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ====== TOC ====== -->
+<div class="toc">
+  <h3>目录</h3>
+  <div class="toc-grid">
+    <a href="#sec1"><span class="toc-num">1</span>核心思想：Agent 即特征工程师</a>
+    <a href="#sec7"><span class="toc-num">7</span>Agent 的记忆与学习</a>
+    <a href="#sec2"><span class="toc-num">2</span>Agent 架构总览</a>
+    <a href="#sec8"><span class="toc-num">8</span>收敛检测与终止</a>
+    <a href="#sec3"><span class="toc-num">3</span>Agent 的知识注入</a>
+    <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
+    <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
+    <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
+    <a href="#sec5"><span class="toc-num">5</span>环境：三级验证流水线</a>
+    <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
+    <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
+    <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
+  </div>
+</div>
+
+<!-- ====== 1. 核心思想 ====== -->
+<div class="section" id="sec1">
+  <h2><span class="num">1</span>核心思想：Agent 即特征工程师</h2>
+
+  <p>本系统的核心不是一条固定流水线，而是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略——就像一个人类特征工程师的工作流程，但由 LLM 自主驱动。</p>
+
+  <div class="callout callout-agent">
+    <strong>Agent 与传统流水线的区别</strong>
+    传统特征工程流水线是<strong>预定义的</strong>：固定的特征模板 → 批量计算 → 筛选。而本系统中，LLM Agent 是<strong>自主决策</strong>的：它决定生成什么特征、如何实现、失败后如何调整。外围模块（沙盒、验证器、SHAP 分析器）是 Agent 的<strong>工具和环境</strong>，而不是控制它的流水线。
+  </div>
+
+  <h3>1.1 Agent 视角下的系统角色划分</h3>
+  <div class="grid-2">
+    <div class="card" style="border-color: var(--agent);">
+      <div class="card-title" style="color: var(--agent);"><span class="role-tag role-agent">AGENT</span> LLM 特征工程师</div>
+      <ul>
+        <li>阅读数据 Schema、分布差异、领域知识</li>
+        <li>自主决定探索哪个维度、生成什么特征</li>
+        <li>编写 Python 特征代码</li>
+        <li>根据验证反馈调整策略（换方向、改实现）</li>
+        <li>在失败后自动修复代码（最多 2 次）</li>
+      </ul>
+    </div>
+    <div class="card" style="border-color: var(--env);">
+      <div class="card-title" style="color: var(--env);"><span class="role-tag role-env">ENVIRONMENT</span> 外围工具与反馈</div>
+      <ul>
+        <li>沙盒：安全执行 Agent 提交的代码</li>
+        <li>三级验证器：L1(安全) → L2(统计) → L3(模型增量)</li>
+        <li>SHAP 分析器：告诉 Agent 哪些维度薄弱</li>
+        <li>候选缓冲池：暂存 L3 未通过但有潜力的特征</li>
+        <li>前向选择器：在轮末评估特征组合效应</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>1.2 核心设计理念</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">Recall 优先</div>
+      <p>反洗钱场景中漏检代价远高于误报。所有验证条件以 Recall 提升为必要条件，Precision 只设绝对下限（95%）。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">动态基线</div>
+      <p>Agent 每接受一个特征，<code>existing_features</code> 立即更新。后续所有评估都基于最新特征集，确保增量的真实性。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 2. Agent 架构总览 ====== -->
+<div class="section" id="sec2">
+  <h2><span class="num">2</span>Agent 架构总览</h2>
+
+  <h3>2.1 ReAct 范式</h3>
+  <p>系统采用 <strong>ReAct</strong>（Reasoning + Acting）<sup>[1]</sup> 范式：Agent 在每一步先<strong>思考</strong>（Reasoning），再<strong>行动</strong>（通过 Tool Use 调用工具），最后根据<strong>观测</strong>（工具返回结果）决定下一步。LLM 通过 OpenAI 兼容的 Function Calling 协议与环境交互。</p>
+
+  <div class="flow-container">
+    <div class="flow-group">
+      <div class="flow-group-label">ReAct 单步循环</div>
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <strong>Thought</strong><br><small>Agent 推理</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--warning-light); color: var(--warning); border: 2px solid var(--warning);">
+          <strong>Action</strong><br><small>Tool Call</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--env-light); color: var(--env); border: 2px solid var(--env);">
+          <strong>Observation</strong><br><small>环境反馈</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <strong>Thought</strong><br><small>Agent 决定下一步</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="ref">[1] Yao, S. et al. "ReAct: Synergizing Reasoning and Acting in Language Models." ICLR 2023.</p>
+
+  <h3>2.2 完整架构图</h3>
+  <div class="flow-container">
+    <!-- Row 1: Knowledge Injection -->
+    <div class="flow-row">
+      <div class="flow-box" style="background: #fce7f3; color: #9d174d;">
+        领域知识注入<br><small>Schema / 分布差异 / 判决书 / 风险指标</small>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
+        <strong>LLM Agent</strong><br><small>DeepSeek-Chat</small><br><small>System Prompt + 对话历史</small>
+      </div>
+      <span class="flow-arrow">&larr;</span>
+      <div class="flow-box" style="background: #ede9fe; color: #5b21b6;">
+        SHAP 反馈<br><small>薄弱维度 / 重要特征</small>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
+
+    <!-- Row 2: Tools -->
+    <div class="flow-group">
+      <div class="flow-group-label">Agent 工具箱</div>
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
+          explore_data<br><small>数据探索查询</small>
+        </div>
+        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
+          generate_feature<br><small>提交特征代码</small>
+        </div>
+        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
+          execute_sandbox<br><small>触发验证流水线</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">自动触发</small></div>
+
+    <!-- Row 3: Validation Environment -->
+    <div class="flow-group">
+      <div class="flow-group-label">验证环境（对 Agent 透明，自动执行）</div>
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
+          L1 沙盒<br><small>代码安全 + 执行</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
+          L2 统计<br><small>IV / KS / 冗余</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
+          L3 模型<br><small>&Delta;Recall + Precision</small>
+        </div>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box" style="background: var(--success-light); color: #065f46;">
+          通过 &rarr; 加入 existing_features
+        </div>
+        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
+          L3 未通过 &rarr; 候选缓冲池
+        </div>
+        <div class="flow-box" style="background: var(--danger-light); color: #991b1b;">
+          L2 未通过 &rarr; 淘汰
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
+
+    <div class="flow-row">
+      <div class="flow-box" style="background: var(--success-light); color: #065f46;">
+        前向选择 (Forward Selection)<br><small>评估候选缓冲池中的组合效应</small>
+      </div>
+    </div>
+  </div>
+
+  <h3>2.3 一次完整交互示例</h3>
+  <p>以下展示 Agent 生成一个特征的完整交互过程：</p>
+
+  <div class="conv-env">
+    <div class="conv-label" style="color: var(--env);">ENVIRONMENT &rarr; Agent（任务指令）</div>
+    第 1 轮 — 维度: 金额频次。请为金额频次维度生成 3 个候选特征。对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（思考 + 行动）</div>
+    从分布差异看，异常交易中 regular_large_low_freq 占比 69.7%（正常 59.9%），金额中位数 17410（正常 10660）。设计一个金额集中度特征...<br>
+    <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", code: "def feature_xxx(...) ...", ...})</code>
+  </div>
+
+  <div class="conv-tool">
+    <div class="conv-label" style="color: var(--warning);">TOOL（generate_feature 返回）</div>
+    特征 'amount_concentration_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（继续行动）</div>
+    <strong>&rarr; Tool Call:</strong> <code>execute_sandbox({feature_name: "amount_concentration_pattern"})</code>
+  </div>
+
+  <div class="conv-tool">
+    <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — 含完整验证结果）</div>
+    &#10003; 沙箱执行成功！输出 shape: (43142, 2)<br>
+    --- 自动评估结果 ---<br>
+    &#10003; 特征评估通过！已接受。(score=0.5000)<br>
+    IV: 0.0329, KS: 0.0815, 冗余度: 0.0791<br>
+    SHAP Rank: #82, Delta Recall: +0.002901<br>
+    当前已接受特征数: 1/30
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（根据反馈继续）</div>
+    金额集中度特征通过了！Delta Recall +0.0029。继续第 2 个候选，换个角度探索金额的时序变化模式...
+  </div>
+</div>
+
+<!-- ====== 3. Agent 知识注入 ====== -->
+<div class="section" id="sec3">
+  <h2><span class="num">3</span>Agent 的知识注入</h2>
+
+  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。System Prompt 是 Agent "读到的第一份资料"，相当于给它一份详尽的工作手册。</p>
+
+  <h3>3.1 System Prompt 结构</h3>
+  <table>
+    <tr><th>注入内容</th><th>来源</th><th>作用</th></tr>
+    <tr>
+      <td><strong>数据 Schema</strong></td>
+      <td>自动提取自 open_df / tx_df / close_df</td>
+      <td>Agent 了解可用字段、数据类型、取值范围</td>
+    </tr>
+    <tr>
+      <td><strong>正常 vs 异常分布差异</strong></td>
+      <td>自动统计，标注差异倍数</td>
+      <td>引导 Agent 关注区分度最大的维度</td>
+    </tr>
+    <tr>
+      <td><strong>三表关联统计</strong></td>
+      <td>自动计算 JOIN 覆盖率</td>
+      <td>Agent 知道 wallet_id 关联方式和匹配率</td>
+    </tr>
+    <tr>
+      <td><strong>交易模式知识（8 种 Motif）</strong></td>
+      <td>预定义规则文件</td>
+      <td>3 种正常 + 5 种异常模式，含金额、时间、方式特征</td>
+    </tr>
+    <tr>
+      <td><strong>专家访谈（309 份判决书）</strong></td>
+      <td>结构化领域知识</td>
+      <td>7 种洗钱模型的详细模式：转账链条、佣金特征、行为签名等</td>
+    </tr>
+    <tr>
+      <td><strong>风险指标（38 个）</strong></td>
+      <td>风险指标体系</td>
+      <td>按维度组织的指标名称、风险类型、数据方向</td>
+    </tr>
+    <tr>
+      <td><strong>检测规则（15 条）+ 代码示例</strong></td>
+      <td>现有规则 + 自动转 Python</td>
+      <td>给 Agent 提供参考模板（seed examples）</td>
+    </tr>
+    <tr>
+      <td><strong>已有基线特征列表</strong></td>
+      <td>baseline_features.columns</td>
+      <td>Agent 避免生成重复特征</td>
+    </tr>
+    <tr>
+      <td><strong>SHAP 反馈</strong>（每轮动态注入）</td>
+      <td>当前模型的 SHAP 分析</td>
+      <td>告诉 Agent 哪些维度是薄弱环节</td>
+    </tr>
+    <tr>
+      <td><strong>失败记忆</strong>（每轮动态注入）</td>
+      <td>历史失败记录</td>
+      <td>Agent 避免重复相同的错误</td>
+    </tr>
+  </table>
+
+  <h3>3.2 数据环境</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">open_df（开户表）</div>
+      <p><strong>100,000</strong> 个钱包</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">证件号、手机号、钱包等级、钱包类型、region 等</p>
+    </div>
+    <div class="card">
+      <div class="card-title">tx_df（交易表）</div>
+      <p><strong>1,384,512</strong> 笔交易</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">金额、时间、IP、设备、交易模式<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
+    </div>
+    <div class="card">
+      <div class="card-title">close_df（销户表）</div>
+      <p><strong>500</strong> 条销户记录</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">销户时间、销户原因</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 4. Agent 工具箱 ====== -->
+<div class="section" id="sec4">
+  <h2><span class="num">4</span>Agent 的工具箱</h2>
+
+  <p>Agent 通过 <strong>OpenAI Function Calling</strong> 协议调用工具。每个工具定义了名称、参数 Schema 和描述，Agent 自主决定何时调用哪个工具。</p>
+
+  <div class="grid-3">
+    <div class="card" style="border-color: var(--warning);">
+      <div class="card-title"><span class="role-tag role-tool">TOOL</span> explore_data</div>
+      <p><strong>作用</strong>：在 DataFrame 上执行查询代码，探索数据分布。</p>
+      <p><strong>参数</strong>：<code>question</code>（问题描述） + <code>code</code>（Python 代码）</p>
+      <p><strong>超时</strong>：15 秒</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);">Agent 在生成特征前可以先探索数据，验证自己的假设。</p>
+    </div>
+    <div class="card" style="border-color: var(--warning);">
+      <div class="card-title"><span class="role-tag role-tool">TOOL</span> generate_feature</div>
+      <p><strong>作用</strong>：提交特征的代码、名称、维度、解释、推理过程。</p>
+      <p><strong>参数</strong>：<code>feature_name</code> / <code>dimension</code> / <code>code</code> / <code>explanation</code> / <code>reasoning</code></p>
+      <p style="font-size:0.85em;color:var(--text-secondary);">代码签名固定：<code>def feature_xxx(open_df, tx_df, close_df) &rarr; pd.DataFrame</code></p>
+    </div>
+    <div class="card" style="border-color: var(--warning);">
+      <div class="card-title"><span class="role-tag role-tool">TOOL</span> execute_sandbox</div>
+      <p><strong>作用</strong>：触发完整的 L1 &rarr; L2 &rarr; L3 验证流水线。</p>
+      <p><strong>参数</strong>：<code>feature_name</code>（自动关联之前 generate_feature 的代码）</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);">这是 Agent 获得验证反馈的唯一入口。返回的结果包含所有指标和判定。</p>
+    </div>
+  </div>
+
+  <div class="callout callout-agent">
+    <strong>Agent 的自主权</strong>
+    工具只是 Agent 的能力边界，不是执行脚本。Agent 自主决定：是否先 explore_data 了解数据，一次生成几个特征，失败后是换方向还是改实现。环境（外围系统）只在 Agent 调用 execute_sandbox 时才介入评估。
+  </div>
+</div>
+
+<!-- ====== 5. 环境：三级验证 ====== -->
+<div class="section" id="sec5">
+  <h2><span class="num">5</span>环境：三级验证流水线</h2>
+
+  <p>当 Agent 调用 <code>execute_sandbox</code> 时，环境自动执行三级验证。Agent 无需关心验证细节，只需读取返回的结果并据此调整策略。</p>
+
+  <h3>5.1 L1：沙盒执行验证 <span class="role-tag role-env">ENV</span></h3>
+  <table>
+    <tr><th>检查项</th><th>内容</th></tr>
+    <tr><td>安全检查</td><td>AST 解析，禁止 <code>os</code>、<code>sys</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等</td></tr>
+    <tr><td>执行方式</td><td>独立进程 + 90 秒超时</td></tr>
+    <tr><td>输出校验</td><td>含 <code>wallet_id</code> 或 <code>tx_id</code>；非空；NaN &lt; 50%；<code>nunique</code> &gt; 1</td></tr>
+    <tr><td>自动修复</td><td>失败时，环境自动调用 Agent（以代码修复身份）修复代码，最多 <strong>2 次</strong></td></tr>
+  </table>
+
+  <div class="callout callout-yellow">
+    <strong>L1 的自动修复机制</strong>
+    当代码执行失败，环境会将错误信息发给 Agent（此时用低温度 0.3 的修复模式），Agent 输出修复后的代码，环境再次执行。这形成一个小型的 Agent-环境子循环，让 Agent 有机会修正语法错误或逻辑问题。
+  </div>
+
+  <h3>5.2 L2：统计质量验证 <span class="role-tag role-env">ENV</span></h3>
+  <table>
+    <tr><th>指标</th><th>含义</th><th>阈值</th></tr>
+    <tr><td><strong>IV</strong></td><td>正负样本分布差异（分箱后计算）</td><td>&ge; 校准值（噪声基准调整）</td></tr>
+    <tr><td><strong>KS</strong></td><td>正负样本累积分布最大分离度</td><td>&ge; 校准值</td></tr>
+    <tr><td><strong>冗余度</strong></td><td>与已有特征的最大 |Pearson 相关系数|</td><td>&lt; 0.7</td></tr>
+    <tr><td><strong>缺失率</strong></td><td>NaN 比例</td><td>&le; 0.5</td></tr>
+  </table>
+
+  <h3>5.3 L3：模型增量验证 <span class="role-tag role-env">ENV</span></h3>
+  <p>在当前 <code>existing_features</code>（动态基线）上评估新特征的增量贡献。5-fold StratifiedKFold CV，每折搜索最优 F1 阈值。</p>
+
+  <div class="callout callout-green">
+    <strong>L3 接受条件（Recall 优先）：</strong>
+    <ol style="margin-bottom:0;">
+      <li><code>delta_recall &gt; 0</code> — Recall 必须有提升</li>
+      <li><code>aug_precision &ge; 0.95</code> — 加入后 Precision 绝对值不低于 95%</li>
+    </ol>
+  </div>
+
+  <div class="grid-2" style="margin-top:16px;">
+    <div class="card" style="border-color: var(--success);">
+      <div class="card-title" style="color: var(--success);">通过 L3 &rarr; 立即接受</div>
+      <p>特征加入 <code>existing_features</code>，Agent 的后续探索在更高的基线上进行。环境还会为该特征调用 Agent 生成一份可解释性报告。</p>
+    </div>
+    <div class="card" style="border-color: var(--warning);">
+      <div class="card-title" style="color: var(--warning);">L3 未通过 &rarr; 候选缓冲池</div>
+      <p>进入候选缓冲池（Candidate Buffer），等待轮末前向选择评估组合效应。该特征可能单独无效但与其他特征互补<sup>[2]</sup>。</p>
+    </div>
+  </div>
+
+  <h3>5.4 候选缓冲池</h3>
+  <p>通过 L2 但未通过 L3 的特征进入<strong>候选缓冲池</strong>。这是一种延迟评估机制——单特征增量不够，但多特征组合可能有效。</p>
+  <table>
+    <tr><th>参数</th><th>值</th><th>说明</th></tr>
+    <tr><td>最大容量</td><td>20</td><td>超出时淘汰互信息最低的特征</td></tr>
+    <tr><td>最大存活轮数</td><td>3 轮</td><td>超过 3 轮未被接受则清除</td></tr>
+    <tr><td>最大连续拒绝</td><td>2 次</td><td>连续 2 次被前向选择拒绝则清除</td></tr>
+  </table>
+
+  <h3>5.5 前向选择（Forward Selection）<sup>[3]</sup></h3>
+  <p>每轮所有维度探索结束后，环境对候选缓冲池中的特征执行贪心前向选择<sup>[4]</sup>——从当前 <code>existing_features</code> 出发，逐个尝试加入池中特征，选最优的加入，重复直到无增量。</p>
+
+  <pre><code># 前向选择（每轮末由环境自动执行，Agent 不参与）
+X_current = existing_features
+current_metrics = compute_cv_metrics(X_current, y)   # 动态基线
+
+while 还有候选:
+    for candidate in remaining:
+        m = compute_cv_metrics(X_current + candidate, y)
+        if m.recall > current_metrics.recall and m.precision >= 0.95:
+            score = delta_recall + 0.3 * delta_f1     # 排序依据
+    if best is None: break
+    X_current += best; current_metrics = updated</code></pre>
+
+  <table>
+    <tr><th></th><th>L3 验证</th><th>前向选择 (FS)</th></tr>
+    <tr><td><strong>触发</strong></td><td>Agent 每提交一个特征时</td><td>每轮结束时，环境自动执行</td></tr>
+    <tr><td><strong>方式</strong></td><td>单特征增量评估</td><td>贪心组合搜索</td></tr>
+    <tr><td><strong>解决的问题</strong></td><td>这个特征单独有没有用？</td><td>这些单独不够好的特征，<strong>组合</strong>起来有没有用？</td></tr>
+  </table>
+
+  <p class="ref">[2] Kohavi, R. & John, G. H. "Wrappers for Feature Subset Selection." Artificial Intelligence, 97(1-2), 273-324, 1997.<br>
+  [3] Guyon, I. & Elisseeff, A. "An Introduction to Variable and Feature Selection." JMLR, 3, 1157-1182, 2003.<br>
+  [4] Deb, K. "Multi-Objective Optimization Using Evolutionary Algorithms." Wiley, 2001.</p>
+</div>
+
+<!-- ====== 6. Agent 搜索策略 ====== -->
+<div class="section" id="sec6">
+  <h2><span class="num">6</span>Agent 的搜索策略</h2>
+
+  <p>Agent 不是随机探索。环境通过<strong>分组任务指派</strong>和<strong>SHAP 反馈</strong>引导 Agent 的搜索方向。</p>
+
+  <h3>6.1 分组搜索</h3>
+  <p>特征空间按业务含义划分为 4 个<strong>维度组</strong>，借鉴进化计算中的岛屿模型（Island Model）<sup>[5]</sup>的分治思路。环境在每轮中依次向 Agent 指派维度任务，每组有独立的候选预算。</p>
+
+  <table>
+    <tr><th>维度组</th><th>关联字段</th><th>探索方向</th></tr>
+    <tr>
+      <td><strong>金额频次</strong></td>
+      <td>amount, interval, hour, transaction_motif</td>
+      <td>金额分布异常、交易频率模式、金额集中度等</td>
+    </tr>
+    <tr>
+      <td><strong>时间地域</strong></td>
+      <td>timestamp, src_ip, dst_ip, region_code, hour</td>
+      <td>夜间交易、IP 多样性、地域异常、时间集中度等</td>
+    </tr>
+    <tr>
+      <td><strong>行为序列</strong></td>
+      <td>timestamp, transaction_mode, zs_timestamp</td>
+      <td>交易模式转移、序列自相关、收支不平衡等</td>
+    </tr>
+    <tr>
+      <td><strong>主体关联</strong></td>
+      <td>wallet_open_cert, wallet_open_tel, src_device</td>
+      <td>设备共享、身份复用、fan-in/fan-out 模式等</td>
+    </tr>
+  </table>
+
+  <p class="ref">[5] Whitley, D. et al. "The Island Model Genetic Algorithm: On Separability, Population Size and Convergence." J. Computing and Information Technology, 1999.</p>
+
+  <h3>6.2 SHAP 驱动的预算分配 <span class="role-tag role-env">ENV</span></h3>
+  <p>每轮开始时，环境计算当前模型各维度的 SHAP 重要性，按<strong>反比</strong>分配预算：薄弱维度获得更多探索资源（借鉴 MedFeat<sup>[6]</sup>）。</p>
+  <pre><code>weight[dim] = 1.0 / (importance[dim] + eps)
+budget[dim] = round(weight[dim] / sum(weights) * B_total)   # B_total = 12
+budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
+  <p>这些预算通过任务指令注入 Agent 的 prompt：<em>"请为金额频次维度生成 4 个候选特征"</em>。</p>
+
+  <p class="ref">[6] "MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs." arXiv:2603.02221, 2026.</p>
+
+  <h3>6.3 组内多轮对话</h3>
+  <p>每个维度组在每轮中最多进行 <strong>2 轮有效对话</strong>：</p>
+  <table>
+    <tr><th>轮次</th><th>Agent 收到的信息</th><th>退出条件</th></tr>
+    <tr>
+      <td><strong>Turn 1</strong></td>
+      <td>维度任务 + SHAP 反馈 + 高分示例 + 失败记忆</td>
+      <td>有特征被 L3 接受 → 退出（已有收获）<br>无失败特征 → 退出（无产出）</td>
+    </tr>
+    <tr>
+      <td><strong>Turn 2</strong></td>
+      <td>Turn 1 的通过/失败反馈 → Agent 调整方向重试</td>
+      <td>无论结果如何，强制退出进入下一维度组</td>
+    </tr>
+  </table>
+
+  <h3>6.4 完整轮次结构</h3>
+  <div class="flow-container">
+    <div class="flow-group">
+      <div class="flow-group-label">Round N（最多 10 轮）</div>
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="flow-box" style="background: #ede9fe; color: #5b21b6;">
+          <span class="role-tag role-env" style="font-size:0.7em;">ENV</span><br>
+          SHAP 分析<br>+ 预算分配
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <span class="role-tag role-agent" style="font-size:0.7em;">AGENT</span><br>
+          金额频次<br>(N 个候选)
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <span class="role-tag role-agent" style="font-size:0.7em;">AGENT</span><br>
+          时间地域<br>(N 个候选)
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <span class="role-tag role-agent" style="font-size:0.7em;">AGENT</span><br>
+          行为序列<br>(N 个候选)
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          <span class="role-tag role-agent" style="font-size:0.7em;">AGENT</span><br>
+          主体关联<br>(N 个候选)
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background: var(--success-light); color: #065f46;">
+          <span class="role-tag role-env" style="font-size:0.7em;">ENV</span><br>
+          前向选择<br>(缓冲池评估)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 7. Agent 记忆与学习 ====== -->
+<div class="section" id="sec7">
+  <h2><span class="num">7</span>Agent 的记忆与学习</h2>
+
+  <p>Agent 在多轮探索中积累经验，这些"记忆"通过对话历史和结构化数据实现。</p>
+
+  <h3>7.1 对话上下文（短期记忆）</h3>
+  <p>Agent 与环境的所有交互都保存在 <code>messages</code> 列表中。这意味着 Agent 在后续轮次中能"记住"：</p>
+  <ul>
+    <li>之前生成过哪些特征（避免重复）</li>
+    <li>哪些方向失败了、为什么失败（调整策略）</li>
+    <li>哪些特征被接受了、指标如何（学习成功模式）</li>
+  </ul>
+
+  <h3>7.2 失败记忆（FailureMemory） <span class="role-tag role-env">ENV</span></h3>
+  <p>环境维护一个结构化的失败记录库，每个失败特征记录名称、代码、失败原因。每轮注入 prompt 时取最近的失败案例，显式告诉 Agent "避免重复这些错误"。</p>
+
+  <h3>7.3 岛屿知识传播 <span class="role-tag role-env">ENV</span></h3>
+  <p>当一个维度组产出高分特征，环境自动将该特征的信息传播到其他维度组（<code>migrate_best</code>）。下次 Agent 在其他维度探索时，能看到跨维度的高分示例作为参考。</p>
+
+  <h3>7.4 可解释性报告 <span class="role-tag role-agent">AGENT</span></h3>
+  <p>每个通过 L3 的特征，环境调用 Agent（以分析专家身份）生成可解释性报告，包含：</p>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">value_meaning</div>
+      <p>特征值的业务含义</p>
+    </div>
+    <div class="card">
+      <div class="card-title">risk_threshold</div>
+      <p>风险阈值建议</p>
+    </div>
+    <div class="card">
+      <div class="card-title">synergy</div>
+      <p>与其他特征的协同效应</p>
+    </div>
+    <div class="card">
+      <div class="card-title">false_positive_cases</div>
+      <p>可能的误报场景</p>
+    </div>
+    <div class="card">
+      <div class="card-title">regulatory_explanation</div>
+      <p>面向监管的一句话解释</p>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 8. 收敛与终止 ====== -->
+<div class="section" id="sec8">
+  <h2><span class="num">8</span>收敛检测与终止</h2>
+
+  <p>Agent 的搜索不是无限的。环境通过以下条件控制终止：</p>
+  <ul>
+    <li><strong>收敛终止</strong>：连续 <strong>2 轮</strong>没有新特征被接受（L3 直通 + 前向选择 均无产出）→ Agent 已穷尽有效搜索空间</li>
+    <li><strong>目标达成</strong>：已接受特征数达到上限（默认 30）</li>
+    <li><strong>轮次上限</strong>：完成 10 轮迭代</li>
+  </ul>
+  <p>终止后环境执行最终的候选缓冲池评估，给剩余候选最后一次机会。</p>
+</div>
+
+<!-- ====== 9. 模型与评估 ====== -->
+<div class="section" id="sec9">
+  <h2><span class="num">9</span>下游模型与评估方法</h2>
+
+  <h3>9.1 XGBoost 配置</h3>
+  <table>
+    <tr><th>参数</th><th>值</th><th>说明</th></tr>
+    <tr><td>scale_pos_weight</td><td>19.0</td><td>正负样本比例约 1:19（正样本率 0.32%）</td></tr>
+    <tr><td>n_estimators</td><td>200</td><td>树的数量</td></tr>
+    <tr><td>max_depth</td><td>6</td><td>最大树深度</td></tr>
+    <tr><td>learning_rate</td><td>0.1</td><td>学习率</td></tr>
+    <tr><td>eval_metric</td><td>aucpr</td><td>PR-AUC 作为训练指标</td></tr>
+    <tr><td>device</td><td>cuda</td><td>GPU 加速</td></tr>
+  </table>
+
+  <h3>9.2 阈值优化</h3>
+  <p>不使用固定 0.5 阈值。每折<strong>训练集</strong>上遍历 0.05~0.95（步长 0.01），选使 F1 最大的阈值，在<strong>验证集</strong>上计算最终指标。</p>
+
+  <h3>9.3 特征复合打分</h3>
+  <p>每个被接受的特征计算综合分数（用于排序展示，<strong>不影响接受判定</strong>）：</p>
+  <table>
+    <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
+    <tr><td>SHAP 排名</td><td>30%</td><td>1/rank</td></tr>
+    <tr><td>IV 值</td><td>20%</td><td>原始 IV</td></tr>
+    <tr><td>冗余度</td><td>20%</td><td>1 - redundancy</td></tr>
+    <tr><td>Delta F1</td><td>30%</td><td>加入后 F1 变化量</td></tr>
+  </table>
+</div>
+
+<!-- ====== 10. 参数总览 ====== -->
+<div class="section" id="sec10">
+  <h2><span class="num">10</span>关键参数总览</h2>
+  <table>
+    <tr><th>类别</th><th>参数</th><th>值</th><th>说明</th></tr>
+    <tr><td rowspan="2">Agent</td><td>LLM 模型</td><td>DeepSeek-Chat</td><td>通过 OpenAI 兼容 API 调用</td></tr>
+    <tr><td>Temperature</td><td>0.7 / 0.3</td><td>特征生成 0.7，代码修复 0.3</td></tr>
+    <tr><td rowspan="4">搜索策略</td><td>max_rounds</td><td>10</td><td>最大搜索轮数</td></tr>
+    <tr><td>维度组数</td><td>4</td><td>金额频次 / 时间地域 / 行为序列 / 主体关联</td></tr>
+    <tr><td>B_total</td><td>12</td><td>每轮总候选预算</td></tr>
+    <tr><td>组内对话轮数</td><td>2</td><td>Turn 2 后强制退出</td></tr>
+    <tr><td rowspan="4">L2 阈值</td><td>iv_min</td><td>校准值</td><td>基于噪声基准动态调整</td></tr>
+    <tr><td>ks_min</td><td>校准值</td><td>基于噪声基准动态调整</td></tr>
+    <tr><td>corr_max</td><td>0.7</td><td>最大冗余度</td></tr>
+    <tr><td>missing_rate_max</td><td>0.5</td><td>最大缺失率</td></tr>
+    <tr><td rowspan="2">L3 / FS</td><td>delta_recall</td><td>&gt; 0</td><td>Recall 必须提升</td></tr>
+    <tr><td>aug_precision</td><td>&ge; 0.95</td><td>Precision 绝对值 &ge; 95%</td></tr>
+    <tr><td rowspan="3">候选缓冲池</td><td>max_size</td><td>20</td><td>最大容量</td></tr>
+    <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
+    <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
+    <tr><td>收敛</td><td>连续空轮</td><td>2</td><td>连续 2 轮无新特征则终止</td></tr>
+    <tr><td>沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
+    <tr><td>L1 修复</td><td>自动修复次数</td><td>2</td><td>Agent 修复代码重试</td></tr>
+  </table>
+</div>
+
+<!-- ====== 11. 与传统方法对比 ====== -->
+<div class="section" id="sec11">
+  <h2><span class="num">11</span>与传统方法的对比</h2>
+
+  <table>
+    <tr><th></th><th>传统特征工程</th><th>本系统（LLM Agent）</th></tr>
+    <tr>
+      <td><strong>特征来源</strong></td>
+      <td>人工设计或模板库</td>
+      <td>Agent 根据领域知识和数据分布自主设计</td>
+    </tr>
+    <tr>
+      <td><strong>搜索策略</strong></td>
+      <td>穷举预定义模板</td>
+      <td>Agent 根据 SHAP 反馈动态调整搜索方向</td>
+    </tr>
+    <tr>
+      <td><strong>失败处理</strong></td>
+      <td>跳过或人工调整</td>
+      <td>Agent 自动修复代码 + 根据失败记忆避免重复</td>
+    </tr>
+    <tr>
+      <td><strong>组合效应</strong></td>
+      <td>通常忽略</td>
+      <td>候选缓冲池 + 前向选择捕获互补效应</td>
+    </tr>
+    <tr>
+      <td><strong>可解释性</strong></td>
+      <td>事后补充</td>
+      <td>Agent 对每个接受特征生成结构化解释</td>
+    </tr>
+    <tr>
+      <td><strong>扩展性</strong></td>
+      <td>新领域需重新设计模板</td>
+      <td>更换 System Prompt 中的领域知识即可适配</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ====== 12. 实验结果 ====== -->
+<div class="section" id="sec12">
+  <h2><span class="num">12</span>实验结果</h2>
+
+  <h3>12.1 实验配置</h3>
+  <div class="metric-row">
+    <div class="metric-item">
+      <div class="metric-value">393</div>
+      <div class="metric-label">Agent 推理步数</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">4</div>
+      <div class="metric-label">搜索轮数</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">43</div>
+      <div class="metric-label">候选特征总数</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">3</div>
+      <div class="metric-label">最终接受</div>
+    </div>
+    <div class="metric-item">
+      <div class="metric-value">4.6h</div>
+      <div class="metric-label">总运行时长</div>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>配置项</th><th>值</th></tr>
+    <tr><td>Agent 模型</td><td>DeepSeek-Chat</td></tr>
+    <tr><td>数据规模</td><td>1,384,512 笔交易 / 100,000 个钱包</td></tr>
+    <tr><td>正样本率</td><td>0.3239%（4,484 / 1,384,512）</td></tr>
+    <tr><td>基线特征数</td><td>95</td></tr>
+    <tr><td>终止原因</td><td>连续 2 轮无新特征，收敛终止</td></tr>
+  </table>
+
+  <h3>12.2 Agent 接受的特征</h3>
+
+  <div style="overflow-x: auto;">
+  <table>
+    <tr>
+      <th>特征名</th>
+      <th>维度组</th>
+      <th>IV</th>
+      <th>KS</th>
+      <th>冗余度</th>
+      <th>&Delta;Recall</th>
+      <th>&Delta;F1</th>
+      <th>&Delta;Precision</th>
+      <th>SHAP Rank</th>
+    </tr>
+    <tr>
+      <td><strong>amount_concentration_pattern</strong></td>
+      <td>金额频次</td>
+      <td>0.0329</td>
+      <td>0.0815</td>
+      <td>0.079</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0029</td>
+      <td style="color: var(--success);">+0.0006</td>
+      <td style="color: var(--danger);">&minus;0.0021</td>
+      <td>82 / 96</td>
+    </tr>
+    <tr>
+      <td><strong>region_night_risk_score</strong></td>
+      <td>时间地域</td>
+      <td>0.0236</td>
+      <td>0.0641</td>
+      <td>0.558</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0018</td>
+      <td style="color: var(--success);">+0.0008</td>
+      <td style="color: var(--danger);">&minus;0.0005</td>
+      <td>76 / 97</td>
+    </tr>
+    <tr>
+      <td><strong>fan_in_without_single_pattern</strong></td>
+      <td>行为序列</td>
+      <td>0.0103</td>
+      <td>0.0380</td>
+      <td>0.415</td>
+      <td style="color: var(--success); font-weight: 600;">+0.0020</td>
+      <td style="color: var(--success);">+0.0014</td>
+      <td style="color: var(--success);">+0.0008</td>
+      <td>75 / 98</td>
+    </tr>
+  </table>
+  </div>
+
+  <div class="callout callout-agent" style="margin-top: 16px;">
+    <strong>Agent 的推理过程</strong>
+    <ul style="margin-top: 8px; padding-left: 20px;">
+      <li><strong>amount_concentration_pattern</strong>：Agent 从分布差异中发现异常交易金额中位数 17410（正常 10660），结合"四类钱包洗钱存在日累计额度控制特征"的领域知识，设计了金额在 100/500/1000 元整数倍上的集中度特征。</li>
+      <li><strong>region_night_risk_score</strong>：Agent 注意到高风险 region 中异常交易夜间占比 11.78%（正常 3.78%，差异 3 倍），设计了地域风险 &times; 夜间交易的交叉特征。</li>
+      <li><strong>fan_in_without_single_pattern</strong>：Agent 发现异常钱包"有 fan_in 但无 single"的比例 18.5%（正常 0.6%，差异 30 倍），设计了交易模式组合特征。</li>
+    </ul>
+  </div>
+
+  <h3>12.3 整体增量效果</h3>
+  <p>将 Agent 生成的 3 个特征加入 95 个基线特征后，5-fold StratifiedKFold CV 结果：</p>
+
+  <table>
+    <tr>
+      <th>指标</th>
+      <th>基线（95 特征）</th>
+      <th>增强后（98 特征）</th>
+      <th>变化量</th>
+      <th>变化率</th>
+    </tr>
+    <tr>
+      <td><strong>Recall</strong></td>
+      <td>0.9041</td>
+      <td>0.9108</td>
+      <td style="color: var(--success); font-weight: 700;">+0.0067</td>
+      <td style="color: var(--success);">+0.74%</td>
+    </tr>
+    <tr>
+      <td><strong>F1</strong></td>
+      <td>0.9450</td>
+      <td>0.9478</td>
+      <td style="color: var(--success); font-weight: 700;">+0.0028</td>
+      <td style="color: var(--success);">+0.30%</td>
+    </tr>
+    <tr>
+      <td><strong>Precision</strong></td>
+      <td>0.9900</td>
+      <td>0.9882</td>
+      <td style="color: var(--danger);">&minus;0.0018</td>
+      <td style="color: var(--danger);">&minus;0.19%</td>
+    </tr>
+    <tr>
+      <td><strong>PR-AUC</strong></td>
+      <td>0.9833</td>
+      <td>0.9828</td>
+      <td style="color: var(--danger);">&minus;0.0004</td>
+      <td style="color: var(--danger);">&minus;0.05%</td>
+    </tr>
+  </table>
+
+  <h3>12.4 前向选择验证</h3>
+  <p>实验结束后，独立前向选择验证（以 95 个基线为起点），3 个特征全部通过：</p>
+  <table>
+    <tr><th>选择顺序</th><th>特征</th><th>累计 Recall</th><th>累计 F1</th><th>累计 Precision</th></tr>
+    <tr>
+      <td>1</td>
+      <td>amount_concentration_pattern</td>
+      <td>0.9070 <span style="color: var(--success);">(+0.0029)</span></td>
+      <td>0.9456</td>
+      <td>0.9879</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>region_night_risk_score</td>
+      <td>0.9088 <span style="color: var(--success);">(+0.0018)</span></td>
+      <td>0.9464</td>
+      <td>0.9874</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>fan_in_without_single_pattern</td>
+      <td>0.9108 <span style="color: var(--success);">(+0.0020)</span></td>
+      <td>0.9478</td>
+      <td>0.9882</td>
+    </tr>
+  </table>
+
+  <h3>12.5 结果分析</h3>
+  <div class="callout callout-green">
+    <strong>关键发现</strong>
+    <ol style="margin-top: 8px; padding-left: 20px;">
+      <li><strong>Agent 具备领域推理能力</strong>：3 个特征均源自 Agent 对领域知识的深度理解——从判决书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
+      <li><strong>Recall 优先策略有效</strong>：3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
+      <li><strong>Precision 代价可控</strong>：Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
+      <li><strong>动态基线严格过滤</strong>：候选缓冲池的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
+      <li><strong>多维度覆盖</strong>：3 个特征分别来自金额频次、时间地域、行为序列三个维度组，分组搜索策略保证了广度。</li>
+      <li><strong>高淘汰率体现质量控制</strong>：43 个候选中仅 3 个通过（7.0%），三级验证环境起到了严格的质量把关作用。</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ====== Footer ====== -->
+<div class="footer">
+  <p>LLM Agent 自动特征工程系统 &mdash; 技术方案文档 v4</p>
+  <p style="margin-top:4px;">Generated: 2026-05-20</p>
+</div>
+
+</div>
+</body>
+</html>
