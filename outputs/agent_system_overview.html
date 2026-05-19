@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单Agent特征工程系统 — 完整方案</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f7fa; color: #2c3e50; line-height: 1.8; }
+  .container { max-width: 1020px; margin: 0 auto; padding: 40px 24px; }
+  h1 { font-size: 30px; margin-bottom: 6px; color: #1a1a2e; }
+  .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 40px; }
+  .section { background: #fff; border-radius: 12px; padding: 32px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .section h2 { font-size: 20px; margin-bottom: 16px; color: #2c3e50; border-left: 4px solid #3498db; padding-left: 12px; }
+  .section h3 { font-size: 16px; margin: 20px 0 10px; color: #34495e; }
+  p, li { font-size: 15px; margin-bottom: 8px; }
+  ul, ol { padding-left: 22px; }
+  .hl { background: #fff3cd; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  .hl-blue { background: #dbeafe; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+  code { background: #f1f3f5; padding: 2px 5px; border-radius: 3px; font-family: "Fira Code","Consolas",monospace; font-size: 13px; }
+  .code-block { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 16px 20px; margin: 12px 0; font-family: "Fira Code","Consolas",monospace; font-size: 13px; line-height: 1.8; overflow-x: auto; white-space: pre; }
+
+  /* 流程图 */
+  .flow { display: flex; align-items: stretch; justify-content: center; gap: 0; margin: 24px 0; flex-wrap: wrap; }
+  .flow-step { background: #eaf2fb; border: 2px solid #3498db; border-radius: 10px; padding: 14px 16px; text-align: center; min-width: 120px; flex: 1; max-width: 180px; display: flex; flex-direction: column; justify-content: center; }
+  .flow-step.highlight-step { background: #3498db; color: #fff; border-color: #2980b9; }
+  .flow-step.green-step { background: #d4edda; border-color: #27ae60; }
+  .flow-step .step-title { font-weight: 700; font-size: 14px; }
+  .flow-step .step-desc { font-size: 11px; margin-top: 4px; opacity: 0.85; }
+  .flow-arrow { font-size: 22px; color: #3498db; display: flex; align-items: center; padding: 0 6px; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th, td { padding: 10px 14px; text-align: center; border-bottom: 1px solid #e9ecef; }
+  th { background: #f8f9fa; font-weight: 600; color: #495057; }
+  td:first-child, th:first-child { text-align: left; }
+  .positive { color: #27ae60; font-weight: 700; }
+  .negative { color: #e74c3c; font-weight: 700; }
+
+  /* 对比卡片 */
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .card { border-radius: 10px; padding: 20px; }
+  .card.old { background: #fdf2f2; border: 1px solid #f5c6cb; }
+  .card.new { background: #f0fdf4; border: 1px solid #c3e6cb; }
+  .card h4 { font-size: 15px; margin-bottom: 10px; }
+  .tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; color: #fff; }
+  .tag-red { background: #e74c3c; }
+  .tag-green { background: #27ae60; }
+  .tag-blue { background: #3498db; }
+
+  /* 结果卡片 */
+  .result-banner { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 12px; padding: 28px 32px; margin: 16px 0; }
+  .result-banner h3 { color: #fff; margin-bottom: 12px; font-size: 18px; }
+  .metric-row { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+  .metric-item { text-align: center; min-width: 100px; }
+  .metric-value { font-size: 26px; font-weight: 700; }
+  .metric-label { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .metric-delta { font-size: 14px; margin-top: 2px; }
+
+  /* 岛屿卡片 */
+  .island-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 16px 0; }
+  .island-card { background: #f8f9fa; border-radius: 10px; padding: 16px; border: 1px solid #e9ecef; }
+  .island-card h4 { font-size: 14px; margin-bottom: 6px; color: #2c3e50; }
+  .island-card .dim { font-size: 12px; color: #3498db; font-weight: 600; margin-bottom: 6px; }
+  .island-card p { font-size: 13px; margin-bottom: 4px; }
+  .island-card .fields { font-size: 12px; color: #7f8c8d; }
+
+  /* 层级验证 */
+  .level-card { display: flex; gap: 16px; margin: 16px 0; }
+  .level-item { flex: 1; background: #f8f9fa; border-radius: 10px; padding: 18px; border-top: 4px solid; }
+  .level-item.l1 { border-color: #3498db; }
+  .level-item.l2 { border-color: #f39c12; }
+  .level-item.l3 { border-color: #e74c3c; }
+  .level-item h4 { font-size: 15px; margin-bottom: 8px; }
+  .level-item ul { font-size: 13px; }
+
+  .divider { height: 1px; background: #e9ecef; margin: 24px 0; }
+  .note { background: #fff8e1; border-left: 4px solid #ffc107; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; font-size: 14px; }
+
+  @media (max-width: 700px) {
+    .compare-grid, .island-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: center; }
+    .flow-arrow { transform: rotate(90deg); }
+    .level-card { flex-direction: column; }
+    .metric-row { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>单Agent特征工程系统 — 完整方案</h1>
+<p class="subtitle">数字人民币反洗钱特征自动生成 | 2026-05-19 | DeepSeek-Chat + XGBoost 5-fold CV</p>
+
+<!-- ========== 目录 ========== -->
+<div class="section" style="padding: 20px 32px;">
+  <b>目录</b>
+  <ol style="columns: 2; font-size: 14px;">
+    <li>系统目标</li>
+    <li>数据基础</li>
+    <li>基线特征</li>
+    <li>知识注入</li>
+    <li>Agent 架构</li>
+    <li>岛屿探索策略</li>
+    <li>三级验证流水线</li>
+    <li>L3 Recall优先策略 (v2)</li>
+    <li>Forward Selection</li>
+    <li>辅助机制</li>
+    <li>完整流程图</li>
+    <li>当前实验结果</li>
+    <li>配置参数</li>
+  </ol>
+</div>
+
+<!-- ========== 1. 系统目标 ========== -->
+<div class="section" id="s1">
+  <h2>1. 系统目标</h2>
+  <p>利用大语言模型（DeepSeek-Chat）自动生成反洗钱检测特征，在95个人工基线特征的基础上，通过自动化搜索发现新的有效特征，<span class="hl">提升模型的Recall（召回率）</span>——在反洗钱场景中，漏掉一笔可疑交易的代价远大于误报。</p>
+  <p>系统以单Agent方式运行，Agent通过工具调用（Tool Use）与沙箱交互，自主完成特征设计、代码生成、验证评估的全流程。</p>
+</div>
+
+<!-- ========== 2. 数据基础 ========== -->
+<div class="section" id="s2">
+  <h2>2. 数据基础</h2>
+  <p>系统基于三张核心数据表：</p>
+  <table>
+    <tr><th>表名</th><th>描述</th><th>规模</th><th>关键字段</th></tr>
+    <tr>
+      <td><code>open_df</code> 开户表</td>
+      <td>钱包注册信息</td>
+      <td>~100,000 行</td>
+      <td>wallet_id, wallet_open_cert, wallet_open_tel, region_code, wallet_type ...</td>
+    </tr>
+    <tr>
+      <td><code>tx_df</code> 交易表</td>
+      <td>转账交易记录</td>
+      <td>1,384,512 行</td>
+      <td>tx_id, src, dst, amount, timestamp, src_ip, dst_ip, transaction_mode, <b>is_risk</b> ...</td>
+    </tr>
+    <tr>
+      <td><code>close_df</code> 销户表</td>
+      <td>钱包注销记录</td>
+      <td>~500 行</td>
+      <td>wallet_id, zs_timestamp, zs_channel ...</td>
+    </tr>
+  </table>
+  <p><b>标签</b>：<code>tx_df.is_risk</code>（交易级），正样本 4,484 笔，正样本率 0.3239%（极度不平衡）</p>
+  <p><b>三表关联</b>：交易表的 <code>src</code>/<code>dst</code> 字段是 wallet_id，关联到开户表和销户表</p>
+</div>
+
+<!-- ========== 3. 基线特征 ========== -->
+<div class="section" id="s3">
+  <h2>3. 基线特征</h2>
+  <p>人工构建的 106 个特征中，去掉标签列 <code>is_laundering</code> 和 10 个指定弱特征后，保留 <b>95 个基线特征</b>作为起点。</p>
+  <div class="note">
+    去掉的10个特征：Min_Received, Min_Sent, wallets_per_cert_From, Max_Sent, S_src_counterparty_index, Timestamp_Hour, S_dst_counterparty_index, 1H_frequency_From, 1H_frequency_To, min_inactive_period_From
+  </div>
+  <p>基线模型：<b>XGBoost 5-fold Stratified CV</b>，scale_pos_weight=19，eval_metric=aucpr，device=cuda</p>
+</div>
+
+<!-- ========== 4. 知识注入 ========== -->
+<div class="section" id="s4">
+  <h2>4. 知识注入</h2>
+  <p>Agent的System Prompt中直接注入以下领域知识（不需要Agent检索，确保每轮都能利用）：</p>
+  <table>
+    <tr><th>知识来源</th><th>内容</th><th>作用</th></tr>
+    <tr>
+      <td>数据Schema</td>
+      <td>三张表的字段名、类型、取值分布</td>
+      <td>确保Agent引用正确的字段</td>
+    </tr>
+    <tr>
+      <td>关联统计</td>
+      <td>表间Join关系、关联比例</td>
+      <td>指导多表Join逻辑</td>
+    </tr>
+    <tr>
+      <td>分布差异</td>
+      <td>正常 vs 异常交易在各维度的统计差异</td>
+      <td>引导Agent关注区分度高的方向</td>
+    </tr>
+    <tr>
+      <td>交易模式</td>
+      <td>8种交易模式（3正常+5风险）</td>
+      <td>领域知识：洗钱手法</td>
+    </tr>
+    <tr>
+      <td>专家访谈</td>
+      <td>专家经验 + 309份裁判文书</td>
+      <td>领域知识：实务经验</td>
+    </tr>
+    <tr>
+      <td>风险指标</td>
+      <td>38个风险指标分类</td>
+      <td>领域知识：风控体系</td>
+    </tr>
+    <tr>
+      <td>检测规则</td>
+      <td>15条检测规则 → Python代码示例</td>
+      <td>代码风格参考</td>
+    </tr>
+    <tr>
+      <td>基线代码</td>
+      <td>已有特征的实现代码示例</td>
+      <td>代码风格参考</td>
+    </tr>
+  </table>
+  <p>同时，Agent保留 <code>explore_data</code> 工具，可以主动编写Python代码查看三张表的具体数据分布。</p>
+</div>
+
+<!-- ========== 5. Agent架构 ========== -->
+<div class="section" id="s5">
+  <h2>5. Agent 架构</h2>
+  <p>基于 OpenAI Function Calling 协议，Agent 拥有 3 个工具：</p>
+  <table>
+    <tr><th>工具</th><th>功能</th><th>使用场景</th></tr>
+    <tr>
+      <td><code>explore_data</code></td>
+      <td>执行 Python 代码查看数据分布</td>
+      <td>Agent 需要查看具体数据才能设计特征时</td>
+    </tr>
+    <tr>
+      <td><code>generate_feature</code></td>
+      <td>提交特征代码（名称+维度+代码+解释）</td>
+      <td>设计好特征后提交代码</td>
+    </tr>
+    <tr>
+      <td><code>execute_sandbox</code></td>
+      <td>沙箱执行 + 自动触发 L1→L2→L3 验证</td>
+      <td>提交后立即验证，返回完整评估反馈</td>
+    </tr>
+  </table>
+  <p>调用流程：Agent 先 <code>generate_feature</code> 提交代码，然后 <code>execute_sandbox</code> 验证。系统自动完成 L1 代码执行 → L2 统计检验 → L3 模型评估的完整流水线，将结果反馈给 Agent。</p>
+</div>
+
+<!-- ========== 6. 岛屿探索策略 ========== -->
+<div class="section" id="s6">
+  <h2>6. 岛屿探索策略</h2>
+  <p>特征空间被划分为 4 个维度岛屿，系统逐岛分配任务，确保全面覆盖：</p>
+  <div class="island-grid">
+    <div class="island-card">
+      <div class="dim">amount_frequency</div>
+      <h4>金额频次</h4>
+      <p>金额分布、频率、拆分交易</p>
+      <div class="fields">字段: amount, interval, hour, transaction_motif</div>
+    </div>
+    <div class="island-card">
+      <div class="dim">time_region</div>
+      <h4>时间地域</h4>
+      <p>夜间交易、IP跳变、跨地域</p>
+      <div class="fields">字段: timestamp, src_ip, dst_ip, region_code, hour</div>
+    </div>
+    <div class="island-card">
+      <div class="dim">behavior_sequence</div>
+      <h4>行为序列</h4>
+      <p>休眠激活、交易对手更换、用途偏离</p>
+      <div class="fields">字段: timestamp, transaction_mode, zs_timestamp, zs_channel</div>
+    </div>
+    <div class="island-card">
+      <div class="dim">entity_association</div>
+      <h4>主体关联</h4>
+      <p>交叉转账网络、身份复用、设备共享</p>
+      <div class="fields">字段: wallet_open_cert, wallet_open_tel, src_device, dst_device, src, dst</div>
+    </div>
+  </div>
+
+  <h3>轮次结构</h3>
+  <ul>
+    <li><b>外层</b>：最多 10 轮（T=10），每轮遍历全部 4 个岛屿</li>
+    <li><b>内层</b>：每个岛屿每轮最多 3 轮对话（intra_island_turns=3），有反馈的多轮生成</li>
+    <li><b>预算分配</b>：第1轮每岛3个候选（b=3），后续轮基于 SHAP 反馈反比分配（薄弱维度分更多预算）</li>
+    <li><b>总预算</b>：每轮 12 个候选（B_total=12），每岛最少1个（b_min=1），最多5个（b_max=5）</li>
+    <li><b>收敛检测</b>：连续2轮无新特征自动终止</li>
+    <li><b>目标上限</b>：最多接受 30 个特征</li>
+  </ul>
+</div>
+
+<!-- ========== 7. 三级验证流水线 ========== -->
+<div class="section" id="s7">
+  <h2>7. 三级验证流水线</h2>
+
+  <div class="level-card">
+    <div class="level-item l1">
+      <h4>L1 代码验证</h4>
+      <ul>
+        <li>沙箱执行特征代码（90秒超时）</li>
+        <li>检查输出格式（DataFrame + 正确列名）</li>
+        <li>失败后自动让 LLM 修复代码（最多重试2次）</li>
+        <li>通过后 merge 到交易表</li>
+      </ul>
+    </div>
+    <div class="level-item l2">
+      <h4>L2 统计验证</h4>
+      <ul>
+        <li><b>IV</b> (Information Value) &ge; 校准阈值</li>
+        <li><b>KS</b> (Kolmogorov-Smirnov) &ge; 校准阈值</li>
+        <li><b>冗余度</b>（与已有特征最大相关系数）&lt; 0.7</li>
+        <li><b>缺失率</b> &le; 50%</li>
+        <li>阈值由噪声基线校准（100个随机特征的p95分位）</li>
+      </ul>
+    </div>
+    <div class="level-item l3">
+      <h4>L3 模型验证</h4>
+      <ul>
+        <li>将新特征加入 existing_features 后做 5-fold CV</li>
+        <li>计算 delta_recall, delta_f1, delta_precision</li>
+        <li>计算 SHAP rank（新特征在全部特征中的重要性排名）</li>
+        <li>接受条件见下方 v2 策略</li>
+        <li>L3 不通过 → 进入缓刑池</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 8. L3 Recall优先策略 ========== -->
+<div class="section" id="s8">
+  <h2>8. L3 验证 — Recall 优先策略 (v2)</h2>
+  <p>反洗钱场景中 <span class="hl">Recall 是最关键指标</span>，不能漏过可疑交易。v2 策略以 Recall 为核心重新设计了接受条件。</p>
+
+  <div class="compare-grid">
+    <div class="card old">
+      <span class="tag tag-red">v1 旧方案</span>
+      <h4>F1 中心，三条件取或</h4>
+      <div class="code-block"># 满足任一即接受
+(delta_recall &gt; 0 and delta_precision &gt;= -0.01)
+or (delta_f1 &gt; 0)
+or (delta_precision &gt; 0 and delta_recall &gt;= -0.01)</div>
+      <p style="font-size:13px; color:#c0392b;">问题：条件2和3允许 Recall 下降，污染特征池</p>
+    </div>
+    <div class="card new">
+      <span class="tag tag-green">v2 新方案</span>
+      <h4>Recall 优先，三条件取且</h4>
+      <div class="code-block"># 必须同时满足
+delta_recall &gt; 0            # Recall 必须提升
+and delta_f1 &gt;= -0.001      # F1 允许微降 0.001
+and delta_precision &gt;= -0.001 # Precision 允许微降 0.001</div>
+      <p style="font-size:13px; color:#27ae60;">Recall 提升是硬门槛，F1/Precision 有 0.001 容忍度</p>
+    </div>
+  </div>
+
+  <h3>设计理由</h3>
+  <ul>
+    <li><b>delta_recall &gt; 0</b>：核心指标不能妥协，每个被接受的特征都必须贡献 Recall</li>
+    <li><b>delta_f1 &gt;= -0.001</b>：允许 F1 极小幅下降，因为 Recall 提升时 Precision 可能微降导致 F1 微降</li>
+    <li><b>delta_precision &gt;= -0.001</b>：Precision 也设兜底，防止为追求 Recall 导致误报率大幅上升</li>
+  </ul>
+</div>
+
+<!-- ========== 9. Forward Selection ========== -->
+<div class="section" id="s9">
+  <h2>9. Forward Selection（前向选择）</h2>
+  <p>Agent 运行结束后的最终独立评估。从基线开始，逐个尝试加入候选特征，只保留真正有增量的子集。</p>
+
+  <h3>L3 vs Forward Selection</h3>
+  <table>
+    <tr>
+      <th>维度</th>
+      <th>L3 模型验证</th>
+      <th>Forward Selection</th>
+    </tr>
+    <tr>
+      <td><b>执行时机</b></td>
+      <td>Agent 运行过程中，每生成一个特征实时评估</td>
+      <td>Agent 运行结束后，最终筛选</td>
+    </tr>
+    <tr>
+      <td><b>评估基准</b></td>
+      <td>当前 existing_features 池（动态增长）</td>
+      <td>固定的原始基线特征（95个）</td>
+    </tr>
+    <tr>
+      <td><b>作用</b></td>
+      <td>决定特征是否进入候选池，影响后续评估基准</td>
+      <td>从候选池中选出最终使用的特征子集</td>
+    </tr>
+    <tr>
+      <td><b>接受条件</b></td>
+      <td colspan="2" style="text-align:center;">
+        <span class="hl-blue">统一：delta_recall &gt; 0, delta_f1 &gt;= -0.001, delta_precision &gt;= -0.001</span>
+      </td>
+    </tr>
+    <tr>
+      <td><b>排序逻辑</b></td>
+      <td>不涉及</td>
+      <td><code>delta_recall + 0.3 * delta_f1</code>（Recall 主导）</td>
+    </tr>
+  </table>
+
+  <h3>Forward Selection 流程</h3>
+  <ol>
+    <li>从基线特征（95个）开始，记录当前指标</li>
+    <li>遍历所有候选特征，逐个计算加入后的 CV 指标</li>
+    <li>筛选满足接受条件的候选，按 <code>delta_recall + 0.3 * delta_f1</code> 排序</li>
+    <li>选最优的一个加入，更新当前特征集和指标</li>
+    <li>重复直到没有候选满足条件</li>
+  </ol>
+
+  <div class="note">
+    v2 统一了 L3 和 FS 的接受条件后，不会再出现 "L3 接受 30 个，FS 只留 2 个" 的浪费。L3 阶段就会过滤掉不提升 Recall 的特征。
+  </div>
+</div>
+
+<!-- ========== 10. 辅助机制 ========== -->
+<div class="section" id="s10">
+  <h2>10. 辅助机制</h2>
+
+  <h3>10.1 缓刑池 (Pending Pool)</h3>
+  <p>L2 通过但 L3 未通过的特征进入缓刑池，等待每轮结束时的重新评估。</p>
+  <ul>
+    <li>最大容量：20 个特征</li>
+    <li>最大存活轮数：3 轮（超过自动清除）</li>
+    <li>最大连续拒绝次数：2 次（超过自动清除）</li>
+    <li>轮末通过 <code>backward_eliminate_pending</code> 重新用 Forward Selection 评估</li>
+  </ul>
+
+  <h3>10.2 SHAP 反馈 & 预算分配</h3>
+  <p>每轮结束后计算 SHAP 特征重要性，识别薄弱维度，下一轮给薄弱维度分配更多候选预算（反比分配）。</p>
+
+  <h3>10.3 失败记忆 (FailureMemory)</h3>
+  <p>记录每个失败特征的名称、代码和失败原因，注入到后续 Prompt 中，避免 Agent 重复犯错。</p>
+
+  <h3>10.4 可解释性报告</h3>
+  <p>每个通过 L3 的特征，调用 LLM 生成可解释性报告（风险阈值、误判场景、监管解释等）。</p>
+
+  <h3>10.5 L1 自动修复</h3>
+  <p>特征代码执行失败后，自动让 LLM 分析错误并修复代码，最多重试 2 次。</p>
+
+  <h3>10.6 Composite Score（综合打分）</h3>
+  <p>每个接受的特征计算综合分数，用于岛屿内 Boltzmann 采样选择高分示例：</p>
+  <div class="code-block">score = 0.30 * norm(1/SHAP_rank)
+     + 0.20 * norm(IV)
+     + 0.20 * norm(1 - redundancy)
+     + 0.30 * norm(delta_f1)</div>
+</div>
+
+<!-- ========== 11. 完整流程图 ========== -->
+<div class="section" id="s11">
+  <h2>11. 完整流程图</h2>
+
+  <h3>系统启动</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="step-title">加载数据</div><div class="step-desc">3张表</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">基线特征</div><div class="step-desc">95个特征</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">校准L2阈值</div><div class="step-desc">噪声基线p95</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">基线CV指标</div><div class="step-desc">5-fold XGBoost</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">注入知识</div><div class="step-desc">Schema+领域</div></div>
+  </div>
+
+  <h3>Agent 迭代（每轮）</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="step-title">SHAP预算分配</div><div class="step-desc">薄弱维度多分</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight-step"><div class="step-title">遍历4个岛屿</div><div class="step-desc">每岛多轮对话</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">LLM生成特征</div><div class="step-desc">generate_feature</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">沙箱验证</div><div class="step-desc">execute_sandbox</div></div>
+  </div>
+
+  <h3>验证流水线（每个特征）</h3>
+  <div class="flow">
+    <div class="flow-step" style="border-color:#3498db;"><div class="step-title">L1 代码执行</div><div class="step-desc">沙箱+格式检查</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:#f39c12;"><div class="step-title">L2 统计检验</div><div class="step-desc">IV+KS+冗余+缺失</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color:#e74c3c;"><div class="step-title">L3 模型评估</div><div class="step-desc">Recall优先条件</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step green-step"><div class="step-title">接受 / 缓刑</div><div class="step-desc">通过→接受 / 未通过→缓刑池</div></div>
+  </div>
+
+  <h3>轮末 & 终止</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="step-title">缓刑池评估</div><div class="step-desc">轮末Forward Select</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step"><div class="step-title">收敛检测</div><div class="step-desc">2轮无新特征→停</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight-step"><div class="step-title">最终 FS</div><div class="step-desc">从基线出发重新筛选</div></div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step green-step"><div class="step-title">输出结果</div><div class="step-desc">JSON + HTML报告</div></div>
+  </div>
+</div>
+
+<!-- ========== 12. 当前实验结果 ========== -->
+<div class="section" id="s12">
+  <h2>12. 当前实验结果</h2>
+  <p>实验日期：2026-05-18 (run_20260518_162549) | 模型：DeepSeek-Chat | 基线特征：95个</p>
+  <p>Agent 在 v1 L3条件下接受了 30 个特征，Forward Selection 最终筛选出 2 个。</p>
+
+  <table>
+    <tr>
+      <th>指标</th>
+      <th>Baseline<br/>(95 特征)</th>
+      <th>全部 30 个特征</th>
+      <th>增量</th>
+      <th>FS 筛选 2 个特征</th>
+      <th>增量</th>
+    </tr>
+    <tr>
+      <td><b>Recall</b></td>
+      <td>0.904101</td>
+      <td>0.898526</td>
+      <td class="negative">-0.005575</td>
+      <td><b>0.910569</b></td>
+      <td class="positive">+0.006468</td>
+    </tr>
+    <tr>
+      <td><b>F1</b></td>
+      <td>0.944999</td>
+      <td>0.942557</td>
+      <td class="negative">-0.002443</td>
+      <td><b>0.947921</b></td>
+      <td class="positive">+0.002922</td>
+    </tr>
+    <tr>
+      <td><b>Precision</b></td>
+      <td>0.990017</td>
+      <td>0.991384</td>
+      <td class="positive">+0.001366</td>
+      <td>0.988642</td>
+      <td class="negative">-0.001375</td>
+    </tr>
+    <tr>
+      <td><b>PR-AUC</b></td>
+      <td>0.983285</td>
+      <td>0.981966</td>
+      <td class="negative">-0.001319</td>
+      <td>0.982839</td>
+      <td class="negative">-0.000446</td>
+    </tr>
+  </table>
+
+  <div class="result-banner">
+    <h3>最终结果：Forward Selection 筛选后（2 个新特征）</h3>
+    <p style="font-size:14px; opacity:0.9;">high_risk_counterparty_ratio + transaction_chain_length</p>
+    <div class="metric-row">
+      <div class="metric-item">
+        <div class="metric-value">0.9106</div>
+        <div class="metric-label">Recall</div>
+        <div class="metric-delta" style="color:#90EE90;">+0.0065</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">0.9479</div>
+        <div class="metric-label">F1</div>
+        <div class="metric-delta" style="color:#90EE90;">+0.0029</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">0.9886</div>
+        <div class="metric-label">Precision</div>
+        <div class="metric-delta" style="opacity:0.7;">-0.0014</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value">0.9828</div>
+        <div class="metric-label">PR-AUC</div>
+        <div class="metric-delta" style="opacity:0.7;">-0.0004</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>分析</b>：全部30个特征加入后 Recall 反而下降，说明 v1 的 L3 条件接受了大量无用特征。Forward Selection 有效过滤出 2 个真正提升 Recall 的特征。v2 策略在 L3 阶段就要求 delta_recall &gt; 0，预计能让更多搜索预算集中在有效方向。
+  </div>
+</div>
+
+<!-- ========== 13. 配置参数 ========== -->
+<div class="section" id="s13">
+  <h2>13. 配置参数汇总</h2>
+  <table>
+    <tr><th>模块</th><th>参数</th><th>值</th><th>说明</th></tr>
+    <tr><td rowspan="7">搜索策略</td><td>m</td><td>4</td><td>岛屿数</td></tr>
+    <tr><td>b</td><td>3</td><td>每岛每轮默认候选数</td></tr>
+    <tr><td>B_total</td><td>12</td><td>每轮总候选预算</td></tr>
+    <tr><td>T</td><td>10</td><td>最大轮数</td></tr>
+    <tr><td>intra_island_turns</td><td>3</td><td>岛屿内最多对话轮数</td></tr>
+    <tr><td>b_min / b_max</td><td>1 / 5</td><td>动态预算范围</td></tr>
+    <tr><td>k / tau</td><td>5 / 1.0</td><td>Boltzmann采样参数</td></tr>
+    <tr><td rowspan="3">缓刑池</td><td>max_size</td><td>20</td><td>最大容量</td></tr>
+    <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
+    <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
+    <tr><td rowspan="4">L2 阈值</td><td>iv_min</td><td>校准值</td><td>噪声基线p95</td></tr>
+    <tr><td>ks_min</td><td>校准值</td><td>噪声基线p95</td></tr>
+    <tr><td>corr_max</td><td>0.7</td><td>冗余度上限</td></tr>
+    <tr><td>missing_rate_max</td><td>0.5</td><td>缺失率上限</td></tr>
+    <tr><td rowspan="3">L3 条件 (v2)</td><td>delta_recall</td><td>&gt; 0</td><td>必须提升</td></tr>
+    <tr><td>delta_f1</td><td>&gt;= -0.001</td><td>允许微降</td></tr>
+    <tr><td>delta_precision</td><td>&gt;= -0.001</td><td>允许微降</td></tr>
+    <tr><td rowspan="4">综合打分</td><td>SHAP权重</td><td>30%</td><td></td></tr>
+    <tr><td>IV权重</td><td>20%</td><td></td></tr>
+    <tr><td>冗余度权重</td><td>20%</td><td></td></tr>
+    <tr><td>delta_f1权重</td><td>30%</td><td></td></tr>
+    <tr><td rowspan="4">XGBoost</td><td>scale_pos_weight</td><td>19</td><td>类别不平衡处理</td></tr>
+    <tr><td>n_estimators</td><td>200</td><td></td></tr>
+    <tr><td>max_depth</td><td>6</td><td></td></tr>
+    <tr><td>device</td><td>cuda</td><td>GPU加速</td></tr>
+    <tr><td rowspan="3">LLM</td><td>模型</td><td>deepseek-chat</td><td>DeepSeek V3</td></tr>
+    <tr><td>temperature</td><td>0.7</td><td>生成多样性</td></tr>
+    <tr><td>max_features</td><td>30</td><td>目标特征数上限</td></tr>
+  </table>
+</div>
+
+<!-- ========== 修改文件清单 ========== -->
+<div class="section">
+  <h2>附：核心文件清单</h2>
+  <table>
+    <tr><th>文件</th><th>职责</th></tr>
+    <tr><td><code>run_single_agent.py</code></td><td>入口脚本：加载数据、校准阈值、运行Agent、评估、生成报告</td></tr>
+    <tr><td><code>src/agent/single_agent.py</code></td><td>Agent 核心：工具定义、岛屿遍历、LLM交互、验证调度</td></tr>
+    <tr><td><code>src/evaluation/validator.py</code></td><td>验证流水线：L1/L2/L3/Forward Selection</td></tr>
+    <tr><td><code>src/evaluation/metrics.py</code></td><td>评估指标：IV、KS、冗余度、CV指标、SHAP</td></tr>
+    <tr><td><code>src/evaluation/sandbox.py</code></td><td>沙箱执行：安全执行特征代码</td></tr>
+    <tr><td><code>src/evaluation/calibration.py</code></td><td>L2阈值校准：噪声基线</td></tr>
+    <tr><td><code>src/prompt/builder.py</code></td><td>Prompt构建（原系统参考）</td></tr>
+    <tr><td><code>src/prompt/domain_knowledge.py</code></td><td>领域知识加载</td></tr>
+    <tr><td><code>src/search/island.py</code></td><td>岛屿管理 + Boltzmann采样</td></tr>
+    <tr><td><code>src/search/pending_pool.py</code></td><td>缓刑池管理</td></tr>
+    <tr><td><code>src/search/shap_feedback.py</code></td><td>SHAP反馈 + 预算分配</td></tr>
+    <tr><td><code>src/search/memory.py</code></td><td>失败记忆</td></tr>
+    <tr><td><code>src/config.py</code></td><td>全局配置参数</td></tr>
+    <tr><td><code>src/data/loader.py</code></td><td>数据加载 + Schema/分布差异提取</td></tr>
+    <tr><td><code>src/data/baseline.py</code></td><td>基线特征工程</td></tr>
+    <tr><td><code>src/data/merge.py</code></td><td>特征合并到交易表</td></tr>
+  </table>
+</div>
+
+</div>
+</body>
+</html>
