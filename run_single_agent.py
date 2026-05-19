@@ -129,6 +129,7 @@ from src.evaluation.metrics import compute_cv_metrics
 baseline_cv_metrics = compute_cv_metrics(baseline_features, label)
 logger.info(f"  基线CV指标: F1={baseline_cv_metrics.get('f1', 0):.6f}, "
             f"Recall={baseline_cv_metrics.get('recall', 0):.6f}, "
+            f"Precision={baseline_cv_metrics.get('precision', 0):.6f}, "
             f"PR-AUC={baseline_cv_metrics.get('prauc', 0):.6f}")
 
 # ============================================================
