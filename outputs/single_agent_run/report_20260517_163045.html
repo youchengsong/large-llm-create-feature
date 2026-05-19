@@ -1,0 +1,3041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单Agent特征工程 - 运行报告</title>
+<style>
+:root {
+    --bg: #f0f4f8; --card: #fff; --border: #e2e8f0;
+    --text: #1a202c; --muted: #718096;
+    --blue: #4299e1; --green: #48bb78; --red: #fc8181;
+    --purple: #9f7aea; --orange: #ed8936;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+.container { max-width:1280px; margin:0 auto; padding:32px 24px; }
+header { margin-bottom:32px; }
+header h1 { font-size:26px; margin-bottom:4px; }
+header p { color:var(--muted); font-size:14px; }
+
+.grid { display:grid; gap:16px; margin-bottom:32px; }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+
+.card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.card-sm { text-align:center; }
+.card-sm .num { font-size:36px; font-weight:800; line-height:1.2; }
+.card-sm .label { font-size:12px; color:var(--muted); margin-top:4px; }
+.num.blue { color:var(--blue); }
+.num.green { color:var(--green); }
+.num.red { color:var(--red); }
+.num.purple { color:var(--purple); }
+.num.orange { color:var(--orange); }
+
+section { margin-bottom:36px; }
+section h2 { font-size:18px; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--blue); }
+
+/* Metric bars */
+.metric-row { display:flex; align-items:center; margin-bottom:12px; gap:12px; }
+.metric-label { width:80px; font-size:13px; font-weight:600; }
+.metric-bars { flex:1; }
+.bar-wrap { display:flex; align-items:center; margin-bottom:3px; gap:8px; }
+.bar-tag { font-size:11px; width:36px; color:var(--muted); }
+.bar { height:22px; border-radius:4px; display:flex; align-items:center; padding:0 8px; font-size:11px; color:#fff; font-weight:600; min-width:60px; transition:width .8s ease; }
+.bar-bl { background:var(--blue); }
+.bar-cb { background:var(--green); }
+.metric-delta { font-size:12px; font-weight:600; margin-left:8px; }
+.positive { color:#2f855a; }
+.negative { color:#c53030; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+th { background:#f7fafc; font-weight:600; position:sticky; top:0; }
+tr:hover { background:#f7fafc; }
+.error { color:var(--red); font-size:12px; }
+.mono { font-family:monospace; font-size:12px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; background:#ebf4ff; color:#2b6cb0; }
+.tool { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; background:#ebf8ff; color:#2c5282; font-family:monospace; margin:1px; }
+
+/* Dimensions */
+.dim-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.dim-item { display:flex; align-items:center; gap:6px; padding:6px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border); }
+.dim-name { font-size:13px; }
+.dim-count { background:var(--blue); color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+/* Collapsible */
+details { margin-bottom:12px; }
+details summary { cursor:pointer; font-weight:600; font-size:14px; padding:8px 0; }
+details[open] summary { color:var(--blue); }
+
+.scroll-table { max-height:500px; overflow-y:auto; border-radius:8px; border:1px solid var(--border); }
+
+@media(max-width:768px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .container { padding:16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+    <h1>单Agent特征工程 — 运行报告</h1>
+    <p>模型: deepseek-chat | 耗时: 10014秒 | 数据: 1,384,512条交易, 100,000个钱包 | 正样本率: 0.324%</p>
+</header>
+
+<!-- Summary Cards -->
+<div class="grid grid-4">
+    <div class="card card-sm"><div class="num blue">30</div><div class="label">接受特征</div></div>
+    <div class="card card-sm"><div class="num red">58</div><div class="label">失败特征</div></div>
+    <div class="card card-sm"><div class="num purple">191</div><div class="label">Agent步数</div></div>
+    <div class="card card-sm"><div class="num orange">4</div><div class="label">探索维度</div></div>
+    <div class="card card-sm"><div class="num green">2</div><div class="label">有效新特征</div></div>
+</div>
+
+<!-- Performance Comparison -->
+<section>
+<h2>性能对比 (5-Fold Stratified CV)</h2>
+<div class="card">
+    <div class="metric-row">
+        <div class="metric-label">F1</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:94.5%">0.9450</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:94.9%">0.9490</div><span class="metric-delta positive">(+0.00399)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">Recall</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:90.4%">0.9041</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:91.2%">0.9119</div><span class="metric-delta positive">(+0.00780)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">Precision</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:99.0%">0.9900</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:98.9%">0.9894</div><span class="metric-delta negative">(-0.00065)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">PR-AUC</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:0.0%">0.0000</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:0.0%">0.0000</div><span class="metric-delta positive">(+0.00000)</span></div>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- Dimensions -->
+<section>
+<h2>特征维度分布</h2>
+<div class="dim-grid"><div class="dim-item"><span class="dim-name">time_region</span><span class="dim-count">11</span></div><div class="dim-item"><span class="dim-name">behavior_sequence</span><span class="dim-count">9</span></div><div class="dim-item"><span class="dim-name">amount_frequency</span><span class="dim-count">8</span></div><div class="dim-item"><span class="dim-name">entity_association</span><span class="dim-count">2</span></div></div>
+</section>
+
+<!-- Accepted Features Table -->
+<section>
+<h2>接受的特征 (30)</h2>
+<div class="scroll-table">
+<table>
+    <thead><tr><th>#</th><th>名称</th><th>维度</th><th>说明</th><th>IV</th><th>KS</th><th>冗余</th><th>dF1</th><th>dRecall</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><strong>night_operation_intensity</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="计算源钱包的夜间交易比例（0-5点）、凌晨操作比例（22点-4点）、夜间金额占比、小时熵值和夜间/白天平均金额比。洗钱模式中凌晨高频交易是标准特征，正常用户很少在深夜交易。">计算源钱包的夜间交易比例（0-5点）、凌晨操作比例（22点-4点）、夜间金额占比、小时熵值和夜间/白</td>
+            <td>0.0169</td>
+            <td>0.0443</td>
+            <td>0.038</td>
+            <td class="positive">0.001700</td>
+            <td class="positive">0.004460</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><strong>transaction_mode_sequence_entropy</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="分析交易模式序列的多样性和转换模式：模式熵值（多样性）、模式变化比例、主导模式占比、扇出/扇入/复杂模式比例。洗钱交易常以单一模式（如fan_out）重复进行，模式熵值低且主导模式占比高，而正常用户模式更多样。">分析交易模式序列的多样性和转换模式：模式熵值（多样性）、模式变化比例、主导模式占比、扇出/扇入/复杂</td>
+            <td>0.0325</td>
+            <td>0.0816</td>
+            <td>0.371</td>
+            <td class="negative">-0.002241</td>
+            <td class="negative">-0.006914</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><strong>tx_interval_velocity</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以及资金流转速度（元/小时）。洗钱的核心特征是资金快速进出，当日即转即取（最快75秒完成出账），间隔短且规律。">计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以及资金流转速度（元/</td>
+            <td>0.0384</td>
+            <td>0.0903</td>
+            <td>0.678</td>
+            <td class="negative">-0.000191</td>
+            <td class="positive">0.001118</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td><strong>amount_rolling_volatility</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="计算交易金额的波动特征：金额变异系数、相邻交易最大跳变比例、平均跳变比例、高跳变比例（>5倍）、金额偏度。洗钱交易中金额常从小额测试突然转为大额操作，跳变比例异常高。">计算交易金额的波动特征：金额变异系数、相邻交易最大跳变比例、平均跳变比例、高跳变比例（>5倍）、金额</td>
+            <td>0.0212</td>
+            <td>0.0700</td>
+            <td>0.314</td>
+            <td class="positive">0.000373</td>
+            <td class="negative">-0.000000</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td><strong>hourly_tx_concentration</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测交易时间集中度：最活跃3小时/6小时集中度、小时基尼系数、夜间峰值比例、下午峰值比例、交易小时跨度。洗钱交易常集中在特定时段（如夜间22-2点或下午14-17点），时间分布极不均匀。">检测交易时间集中度：最活跃3小时/6小时集中度、小时基尼系数、夜间峰值比例、下午峰值比例、交易小时跨</td>
+            <td>0.0166</td>
+            <td>0.0593</td>
+            <td>0.096</td>
+            <td class="positive">0.002581</td>
+            <td class="positive">0.004460</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td><strong>tx_interval_velocity</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以及资金流转速度（元/小时）。洗钱的核心特征是资金快速进出，当日即转即取（最快75秒完成出账），间隔短且规律。">计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以及资金流转速度（元/</td>
+            <td>0.0384</td>
+            <td>0.0903</td>
+            <td>0.081</td>
+            <td class="negative">-0.000916</td>
+            <td class="negative">-0.001562</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td><strong>tx_burst_detector</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测交易爆发模式：短间隔比例（<60秒）、超短间隔比例（<10秒）、中位间隔、爆发次数（连续3+笔间隔<60秒）、爆发比例。洗钱交易常连续快速操作，短间隔比例和爆发次数远高于正常用户。">检测交易爆发模式：短间隔比例（<60秒）、超短间隔比例（<10秒）、中位间隔、爆发次数（连续3+笔间</td>
+            <td>0.0112</td>
+            <td>0.0354</td>
+            <td>0.379</td>
+            <td class="negative">-0.001603</td>
+            <td class="negative">-0.000668</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td><strong>time_slot_transition_pattern</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测时间段转换模式：白天到深夜转换比例、各时段占比、时段变化比例、是否全深夜操作。洗钱常从白天正常交易突然切换到深夜高频操作，或全部在深夜操作，时段转换模式异常。">检测时间段转换模式：白天到深夜转换比例、各时段占比、时段变化比例、是否全深夜操作。洗钱常从白天正常交</td>
+            <td>0.0205</td>
+            <td>0.0596</td>
+            <td>0.496</td>
+            <td class="negative">-0.001037</td>
+            <td class="negative">-0.003570</td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td><strong>tx_interval_pattern_entropy</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测交易间隔模式的熵值和聚集度：间隔模式熵值（低熵=模式单一）、间隔聚集得分、短间隔爆发比例、长间隔比例。洗钱交易的间隔模式单一（全是短间隔），熵值低且聚集度高。">检测交易间隔模式的熵值和聚集度：间隔模式熵值（低熵=模式单一）、间隔聚集得分、短间隔爆发比例、长间隔</td>
+            <td>0.0078</td>
+            <td>0.0259</td>
+            <td>0.428</td>
+            <td class="positive">0.001603</td>
+            <td class="positive">0.004016</td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td><strong>dst_ip_region_divergence</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测目标IP的地域分散度：唯一目标IP前缀数、目标前缀变化比例、目标前缀熵值、目标前缀多样性。洗钱常向多地钱包转账（分散风险），目标IP的地域分散度远高于正常用户（正常用户向固定地域转账）。">检测目标IP的地域分散度：唯一目标IP前缀数、目标前缀变化比例、目标前缀熵值、目标前缀多样性。洗钱常</td>
+            <td>0.0163</td>
+            <td>0.0537</td>
+            <td>0.610</td>
+            <td class="negative">-0.002537</td>
+            <td class="negative">-0.005798</td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td><strong>wallet_lifecycle_velocity</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测钱包生命周期速度：生命周期天数（开户到最后一笔交易）、活跃天数、日均交易量、日均交易次数、短生命周期高交易量标记、典型洗钱生命周期标记。洗钱钱包平均2-28天后被冻结或废弃，生命周期短但交易量大。">检测钱包生命周期速度：生命周期天数（开户到最后一笔交易）、活跃天数、日均交易量、日均交易次数、短生命</td>
+            <td>0.0127</td>
+            <td>0.0421</td>
+            <td>0.237</td>
+            <td class="positive">0.000819</td>
+            <td class="positive">0.002898</td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td><strong>src_dst_wallet_level_mismatch</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测源和目标钱包等级的不匹配：等级上升比例、等级下降比例、同等级比例、平均等级差、四类钱包向外转账比例。洗钱常从低等级钱包（四类）向高等级钱包转账以突破限额，等级上升比例异常高。">检测源和目标钱包等级的不匹配：等级上升比例、等级下降比例、同等级比例、平均等级差、四类钱包向外转账比</td>
+            <td>0.0283</td>
+            <td>0.0725</td>
+            <td>0.679</td>
+            <td class="negative">-0.002559</td>
+            <td class="negative">-0.005799</td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td><strong>hourly_amount_profile_deviation</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、高峰时段金额占比、非高峰时段金额占比。洗钱在深夜的平均金额反常地高，且小时分布与全局基准偏差大。">检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、高峰时段金额占比、非</td>
+            <td>0.0093</td>
+            <td>0.0296</td>
+            <td>0.007</td>
+            <td class="positive">0.002663</td>
+            <td class="positive">0.005353</td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td><strong>tx_date_gap_pattern</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测交易日期间隔模式：平均日期间隔、最大日期间隔、日期间隔标准差、连续日期比例、周覆盖率。洗钱连续多日操作（钱包活跃周期2-28天），连续日期比例高且周覆盖率高，正常用户交易日期更分散。">检测交易日期间隔模式：平均日期间隔、最大日期间隔、日期间隔标准差、连续日期比例、周覆盖率。洗钱连续多</td>
+            <td>0.0106</td>
+            <td>0.0472</td>
+            <td>0.551</td>
+            <td class="negative">-0.000306</td>
+            <td class="negative">-0.001335</td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td><strong>hourly_tx_volume_profile</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测每小时交易量的分布模式：交易量偏度、交易量峰度、最活跃小时占比、非活跃时段活动度。洗钱交易集中在特定小时（如夜间），交易量分布偏度大、峰度高，非活跃时段活动度异常高。">检测每小时交易量的分布模式：交易量偏度、交易量峰度、最活跃小时占比、非活跃时段活动度。洗钱交易集中在</td>
+            <td>0.0130</td>
+            <td>0.0432</td>
+            <td>0.502</td>
+            <td class="negative">-0.000178</td>
+            <td class="positive">0.001112</td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td><strong>amount_ratio_to_previous_tx</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测交易金额的序列模式：相邻金额比例均值、比例标准差、比例变异系数、相同金额比例、递增比例。洗钱拆分交易中金额常接近固定值（如平均2218元/笔），相同金额比例高且比例变异系数低。">检测交易金额的序列模式：相邻金额比例均值、比例标准差、比例变异系数、相同金额比例、递增比例。洗钱拆分</td>
+            <td>0.0055</td>
+            <td>0.0219</td>
+            <td>0.037</td>
+            <td class="negative">-0.003527</td>
+            <td class="negative">-0.008028</td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td><strong>tx_amount_momentum</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测交易金额的动量变化：金额动量、加速度、上升趋势强度、下降趋势强度、金额范围比。洗钱金额常呈现持续增大（测试后加码）或持续减小（资金耗尽）的单向趋势，趋势强度高。">检测交易金额的动量变化：金额动量、加速度、上升趋势强度、下降趋势强度、金额范围比。洗钱金额常呈现持续</td>
+            <td>0.0100</td>
+            <td>0.0418</td>
+            <td>0.063</td>
+            <td class="positive">0.002802</td>
+            <td class="positive">0.006690</td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td><strong>amount_interval_correlation</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="检测金额与间隔的相关性：Pearson相关系数、Spearman秩相关、互信息差异、条件标准差。洗钱操作中金额与间隔可能存在固定关系（如大额转账间隔短），与正常用户的随机关系不同。">检测金额与间隔的相关性：Pearson相关系数、Spearman秩相关、互信息差异、条件标准差。洗钱</td>
+            <td>0.0195</td>
+            <td>0.0666</td>
+            <td>0.504</td>
+            <td class="positive">0.001008</td>
+            <td class="positive">0.000224</td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td><strong>wallet_type_behavior_mismatch</strong></td>
+            <td><span class="badge">entity_association</span></td>
+            <td title="检测钱包类型与行为的不匹配：复杂交易模式比例、个人钱包复杂交易标记、商户钱包扇出标记、四类钱包高交易量标记。个人钱包不应出现复杂交易模式，商户钱包不应大量扇出，四类钱包不应高交易量。">检测钱包类型与行为的不匹配：复杂交易模式比例、个人钱包复杂交易标记、商户钱包扇出标记、四类钱包高交易</td>
+            <td>0.0215</td>
+            <td>0.0566</td>
+            <td>0.586</td>
+            <td class="positive">0.001726</td>
+            <td class="positive">0.004459</td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td><strong>hourly_amount_profile_deviation</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、高峰时段金额占比、非高峰时段金额占比。洗钱在深夜的平均金额反常地高，且小时分布与全局基准偏差大。">检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、高峰时段金额占比、非</td>
+            <td>0.0093</td>
+            <td>0.0296</td>
+            <td>0.007</td>
+            <td class="negative">-0.001680</td>
+            <td class="negative">-0.002677</td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td><strong>tx_sequence_consistency_score</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测交易序列的一致性：金额一致性、模式一致性、间隔一致性、综合一致性。洗钱交易高度同质化（相同金额+相同模式+相同间隔），一致性得分远高于正常用户的多样化交易行为。">检测交易序列的一致性：金额一致性、模式一致性、间隔一致性、综合一致性。洗钱交易高度同质化（相同金额+</td>
+            <td>0.0219</td>
+            <td>0.0718</td>
+            <td>0.612</td>
+            <td class="negative">-0.003443</td>
+            <td class="negative">-0.007584</td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td><strong>amount_ending_digit_pattern</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="检测金额尾数模式：整百比例、整千比例、末位数字熵值、末位0比例、常见末两位比例。洗钱金额常为整数（整百/整千），末位数字熵值低，而正常用户金额有零有整。">检测金额尾数模式：整百比例、整千比例、末位数字熵值、末位0比例、常见末两位比例。洗钱金额常为整数（整</td>
+            <td>0.0147</td>
+            <td>0.0558</td>
+            <td>0.185</td>
+            <td class="positive">0.001026</td>
+            <td class="positive">0.002454</td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td><strong>tx_amount_sequence_complexity</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测交易金额序列的复杂度：唯一金额比例、金额变化比例、方向变化熵值、金额重复比例。洗钱金额序列简单重复（相同金额多次出现），唯一金额比例低、重复比例高。">检测交易金额序列的复杂度：唯一金额比例、金额变化比例、方向变化熵值、金额重复比例。洗钱金额序列简单重</td>
+            <td>0.0071</td>
+            <td>0.0327</td>
+            <td>0.580</td>
+            <td class="positive">0.000338</td>
+            <td class="negative">-0.000000</td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td><strong>tx_interval_first_vs_rest</strong></td>
+            <td><span class="badge">time_region</span></td>
+            <td title="检测首次交易与后续交易的时间间隔差异：首笔间隔、后续平均间隔、首笔/后续比、首笔是否短间隔。洗钱首笔交易间隔短（验卡后立即开始大额操作），首笔/后续比异常。">检测首次交易与后续交易的时间间隔差异：首笔间隔、后续平均间隔、首笔/后续比、首笔是否短间隔。洗钱首笔</td>
+            <td>0.0132</td>
+            <td>0.0451</td>
+            <td>0.107</td>
+            <td class="positive">0.000797</td>
+            <td class="positive">0.002674</td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td><strong>tx_mode_switch_frequency</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测交易模式切换频率：模式切换次数、切换率、模式持久性、转换熵值。洗钱在特定模式间频繁切换（如fan_out->fan_in交替），转换模式固定（熵值低），持久性低。">检测交易模式切换频率：模式切换次数、切换率、模式持久性、转换熵值。洗钱在特定模式间频繁切换（如fan</td>
+            <td>0.0071</td>
+            <td>0.0322</td>
+            <td>0.688</td>
+            <td class="negative">-0.001307</td>
+            <td class="negative">-0.003565</td>
+        </tr>
+        <tr>
+            <td>26</td>
+            <td><strong>tx_amount_roundness_ratio</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="检测金额的整数程度：整数比例、整10比例、整100比例、整1000比例、综合整数得分。洗钱金额多为整数（跑分金额为固定整数），整数比例远高于正常用户。">检测金额的整数程度：整数比例、整10比例、整100比例、整1000比例、综合整数得分。洗钱金额多为整</td>
+            <td>0.0074</td>
+            <td>0.0363</td>
+            <td>0.441</td>
+            <td class="negative">-0.001982</td>
+            <td class="negative">-0.004013</td>
+        </tr>
+        <tr>
+            <td>27</td>
+            <td><strong>tx_reciprocal_network_features</strong></td>
+            <td><span class="badge">entity_association</span></td>
+            <td title="检测互惠交易网络特征：出度、入度、度比、同时是源和目标标记。洗钱网络中钱包角色单一（只出不进或只进不出），同时是源和目标的标记低。">检测互惠交易网络特征：出度、入度、度比、同时是源和目标标记。洗钱网络中钱包角色单一（只出不进或只进不</td>
+            <td>0.0172</td>
+            <td>0.0562</td>
+            <td>0.667</td>
+            <td class="positive">0.005321</td>
+            <td class="positive">0.012711</td>
+        </tr>
+        <tr>
+            <td>28</td>
+            <td><strong>tx_amount_ratio_to_limit_v2</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="检测金额与限额的比例：平均限额比、最大限额比、接近限额比例、限额比标准差。洗钱常使用接近限额的金额（如四类钱包使用1900-2000元），接近限额比例高。">检测金额与限额的比例：平均限额比、最大限额比、接近限额比例、限额比标准差。洗钱常使用接近限额的金额（</td>
+            <td>0.0249</td>
+            <td>0.0591</td>
+            <td>0.524</td>
+            <td class="negative">-0.003423</td>
+            <td class="negative">-0.008698</td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td><strong>tx_amount_entropy_by_mode</strong></td>
+            <td><span class="badge">behavior_sequence</span></td>
+            <td title="检测不同交易模式下的金额分布：模式内金额变异系数、模式间金额差异、主导模式占比。洗钱各模式下金额高度一致（CV低），主导模式占比高。">检测不同交易模式下的金额分布：模式内金额变异系数、模式间金额差异、主导模式占比。洗钱各模式下金额高度</td>
+            <td>0.0046</td>
+            <td>0.0205</td>
+            <td>0.175</td>
+            <td class="negative">-0.000047</td>
+            <td class="negative">-0.000667</td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td><strong>tx_amount_clustering_entropy</strong></td>
+            <td><span class="badge">amount_frequency</span></td>
+            <td title="检测金额聚集熵：金额聚集熵、最频繁金额占比、Top3金额占比、金额值密度。洗钱金额集中在少数数值上（如固定跑分金额），聚集熵低、最频繁金额占比高。">检测金额聚集熵：金额聚集熵、最频繁金额占比、Top3金额占比、金额值密度。洗钱金额集中在少数数值上（</td>
+            <td>0.0116</td>
+            <td>0.0296</td>
+            <td>0.671</td>
+            <td class="negative">-0.001245</td>
+            <td class="negative">-0.000893</td>
+        </tr></tbody>
+</table>
+</div>
+</section>
+
+<!-- Feature Code Details (collapsible) -->
+<section>
+<h2>特征代码详情</h2>
+<details>
+<summary>night_operation_intensity — 计算源钱包的夜间交易比例（0-5点）、凌晨操作比例（22点-4点）、夜间金额占比</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_night_operation_intensity(open_df, tx_df, close_df):
+    """计算夜间交易强度——洗钱常集中在凌晨/深夜时段操作"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 按源钱包分组
+    src_grp = tx.groupby('src')
+    
+    def calc_night_stats(grp):
+        hours = grp['hour'].values
+        total = len(hours)
+        if total == 0:
+            return pd.Series({
+                'night_tx_ratio': 0, 'dawn_tx_ratio': 0,
+                'night_tx_count': 0, 'night_amount_ratio': 0,
+                'hour_entropy': 0, 'peak_hour': 0,
+                'night_avg_amount': 0, 'day_avg_amount_ratio': 0
+            })
+        
+        # 深夜交易比例（0-5点）
+        night_count = np.sum((hours &gt;= 0) & (hours &lt;= 5))
+        night_ratio = night_count / total if total &gt; 0 else 0
+        
+        # 凌晨-清晨（22点-次日4点）
+        dawn_count = np.sum((hours &gt;= 22) | (hours &lt;= 4))
+        dawn_ratio = dawn_count / total if total &gt; 0 else 0
+        
+        # 夜间交易金额占比
+        night_mask = (hours &gt;= 0) & (hours &lt;= 5)
+        night_amounts = grp.loc[night_mask, 'amount'].sum() if night_mask.sum() &gt; 0 else 0
+        total_amount = grp['amount'].sum()
+        night_amount_ratio = night_amounts / total_amount if total_amount &gt; 0 else 0
+        
+        # 交易小时熵值
+        hour_counts = np.zeros(24)
+        for h in hours:
+            hour_counts[int(h)] += 1
+        probs = hour_counts / total
+        entropy = -np.sum(probs[probs &gt; 0] * np.log2(probs[probs &gt; 0]))
+        max_entropy = np.log2(24)
+        hour_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 峰值小时
+        peak_hour = np.argmax(hour_counts)
+        
+        # 夜间平均金额 vs 白天平均金额
+        day_mask = ~night_mask
+        night_avg = grp.loc[night_mask, 'amount'].mean() if night_mask.sum() &gt; 0 else 0
+        day_avg = grp.loc[day_mask, 'amount'].mean() if day_mask.sum() &gt; 0 else 1
+        day_night_ratio = night_avg / day_avg if day_avg &gt; 0 else 0
+        
+        return pd.Series({
+            'night_tx_ratio': night_ratio,
+            'dawn_tx_ratio': dawn_ratio,
+            'night_tx_count': night_count,
+            'night_amount_ratio': night_amount_ratio,
+            'hour_entropy': hour_entropy,
+            'peak_hour': peak_hour,
+            'night_avg_amount': night_avg,
+            'day_avg_amount_ratio': day_night_ratio
+        })
+    
+    result = src_grp.apply(calc_night_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书和专家访谈均指出"凌晨高频交易（20时-1时）"是线上跑分的标准模式，"夜班集中操作（22:00-04:00）是大额跑分的标准模式，单晚可达100万+"。凌晨(0-5时)也有显著活动（14%），对应在线洗钱模式。</p>
+</details><details>
+<summary>transaction_mode_sequence_entropy — 分析交易模式序列的多样性和转换模式：模式熵值（多样性）、模式变化比例、主导模式占</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_transaction_mode_sequence_entropy(open_df, tx_df, close_df):
+    """分析交易模式序列的多样性和转换模式——洗钱交易模式单一重复，正常用户模式更多样"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_mode_stats(grp):
+        modes = grp['transaction_mode'].values
+        motifs = grp['transaction_motif'].values if 'transaction_motif' in grp.columns else np.array([''] * len(modes))
+        total = len(modes)
+        
+        if total == 0:
+            return pd.Series({
+                'mode_entropy': 0, 'mode_change_ratio': 0,
+                'dominant_mode_ratio': 0, 'unique_mode_count': 0,
+                'fan_out_sequence_ratio': 0, 'fan_in_sequence_ratio': 0
+            })
+        
+        # 交易模式熵值（多样性）
+        unique_modes, mode_counts = np.unique(modes, return_counts=True)
+        probs = mode_counts / total
+        entropy = -np.sum(probs * np.log2(probs))
+        max_entropy = np.log2(len(unique_modes)) if len(unique_modes) &gt; 1 else 1
+        mode_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 主导模式占比（最常用模式的比例）
+        dominant_mode_ratio = np.max(mode_counts) / total
+        
+        # 模式变化比例（相邻交易模式不同的比例）
+        if total &gt;= 2:
+            mode_changes = np.sum(modes[1:] != modes[:-1])
+            mode_change_ratio = mode_changes / (total - 1)
+        else:
+            mode_change_ratio = 0
+        
+        # 扇出模式占比（fan_out）
+        fan_out_ratio = np.sum(modes == 'fan_out') / total if total &gt; 0 else 0
+        
+        # 扇入模式占比（fan_in）
+        fan_in_ratio = np.sum(modes == 'fan_in') / total if total &gt; 0 else 0
+        
+        # 复杂模式占比（many_to_many, one_to_many等）
+        complex_modes = np.sum(np.isin(modes, ['many_to_many', 'one_to_many', 'many_to_one']))
+        complex_ratio = complex_modes / total if total &gt; 0 else 0
+        
+        return pd.Series({
+            'mode_entropy': mode_entropy,
+            'mode_change_ratio': mode_change_ratio,
+            'dominant_mode_ratio': dominant_mode_ratio,
+            'unique_mode_count': len(unique_modes),
+            'fan_out_ratio': fan_out_ratio,
+            'fan_in_ratio': fan_in_ratio,
+            'complex_mode_ratio': complex_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_mode_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 交易模式说明显示洗钱模式中"以扇出为主"（小额测试交易）、"以一对多交易为主"（商户洗钱）、"包含扇入、扇出、多对一、一对多及多对多等多种复杂结构"（在线洗钱）。洗钱通常有固定的模式偏好，模式熵值低。</p>
+</details><details>
+<summary>tx_interval_velocity — 计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_interval_velocity(open_df, tx_df, close_df):
+    """计算交易间隔的统计特征和资金流转速度——洗钱的核心特征是资金快速进出"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    # 计算每个源钱包的交易间隔统计
+    def calc_interval_stats(grp):
+        if len(grp) &lt; 2:
+            return pd.Series({
+                'mean_interval': 0, 'std_interval': 0, 'min_interval': 0,
+                'median_interval': 0, 'interval_cv': 0,
+                'rapid_tx_ratio': 0, 'total_duration_hours': 0,
+                'tx_per_hour': 0
+            })
+        intervals = grp['interval'].values[1:]  # 第一个间隔为0，跳过
+        if len(intervals) == 0:
+            return pd.Series({
+                'mean_interval': 0, 'std_interval': 0, 'min_interval': 0,
+                'median_interval': 0, 'interval_cv': 0,
+                'rapid_tx_ratio': 0, 'total_duration_hours': 0,
+                'tx_per_hour': 0
+            })
+        
+        mean_int = np.mean(intervals)
+        std_int = np.std(intervals)
+        min_int = np.min(intervals)
+        median_int = np.median(intervals)
+        
+        # 变异系数
+        cv = std_int / mean_int if mean_int &gt; 0 else 0
+        
+        # 快速交易比例（间隔&lt;60秒的交易占比）- 洗钱常快速连续操作
+        rapid_ratio = np.sum(intervals &lt; 60) / len(intervals)
+        
+        # 总持续时间（小时）
+        total_sec = grp['timestamp'].iloc[-1] - grp['timestamp'].iloc[0]
+        total_hours = total_sec.total_seconds() / 3600 if total_sec.total_seconds() &gt; 0 else 0
+        
+        # 每小时交易次数
+        tx_per_hour = len(grp) / total_hours if total_hours &gt; 0 else len(grp)
+        
+        return pd.Series({
+            'mean_interval': mean_int, 'std_interval': std_int, 'min_interval': min_int,
+            'median_interval': median_int, 'interval_cv': cv,
+            'rapid_tx_ratio': rapid_ratio, 'total_duration_hours': total_hours,
+            'tx_per_hour': tx_per_hour
+        })
+    
+    result = tx.groupby('src').apply(calc_interval_stats).reset_index()
+    result.columns = ['wallet_id', 'mean_interval', 'std_interval', 'min_interval',
+                      'median_interval', 'interval_cv', 'rapid_tx_ratio',
+                      'total_duration_hours', 'tx_per_hour']
+    
+    # 资金流转速度指标：总金额/总时间（元/小时）
+    src_amount_sum = tx.groupby('src')['amount'].sum().reset_index()
+    src_amount_sum.columns = ['wallet_id', 'total_amount']
+    result = result.merge(src_amount_sum, on='wallet_id', how='left')
+    
+    result['amount_flow_rate'] = result['total_amount'] / result['total_duration_hours'].clip(lower=0.01)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result[['wallet_id', 'mean_interval', 'min_interval', 'median_interval',
+                   'interval_cv', 'rapid_tx_ratio', 'tx_per_hour', 'total_duration_hours',
+                   'amount_flow_rate']]
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书明确指出"当日即转即取"（58/309案件），资金入账后极短时间内全部转出，最快75秒完成出账。快速交易比例高+间隔变异系数低（规律性强）是洗钱的典型特征。</p>
+</details><details>
+<summary>amount_rolling_volatility — 计算交易金额的波动特征：金额变异系数、相邻交易最大跳变比例、平均跳变比例、高跳变</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_amount_rolling_volatility(open_df, tx_df, close_df):
+    """计算交易金额的滚动波动率和金额突变检测——洗钱交易金额常突然大幅变化"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_volatility_stats(grp):
+        amounts = grp['amount'].values
+        total = len(amounts)
+        if total &lt; 3:
+            return pd.Series({
+                'amount_volatility': 0, 'max_jump_ratio': 0,
+                'mean_jump_ratio': 0, 'jump_std': 0,
+                'high_jump_ratio': 0, 'amount_skew': 0
+            })
+        
+        # 计算相邻交易金额的变化率
+        jumps = np.abs(amounts[1:] - amounts[:-1])
+        jump_ratios = jumps / (np.maximum(amounts[:-1], 0.01))
+        
+        # 最大跳变比例
+        max_jump = np.max(jump_ratios) if len(jump_ratios) &gt; 0 else 0
+        
+        # 平均跳变比例
+        mean_jump = np.mean(jump_ratios) if len(jump_ratios) &gt; 0 else 0
+        
+        # 跳变标准差
+        jump_std = np.std(jump_ratios) if len(jump_ratios) &gt; 0 else 0
+        
+        # 高跳变比例（跳变&gt;5倍）
+        high_jump_ratio = np.sum(jump_ratios &gt; 5) / len(jump_ratios) if len(jump_ratios) &gt; 0 else 0
+        
+        # 金额波动率（变异系数）
+        amount_vol = np.std(amounts) / np.mean(amounts) if np.mean(amounts) &gt; 0 else 0
+        
+        # 金额偏度（洗钱金额分布可能偏大或偏小）
+        if len(amounts) &gt;= 3:
+            from scipy import stats
+            amount_skew = stats.skew(amounts)
+        else:
+            amount_skew = 0
+        
+        return pd.Series({
+            'amount_volatility': amount_vol,
+            'max_jump_ratio': max_jump,
+            'mean_jump_ratio': mean_jump,
+            'jump_std': jump_std,
+            'high_jump_ratio': high_jump_ratio,
+            'amount_skew': amount_skew
+        })
+    
+    result = tx.groupby('src').apply(calc_volatility_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    # 金额波动率与跳变的组合指标
+    result['volatility_risk_score'] = result['amount_volatility'] * result['high_jump_ratio']
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱行为中，验卡测试（小额）后立即进行大额转出，金额跳变极大。裁判文书提到"资金入账后极短时间内全部转出"和"拆分多次转出"，金额模式从测试小额突变为大额拆分，跳变特征明显。</p>
+</details><details>
+<summary>hourly_tx_concentration — 检测交易时间集中度：最活跃3小时/6小时集中度、小时基尼系数、夜间峰值比例、下午</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_hourly_tx_concentration(open_df, tx_df, close_df):
+    """检测交易时间集中度——洗钱交易常集中在特定小时段"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 按源钱包分组
+    src_grp = tx.groupby('src')
+    
+    def calc_hour_concentration(grp):
+        hours = grp['hour'].values
+        total = len(hours)
+        if total == 0:
+            return pd.Series({
+                'peak_3h_concentration': 0, 'peak_6h_concentration': 0,
+                'gini_hour': 0, 'night_peak_ratio': 0,
+                'afternoon_peak_ratio': 0, 'hour_range': 0
+            })
+        
+        # 计算24小时分布
+        hour_counts = np.zeros(24)
+        for h in hours:
+            hour_counts[int(h)] += 1
+        
+        # 最活跃3小时集中度（top3小时交易占比）
+        top3_sum = np.sum(np.sort(hour_counts)[-3:])
+        peak_3h_concentration = top3_sum / total if total &gt; 0 else 0
+        
+        # 最活跃6小时集中度
+        top6_sum = np.sum(np.sort(hour_counts)[-6:])
+        peak_6h_concentration = top6_sum / total if total &gt; 0 else 0
+        
+        # 小时基尼系数（衡量时间分布均匀度）
+        sorted_counts = np.sort(hour_counts)
+        n = len(sorted_counts)
+        cumulative = np.cumsum(sorted_counts)
+        # 基尼系数简化计算
+        gini = (2 * np.sum((np.arange(1, n+1)) * sorted_counts) / (n * np.sum(sorted_counts)) - (n+1)/n) if np.sum(sorted_counts) &gt; 0 else 0
+        
+        # 夜间峰值比例（22-2点交易占比）
+        night_hours = [22, 23, 0, 1, 2]
+        night_peak = sum(hour_counts[h] for h in night_hours)
+        night_peak_ratio = night_peak / total if total &gt; 0 else 0
+        
+        # 下午峰值比例（14-17点）- 裁判文书显示洗钱集中在下午
+        afternoon_hours = [14, 15, 16, 17]
+        afternoon_peak = sum(hour_counts[h] for h in afternoon_hours)
+        afternoon_peak_ratio = afternoon_peak / total if total &gt; 0 else 0
+        
+        # 交易小时范围（最早和最晚交易小时的跨度）
+        active_hours = np.where(hour_counts &gt; 0)[0]
+        hour_range = active_hours[-1] - active_hours[0] + 1 if len(active_hours) &gt; 0 else 0
+        
+        return pd.Series({
+            'peak_3h_concentration': peak_3h_concentration,
+            'peak_6h_concentration': peak_6h_concentration,
+            'gini_hour': gini,
+            'night_peak_ratio': night_peak_ratio,
+            'afternoon_peak_ratio': afternoon_peak_ratio,
+            'hour_range': hour_range
+        })
+    
+    result = src_grp.apply(calc_hour_concentration).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示"犯罪操作集中在下午(14-17时)最多，其次上午和晚间"以及"夜班集中操作（22:00-04:00）是大额跑分的标准模式"。洗钱交易的时间集中度远高于正常用户，基尼系数高。</p>
+</details><details>
+<summary>tx_interval_velocity — 计算交易间隔的均值、最小值、中位数、变异系数、快速交易比例（间隔<60秒占比）以</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_interval_velocity(open_df, tx_df, close_df):
+    """计算交易间隔的统计特征和资金流转速度——洗钱的核心特征是资金快速进出"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    # 计算每个源钱包的交易间隔统计
+    def calc_interval_stats(grp):
+        if len(grp) &lt; 2:
+            return pd.Series({
+                'mean_interval': 0, 'std_interval': 0, 'min_interval': 0,
+                'median_interval': 0, 'interval_cv': 0,
+                'rapid_tx_ratio': 0, 'total_duration_hours': 0,
+                'tx_per_hour': 0
+            })
+        intervals = grp['interval'].values[1:]  # 第一个间隔为0，跳过
+        if len(intervals) == 0:
+            return pd.Series({
+                'mean_interval': 0, 'std_interval': 0, 'min_interval': 0,
+                'median_interval': 0, 'interval_cv': 0,
+                'rapid_tx_ratio': 0, 'total_duration_hours': 0,
+                'tx_per_hour': 0
+            })
+        
+        mean_int = np.mean(intervals)
+        std_int = np.std(intervals)
+        min_int = np.min(intervals)
+        median_int = np.median(intervals)
+        
+        # 变异系数
+        cv = std_int / mean_int if mean_int &gt; 0 else 0
+        
+        # 快速交易比例（间隔&lt;60秒的交易占比）- 洗钱常快速连续操作
+        rapid_ratio = np.sum(intervals &lt; 60) / len(intervals)
+        
+        # 总持续时间（小时）
+        total_sec = grp['timestamp'].iloc[-1] - grp['timestamp'].iloc[0]
+        total_hours = total_sec.total_seconds() / 3600 if total_sec.total_seconds() &gt; 0 else 0
+        
+        # 每小时交易次数
+        tx_per_hour = len(grp) / total_hours if total_hours &gt; 0 else len(grp)
+        
+        return pd.Series({
+            'mean_interval': mean_int, 'std_interval': std_int, 'min_interval': min_int,
+            'median_interval': median_int, 'interval_cv': cv,
+            'rapid_tx_ratio': rapid_ratio, 'total_duration_hours': total_hours,
+            'tx_per_hour': tx_per_hour
+        })
+    
+    result = tx.groupby('src').apply(calc_interval_stats).reset_index()
+    result.columns = ['wallet_id', 'mean_interval', 'std_interval', 'min_interval',
+                      'median_interval', 'interval_cv', 'rapid_tx_ratio',
+                      'total_duration_hours', 'tx_per_hour']
+    
+    # 资金流转速度指标：总金额/总时间（元/小时）
+    src_amount_sum = tx.groupby('src')['amount'].sum().reset_index()
+    src_amount_sum.columns = ['wallet_id', 'total_amount']
+    result = result.merge(src_amount_sum, on='wallet_id', how='left')
+    
+    result['amount_flow_rate'] = result['total_amount'] / result['total_duration_hours'].clip(lower=0.01)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result[['wallet_id', 'mean_interval', 'min_interval', 'median_interval',
+                   'interval_cv', 'rapid_tx_ratio', 'tx_per_hour', 'total_duration_hours',
+                   'amount_flow_rate']]
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书明确指出"当日即转即取"（58/309案件），资金入账后极短时间内全部转出，最快75秒完成出账。快速交易比例高+间隔变异系数低（规律性强）是洗钱的典型特征。</p>
+</details><details>
+<summary>tx_burst_detector — 检测交易爆发模式：短间隔比例（<60秒）、超短间隔比例（<10秒）、中位间隔、爆</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_burst_detector(open_df, tx_df, close_df):
+    """检测交易爆发式增长模式——洗钱常在短时间内爆发大量交易"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    # 使用interval字段（已经计算好的间隔）
+    def calc_burst_stats(grp):
+        intervals = grp['interval'].values
+        n = len(intervals)
+        
+        if n &lt; 2:
+            return pd.Series({
+                'short_interval_ratio': 0,
+                'ultra_short_ratio': 0,
+                'median_interval': 0,
+                'burst_count': 0,
+                'burst_ratio': 0
+            })
+        
+        # 短间隔比例（间隔&lt;60秒）
+        short_intervals = np.sum(intervals[1:] &lt; 60)  # 跳过第一个0
+        short_interval_ratio = short_intervals / (n - 1) if n &gt; 1 else 0
+        
+        # 超短间隔比例（间隔&lt;10秒）
+        ultra_short = np.sum(intervals[1:] &lt; 10)
+        ultra_short_ratio = ultra_short / (n - 1) if n &gt; 1 else 0
+        
+        # 中位间隔
+        median_interval = np.median(intervals[1:]) if n &gt; 1 else 0
+        
+        # 爆发次数：连续3笔以上交易间隔均&lt;60秒
+        burst_count = 0
+        consecutive = 0
+        for i in range(1, n):
+            if intervals[i] &lt; 60:
+                consecutive += 1
+                if consecutive &gt;= 3:
+                    burst_count += 1
+            else:
+                consecutive = 0
+        
+        burst_ratio = burst_count / n if n &gt; 0 else 0
+        
+        return pd.Series({
+            'short_interval_ratio': short_interval_ratio,
+            'ultra_short_ratio': ultra_short_ratio,
+            'median_interval': median_interval,
+            'burst_count': burst_count,
+            'burst_ratio': burst_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_burst_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示"最快75秒完成出账"和"资金入账后极短时间内全部转出"。洗钱交易的间隔极短，连续快速操作是典型特征。interval字段可直接用于计算爆发模式。</p>
+</details><details>
+<summary>time_slot_transition_pattern — 检测时间段转换模式：白天到深夜转换比例、各时段占比、时段变化比例、是否全深夜操作</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_time_slot_transition_pattern(open_df, tx_df, close_df):
+    """检测时间段转换模式——洗钱常从正常时段突然切换到深夜操作"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    # 定义时段：白天(8-18), 晚上(18-22), 深夜(22-8)
+    def get_time_slot(hour):
+        if 8 &lt;= hour &lt; 18:
+            return 'day'
+        elif 18 &lt;= hour &lt; 22:
+            return 'evening'
+        else:
+            return 'night'
+    
+    tx['time_slot'] = tx['hour'].apply(get_time_slot)
+    
+    def calc_slot_transition(grp):
+        slots = grp['time_slot'].values
+        hours = grp['hour'].values
+        total = len(slots)
+        
+        if total &lt; 2:
+            return pd.Series({
+                'day_night_transition_ratio': 0,
+                'night_session_ratio': 0,
+                'day_session_ratio': 0,
+                'evening_session_ratio': 0,
+                'slot_change_ratio': 0,
+                'night_only_session': 0
+            })
+        
+        # 时段变化比例
+        slot_changes = np.sum(slots[1:] != slots[:-1])
+        slot_change_ratio = slot_changes / (total - 1)
+        
+        # 白天-&gt;深夜的转换比例
+        day_to_night = 0
+        for i in range(len(slots) - 1):
+            if slots[i] == 'day' and slots[i+1] == 'night':
+                day_to_night += 1
+        day_night_transition_ratio = day_to_night / (total - 1)
+        
+        # 各时段占比
+        night_ratio = np.sum(slots == 'night') / total
+        day_ratio = np.sum(slots == 'day') / total
+        evening_ratio = np.sum(slots == 'evening') / total
+        
+        # 是否全部在深夜
+        night_only = 1 if night_ratio == 1.0 else 0
+        
+        return pd.Series({
+            'day_night_transition_ratio': day_night_transition_ratio,
+            'night_session_ratio': night_ratio,
+            'day_session_ratio': day_ratio,
+            'evening_session_ratio': evening_ratio,
+            'slot_change_ratio': slot_change_ratio,
+            'night_only_session': night_only
+        })
+    
+    result = tx.groupby('src').apply(calc_slot_transition).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示"犯罪操作集中在下午(14-17时)最多"和"夜班集中操作（22:00-04:00）是大额跑分的标准模式"。洗钱操作的时间段转换模式与正常用户差异明显，从白天突然切换到深夜是典型特征。</p>
+</details><details>
+<summary>tx_interval_pattern_entropy — 检测交易间隔模式的熵值和聚集度：间隔模式熵值（低熵=模式单一）、间隔聚集得分、短</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_interval_pattern_entropy(open_df, tx_df, close_df):
+    """检测交易间隔模式的熵值——洗钱间隔模式单一重复"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_interval_entropy(grp):
+        intervals = grp['interval'].values
+        n = len(intervals)
+        
+        if n &lt; 3:
+            return pd.Series({
+                'interval_pattern_entropy': 0,
+                'interval_cluster_score': 0,
+                'short_interval_burst_ratio': 0,
+                'long_pause_ratio': 0
+            })
+        
+        # 有效间隔（跳过第一个0）
+        valid_intervals = intervals[1:]
+        if len(valid_intervals) == 0:
+            return pd.Series({
+                'interval_pattern_entropy': 0,
+                'interval_cluster_score': 0,
+                'short_interval_burst_ratio': 0,
+                'long_pause_ratio': 0
+            })
+        
+        # 将间隔离散化为桶（秒）：&lt;10, 10-30, 30-60, 60-300, 300-900, 900-3600, &gt;3600
+        def bucket_interval(sec):
+            if sec &lt; 10: return 0
+            elif sec &lt; 30: return 1
+            elif sec &lt; 60: return 2
+            elif sec &lt; 300: return 3
+            elif sec &lt; 900: return 4
+            elif sec &lt; 3600: return 5
+            else: return 6
+        
+        buckets = np.array([bucket_interval(i) for i in valid_intervals])
+        
+        # 间隔模式熵值（低熵=模式单一）
+        unique_buckets, counts = np.unique(buckets, return_counts=True)
+        probs = counts / len(buckets)
+        entropy = -np.sum(probs * np.log2(probs))
+        max_entropy = np.log2(7)  # 7个桶
+        pattern_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 间隔聚集度：短间隔（&lt;60秒）的聚集程度
+        short_mask = buckets &lt;= 2
+        short_ratio = np.sum(short_mask) / len(buckets) if len(buckets) &gt; 0 else 0
+        
+        # 长间隔比例（&gt;15分钟）
+        long_mask = buckets &gt;= 5
+        long_ratio = np.sum(long_mask) / len(buckets) if len(buckets) &gt; 0 else 0
+        
+        # 间隔聚类得分：短间隔是否连续出现
+        cluster_score = 0
+        if len(buckets) &gt;= 3:
+            consecutive_short = 0
+            max_consecutive = 0
+            for b in buckets:
+                if b &lt;= 2:
+                    consecutive_short += 1
+                    max_consecutive = max(max_consecutive, consecutive_short)
+                else:
+                    consecutive_short = 0
+            cluster_score = max_consecutive / len(buckets) if len(buckets) &gt; 0 else 0
+        
+        return pd.Series({
+            'interval_pattern_entropy': pattern_entropy,
+            'interval_cluster_score': cluster_score,
+            'short_interval_burst_ratio': short_ratio,
+            'long_pause_ratio': long_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_interval_entropy).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作具有机械化特征：操作员持续快速转账，间隔模式单一（全是短间隔）。与正常用户的混合间隔模式（短间隔+长间隔混合）不同，洗钱的间隔模式熵值低，短间隔聚集度高。</p>
+</details><details>
+<summary>dst_ip_region_divergence — 检测目标IP的地域分散度：唯一目标IP前缀数、目标前缀变化比例、目标前缀熵值、目</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_dst_ip_region_divergence(open_df, tx_df, close_df):
+    """检测目标IP的地域分散度——洗钱常向多地钱包转账"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 提取目标IP前缀
+    def extract_ip_prefix(ip_str):
+        try:
+            parts = str(ip_str).split('.')
+            return '.'.join(parts[:2]) if len(parts) &gt;= 2 else ip_str
+        except:
+            return str(ip_str)
+    
+    tx['dst_ip_prefix'] = tx['dst_ip'].apply(extract_ip_prefix)
+    
+    # 按源钱包统计目标IP的地域分散度
+    def calc_dst_divergence(grp):
+        dst_prefixes = grp['dst_ip_prefix'].values
+        total = len(dst_prefixes)
+        
+        if total &lt; 2:
+            return pd.Series({
+                'unique_dst_ip_prefixes': 1 if total &gt; 0 else 0,
+                'dst_prefix_change_ratio': 0,
+                'dst_prefix_entropy': 0,
+                'dst_prefix_diversity': 0
+            })
+        
+        # 唯一目标IP前缀数
+        unique_prefixes = len(np.unique(dst_prefixes))
+        
+        # 目标IP前缀变化比例
+        prefix_changes = np.sum(dst_prefixes[1:] != dst_prefixes[:-1])
+        prefix_change_ratio = prefix_changes / (total - 1)
+        
+        # 目标IP前缀熵值
+        unique_vals, counts = np.unique(dst_prefixes, return_counts=True)
+        probs = counts / total
+        entropy = -np.sum(probs * np.log2(probs))
+        max_entropy = np.log2(len(unique_vals)) if len(unique_vals) &gt; 1 else 1
+        prefix_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 多样性指标
+        diversity = unique_prefixes / total if total &gt; 0 else 0
+        
+        return pd.Series({
+            'unique_dst_ip_prefixes': unique_prefixes,
+            'dst_prefix_change_ratio': prefix_change_ratio,
+            'dst_prefix_entropy': prefix_entropy,
+            'dst_prefix_diversity': diversity
+        })
+    
+    result = tx.groupby('src').apply(calc_dst_divergence).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示洗钱资金"经过4+个数字人民币账户逐级转移"，资金分散到多地钱包。风险指标也提到"收款方地域信息"和"交易地域与账户注册地"是重要风险信号。目标IP地域分散度高是洗钱的重要特征。</p>
+</details><details>
+<summary>wallet_lifecycle_velocity — 检测钱包生命周期速度：生命周期天数（开户到最后一笔交易）、活跃天数、日均交易量、</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_wallet_lifecycle_velocity(open_df, tx_df, close_df):
+    """检测钱包生命周期的速度——洗钱钱包活跃周期短（2-28天）"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    
+    # 合并开户日期
+    open_info = open_df[['wallet_id', 'wallet_open_date']].copy()
+    open_info['wallet_open_date'] = pd.to_datetime(open_info['wallet_open_date'])
+    
+    # 按源钱包统计
+    src_stats = tx.groupby('src').agg(
+        first_tx=('timestamp', 'min'),
+        last_tx=('timestamp', 'max'),
+        tx_count=('tx_id', 'count'),
+        total_amount=('amount', 'sum')
+    ).reset_index()
+    src_stats.columns = ['wallet_id', 'first_tx', 'last_tx', 'tx_count', 'total_amount']
+    
+    # 合并开户日期
+    src_stats = src_stats.merge(open_info, on='wallet_id', how='left')
+    
+    # 开户到最后一笔交易的天数（钱包生命周期）
+    src_stats['lifecycle_days'] = (src_stats['last_tx'] - src_stats['wallet_open_date']).dt.total_seconds() / (3600 * 24)
+    
+    # 活跃天数（首笔到最后一笔）
+    src_stats['active_days'] = (src_stats['last_tx'] - src_stats['first_tx']).dt.total_seconds() / (3600 * 24)
+    src_stats['active_days'] = src_stats['active_days'].clip(lower=0)
+    
+    # 日均交易量
+    src_stats['daily_tx_volume'] = src_stats['total_amount'] / src_stats['active_days'].clip(lower=0.01)
+    
+    # 日均交易次数
+    src_stats['daily_tx_count'] = src_stats['tx_count'] / src_stats['active_days'].clip(lower=0.01)
+    
+    # 生命周期短但交易量大（高风险）：生命周期&lt;30天且日均交易量&gt;1000
+    src_stats['short_life_high_volume'] = ((src_stats['lifecycle_days'] &lt; 30) & 
+                                           (src_stats['daily_tx_volume'] &gt; 1000)).astype(float)
+    
+    # 生命周期在洗钱典型区间（2-28天）
+    src_stats['typical_laundering_lifecycle'] = ((src_stats['lifecycle_days'] &gt;= 2) & 
+                                                  (src_stats['lifecycle_days'] &lt;= 28)).astype(float)
+    
+    result = src_stats[['wallet_id', 'lifecycle_days', 'active_days', 
+                        'daily_tx_volume', 'daily_tx_count',
+                        'short_life_high_volume', 'typical_laundering_lifecycle']].copy()
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书明确提到"钱包活跃周期：平均2-28天后被冻结或主动废弃"。洗钱钱包的生命周期远短于正常钱包，且生命周期短但日均交易量极高是识别洗钱钱包的关键特征。</p>
+</details><details>
+<summary>src_dst_wallet_level_mismatch — 检测源和目标钱包等级的不匹配：等级上升比例、等级下降比例、同等级比例、平均等级差</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_src_dst_wallet_level_mismatch(open_df, tx_df, close_df):
+    """检测源和目标钱包等级的不匹配——洗钱常从低级钱包向高级钱包转账"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 源和目标钱包等级已经在tx_df中
+    # 等级差异
+    tx['level_diff'] = tx['dst_wallet_level'] - tx['src_wallet_level']
+    
+    # 从低级到高级（等级上升）
+    tx['level_up'] = (tx['level_diff'] &gt; 0).astype(int)
+    
+    # 从高级到低级（等级下降）
+    tx['level_down'] = (tx['level_diff'] &lt; 0).astype(int)
+    
+    # 同等级
+    tx['level_same'] = (tx['level_diff'] == 0).astype(int)
+    
+    def calc_level_stats(grp):
+        total = len(grp)
+        if total == 0:
+            return pd.Series({
+                'level_up_ratio': 0,
+                'level_down_ratio': 0,
+                'level_same_ratio': 0,
+                'mean_level_diff': 0,
+                'level4_to_other_ratio': 0
+            })
+        
+        level_up_ratio = grp['level_up'].sum() / total
+        level_down_ratio = grp['level_down'].sum() / total
+        level_same_ratio = grp['level_same'].sum() / total
+        mean_level_diff = grp['level_diff'].mean()
+        
+        # 四类钱包向其他钱包转账的比例
+        level4_src = grp[grp['src_wallet_level'] == 4]
+        if len(level4_src) &gt; 0:
+            level4_to_other = len(level4_src[level4_src['dst_wallet_level'] != 4])
+            level4_to_other_ratio = level4_to_other / len(level4_src)
+        else:
+            level4_to_other_ratio = 0
+        
+        return pd.Series({
+            'level_up_ratio': level_up_ratio,
+            'level_down_ratio': level_down_ratio,
+            'level_same_ratio': level_same_ratio,
+            'mean_level_diff': mean_level_diff,
+            'level4_to_other_ratio': level4_to_other_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_level_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 交易模式说明提到"四类钱包洗钱：利用限额特征进行资金清洗"。四类钱包限额低（2000元/笔，1万/日），洗钱常通过四类钱包收款后向高等级钱包转账以突破限额。等级上升比例高是四类钱包洗钱的重要特征。</p>
+</details><details>
+<summary>hourly_amount_profile_deviation — 检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_hourly_amount_profile_deviation(open_df, tx_df, close_df):
+    """检测每小时金额分布偏差——洗钱深夜平均金额反常地高"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 全局各小时的平均金额
+    global_hourly_avg = tx.groupby('hour')['amount'].mean().to_dict()
+    
+    # 按源钱包计算
+    def calc_hourly_profile(grp):
+        hours = grp['hour'].values
+        amounts = grp['amount'].values
+        total = len(hours)
+        
+        if total &lt; 3:
+            return pd.Series([0, 0, 0, 0],
+                           index=['night_amount_anomaly', 'hourly_profile_deviation',
+                                  'peak_hour_amount_ratio', 'offpeak_amount_ratio'])
+        
+        # 各小时金额
+        wallet_hourly = {}
+        for h, a in zip(hours, amounts):
+            if h not in wallet_hourly:
+                wallet_hourly[h] = []
+            wallet_hourly[h].append(a)
+        
+        # 深夜/白天金额比
+        night_amounts = []
+        day_amounts = []
+        for h in range(24):
+            if h in wallet_hourly:
+                avg = np.mean(wallet_hourly[h])
+                if 0 &lt;= h &lt;= 5:
+                    night_amounts.append(avg)
+                elif 8 &lt;= h &lt;= 20:
+                    day_amounts.append(avg)
+        
+        night_avg = np.mean(night_amounts) if night_amounts else 0
+        day_avg = np.mean(day_amounts) if day_amounts else 1
+        night_amount_anomaly = night_avg / day_avg if day_avg &gt; 0 else 0
+        
+        # 与全局分布偏差
+        wallet_dist = np.zeros(24)
+        for h in range(24):
+            if h in wallet_hourly:
+                wallet_dist[h] = len(wallet_hourly[h])
+        wallet_probs = wallet_dist / total if total &gt; 0 else wallet_dist
+        
+        global_dist = np.array([global_hourly_avg.get(h, 0) for h in range(24)])
+        global_probs = global_dist / global_dist.sum() if global_dist.sum() &gt; 0 else np.ones(24)/24
+        
+        if np.linalg.norm(wallet_probs) &gt; 0 and np.linalg.norm(global_probs) &gt; 0:
+            cos_sim = np.dot(wallet_probs, global_probs) / (np.linalg.norm(wallet_probs) * np.linalg.norm(global_probs))
+            deviation = 1 - cos_sim
+        else:
+            deviation = 0
+        
+        # 高峰/非高峰时段金额占比
+        peak_hours_set = {10, 11, 14, 15, 16, 20, 21}
+        offpeak_hours_set = {0, 1, 2, 3, 4, 5, 22, 23}
+        
+        peak_amount = sum(amounts[i] for i in range(total) if hours[i] in peak_hours_set)
+        offpeak_amount = sum(amounts[i] for i in range(total) if hours[i] in offpeak_hours_set)
+        total_amount = sum(amounts)
+        
+        peak_ratio = peak_amount / total_amount if total_amount &gt; 0 else 0
+        offpeak_ratio = offpeak_amount / total_amount if total_amount &gt; 0 else 0
+        
+        return pd.Series([night_amount_anomaly, deviation, peak_ratio, offpeak_ratio],
+                        index=['night_amount_anomaly', 'hourly_profile_deviation',
+                               'peak_hour_amount_ratio', 'offpeak_amount_ratio'])
+    
+    result = tx.groupby('src').apply(calc_hourly_profile).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 正常用户在深夜的交易通常金额很小，而洗钱在深夜的交易金额可能很大（大额跑分）。深夜金额与白天金额的比值异常高是洗钱的重要特征。与全局分布的偏差也反映了行为异常。</p>
+</details><details>
+<summary>tx_date_gap_pattern — 检测交易日期间隔模式：平均日期间隔、最大日期间隔、日期间隔标准差、连续日期比例、</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_date_gap_pattern(open_df, tx_df, close_df):
+    """检测交易日期间隔模式——洗钱连续多日交易无间断"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx['date'] = tx['timestamp'].dt.date
+    
+    def calc_date_gap(grp):
+        dates = sorted(grp['date'].unique())
+        n = len(dates)
+        
+        if n &lt; 2:
+            return pd.Series({
+                'avg_date_gap': 0,
+                'max_date_gap': 0,
+                'date_gap_std': 0,
+                'consecutive_date_ratio': 0,
+                'week_coverage_ratio': 0
+            })
+        
+        # 日期间隔
+        date_ints = np.array([d.toordinal() for d in dates])
+        gaps = np.diff(date_ints)
+        
+        avg_gap = np.mean(gaps)
+        max_gap = np.max(gaps)
+        gap_std = np.std(gaps)
+        
+        # 连续日期比例（间隔=1天）
+        consecutive = np.sum(gaps == 1)
+        consecutive_ratio = consecutive / len(gaps) if len(gaps) &gt; 0 else 0
+        
+        # 周覆盖率（一周7天中覆盖了多少天）
+        # 取最早和最晚日期之间的周数
+        total_days = date_ints[-1] - date_ints[0] + 1
+        week_coverage = n / total_days if total_days &gt; 0 else 0
+        
+        return pd.Series({
+            'avg_date_gap': avg_gap,
+            'max_date_gap': max_gap,
+            'date_gap_std': gap_std,
+            'consecutive_date_ratio': consecutive_ratio,
+            'week_coverage_ratio': week_coverage
+        })
+    
+    result = tx.groupby('src').apply(calc_date_gap).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示洗钱"钱包活跃周期：平均2-28天后被冻结或主动废弃"，洗钱连续多日操作无间断。正常用户不会每天交易，洗钱操作的日期连续性和周覆盖率远高于正常用户。</p>
+</details><details>
+<summary>hourly_tx_volume_profile — 检测每小时交易量的分布模式：交易量偏度、交易量峰度、最活跃小时占比、非活跃时段活</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_hourly_tx_volume_profile(open_df, tx_df, close_df):
+    """检测每小时交易量的分布模式——洗钱在特定小时有固定模式"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 按源钱包+小时计算交易量和金额
+    def calc_hourly_profile(grp):
+        hours = grp['hour'].values
+        amounts = grp['amount'].values
+        n = len(hours)
+        
+        if n &lt; 5:
+            return pd.Series({
+                'hourly_volume_skew': 0,
+                'hourly_volume_kurtosis': 0,
+                'peak_hour_tx_ratio': 0,
+                'non_peak_hour_activity': 0
+            })
+        
+        # 24小时交易量分布
+        hourly_counts = np.zeros(24)
+        hourly_amounts = np.zeros(24)
+        for i, h in enumerate(hours):
+            hourly_counts[int(h)] += 1
+            hourly_amounts[int(h)] += amounts[i]
+        
+        # 交易量偏度（正偏=集中在少数小时）
+        active_hours = hourly_counts[hourly_counts &gt; 0]
+        if len(active_hours) &gt;= 3:
+            from scipy import stats
+            skewness = stats.skew(active_hours)
+            kurt = stats.kurtosis(active_hours)
+        else:
+            skewness = 0
+            kurt = 0
+        
+        # 最活跃小时占比
+        peak_hour_count = np.max(hourly_counts)
+        peak_ratio = peak_hour_count / n if n &gt; 0 else 0
+        
+        # 非活跃时段（0-6点）是否有交易
+        non_peak_activity = np.sum(hourly_counts[0:6]) / n if n &gt; 0 else 0
+        
+        return pd.Series({
+            'hourly_volume_skew': skewness,
+            'hourly_volume_kurtosis': kurt,
+            'peak_hour_tx_ratio': peak_ratio,
+            'non_peak_hour_activity': non_peak_activity
+        })
+    
+    result = tx.groupby('src').apply(calc_hourly_profile).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示洗钱"犯罪操作集中在下午(14-17时)最多"和"夜班集中操作（22:00-04:00）"。洗钱交易量分布高度集中（偏度大），且非活跃时段（0-6点）活动度异常高。</p>
+</details><details>
+<summary>amount_ratio_to_previous_tx — 检测交易金额的序列模式：相邻金额比例均值、比例标准差、比例变异系数、相同金额比例</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_amount_ratio_to_previous_tx(open_df, tx_df, close_df):
+    """检测交易金额的序列模式——洗钱金额常呈现固定比例关系"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_amount_ratio(grp):
+        amounts = grp['amount'].values
+        n = len(amounts)
+        
+        if n &lt; 3:
+            return pd.Series({
+                'amount_ratio_mean': 0,
+                'amount_ratio_std': 0,
+                'amount_ratio_cv': 0,
+                'same_amount_ratio': 0,
+                'amount_increasing_ratio': 0
+            })
+        
+        # 相邻金额的比例
+        ratios = amounts[1:] / np.maximum(amounts[:-1], 0.01)
+        
+        # 比例统计
+        ratio_mean = np.mean(ratios)
+        ratio_std = np.std(ratios)
+        ratio_cv = ratio_std / ratio_mean if ratio_mean &gt; 0 else 0
+        
+        # 相同金额比例（金额不变）
+        same_amount = np.sum(np.abs(amounts[1:] - amounts[:-1]) &lt; 0.01)
+        same_amount_ratio = same_amount / (n - 1)
+        
+        # 递增比例
+        increasing = np.sum(amounts[1:] &gt; amounts[:-1])
+        increasing_ratio = increasing / (n - 1)
+        
+        return pd.Series({
+            'amount_ratio_mean': ratio_mean,
+            'amount_ratio_std': ratio_std,
+            'amount_ratio_cv': ratio_cv,
+            'same_amount_ratio': same_amount_ratio,
+            'amount_increasing_ratio': increasing_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_amount_ratio).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书提到"拆分多次转出（41/309）：大额资金拆分为多笔小额分散转出（平均2218元/笔）"。洗钱拆分金额常接近固定值，相同金额比例高。正常用户金额随机变化，相同金额比例低。</p>
+</details><details>
+<summary>tx_amount_momentum — 检测交易金额的动量变化：金额动量、加速度、上升趋势强度、下降趋势强度、金额范围比</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_momentum(open_df, tx_df, close_df):
+    """检测交易金额的动量变化——洗钱金额持续增大或持续减小的趋势"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_momentum(grp):
+        amounts = grp['amount'].values
+        n = len(amounts)
+        
+        if n &lt; 4:
+            return pd.Series({
+                'amount_momentum': 0,
+                'amount_acceleration': 0,
+                'upward_trend_strength': 0,
+                'downward_trend_strength': 0,
+                'amount_range_ratio': 0
+            })
+        
+        # 动量：最近3笔平均 - 最早3笔平均
+        if n &gt;= 6:
+            recent_avg = np.mean(amounts[-3:])
+            early_avg = np.mean(amounts[:3])
+            momentum = (recent_avg - early_avg) / (early_avg + 0.01)
+        else:
+            half = n // 2
+            recent_avg = np.mean(amounts[half:])
+            early_avg = np.mean(amounts[:half])
+            momentum = (recent_avg - early_avg) / (early_avg + 0.01)
+        
+        # 加速度：动量的变化率（二阶差分）
+        if n &gt;= 5:
+            diffs = np.diff(amounts)
+            if len(diffs) &gt;= 3:
+                accel = np.mean(diffs[1:] - diffs[:-1])
+            else:
+                accel = 0
+        else:
+            accel = 0
+        
+        # 上升趋势强度
+        from scipy import stats
+        trend, _ = stats.pearsonr(range(n), amounts)
+        upward_strength = max(0, trend) if not np.isnan(trend) else 0
+        downward_strength = max(0, -trend) if not np.isnan(trend) else 0
+        
+        # 金额范围比（最大-最小）/平均
+        amount_range = np.max(amounts) - np.min(amounts)
+        range_ratio = amount_range / (np.mean(amounts) + 0.01)
+        
+        return pd.Series({
+            'amount_momentum': momentum,
+            'amount_acceleration': accel,
+            'upward_trend_strength': upward_strength,
+            'downward_trend_strength': downward_strength,
+            'amount_range_ratio': range_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_momentum).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中，从小额测试开始，逐步增大到接近限额的金额（上升趋势），或者资金从多到少逐步转出（下降趋势）。金额动量变化的方向性和趋势强度是识别洗钱的重要序列特征。</p>
+</details><details>
+<summary>amount_interval_correlation — 检测金额与间隔的相关性：Pearson相关系数、Spearman秩相关、互信息差</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_amount_interval_correlation(open_df, tx_df, close_df):
+    """检测金额与间隔的相关性——洗钱金额与间隔存在固定关系"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_correlation(grp):
+        amounts = grp['amount'].values
+        intervals = grp['interval'].values
+        n = len(amounts)
+        
+        if n &lt; 5:
+            return pd.Series({
+                'amount_interval_corr': 0,
+                'amount_interval_spearman': 0,
+                'amount_interval_mutual_info': 0,
+                'amount_given_interval_std': 0
+            })
+        
+        # 有效间隔（跳过第一个0）
+        valid_intervals = intervals[1:]
+        valid_amounts = amounts[1:] if len(amounts) &gt; 1 else amounts
+        
+        m = min(len(valid_amounts), len(valid_intervals))
+        if m &lt; 4:
+            return pd.Series({
+                'amount_interval_corr': 0,
+                'amount_interval_spearman': 0,
+                'amount_interval_mutual_info': 0,
+                'amount_given_interval_std': 0
+            })
+        
+        # Pearson相关系数
+        from scipy import stats
+        corr, _ = stats.pearsonr(valid_amounts[:m], valid_intervals[:m])
+        corr = corr if not np.isnan(corr) else 0
+        
+        # Spearman秩相关
+        spearman, _ = stats.spearmanr(valid_amounts[:m], valid_intervals[:m])
+        spearman = spearman if not np.isnan(spearman) else 0
+        
+        # 将间隔离散化后，金额的条件标准差
+        # 短间隔（&lt;60秒）的金额 vs 长间隔的金额
+        short_mask = valid_intervals[:m] &lt; 60
+        if np.sum(short_mask) &gt; 2 and np.sum(~short_mask) &gt; 2:
+            short_amounts = valid_amounts[:m][short_mask]
+            long_amounts = valid_amounts[:m][~short_mask]
+            # 条件标准差差异
+            short_std = np.std(short_amounts)
+            long_std = np.std(long_amounts)
+            cond_std_diff = abs(short_std - long_std) / (np.mean([short_std, long_std]) + 0.01)
+        else:
+            cond_std_diff = 0
+        
+        return pd.Series({
+            'amount_interval_corr': corr,
+            'amount_interval_spearman': spearman,
+            'amount_interval_mutual_info': abs(corr - spearman),
+            'amount_given_interval_std': cond_std_diff
+        })
+    
+    result = tx.groupby('src').apply(calc_correlation).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中，操作员快速连续转出大额资金（金额大+间隔短），而正常用户的大额交易往往间隔较长（需要准备时间）。金额与间隔的负相关是洗钱的重要序列特征。</p>
+</details><details>
+<summary>wallet_type_behavior_mismatch — 检测钱包类型与行为的不匹配：复杂交易模式比例、个人钱包复杂交易标记、商户钱包扇出</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_wallet_type_behavior_mismatch(open_df, tx_df, close_df):
+    """检测钱包类型与行为的不匹配——个人钱包出现商户交易模式"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 合并钱包类型
+    open_info = open_df[['wallet_id', 'wallet_type', 'wallet_level']].copy()
+    
+    # 按源钱包统计
+    src_stats = tx.groupby('src').agg(
+        tx_count=('tx_id', 'count'),
+        total_amount=('amount', 'sum'),
+        fan_out_count=('transaction_mode', lambda x: (x == 'fan_out').sum()),
+        fan_in_count=('transaction_mode', lambda x: (x == 'fan_in').sum()),
+        many_to_many_count=('transaction_mode', lambda x: (x == 'many_to_many').sum()),
+        one_to_many_count=('transaction_mode', lambda x: (x == 'one_to_many').sum()),
+        many_to_one_count=('transaction_mode', lambda x: (x == 'many_to_one').sum()),
+        avg_amount=('amount', 'mean')
+    ).reset_index()
+    src_stats.columns = ['wallet_id', 'tx_count', 'total_amount', 
+                         'fan_out_count', 'fan_in_count', 'many_to_many_count',
+                         'one_to_many_count', 'many_to_one_count', 'avg_amount']
+    
+    # 合并钱包类型
+    src_stats = src_stats.merge(open_info, on='wallet_id', how='left')
+    
+    # 复杂交易模式比例
+    src_stats['complex_mode_ratio'] = (src_stats['many_to_many_count'] + 
+                                       src_stats['one_to_many_count'] + 
+                                       src_stats['many_to_one_count']) / src_stats['tx_count'].clip(lower=1)
+    
+    # 个人钱包(wallet_type=1)出现复杂交易模式
+    src_stats['personal_complex_tx'] = ((src_stats['wallet_type'] == 1) & 
+                                        (src_stats['complex_mode_ratio'] &gt; 0.3)).astype(float)
+    
+    # 商户钱包(wallet_type=3)出现大量扇出
+    src_stats['merchant_fan_out'] = ((src_stats['wallet_type'] == 3) & 
+                                     (src_stats['fan_out_count'] / src_stats['tx_count'].clip(lower=1) &gt; 0.5)).astype(float)
+    
+    # 四类钱包(wallet_level=4)高交易量
+    src_stats['level4_high_volume'] = ((src_stats['wallet_level'] == 4) & 
+                                       (src_stats['total_amount'] &gt; 10000)).astype(float)
+    
+    result = src_stats[['wallet_id', 'complex_mode_ratio', 'personal_complex_tx',
+                        'merchant_fan_out', 'level4_high_volume']].copy()
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 交易模式说明中，商户洗钱使用"一对多交易为主"的复杂模式，而个人钱包不应出现此类模式。四类钱包限额低（2000元/笔），高交易量说明可能使用多个四类钱包或突破限额。类型与行为不匹配是重要风险信号。</p>
+</details><details>
+<summary>hourly_amount_profile_deviation — 检测每小时金额分布偏差：深夜/白天金额比、小时分布偏差（与全局基准的余弦距离）、</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_hourly_amount_profile_deviation(open_df, tx_df, close_df):
+    """检测每小时金额分布偏差——洗钱深夜平均金额反常地高"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 全局各小时的平均金额
+    global_hourly_avg = tx.groupby('hour')['amount'].mean().to_dict()
+    
+    # 按源钱包计算
+    def calc_hourly_profile(grp):
+        hours = grp['hour'].values
+        amounts = grp['amount'].values
+        total = len(hours)
+        
+        if total &lt; 3:
+            return pd.Series([0, 0, 0, 0],
+                           index=['night_amount_anomaly', 'hourly_profile_deviation',
+                                  'peak_hour_amount_ratio', 'offpeak_amount_ratio'])
+        
+        # 各小时金额
+        wallet_hourly = {}
+        for h, a in zip(hours, amounts):
+            if h not in wallet_hourly:
+                wallet_hourly[h] = []
+            wallet_hourly[h].append(a)
+        
+        # 深夜/白天金额比
+        night_amounts = []
+        day_amounts = []
+        for h in range(24):
+            if h in wallet_hourly:
+                avg = np.mean(wallet_hourly[h])
+                if 0 &lt;= h &lt;= 5:
+                    night_amounts.append(avg)
+                elif 8 &lt;= h &lt;= 20:
+                    day_amounts.append(avg)
+        
+        night_avg = np.mean(night_amounts) if night_amounts else 0
+        day_avg = np.mean(day_amounts) if day_amounts else 1
+        night_amount_anomaly = night_avg / day_avg if day_avg &gt; 0 else 0
+        
+        # 与全局分布偏差
+        wallet_dist = np.zeros(24)
+        for h in range(24):
+            if h in wallet_hourly:
+                wallet_dist[h] = len(wallet_hourly[h])
+        wallet_probs = wallet_dist / total if total &gt; 0 else wallet_dist
+        
+        global_dist = np.array([global_hourly_avg.get(h, 0) for h in range(24)])
+        global_probs = global_dist / global_dist.sum() if global_dist.sum() &gt; 0 else np.ones(24)/24
+        
+        if np.linalg.norm(wallet_probs) &gt; 0 and np.linalg.norm(global_probs) &gt; 0:
+            cos_sim = np.dot(wallet_probs, global_probs) / (np.linalg.norm(wallet_probs) * np.linalg.norm(global_probs))
+            deviation = 1 - cos_sim
+        else:
+            deviation = 0
+        
+        # 高峰/非高峰时段金额占比
+        peak_hours_set = {10, 11, 14, 15, 16, 20, 21}
+        offpeak_hours_set = {0, 1, 2, 3, 4, 5, 22, 23}
+        
+        peak_amount = sum(amounts[i] for i in range(total) if hours[i] in peak_hours_set)
+        offpeak_amount = sum(amounts[i] for i in range(total) if hours[i] in offpeak_hours_set)
+        total_amount = sum(amounts)
+        
+        peak_ratio = peak_amount / total_amount if total_amount &gt; 0 else 0
+        offpeak_ratio = offpeak_amount / total_amount if total_amount &gt; 0 else 0
+        
+        return pd.Series([night_amount_anomaly, deviation, peak_ratio, offpeak_ratio],
+                        index=['night_amount_anomaly', 'hourly_profile_deviation',
+                               'peak_hour_amount_ratio', 'offpeak_amount_ratio'])
+    
+    result = tx.groupby('src').apply(calc_hourly_profile).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 正常用户在深夜的交易通常金额很小，而洗钱在深夜的交易金额可能很大（大额跑分）。深夜金额与白天金额的比值异常高是洗钱的重要特征。与全局分布的偏差也反映了行为异常。</p>
+</details><details>
+<summary>tx_sequence_consistency_score — 检测交易序列的一致性：金额一致性、模式一致性、间隔一致性、综合一致性。洗钱交易高</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_sequence_consistency_score(open_df, tx_df, close_df):
+    """检测交易序列的一致性——洗钱交易模式高度一致（同质化）"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_consistency(grp):
+        amounts = grp['amount'].values
+        intervals = grp['interval'].values
+        modes = grp['transaction_mode'].values
+        n = len(amounts)
+        
+        if n &lt; 4:
+            return pd.Series({
+                'amount_consistency': 0,
+                'mode_consistency': 0,
+                'interval_consistency': 0,
+                'overall_consistency': 0
+            })
+        
+        # 金额一致性：金额是否都接近（低变异系数）
+        if np.mean(amounts) &gt; 0:
+            amount_cv = np.std(amounts) / np.mean(amounts)
+            amount_consistency = 1 / (1 + amount_cv)
+        else:
+            amount_consistency = 0
+        
+        # 模式一致性：是否都用同一种交易模式
+        unique_modes = len(np.unique(modes))
+        mode_consistency = 1 - ((unique_modes - 1) / max(len(np.unique(modes)), 1))
+        
+        # 间隔一致性
+        valid_intervals = intervals[1:]
+        if len(valid_intervals) &gt; 1 and np.mean(valid_intervals) &gt; 0:
+            interval_cv = np.std(valid_intervals) / np.mean(valid_intervals)
+            interval_consistency = 1 / (1 + interval_cv)
+        else:
+            interval_consistency = 0
+        
+        # 综合一致性
+        overall = (amount_consistency + mode_consistency + interval_consistency) / 3
+        
+        return pd.Series({
+            'amount_consistency': amount_consistency,
+            'mode_consistency': mode_consistency,
+            'interval_consistency': interval_consistency,
+            'overall_consistency': overall
+        })
+    
+    result = tx.groupby('src').apply(calc_consistency).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作员按固定指令执行转账，金额、模式、间隔高度一致（同质化）。正常用户的交易行为更加多样化（不同金额、不同模式、不同间隔）。综合一致性得分高是洗钱操作机械化特征的体现。</p>
+</details><details>
+<summary>amount_ending_digit_pattern — 检测金额尾数模式：整百比例、整千比例、末位数字熵值、末位0比例、常见末两位比例。</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_amount_ending_digit_pattern(open_df, tx_df, close_df):
+    """检测金额尾数模式——洗钱金额尾数集中（整数结尾）"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 提取金额尾数
+    tx['amount_int'] = tx['amount'].astype(int)
+    tx['last_digit'] = tx['amount_int'] % 10
+    tx['last_two_digits'] = tx['amount_int'] % 100
+    tx['is_round_hundred'] = (tx['amount_int'] % 100 == 0).astype(int)
+    tx['is_round_thousand'] = (tx['amount_int'] % 1000 == 0).astype(int)
+    
+    def calc_digit_stats(grp):
+        n = len(grp)
+        if n &lt; 3:
+            return pd.Series({
+                'round_hundred_ratio': 0,
+                'round_thousand_ratio': 0,
+                'last_digit_entropy': 0,
+                'zero_last_digit_ratio': 0,
+                'common_last_two_ratio': 0
+            })
+        
+        # 整百比例
+        round_hundred = grp['is_round_hundred'].sum() / n
+        
+        # 整千比例
+        round_thousand = grp['is_round_thousand'].sum() / n
+        
+        # 末位数字分布熵值
+        last_digits = grp['last_digit'].values
+        unique_digits, counts = np.unique(last_digits, return_counts=True)
+        probs = counts / n
+        entropy = -np.sum(probs * np.log2(probs))
+        max_entropy = np.log2(10)
+        digit_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 末位为0的比例
+        zero_ratio = np.sum(last_digits == 0) / n
+        
+        # 最常见末两位的比例
+        last_two = grp['last_two_digits'].values
+        unique_two, two_counts = np.unique(last_two, return_counts=True)
+        common_two_ratio = np.max(two_counts) / n if len(two_counts) &gt; 0 else 0
+        
+        return pd.Series({
+            'round_hundred_ratio': round_hundred,
+            'round_thousand_ratio': round_thousand,
+            'last_digit_entropy': digit_entropy,
+            'zero_last_digit_ratio': zero_ratio,
+            'common_last_two_ratio': common_two_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_digit_stats).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示洗钱金额常为整数（如"平均2218元/笔"），跑分金额多为整数。正常用户交易金额有零有整（如日常消费），洗钱金额的整数比例和末位0比例远高于正常用户。</p>
+</details><details>
+<summary>tx_amount_sequence_complexity — 检测交易金额序列的复杂度：唯一金额比例、金额变化比例、方向变化熵值、金额重复比例</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_sequence_complexity(open_df, tx_df, close_df):
+    """检测交易金额序列的复杂度——洗钱金额序列简单重复"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_sequence_complexity(grp):
+        amounts = grp['amount'].values
+        n = len(amounts)
+        
+        if n &lt; 4:
+            return pd.Series({
+                'amount_unique_ratio': 0,
+                'amount_run_ratio': 0,
+                'amount_change_direction_entropy': 0,
+                'amount_repeat_ratio': 0
+            })
+        
+        # 唯一金额比例
+        unique_amounts = len(np.unique(np.round(amounts, 0)))  # 四舍五入到整数
+        unique_ratio = unique_amounts / n
+        
+        # 金额变化次数比例
+        runs = 0
+        for i in range(1, n):
+            if abs(amounts[i] - amounts[i-1]) &gt; 0.01:
+                runs += 1
+        run_ratio = runs / (n - 1) if n &gt; 1 else 0
+        
+        # 方向变化熵值
+        diffs = np.diff(amounts)
+        binary_seq = (diffs &gt; 0).astype(int)
+        if len(binary_seq) &gt;= 3:
+            direction_changes = np.sum(binary_seq[1:] != binary_seq[:-1])
+            direction_entropy = direction_changes / (len(binary_seq) - 1) if len(binary_seq) &gt; 1 else 0
+        else:
+            direction_entropy = 0
+        
+        # 金额重复比例（相同金额出现的次数/总次数）
+        unique_vals, counts = np.unique(np.round(amounts, 0), return_counts=True)
+        repeat_count = np.sum(counts[counts &gt; 1])
+        repeat_ratio = repeat_count / n if n &gt; 0 else 0
+        
+        return pd.Series({
+            'amount_unique_ratio': unique_ratio,
+            'amount_run_ratio': run_ratio,
+            'amount_change_direction_entropy': direction_entropy,
+            'amount_repeat_ratio': repeat_ratio
+        })
+    
+    result = tx.groupby('src').apply(calc_sequence_complexity).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中金额常重复（如多次转出相同金额），序列复杂度低。正常用户的金额序列更多样化。金额重复比例高是洗钱的重要特征。</p>
+</details><details>
+<summary>tx_interval_first_vs_rest — 检测首次交易与后续交易的时间间隔差异：首笔间隔、后续平均间隔、首笔/后续比、首笔</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_interval_first_vs_rest(open_df, tx_df, close_df):
+    """检测首次交易与后续交易的时间间隔差异——洗钱首笔间隔异常"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    def calc_first_vs_rest(grp):
+        intervals = grp['interval'].values
+        n = len(intervals)
+        
+        if n &lt; 3:
+            return pd.Series({
+                'first_interval': 0,
+                'rest_mean_interval': 0,
+                'first_rest_ratio': 0,
+                'first_is_short': 0
+            })
+        
+        # 有效间隔
+        valid_intervals = intervals[1:]
+        
+        # 第一个间隔（开户后到第一笔交易的时间）
+        first_int = valid_intervals[0] if len(valid_intervals) &gt; 0 else 0
+        
+        # 后续间隔均值
+        rest_intervals = valid_intervals[1:] if len(valid_intervals) &gt; 1 else [0]
+        rest_mean = np.mean(rest_intervals) if len(rest_intervals) &gt; 0 else 0
+        
+        # 首笔间隔/后续均值比
+        ratio = first_int / rest_mean if rest_mean &gt; 0 else 0
+        
+        # 首笔间隔是否很短（&lt;60秒）
+        first_short = 1 if first_int &lt; 60 else 0
+        
+        return pd.Series({
+            'first_interval': first_int,
+            'rest_mean_interval': rest_mean,
+            'first_rest_ratio': ratio,
+            'first_is_short': first_short
+        })
+    
+    result = tx.groupby('src').apply(calc_first_vs_rest).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中"验卡行为"后立即开始大额操作，首笔间隔（验证后到第一笔大额转账）很短。而正常用户的首笔交易间隔可能更长（需要准备时间）。</p>
+</details><details>
+<summary>tx_mode_switch_frequency — 检测交易模式切换频率：模式切换次数、切换率、模式持久性、转换熵值。洗钱在特定模式</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_mode_switch_frequency(open_df, tx_df, close_df):
+    """检测交易模式切换频率——洗钱在特定模式间频繁切换"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    tx['timestamp'] = pd.to_datetime(tx['timestamp'])
+    tx = tx.sort_values(['src', 'timestamp'])
+    
+    # 简化模式分类
+    mode_map = {
+        'single_transaction': 0,
+        'fan_out': 1,
+        'fan_in': 2,
+        'one_to_many': 3,
+        'many_to_one': 4,
+        'many_to_many': 5
+    }
+    tx['mode_code'] = tx['transaction_mode'].map(mode_map).fillna(0).astype(int)
+    
+    def calc_switch_freq(grp):
+        modes = grp['mode_code'].values
+        n = len(modes)
+        
+        if n &lt; 3:
+            return pd.Series({
+                'mode_switch_count': 0,
+                'mode_switch_rate': 0,
+                'mode_persistence': 0,
+                'mode_transition_entropy': 0
+            })
+        
+        # 模式切换次数
+        switches = np.sum(modes[1:] != modes[:-1])
+        switch_rate = switches / (n - 1) if n &gt; 1 else 0
+        
+        # 模式持久性（连续相同模式的最大长度/n）
+        max_run = 1
+        current_run = 1
+        for i in range(1, n):
+            if modes[i] == modes[i-1]:
+                current_run += 1
+                max_run = max(max_run, current_run)
+            else:
+                current_run = 1
+        persistence = max_run / n if n &gt; 0 else 0
+        
+        # 模式转换熵值（转换矩阵的熵）
+        # 统计各种转换对的出现次数
+        if n &gt;= 2:
+            transitions = {}
+            for i in range(n - 1):
+                key = (modes[i], modes[i+1])
+                transitions[key] = transitions.get(key, 0) + 1
+            total_trans = sum(transitions.values())
+            probs = np.array(list(transitions.values())) / total_trans
+            trans_entropy = -np.sum(probs * np.log2(probs))
+            max_entropy = np.log2(len(probs)) if len(probs) &gt; 1 else 1
+            transition_entropy = trans_entropy / max_entropy if max_entropy &gt; 0 else 0
+        else:
+            transition_entropy = 0
+        
+        return pd.Series({
+            'mode_switch_count': switches,
+            'mode_switch_rate': switch_rate,
+            'mode_persistence': persistence,
+            'mode_transition_entropy': transition_entropy
+        })
+    
+    result = tx.groupby('src').apply(calc_switch_freq).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中模式切换有固定规律（如先fan_out分散再fan_in集中），转换模式固定。正常用户的模式转换更随机。模式转换熵值低+切换率高是洗钱操作的典型特征。</p>
+</details><details>
+<summary>tx_amount_roundness_ratio — 检测金额的整数程度：整数比例、整10比例、整100比例、整1000比例、综合整数</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_roundness_ratio(open_df, tx_df, close_df):
+    """检测金额的整数程度——洗钱金额多为整数"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 金额的各种整数特征
+    tx['is_integer'] = (tx['amount'] == tx['amount'].astype(int)).astype(float)
+    tx['is_round_10'] = (tx['amount'] % 10 == 0).astype(float)
+    tx['is_round_50'] = (tx['amount'] % 50 == 0).astype(float)
+    tx['is_round_100'] = (tx['amount'] % 100 == 0).astype(float)
+    tx['is_round_500'] = (tx['amount'] % 500 == 0).astype(float)
+    tx['is_round_1000'] = (tx['amount'] % 1000 == 0).astype(float)
+    
+    def calc_roundness(grp):
+        n = len(grp)
+        if n &lt; 3:
+            return pd.Series({
+                'integer_ratio': 0,
+                'round_10_ratio': 0,
+                'round_100_ratio': 0,
+                'round_1000_ratio': 0,
+                'roundness_score': 0
+            })
+        
+        integer_r = grp['is_integer'].mean()
+        round_10_r = grp['is_round_10'].mean()
+        round_100_r = grp['is_round_100'].mean()
+        round_1000_r = grp['is_round_1000'].mean()
+        
+        # 综合整数得分
+        roundness = (integer_r + round_10_r + round_100_r + round_1000_r) / 4
+        
+        return pd.Series({
+            'integer_ratio': integer_r,
+            'round_10_ratio': round_10_r,
+            'round_100_ratio': round_100_r,
+            'round_1000_ratio': round_1000_r,
+            'roundness_score': roundness
+        })
+    
+    result = tx.groupby('src').apply(calc_roundness).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 裁判文书显示洗钱金额"平均2218元/笔"，为整数金额。正常用户交易金额有零有整。整数比例高是洗钱的重要金额特征。</p>
+</details><details>
+<summary>tx_reciprocal_network_features — 检测互惠交易网络特征：出度、入度、度比、同时是源和目标标记。洗钱网络中钱包角色单</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_reciprocal_network_features(open_df, tx_df, close_df):
+    """检测互惠交易网络特征——洗钱网络中双向交易比例异常"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 计算每个钱包的出度和入度
+    out_degree = tx.groupby('src')['dst'].nunique().reset_index()
+    out_degree.columns = ['wallet_id', 'out_degree']
+    
+    in_degree = tx.groupby('dst')['src'].nunique().reset_index()
+    in_degree.columns = ['wallet_id', 'in_degree']
+    
+    result = pd.merge(out_degree, in_degree, on='wallet_id', how='outer').fillna(0)
+    result['degree_ratio'] = result['out_degree'] / result['in_degree'].clip(lower=1)
+    
+    # 快速计算互惠比例：检查钱包是否既是源又是目标
+    # 如果一个钱包同时出现在src和dst列中，说明它可能参与了双向交易
+    all_src = set(tx['src'].unique())
+    all_dst = set(tx['dst'].unique())
+    
+    # 同时是源和目标的钱包
+    both = all_src & all_dst
+    
+    result['is_both_src_dst'] = result['wallet_id'].isin(both).astype(float)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result[['wallet_id', 'out_degree', 'in_degree', 'degree_ratio', 'is_both_src_dst']]
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱网络中上游钱包只出不进，下游钱包只进不出。同时是源和目标的钱包少。这个特征能有效识别洗钱网络中的角色单一性。</p>
+</details><details>
+<summary>tx_amount_ratio_to_limit_v2 — 检测金额与限额的比例：平均限额比、最大限额比、接近限额比例、限额比标准差。洗钱常</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_ratio_to_limit_v2(open_df, tx_df, close_df):
+    """检测金额与限额的比例——洗钱金额接近各等级限额"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    # 使用tx_df中已有的src_wallet_level字段
+    level_limits = {1: 999999.0, 2: 50000.0, 3: 10000.0, 4: 2000.0}
+    
+    # 直接用字典映射
+    limit_map = np.vectorize(lambda x: level_limits.get(x, 999999.0))
+    tx['tx_limit'] = limit_map(tx['src_wallet_level'].values)
+    
+    tx['amount_limit_ratio'] = tx['amount'] / tx['tx_limit']
+    tx['near_limit'] = (tx['amount_limit_ratio'] &gt; 0.8).astype(float)
+    
+    result = tx.groupby('src').agg(
+        mean_limit_ratio=('amount_limit_ratio', 'mean'),
+        max_limit_ratio=('amount_limit_ratio', 'max'),
+        near_limit_ratio=('near_limit', 'mean'),
+        limit_ratio_std=('amount_limit_ratio', 'std')
+    ).reset_index()
+    result.columns = ['wallet_id', 'mean_limit_ratio', 'max_limit_ratio', 'near_limit_ratio', 'limit_ratio_std']
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 交易模式说明中四类钱包洗钱"利用限额特征进行资金清洗"。洗钱常使用接近限额的金额以最大化单笔转出量。</p>
+</details><details>
+<summary>tx_amount_entropy_by_mode — 检测不同交易模式下的金额分布：模式内金额变异系数、模式间金额差异、主导模式占比。</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_entropy_by_mode(open_df, tx_df, close_df):
+    """检测不同交易模式下的金额熵值——洗钱各模式金额分布单一"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    def calc_entropy_by_mode(grp):
+        n = len(grp)
+        if n &lt; 4:
+            return pd.Series({
+                'mode_amount_entropy': 0,
+                'mode_amount_cv': 0,
+                'mode_amount_range': 0,
+                'single_mode_dominance': 0
+            })
+        
+        # 按交易模式分组计算金额统计
+        mode_groups = grp.groupby('transaction_mode')['amount']
+        
+        if len(mode_groups) &lt; 2:
+            return pd.Series({
+                'mode_amount_entropy': 0,
+                'mode_amount_cv': 0,
+                'mode_amount_range': 0,
+                'single_mode_dominance': 1.0
+            })
+        
+        # 各模式下的金额变异系数
+        cvs = []
+        weights = []
+        for mode, group in mode_groups:
+            amounts = group.values
+            if len(amounts) &gt;= 2 and np.mean(amounts) &gt; 0:
+                cv = np.std(amounts) / np.mean(amounts)
+                cvs.append(cv)
+                weights.append(len(amounts))
+        
+        if len(cvs) == 0:
+            return pd.Series({
+                'mode_amount_entropy': 0,
+                'mode_amount_cv': 0,
+                'mode_amount_range': 0,
+                'single_mode_dominance': 0
+            })
+        
+        # 加权平均CV
+        weights = np.array(weights)
+        weighted_cv = np.average(cvs, weights=weights) if np.sum(weights) &gt; 0 else 0
+        
+        # 模式间金额差异
+        mode_means = [group.mean() for _, group in mode_groups]
+        amount_range = max(mode_means) - min(mode_means) if len(mode_means) &gt; 1 else 0
+        
+        # 主导模式占比
+        sizes = mode_groups.size()
+        dominant = sizes.max() / n
+        
+        return pd.Series({
+            'mode_amount_entropy': weighted_cv,
+            'mode_amount_cv': weighted_cv,
+            'mode_amount_range': amount_range,
+            'single_mode_dominance': dominant
+        })
+    
+    result = tx.groupby('src').apply(calc_entropy_by_mode).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result[['wallet_id', 'mode_amount_cv', 'mode_amount_range', 'single_mode_dominance']]
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作在特定模式（如fan_out）下金额高度一致，模式内金额变异系数低。正常用户各模式下金额变化大。模式内金额一致性高是洗钱操作机械化特征的体现。</p>
+</details><details>
+<summary>tx_amount_clustering_entropy — 检测金额聚集熵：金额聚集熵、最频繁金额占比、Top3金额占比、金额值密度。洗钱金</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">
+def feature_tx_amount_clustering_entropy(open_df, tx_df, close_df):
+    """检测金额聚集熵——洗钱金额集中在少数数值上"""
+    import pandas as pd
+    import numpy as np
+    
+    tx = tx_df.copy()
+    
+    def calc_clustering(grp):
+        amounts = grp['amount'].values
+        n = len(amounts)
+        
+        if n &lt; 3:
+            return pd.Series({
+                'amount_cluster_entropy': 0,
+                'amount_mode_ratio': 0,
+                'amount_top3_ratio': 0,
+                'amount_value_density': 0
+            })
+        
+        # 将金额四舍五入到整数
+        rounded = np.round(amounts)
+        
+        # 金额值熵值
+        unique_vals, counts = np.unique(rounded, return_counts=True)
+        probs = counts / n
+        entropy = -np.sum(probs * np.log2(probs))
+        max_entropy = np.log2(len(unique_vals)) if len(unique_vals) &gt; 1 else 1
+        cluster_entropy = entropy / max_entropy if max_entropy &gt; 0 else 0
+        
+        # 最频繁金额占比
+        mode_ratio = np.max(counts) / n
+        
+        # Top3金额占比
+        sorted_counts = np.sort(counts)[::-1]
+        top3_ratio = np.sum(sorted_counts[:3]) / n if len(sorted_counts) &gt;= 3 else np.sum(sorted_counts) / n
+        
+        # 金额值密度（唯一金额数/交易数）
+        density = len(unique_vals) / n
+        
+        return pd.Series({
+            'amount_cluster_entropy': cluster_entropy,
+            'amount_mode_ratio': mode_ratio,
+            'amount_top3_ratio': top3_ratio,
+            'amount_value_density': density
+        })
+    
+    result = tx.groupby('src').apply(calc_clustering).reset_index()
+    result.rename(columns={'src': 'wallet_id'}, inplace=True)
+    
+    result.fillna(0, inplace=True)
+    result.replace([np.inf, -np.inf], 0, inplace=True)
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 洗钱操作中金额常重复使用固定数值（如多次转出相同金额），金额聚集熵低。正常用户的金额分布更分散，聚集熵高。</p>
+</details>
+</section>
+
+<!-- Failed Features -->
+<section>
+<details>
+<summary>失败的特征 (58个，点击展开)</summary>
+<div class="scroll-table" style="margin-top:8px;">
+<table>
+    <thead><tr><th>名称</th><th>错误原因</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>amount_roundness_and_band</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.006396<0.020130</td>
+        </tr>
+        <tr>
+            <td>night_operation_intensity</td>
+            <td class="error">L1: 输出验证失败: 输出必须包含 tx_id 或 wallet_id 列</td>
+        </tr>
+        <tr>
+            <td>ip_region_jump_detector</td>
+            <td class="error">L1: 执行失败: Traceback (most recent call last):
+  File "/root/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/b</td>
+        </tr>
+        <tr>
+            <td>ip_region_jump_detector</td>
+            <td class="error">L1: 执行失败: Traceback (most recent call last):
+  File "/root/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/b</td>
+        </tr>
+        <tr>
+            <td>ip_region_jump_detector</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.004853<0.020130</td>
+        </tr>
+        <tr>
+            <td>dormant_activation_pattern</td>
+            <td class="error">L2未通过: IV=0.003582<0.003826; KS=0.016418<0.020130</td>
+        </tr>
+        <tr>
+            <td>device_sharing_network</td>
+            <td class="error">L1: 输出验证失败: 特征 max_device_shared_wallets 只有一个唯一值 (全0/全1)</td>
+        </tr>
+        <tr>
+            <td>identity_multi_wallet_link</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.004447<0.020130</td>
+        </tr>
+        <tr>
+            <td>amount_fan_out_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8189>=0.7</td>
+        </tr>
+        <tr>
+            <td>amount_small_testing_ratio</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.009351<0.020130</td>
+        </tr>
+        <tr>
+            <td>counterparty_change_detector</td>
+            <td class="error">行数不匹配: 49391730 vs 1384512</td>
+        </tr>
+        <tr>
+            <td>tx_motif_deviation_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.003221<0.020130</td>
+        </tr>
+        <tr>
+            <td>cross_transaction_network_density</td>
+            <td class="error">L2未通过: redundancy=0.7621>=0.7</td>
+        </tr>
+        <tr>
+            <td>zs_channel_risk_propagation</td>
+            <td class="error">L1: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_proce</td>
+        </tr>
+        <tr>
+            <td>close_df_risk_propagation</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.002091<0.020130</td>
+        </tr>
+        <tr>
+            <td>amount_commission_pattern</td>
+            <td class="error">L2未通过: redundancy=0.7647>=0.7</td>
+        </tr>
+        <tr>
+            <td>amount_per_tx_vs_wallet_level</td>
+            <td class="error">L1: 输出验证失败: 特征 level4_high_risk 只有一个唯一值 (全0/全1)</td>
+        </tr>
+        <tr>
+            <td>amount_per_tx_vs_wallet_level</td>
+            <td class="error">L2未通过: redundancy=0.8657>=0.7</td>
+        </tr>
+        <tr>
+            <td>device_ip_mismatch_score</td>
+            <td class="error">行数不匹配: 34131160 vs 1384512</td>
+        </tr>
+        <tr>
+            <td>device_ip_mismatch_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.004853<0.020130</td>
+        </tr>
+        <tr>
+            <td>tx_burst_detector</td>
+            <td class="error">L1: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_proce</td>
+        </tr>
+        <tr>
+            <td>tx_burst_detector</td>
+            <td class="error">L1: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_proce</td>
+        </tr>
+        <tr>
+            <td>bank_cross_transaction_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7514>=0.7</td>
+        </tr>
+        <tr>
+            <td>tx_sequence_regularity</td>
+            <td class="error">L2未通过: KS=0.016970<0.020130</td>
+        </tr>
+        <tr>
+            <td>victim_operation_detector</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.004901<0.020130</td>
+        </tr>
+        <tr>
+            <td>daily_amount_limit_approach</td>
+            <td class="error">L2未通过: redundancy=0.7869>=0.7</td>
+        </tr>
+        <tr>
+            <td>hourly_amount_profile_deviation</td>
+            <td class="error">行数不匹配: 21863208 vs 1384512</td>
+        </tr>
+        <tr>
+            <td>first_tx_time_anomaly</td>
+            <td class="error">L1: 输出验证失败: 特征 immediate_tx 只有一个唯一值 (全0/全1)</td>
+        </tr>
+        <tr>
+            <td>first_tx_time_anomaly</td>
+            <td class="error">L1: 输出验证失败: 特征 immediate_tx 只有一个唯一值 (全0/全1)</td>
+        </tr>
+        <tr>
+            <td>first_tx_time_anomaly</td>
+            <td class="error">L2未通过: IV=0.003638<0.003826; KS=0.016080<0.020130</td>
+        </tr></tbody>
+</table>
+</div>
+</details>
+</section>
+
+<!-- Agent Steps -->
+<section>
+<details>
+<summary>Agent执行轨迹 (前60步，点击展开)</summary>
+<div class="scroll-table" style="margin-top:8px;">
+<table>
+    <thead><tr><th>步骤</th><th>时间</th><th>思考</th><th>工具调用</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td class="mono">2026-05-17 16:32:52</td>
+            <td>好的，我先开始检索领域知识和查看数据结构。</td>
+            <td><span class="tool">retrieve_knowledge</span> <span class="tool">retrieve_knowledge</span> <span class="tool">retrieve_knowledge</span> <span class="tool">retrieve_knowledge</span> <span class="tool">inspect_schema</span> <span class="tool">inspect_schema</span> <span class="tool">inspect_schema</span> </td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td class="mono">2026-05-17 16:33:03</td>
+            <td>非常好！我现在已经获取了所有关键信息。让我分析一下：
+
+**数据概况：**
+- `open_df`: 10万钱包信息（类型、等级、身份证、手机号、设备、IP、地</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td class="mono">2026-05-17 16:33:07</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td class="mono">2026-05-17 16:35:00</td>
+            <td>好的，L3增量不足但进入了缓刑池。继续生成其他维度特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td class="mono">2026-05-17 16:35:07</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td class="mono">2026-05-17 16:36:18</td>
+            <td>这个特征统计质量不够。让我换一个方向，聚焦在时间间隔和交易频率维度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td class="mono">2026-05-17 16:36:24</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td class="mono">2026-05-17 16:38:41</td>
+            <td>好的，又进入缓刑池。现在转向时间地域维度，这是一个很重要的维度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td class="mono">2026-05-17 16:38:46</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td class="mono">2026-05-17 16:39:21</td>
+            <td>需要修复wallet_id列名问题。`groupby('src')`后的reset_index列名是'src'，需要重命名。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td class="mono">2026-05-17 16:39:26</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td class="mono">2026-05-17 16:41:48</td>
+            <td>第一个通过的特征！夜间操作强度特征有效。现在继续生成其他维度特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td class="mono">2026-05-17 16:41:54</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td class="mono">2026-05-17 16:42:26</td>
+            <td>列名不一致问题，需要修复。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td class="mono">2026-05-17 16:42:32</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td class="mono">2026-05-17 16:43:03</td>
+            <td>问题出在apply返回的Series可能有多级索引。让我简化写法。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td class="mono">2026-05-17 16:43:08</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td class="mono">2026-05-17 16:43:45</td>
+            <td>IP跳变特征统计质量不够。换一个方向，尝试行为序列维度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td class="mono">2026-05-17 16:43:50</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td class="mono">2026-05-17 16:44:02</td>
+            <td>差一点就过了。让我尝试行为序列维度的另一个方向——交易模式序列分析。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td class="mono">2026-05-17 16:44:09</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td class="mono">2026-05-17 16:46:28</td>
+            <td>第二个特征通过了！虽然冗余度稍高但被接受了。现在继续探索主体关联维度和其他维度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td class="mono">2026-05-17 16:46:33</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td class="mono">2026-05-17 16:46:41</td>
+            <td>设备共享特征全为0/1，需要调整。让我换一个思路——从身份证和手机号关联角度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td class="mono">2026-05-17 16:46:45</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>26</td>
+            <td class="mono">2026-05-17 16:49:30</td>
+            <td>好的，感谢反馈！薄弱维度是**时间地域**和**行为序列**。我需要针对这两个维度重点探索，同时也要覆盖金额频次和主体关联。
+
+让我先看看缓刑池中的特征是否可以</td>
+            <td><span class="tool">evaluate_feature</span> <span class="tool">evaluate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>27</td>
+            <td class="mono">2026-05-17 16:51:21</td>
+            <td>`tx_interval_velocity` 通过缓刑评估了！现在已有3个特征。`amount_fan_out_ratio` 因冗余度太高未通过。
+
+现在开始第</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>28</td>
+            <td class="mono">2026-05-17 16:51:26</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td class="mono">2026-05-17 16:51:51</td>
+            <td>这个维度不理想。让我换一个角度——金额的波动模式。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td class="mono">2026-05-17 16:51:56</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>31</td>
+            <td class="mono">2026-05-17 16:54:27</td>
+            <td>第4个特征通过了！现在重点探索薄弱维度：时间地域和行为序列。
+
+## 时间地域维度</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>32</td>
+            <td class="mono">2026-05-17 16:54:33</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>33</td>
+            <td class="mono">2026-05-17 16:57:13</td>
+            <td>进入缓刑池。继续探索时间地域维度的另一个方向。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>34</td>
+            <td class="mono">2026-05-17 16:57:19</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>35</td>
+            <td class="mono">2026-05-17 16:59:28</td>
+            <td>第5个特征通过了！时间集中度特征有效。现在探索行为序列维度。
+
+## 行为序列维度</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>36</td>
+            <td class="mono">2026-05-17 16:59:33</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>37</td>
+            <td class="mono">2026-05-17 17:00:16</td>
+            <td>apply返回的Series列名被展开成多级索引了，需要修复。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>38</td>
+            <td class="mono">2026-05-17 17:00:22</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>39</td>
+            <td class="mono">2026-05-17 17:02:36</td>
+            <td>进入缓刑池。继续探索行为序列维度的另一个方向——交易用途偏离。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>40</td>
+            <td class="mono">2026-05-17 17:02:42</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>41</td>
+            <td class="mono">2026-05-17 17:03:18</td>
+            <td>motif特征区分度不好。现在探索主体关联维度。
+
+## 主体关联维度</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>42</td>
+            <td class="mono">2026-05-17 17:03:24</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>43</td>
+            <td class="mono">2026-05-17 17:03:37</td>
+            <td>冗余度太高。让我换一个更独特的主体关联角度——基于close_df的涉案特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>44</td>
+            <td class="mono">2026-05-17 17:03:42</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>45</td>
+            <td class="mono">2026-05-17 17:03:51</td>
+            <td>字符串列冲突。让我简化这个特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>46</td>
+            <td class="mono">2026-05-17 17:03:55</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>47</td>
+            <td class="mono">2026-05-17 17:04:06</td>
+            <td>close_df只有500条数据，传播范围有限。换个角度——从交易对手网络角度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>48</td>
+            <td class="mono">2026-05-17 17:04:12</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>49</td>
+            <td class="mono">2026-05-17 17:06:12</td>
+            <td>进入缓刑池。现在让我再尝试金额频次维度的最后一个方向，以及时间地域维度的补充特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>50</td>
+            <td class="mono">2026-05-17 17:06:17</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>51</td>
+            <td class="mono">2026-05-17 17:14:48</td>
+            <td>好的，薄弱维度是**时间地域**和**行为序列**，预算各5个。让我先评估缓刑池中的特征。</td>
+            <td><span class="tool">evaluate_feature</span> <span class="tool">evaluate_feature</span> <span class="tool">evaluate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>52</td>
+            <td class="mono">2026-05-17 17:20:13</td>
+            <td>缓刑池中的特征都没有通过。现在开始第三轮，重点探索时间地域和行为序列。
+
+先看金额频度（1个候选）：</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>53</td>
+            <td class="mono">2026-05-17 17:20:19</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>54</td>
+            <td class="mono">2026-05-17 17:20:34</td>
+            <td>level4_high_risk全为0，移除这个列。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>55</td>
+            <td class="mono">2026-05-17 17:20:39</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>56</td>
+            <td class="mono">2026-05-17 17:20:57</td>
+            <td>冗余度太高。现在重点探索时间地域维度（5个候选）。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>57</td>
+            <td class="mono">2026-05-17 17:21:03</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>58</td>
+            <td class="mono">2026-05-17 17:23:36</td>
+            <td>进入缓刑池。继续时间地域维度。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>59</td>
+            <td class="mono">2026-05-17 17:23:41</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>60</td>
+            <td class="mono">2026-05-17 17:24:22</td>
+            <td>又是多级索引问题。需要修复。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr></tbody>
+</table>
+</div>
+</details>
+</section>
+
+<!-- Run Info -->
+<section>
+<h2>运行配置</h2>
+<div class="card">
+<table>
+    <tr><td><strong>基线特征数</strong></td><td>95</td><td><strong>新增有效特征</strong></td><td>2</td></tr>
+    <tr><td><strong>Agent总步数</strong></td><td>191</td><td><strong>总尝试次数</strong></td><td>92</td></tr>
+    <tr><td><strong>结束原因</strong></td><td colspan="3">已生成30个候选特征，覆盖4个维度。共29个特征通过评估被接受，1个在缓刑池待评估。</td></tr>
+</table>
+</div>
+</section>
+
+</div>
+
+<script>
+window.addEventListener('load',()=>{document.querySelectorAll('.bar').forEach(b=>{const w=b.style.width;b.style.width='0%';setTimeout(()=>b.style.width=w,200)})});
+</script>
+</body>
+</html>

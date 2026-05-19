@@ -1,0 +1,31 @@
+{
+  "baseline": {
+    "f1": 0.9423488854259542,
+    "recall": 0.8916136626055104,
+    "precision": 0.9992601726263871,
+    "pr_auc": 0.9973891720125654
+  },
+  "combined": {
+    "f1": 0.9415529589798025,
+    "recall": 0.8900521579869405,
+    "precision": 0.999505562422744,
+    "pr_auc": 0.9974194305463971
+  },
+  "delta": {
+    "f1": -0.0007959264461516735,
+    "recall": -0.0015615046185699644,
+    "precision": 0.0002453897963569096,
+    "pr_auc": 3.0258533831761802e-05
+  },
+  "new_features_count": 8,
+  "new_feature_names": [
+    "night_transaction_ratio",
+    "rapid_in_out_ratio",
+    "amount_volatility_pattern",
+    "hour_concentration_entropy",
+    "amount_percentile_and_tail",
+    "weekend_holiday_tx_ratio",
+    "amount_sequence_trend",
+    "dst_diversity_and_concentration"
+  ]
+}

@@ -1,0 +1,1196 @@
+2026-05-17 16:30:45,386 [INFO] main: ============================================================
+2026-05-17 16:30:45,386 [INFO] main: 单Agent特征工程系统 - 启动
+2026-05-17 16:30:45,386 [INFO] main: ============================================================
+2026-05-17 16:30:45,386 [INFO] main: 时间: 2026-05-17T16:30:45.386637
+2026-05-17 16:30:45,386 [INFO] main: 模型: deepseek-chat, 最大步数: 250, 目标特征数: 30
+2026-05-17 16:30:45,386 [INFO] main: 日志文件: /root/大模型提取特征/outputs/single_agent_run/run_20260517_163045.log
+2026-05-17 16:30:45,386 [INFO] main: 
+[Step 1] 加载数据...
+2026-05-17 16:30:49,807 [INFO] main:   open_df: (100000, 16)
+2026-05-17 16:30:49,808 [INFO] main:   tx_df: (1384512, 20)
+2026-05-17 16:30:49,808 [INFO] main:   close_df: (500, 6)
+2026-05-17 16:30:49,808 [INFO] main: 
+[Step 2] 运行基线特征工程...
+2026-05-17 16:30:49,808 [INFO] main:   从缓存加载基线特征...
+2026-05-17 16:30:50,598 [INFO] main:   基线特征矩阵(缓存): (1384512, 106)
+2026-05-17 16:30:51,852 [INFO] main:   特征列数: 95 (去掉10个指定特征)
+2026-05-17 16:30:51,859 [INFO] main:   标签分布: pos=4484, neg=1380028, rate=0.3239%
+2026-05-17 16:30:51,859 [INFO] main: 
+[Step 2.5] 校准L2验证阈值...
+2026-05-17 16:31:33,845 [INFO] src.evaluation.calibration: L2 thresholds calibrated from 100 random noise features:
+  Noise IV distribution: min=0.000465, median=0.002012, p95=0.003826, max=0.006277
+  Noise KS distribution: min=0.006269, median=0.012454, p95=0.020130, max=0.022624
+  -> IV threshold: 0.003826
+  -> KS threshold: 0.020130
+2026-05-17 16:31:57,857 [INFO] src.evaluation.calibration: Baseline IV distribution (reference): min=0.000000, p25=0.042786, median=0.577971, p75=1.169835, max=4.034652
+2026-05-17 16:31:57,857 [INFO] src.evaluation.calibration: Baseline KS distribution (reference): min=0.000589, p25=0.104566, median=0.301848, p75=0.436499, max=0.749727
+2026-05-17 16:31:57,858 [INFO] main:   校准结果: IV_min=0.003826, KS_min=0.020130, corr_max=0.70
+2026-05-17 16:31:57,858 [INFO] main: 
+[Step 3] 计算基线CV指标（用于L3验证）...
+2026-05-17 16:32:46,810 [INFO] main:   基线CV指标: F1=0.944999, Recall=0.904101, PR-AUC=0.983285
+2026-05-17 16:32:46,810 [INFO] main: 
+[Step 4] 初始化并运行单Agent...
+2026-05-17 16:32:49,627 [INFO] src.agent.single_agent: === FeatureEngineerAgent 启动 ===
+2026-05-17 16:32:49,627 [INFO] src.agent.single_agent: 目标: 30 个特征, 最大步数: 250
+2026-05-17 16:32:50,338 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:32:52,244 [INFO] src.agent.single_agent: Step 1: retrieve_knowledge({"knowledge_type": "transaction_patterns"}) → ## 数据集交易模式说明
+
+### 正常模式
+
+1. 单笔交易（single_transaction）— 正常交易
+   - 时间间隔：交易频率适中，间隔具有一定随机性
+   - 交易模式：以单笔交易为主，少量存在转发行为
+   - 时间偏好：更倾向于白天和晚间活跃时段，较少出现在凌晨
+   - 生成逻辑：从源钱包随机选择目标钱包进行单次转账
+   - 适用钱包：适用于所有钱包类型
+
+2. 正常小
+2026-05-17 16:32:52,244 [INFO] src.agent.single_agent: Step 1: retrieve_knowledge({"knowledge_type": "expert_interview"}) → ## 数字人民币洗钱模式（来自专家访谈）
+
+### 模式1：薅羊毛
+特征：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动
+
+### 模式2：线下跑分
+特征：个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额
+
+### 模式3：线上跑分
+特征：凌晨高频交易(20时-1时)，分散转出(fan_out)模式，金额10-1000元
+
+### 模式4：商户收款码跑分
+特征：商户
+2026-05-17 16:32:52,443 [INFO] src.agent.single_agent: Step 1: retrieve_knowledge({"knowledge_type": "risk_indicators"}) → ## 风险分类指标（38个）
+
+### 交易行为异常类风险
+**金额与频次异常风险**
+- 单笔交易金额：单笔交易金额远超账户日常阈值
+- 一定周期内（如单日 / 单周）累计交易金额
+- 交易频率：短期内大额高频转账，可能涉及洗钱、非法集资
+- 高金额交易
+- 交易金额历史均值：交易金额波动剧烈，与历史均值偏离过大
+- 交易金额波动幅度
+- 多账户小额分散转账：拆分交易规避监管
+**时间与地域异常
+2026-05-17 16:32:52,459 [INFO] src.agent.single_agent: Step 1: retrieve_knowledge({"knowledge_type": "detection_rules"}) → ## 检测规则 Python 实现示例
+
+### 示例 1
+```python
+def feature_dormant_account_activation(open_df, tx_df, close_df):
+    """RULE_002: 休眠账户突然激活 — 开户后>=90天无交易后突然出现交易"""
+    import pandas as pd
+    open_df = open_d
+2026-05-17 16:32:52,490 [INFO] src.agent.single_agent: Step 1: inspect_schema({"table": "open_df"}) → ## open_df (shape: (100000, 16))
+| 列名 | 类型 | 非空数 | 示例值 |
+|------|------|--------|--------|
+| wallet_id | int64 | 100000 | 61775750196491 |
+| wallet_type | int64 | 100000 | 2 |
+| wallet_level | int64 |
+2026-05-17 16:32:52,597 [INFO] src.agent.single_agent: Step 1: inspect_schema({"table": "tx_df"}) → ## tx_df (shape: (1384512, 20))
+| 列名 | 类型 | 非空数 | 示例值 |
+|------|------|--------|--------|
+| tx_id | int64 | 1384512 | 3592 |
+| timestamp | str | 1384512 | 2024-07-01 09:20:29 |
+| src | int64 | 1384512
+2026-05-17 16:32:52,599 [INFO] src.agent.single_agent: Step 1: inspect_schema({"table": "close_df"}) → ## close_df (shape: (500, 6))
+| 列名 | 类型 | 非空数 | 示例值 |
+|------|------|--------|--------|
+| wallet_id | int64 | 500 | 54122321981570 |
+| zs_id | str | 500 | ZS000368 |
+| zs_channel | str | 500 | IS01 |
+
+2026-05-17 16:32:52,737 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:33:03,328 [INFO] src.agent.single_agent: Step 2: generate_feature({"feature_name": "amount_fan_out_ratio", "dimension": "amount_frequency", "code": "\ndef feature_amo) → 特征 'amount_fan_out_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:33:03,564 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:34:50,444 [INFO] src.agent.single_agent: L3 failed for amount_fan_out_ratio (delta_f1=-0.001904), added to pending pool (1 in pool)
+2026-05-17 16:34:50,456 [INFO] src.agent.single_agent: Step 3: execute_sandbox({"feature_name": "amount_fan_out_ratio", "code": "\ndef feature_amount_fan_out_ratio(open_df, tx_df,) → ✓ 沙箱执行成功！
+输出shape: (43142, 8)
+输出列: ['wallet_id', 'fan_out_ratio', 'amount_cv', 'amount_min_max_ratio', 'amount_per_dst', 'tx_count', 'unique_dst_count', 'mean_amount']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑
+2026-05-17 16:34:50,871 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:35:00,434 [INFO] src.agent.single_agent: Step 4: generate_feature({"feature_name": "amount_roundness_and_band", "dimension": "amount_frequency", "code": "\ndef featur) → 特征 'amount_roundness_and_band' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:35:00,590 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:36:10,144 [INFO] src.agent.single_agent: Step 5: execute_sandbox({"feature_name": "amount_roundness_and_band", "code": "\ndef feature_amount_roundness_and_band(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'round_100_ratio', 'near_limit_ratio', 'integer_amount_ratio', 'amount_entropy_norm', 'amount_median', 'amount_iqr']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.
+2026-05-17 16:36:10,494 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:36:18,479 [INFO] src.agent.single_agent: Step 6: generate_feature({"feature_name": "tx_interval_velocity", "dimension": "amount_frequency", "code": "\ndef feature_tx_) → 特征 'tx_interval_velocity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:36:18,655 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:38:33,111 [INFO] src.agent.single_agent: L3 failed for tx_interval_velocity (delta_f1=-0.000916), added to pending pool (2 in pool)
+2026-05-17 16:38:33,128 [INFO] src.agent.single_agent: Step 7: execute_sandbox({"feature_name": "tx_interval_velocity", "code": "\ndef feature_tx_interval_velocity(open_df, tx_df,) → ✓ 沙箱执行成功！
+输出shape: (43142, 9)
+输出列: ['wallet_id', 'mean_interval', 'min_interval', 'median_interval', 'interval_cv', 'rapid_tx_ratio', 'tx_per_hour', 'total_duration_hours', 'amount_flow_rate']
+
+--- 自动
+2026-05-17 16:38:33,521 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:38:41,060 [INFO] src.agent.single_agent: Step 8: generate_feature({"feature_name": "night_operation_intensity", "dimension": "time_region", "code": "\ndef feature_nig) → 特征 'night_operation_intensity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:38:41,231 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:39:14,607 [INFO] src.agent.single_agent: Step 9: execute_sandbox({"feature_name": "night_operation_intensity", "code": "\ndef feature_night_operation_intensity(open_) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 输出必须包含 tx_id 或 wallet_id 列
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 16:39:15,065 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:39:21,371 [INFO] src.agent.single_agent: Step 10: generate_feature({"feature_name": "night_operation_intensity", "dimension": "time_region", "code": "\ndef feature_nig) → 特征 'night_operation_intensity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:39:21,632 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:41:37,643 [INFO] src.agent.single_agent: Step 11: execute_sandbox({"feature_name": "night_operation_intensity", "code": "\ndef feature_night_operation_intensity(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 9)
+输出列: ['wallet_id', 'night_tx_ratio', 'dawn_tx_ratio', 'night_tx_count', 'night_amount_ratio', 'hour_entropy', 'peak_hour', 'night_avg_amount', 'day_avg_amount_ratio']
+
+--
+2026-05-17 16:41:38,072 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:41:48,659 [INFO] src.agent.single_agent: Step 12: generate_feature({"feature_name": "ip_region_jump_detector", "dimension": "time_region", "code": "\ndef feature_ip_re) → 特征 'ip_region_jump_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:41:48,825 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:42:19,680 [INFO] src.agent.single_agent: Step 13: execute_sandbox({"feature_name": "ip_region_jump_detector", "code": "\ndef feature_ip_region_jump_detector(open_df, ) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted
+2026-05-17 16:42:20,142 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:42:26,217 [INFO] src.agent.single_agent: Step 14: generate_feature({"feature_name": "ip_region_jump_detector", "dimension": "time_region", "code": "\ndef feature_ip_re) → 特征 'ip_region_jump_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:42:26,445 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:42:55,688 [INFO] src.agent.single_agent: Step 15: execute_sandbox({"feature_name": "ip_region_jump_detector", "code": "\ndef feature_ip_region_jump_detector(open_df, ) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted
+2026-05-17 16:42:56,223 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:43:03,295 [INFO] src.agent.single_agent: Step 16: generate_feature({"feature_name": "ip_region_jump_detector", "dimension": "time_region", "code": "\ndef feature_ip_re) → 特征 'ip_region_jump_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:43:03,554 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:43:36,544 [INFO] src.agent.single_agent: Step 17: execute_sandbox({"feature_name": "ip_region_jump_detector", "code": "\ndef feature_ip_region_jump_detector(open_df, ) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'unique_ip_count', 'unique_ip_prefix_count', 'ip_change_ratio', 'ip_prefix_change_ratio', 'ip_entropy_norm', 'high_ip_volatility']
+
+--- 自动评估结果 ---
+✗ L2
+2026-05-17 16:43:37,080 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:43:45,506 [INFO] src.agent.single_agent: Step 18: generate_feature({"feature_name": "dormant_activation_pattern", "dimension": "behavior_sequence", "code": "\ndef feat) → 特征 'dormant_activation_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:43:45,797 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:43:54,271 [INFO] src.agent.single_agent: Step 19: execute_sandbox({"feature_name": "dormant_activation_pattern", "code": "\ndef feature_dormant_activation_pattern(ope) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'days_to_first_tx', 'active_days', 'daily_tx_rate', 'is_dormant_activated', 'is_long_dormant', 'dormant_tx_density']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.
+2026-05-17 16:43:54,489 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:44:02,182 [INFO] src.agent.single_agent: Step 20: generate_feature({"feature_name": "transaction_mode_sequence_entropy", "dimension": "behavior_sequence", "code": "\nd) → 特征 'transaction_mode_sequence_entropy' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:44:04,531 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:46:21,532 [INFO] src.agent.single_agent: Step 21: execute_sandbox({"feature_name": "transaction_mode_sequence_entropy", "code": "\ndef feature_transaction_mode_sequen) → ✓ 沙箱执行成功！
+输出shape: (43142, 8)
+输出列: ['wallet_id', 'mode_entropy', 'mode_change_ratio', 'dominant_mode_ratio', 'unique_mode_count', 'fan_out_ratio', 'fan_in_ratio', 'complex_mode_ratio']
+
+--- 自动评估结果 ---
+2026-05-17 16:46:22,344 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:46:28,685 [INFO] src.agent.single_agent: Step 22: generate_feature({"feature_name": "device_sharing_network", "dimension": "entity_association", "code": "\ndef feature) → 特征 'device_sharing_network' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:46:29,063 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:46:35,570 [INFO] src.agent.single_agent: Step 23: execute_sandbox({"feature_name": "device_sharing_network", "code": "\ndef feature_device_sharing_network(open_df, tx) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 max_device_shared_wallets 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 16:46:35,874 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:46:41,163 [INFO] src.agent.single_agent: Step 24: generate_feature({"feature_name": "identity_multi_wallet_link", "dimension": "entity_association", "code": "\ndef fea) → 特征 'identity_multi_wallet_link' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:46:41,497 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:46:48,513 [INFO] src.agent.single_agent: Step 25: execute_sandbox({"feature_name": "identity_multi_wallet_link", "code": "\ndef feature_identity_multi_wallet_link(ope) → ✓ 沙箱执行成功！
+输出shape: (100000, 6)
+输出列: ['wallet_id', 'cert_wallet_count', 'tel_wallet_count', 'multi_wallet_same_cert', 'multi_wallet_same_tel', 'identity_reuse_score']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.
+2026-05-17 16:46:50,229 [INFO] src.evaluation.validator: Forward selection: 2 candidates, baseline F1=0.944999
+2026-05-17 16:48:33,555 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 16:49:24,222 [INFO] src.evaluation.validator: Forward selection done: 0 features selected, final F1=0.944459, Recall=0.9016, Precision=0.9917
+2026-05-17 16:49:24,336 [INFO] src.evaluation.validator: Pending pool evaluation: 0 accepted, 2 rejected
+2026-05-17 16:49:24,336 [INFO] src.agent.single_agent: Pending pool evaluation: 0 accepted, 2 rejected out of 2
+2026-05-17 16:49:27,031 [INFO] src.agent.single_agent: === Round 1 started (budget injected) ===
+2026-05-17 16:49:28,595 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:49:32,779 [INFO] src.agent.single_agent: Step 26: evaluate_feature({"feature_name": "amount_fan_out_ratio"}) → ✗ L2统计质量未通过
+IV: 0.0369
+KS: 0.0878
+冗余度: 0.8189
+缺失率: 0.00%
+原因: redundancy=0.8189>=0.7
+建议: 尝试不同的计算逻辑或探索其他维度。
+2026-05-17 16:51:13,667 [INFO] src.agent.single_agent: Step 26: evaluate_feature({"feature_name": "tx_interval_velocity"}) → ✓ 特征评估通过！已接受。(score=0.6561)
+IV: 0.0384
+KS: 0.0903
+冗余度: 0.6782
+SHAP Rank: #50
+Delta F1: -0.000191
+Delta Recall: 0.001118
+当前已接受特征数: 3/30
+缓刑池: 2 个待评估
+2026-05-17 16:51:14,196 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:51:21,401 [INFO] src.agent.single_agent: Step 27: generate_feature({"feature_name": "amount_small_testing_ratio", "dimension": "amount_frequency", "code": "\ndef featu) → 特征 'amount_small_testing_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:51:21,704 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:51:43,264 [INFO] src.agent.single_agent: Step 28: execute_sandbox({"feature_name": "amount_small_testing_ratio", "code": "\ndef feature_amount_small_testing_ratio(ope) → ✓ 沙箱执行成功！
+输出shape: (43142, 8)
+输出列: ['wallet_id', 'tiny_tx_ratio', 'small_tx_ratio', 'first_tx_small', 'small_tx_count', 'small_amount_mean', 'large_tx_ratio', 'test_then_large_risk']
+
+--- 自动评估结果 ---
+✗
+2026-05-17 16:51:43,865 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:51:51,766 [INFO] src.agent.single_agent: Step 29: generate_feature({"feature_name": "amount_rolling_volatility", "dimension": "amount_frequency", "code": "\ndef featur) → 特征 'amount_rolling_volatility' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:51:52,028 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:54:20,028 [INFO] src.agent.single_agent: Step 30: execute_sandbox({"feature_name": "amount_rolling_volatility", "code": "\ndef feature_amount_rolling_volatility(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 8)
+输出列: ['wallet_id', 'amount_volatility', 'max_jump_ratio', 'mean_jump_ratio', 'jump_std', 'high_jump_ratio', 'amount_skew', 'volatility_risk_score']
+
+--- 自动评估结果 ---
+✓ 特征评估
+2026-05-17 16:54:20,615 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:54:27,935 [INFO] src.agent.single_agent: Step 31: generate_feature({"feature_name": "weekend_holiday_tx_pattern", "dimension": "time_region", "code": "\ndef feature_we) → 特征 'weekend_holiday_tx_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:54:28,198 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:57:05,175 [INFO] src.agent.single_agent: L3 failed for weekend_holiday_tx_pattern (delta_f1=-0.000903), added to pending pool (3 in pool)
+2026-05-17 16:57:05,187 [INFO] src.agent.single_agent: Step 32: execute_sandbox({"feature_name": "weekend_holiday_tx_pattern", "code": "\ndef feature_weekend_holiday_tx_pattern(ope) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'weekend_tx_ratio', 'weekend_amount_ratio', 'weekday_night_ratio', 'tx_days_span', 'tx_per_day', 'consecutive_days_ratio']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已
+2026-05-17 16:57:05,663 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:57:13,777 [INFO] src.agent.single_agent: Step 33: generate_feature({"feature_name": "hourly_tx_concentration", "dimension": "time_region", "code": "\ndef feature_hourl) → 特征 'hourly_tx_concentration' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:57:14,050 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:59:20,742 [INFO] src.agent.single_agent: Step 34: execute_sandbox({"feature_name": "hourly_tx_concentration", "code": "\ndef feature_hourly_tx_concentration(open_df, ) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'peak_3h_concentration', 'peak_6h_concentration', 'gini_hour', 'night_peak_ratio', 'afternoon_peak_ratio', 'hour_range']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(
+2026-05-17 16:59:21,227 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 16:59:28,570 [INFO] src.agent.single_agent: Step 35: generate_feature({"feature_name": "counterparty_change_detector", "dimension": "behavior_sequence", "code": "\ndef fe) → 特征 'counterparty_change_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 16:59:28,793 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:00:08,405 [INFO] src.agent.single_agent: Step 36: execute_sandbox({"feature_name": "counterparty_change_detector", "code": "\ndef feature_counterparty_change_detector) → ✓ 沙箱执行成功！
+输出shape: (260280, 3)
+输出列: ['wallet_id', 'level_1', '0']
+
+--- 自动评估结果 ---
+合并后行数不匹配: 49391730 vs 1384512
+2026-05-17 17:00:09,183 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:00:16,613 [INFO] src.agent.single_agent: Step 37: generate_feature({"feature_name": "counterparty_change_detector", "dimension": "behavior_sequence", "code": "\ndef fe) → 特征 'counterparty_change_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:00:16,960 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:02:26,646 [INFO] src.agent.single_agent: L3 failed for counterparty_change_detector (delta_f1=-0.002891), added to pending pool (4 in pool)
+2026-05-17 17:02:26,667 [INFO] src.agent.single_agent: Step 38: execute_sandbox({"feature_name": "counterparty_change_detector", "code": "\ndef feature_counterparty_change_detector) → ✓ 沙箱执行成功！
+输出shape: (43142, 9)
+输出列: ['wallet_id', 'unique_dst_count', 'tx_count', 'unique_dst_ratio', 'dst_change_ratio', 'single_tx_dst_ratio', 'dst_entropy', 'top_dst_ratio', 'repeat_dst_ratio']
+
+---
+2026-05-17 17:02:27,383 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:02:36,614 [INFO] src.agent.single_agent: Step 39: generate_feature({"feature_name": "tx_motif_deviation_score", "dimension": "behavior_sequence", "code": "\ndef featur) → 特征 'tx_motif_deviation_score' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:02:36,952 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:09,820 [INFO] src.agent.single_agent: Step 40: execute_sandbox({"feature_name": "tx_motif_deviation_score", "code": "\ndef feature_tx_motif_deviation_score(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'risk_motif_ratio', 'motif_entropy', 'dominant_motif_ratio', 'unique_motif_count', 'small_amount_testing_ratio', 'laundering_motif_ratio']
+
+--- 自动评估结果 
+2026-05-17 17:03:10,519 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:18,767 [INFO] src.agent.single_agent: Step 41: generate_feature({"feature_name": "cross_transaction_network_density", "dimension": "entity_association", "code": "\n) → 特征 'cross_transaction_network_density' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:03:19,122 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:27,935 [INFO] src.agent.single_agent: Step 42: execute_sandbox({"feature_name": "cross_transaction_network_density", "code": "\ndef feature_cross_transaction_netwo) → ✓ 沙箱执行成功！
+输出shape: (43860, 10)
+输出列: ['wallet_id', 'src_tx_count', 'dst_tx_count', 'total_tx_count', 'send_receive_ratio', 'src_dst_diversity_ratio', 'net_outflow', 'net_outflow_ratio', 'pure_outflow_w
+2026-05-17 17:03:28,332 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:37,378 [INFO] src.agent.single_agent: Step 43: generate_feature({"feature_name": "zs_channel_risk_propagation", "dimension": "entity_association", "code": "\ndef fe) → 特征 'zs_channel_risk_propagation' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:03:37,865 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:43,735 [INFO] src.agent.single_agent: Step 44: execute_sandbox({"feature_name": "zs_channel_risk_propagation", "code": "\ndef feature_zs_channel_risk_propagation(o) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 64, in
+2026-05-17 17:03:44,133 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:51,035 [INFO] src.agent.single_agent: Step 45: generate_feature({"feature_name": "close_df_risk_propagation", "dimension": "entity_association", "code": "\ndef feat) → 特征 'close_df_risk_propagation' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:03:51,462 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:03:58,854 [INFO] src.agent.single_agent: Step 46: execute_sandbox({"feature_name": "close_df_risk_propagation", "code": "\ndef feature_close_df_risk_propagation(open_) → ✓ 沙箱执行成功！
+输出shape: (100000, 4)
+输出列: ['wallet_id', 'tel_risk_score', 'channel_risk_score', 'combined_risk_score']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0000
+KS: 0.0021
+冗余度: 0.0047
+缺失率: 0.00%
+原因: IV=0.00000
+2026-05-17 17:03:59,247 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:04:06,989 [INFO] src.agent.single_agent: Step 47: generate_feature({"feature_name": "wallet_degree_centrality", "dimension": "entity_association", "code": "\ndef featu) → 特征 'wallet_degree_centrality' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:04:07,487 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:06:04,326 [INFO] src.agent.single_agent: L3 failed for wallet_degree_centrality (delta_f1=-0.002891), added to pending pool (5 in pool)
+2026-05-17 17:06:04,340 [INFO] src.agent.single_agent: Step 48: execute_sandbox({"feature_name": "wallet_degree_centrality", "code": "\ndef feature_wallet_degree_centrality(open_df) → ✓ 沙箱执行成功！
+输出shape: (43860, 8)
+输出列: ['wallet_id', 'out_degree', 'in_degree', 'total_degree', 'degree_ratio', 'avg_tx_per_out', 'avg_tx_per_in', 'hub_score']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（5个待评估）
+IV:
+2026-05-17 17:06:05,259 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:06:12,607 [INFO] src.agent.single_agent: Step 49: generate_feature({"feature_name": "amount_commission_pattern", "dimension": "amount_frequency", "code": "\ndef featur) → 特征 'amount_commission_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:06:13,086 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:06:22,062 [INFO] src.agent.single_agent: Step 50: execute_sandbox({"feature_name": "amount_commission_pattern", "code": "\ndef feature_amount_commission_pattern(open_) → ✓ 沙箱执行成功！
+输出shape: (43860, 9)
+输出列: ['wallet_id', 'total_sent', 'total_received', 'total_volume', 'net_flow', 'retention_rate', 'commission_rate', 'typical_commission_range', 'fast_flow_risk']
+
+--- 自动评
+2026-05-17 17:06:24,052 [INFO] src.evaluation.validator: Forward selection: 5 candidates, baseline F1=0.944999
+2026-05-17 17:10:28,996 [INFO] src.evaluation.validator: Forward selection added tx_interval_velocity: F1=0.947222, Recall=0.9072, Precision=0.9910
+2026-05-17 17:13:55,056 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 17:14:40,770 [INFO] src.evaluation.validator: Forward selection done: 1 features selected, final F1=0.947222, Recall=0.9072, Precision=0.9910
+2026-05-17 17:14:40,884 [INFO] src.evaluation.validator: Pending pool evaluation: 1 accepted, 4 rejected
+2026-05-17 17:14:40,884 [INFO] src.agent.single_agent: Pending pool evaluation: 1 accepted, 4 rejected out of 5
+2026-05-17 17:14:40,891 [INFO] src.agent.single_agent: Accepted from pending pool: tx_interval_velocity (score=0.7689)
+2026-05-17 17:14:40,891 [INFO] src.search.pending_pool: Purged amount_fan_out_ratio: consecutive_rejects=2
+2026-05-17 17:14:40,891 [INFO] src.agent.single_agent: Purged 1 expired features from pending pool
+2026-05-17 17:14:46,342 [INFO] src.agent.single_agent: === Round 2 started (budget injected) ===
+2026-05-17 17:14:46,884 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:16:35,046 [INFO] src.agent.single_agent: L3 failed for weekend_holiday_tx_pattern (delta_f1=-0.004625), added to pending pool (3 in pool)
+2026-05-17 17:16:35,064 [INFO] src.agent.single_agent: Step 51: evaluate_feature({"feature_name": "weekend_holiday_tx_pattern"}) → △ L3模型增量不足，已加入缓刑池（3个待评估）
+IV: 0.0118, KS: 0.0334
+Delta F1: -0.004625
+Delta Recall: -0.007136
+注: 该特征统计上有区分力，将在后续轮次中与其他特征组合重新评估。
+建议: 继续探索其他方向，缓刑池特征可能在后续被接受。
+2026-05-17 17:18:21,817 [INFO] src.agent.single_agent: L3 failed for counterparty_change_detector (delta_f1=-0.002891), added to pending pool (3 in pool)
+2026-05-17 17:18:21,836 [INFO] src.agent.single_agent: Step 51: evaluate_feature({"feature_name": "counterparty_change_detector"}) → △ L3模型增量不足，已加入缓刑池（3个待评估）
+IV: 0.0172, KS: 0.0562
+Delta F1: -0.002891
+Delta Recall: -0.004237
+注: 该特征统计上有区分力，将在后续轮次中与其他特征组合重新评估。
+建议: 继续探索其他方向，缓刑池特征可能在后续被接受。
+2026-05-17 17:20:04,470 [INFO] src.agent.single_agent: L3 failed for wallet_degree_centrality (delta_f1=-0.002891), added to pending pool (3 in pool)
+2026-05-17 17:20:04,488 [INFO] src.agent.single_agent: Step 51: evaluate_feature({"feature_name": "wallet_degree_centrality"}) → △ L3模型增量不足，已加入缓刑池（3个待评估）
+IV: 0.0172, KS: 0.0562
+Delta F1: -0.002891
+Delta Recall: -0.004237
+注: 该特征统计上有区分力，将在后续轮次中与其他特征组合重新评估。
+建议: 继续探索其他方向，缓刑池特征可能在后续被接受。
+2026-05-17 17:20:05,298 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:20:13,878 [INFO] src.agent.single_agent: Step 52: generate_feature({"feature_name": "amount_per_tx_vs_wallet_level", "dimension": "amount_frequency", "code": "\ndef fe) → 特征 'amount_per_tx_vs_wallet_level' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:20:14,321 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:20:26,831 [INFO] src.agent.single_agent: Step 53: execute_sandbox({"feature_name": "amount_per_tx_vs_wallet_level", "code": "\ndef feature_amount_per_tx_vs_wallet_lev) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 level4_high_risk 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 17:20:27,506 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:20:34,307 [INFO] src.agent.single_agent: Step 54: generate_feature({"feature_name": "amount_per_tx_vs_wallet_level", "dimension": "amount_frequency", "code": "\ndef fe) → 特征 'amount_per_tx_vs_wallet_level' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:20:34,795 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:20:49,061 [INFO] src.agent.single_agent: Step 55: execute_sandbox({"feature_name": "amount_per_tx_vs_wallet_level", "code": "\ndef feature_amount_per_tx_vs_wallet_lev) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'max_amount', 'mean_amount', 'exceeds_limit', 'near_limit_ratio']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0382
+KS: 0.0903
+冗余度: 0.8657
+缺失率: 0.00%
+原因: redundan
+2026-05-17 17:20:49,692 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:20:57,431 [INFO] src.agent.single_agent: Step 56: generate_feature({"feature_name": "time_slot_transition_pattern", "dimension": "time_region", "code": "\ndef feature_) → 特征 'time_slot_transition_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:20:57,818 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:23:29,330 [INFO] src.agent.single_agent: L3 failed for time_slot_transition_pattern (delta_f1=-0.002124), added to pending pool (4 in pool)
+2026-05-17 17:23:29,344 [INFO] src.agent.single_agent: Step 57: execute_sandbox({"feature_name": "time_slot_transition_pattern", "code": "\ndef feature_time_slot_transition_pattern) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'day_night_transition_ratio', 'night_session_ratio', 'day_session_ratio', 'evening_session_ratio', 'slot_change_ratio', 'night_only_session']
+
+--- 自动评估
+2026-05-17 17:23:29,974 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:23:36,842 [INFO] src.agent.single_agent: Step 58: generate_feature({"feature_name": "device_ip_mismatch_score", "dimension": "time_region", "code": "\ndef feature_devi) → 特征 'device_ip_mismatch_score' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:23:37,154 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:24:15,576 [INFO] src.agent.single_agent: Step 59: execute_sandbox({"feature_name": "device_ip_mismatch_score", "code": "\ndef feature_device_ip_mismatch_score(open_df) → ✓ 沙箱执行成功！
+输出shape: (215710, 3)
+输出列: ['wallet_id', 'level_1', '0']
+
+--- 自动评估结果 ---
+合并后行数不匹配: 34131160 vs 1384512
+2026-05-17 17:24:16,299 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:24:22,818 [INFO] src.agent.single_agent: Step 60: generate_feature({"feature_name": "device_ip_mismatch_score", "dimension": "time_region", "code": "\ndef feature_devi) → 特征 'device_ip_mismatch_score' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:24:23,503 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:09,933 [INFO] src.agent.single_agent: Step 61: execute_sandbox({"feature_name": "device_ip_mismatch_score", "code": "\ndef feature_device_ip_mismatch_score(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'unique_device_count', 'device_per_tx', 'device_ip_ratio', 'device_change_ratio', 'device_entropy']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0000
+KS: 0.0049
+冗
+2026-05-17 17:25:10,768 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:17,884 [INFO] src.agent.single_agent: Step 62: generate_feature({"feature_name": "tx_burst_detector", "dimension": "time_region", "code": "\ndef feature_tx_burst_de) → 特征 'tx_burst_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:25:18,365 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:25,258 [INFO] src.agent.single_agent: Step 63: execute_sandbox({"feature_name": "tx_burst_detector", "code": "\ndef feature_tx_burst_detector(open_df, tx_df, close) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 68, in
+2026-05-17 17:25:25,654 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:32,575 [INFO] src.agent.single_agent: Step 64: generate_feature({"feature_name": "tx_burst_detector", "dimension": "time_region", "code": "\ndef feature_tx_burst_de) → 特征 'tx_burst_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:25:32,984 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:40,949 [INFO] src.agent.single_agent: Step 65: execute_sandbox({"feature_name": "tx_burst_detector", "code": "\ndef feature_tx_burst_detector(open_df, tx_df, close) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 71, in
+2026-05-17 17:25:41,551 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:25:48,405 [INFO] src.agent.single_agent: Step 66: generate_feature({"feature_name": "tx_burst_detector", "dimension": "time_region", "code": "\ndef feature_tx_burst_de) → 特征 'tx_burst_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:25:48,900 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:27:59,234 [INFO] src.agent.single_agent: L3 failed for tx_burst_detector (delta_f1=-0.001603), added to pending pool (5 in pool)
+2026-05-17 17:27:59,248 [INFO] src.agent.single_agent: Step 67: execute_sandbox({"feature_name": "tx_burst_detector", "code": "\ndef feature_tx_burst_detector(open_df, tx_df, close) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'short_interval_ratio', 'ultra_short_ratio', 'median_interval', 'burst_count', 'burst_ratio']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（5个待评估）
+IV: 0.0112, KS: 
+2026-05-17 17:27:59,930 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:28:07,055 [INFO] src.agent.single_agent: Step 68: generate_feature({"feature_name": "bank_cross_transaction_ratio", "dimension": "time_region", "code": "\ndef feature_) → 特征 'bank_cross_transaction_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:28:07,506 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:28:49,001 [INFO] src.agent.single_agent: Step 69: execute_sandbox({"feature_name": "bank_cross_transaction_ratio", "code": "\ndef feature_bank_cross_transaction_ratio) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'cross_bank_ratio', 'unique_src_banks', 'unique_dst_banks', 'bank_diversity']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0224
+KS: 0.0808
+冗余度: 0.7514
+缺失率: 0.00%
+
+2026-05-17 17:28:49,720 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:28:57,556 [INFO] src.agent.single_agent: Step 70: generate_feature({"feature_name": "tx_sequence_regularity", "dimension": "behavior_sequence", "code": "\ndef feature_) → 特征 'tx_sequence_regularity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:28:57,976 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:29:50,454 [INFO] src.agent.single_agent: Step 71: execute_sandbox({"feature_name": "tx_sequence_regularity", "code": "\ndef feature_tx_sequence_regularity(open_df, tx) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'interval_regularity', 'amount_regularity', 'interval_autocorr', 'amount_autocorr', 'pattern_repeat_score']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0052
+KS: 
+2026-05-17 17:29:51,230 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:29:59,755 [INFO] src.agent.single_agent: Step 72: generate_feature({"feature_name": "victim_operation_detector", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'victim_operation_detector' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:30:00,281 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:30:08,752 [INFO] src.agent.single_agent: Step 73: execute_sandbox({"feature_name": "victim_operation_detector", "code": "\ndef feature_victim_operation_detector(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'same_device_ratio', 'same_ip_ratio', 'env_consistency_score', 'device_ip_match_rate']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0000
+KS: 0.0049
+冗余度: 0.0107
+缺失
+2026-05-17 17:30:09,233 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:30:17,154 [INFO] src.agent.single_agent: Step 74: generate_feature({"feature_name": "daily_amount_limit_approach", "dimension": "behavior_sequence", "code": "\ndef fea) → 特征 'daily_amount_limit_approach' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:30:17,635 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:30:27,238 [INFO] src.agent.single_agent: Step 75: execute_sandbox({"feature_name": "daily_amount_limit_approach", "code": "\ndef feature_daily_amount_limit_approach(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'max_daily_amount', 'mean_daily_amount', 'max_daily_limit_ratio', 'mean_daily_limit_ratio', 'near_limit_day_ratio', 'consistent_near_limit']
+
+--- 自动评估结
+2026-05-17 17:30:28,910 [INFO] src.evaluation.validator: Forward selection: 5 candidates, baseline F1=0.944999
+2026-05-17 17:34:39,986 [INFO] src.evaluation.validator: Forward selection added tx_burst_detector: F1=0.945620, Recall=0.9066, Precision=0.9883
+2026-05-17 17:38:01,881 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 17:38:49,243 [INFO] src.evaluation.validator: Forward selection done: 1 features selected, final F1=0.945620, Recall=0.9066, Precision=0.9883
+2026-05-17 17:38:49,369 [INFO] src.evaluation.validator: Pending pool evaluation: 1 accepted, 4 rejected
+2026-05-17 17:38:49,369 [INFO] src.agent.single_agent: Pending pool evaluation: 1 accepted, 4 rejected out of 5
+2026-05-17 17:38:49,376 [INFO] src.agent.single_agent: Accepted from pending pool: tx_burst_detector (score=0.1331)
+2026-05-17 17:38:49,377 [INFO] src.search.pending_pool: Purged weekend_holiday_tx_pattern: consecutive_rejects=2
+2026-05-17 17:38:49,377 [INFO] src.search.pending_pool: Purged counterparty_change_detector: consecutive_rejects=2
+2026-05-17 17:38:49,377 [INFO] src.search.pending_pool: Purged wallet_degree_centrality: consecutive_rejects=2
+2026-05-17 17:38:49,377 [INFO] src.agent.single_agent: Purged 3 expired features from pending pool
+2026-05-17 17:38:56,183 [INFO] src.agent.single_agent: === Round 3 started (budget injected) ===
+2026-05-17 17:38:56,855 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:40:51,268 [INFO] src.agent.single_agent: Step 76: evaluate_feature({"feature_name": "time_slot_transition_pattern"}) → ✓ 特征评估通过！已接受。(score=0.2679)
+IV: 0.0205
+KS: 0.0596
+冗余度: 0.4958
+SHAP Rank: #67
+Delta F1: -0.001037
+Delta Recall: -0.003570
+当前已接受特征数: 8/30
+缓刑池: 1 个待评估
+2026-05-17 17:40:52,064 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:41:02,562 [INFO] src.agent.single_agent: Step 77: generate_feature({"feature_name": "hourly_amount_profile_deviation", "dimension": "time_region", "code": "\ndef featu) → 特征 'hourly_amount_profile_deviation' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:41:03,570 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:41:38,714 [INFO] src.agent.single_agent: Step 78: execute_sandbox({"feature_name": "hourly_amount_profile_deviation", "code": "\ndef feature_hourly_amount_profile_dev) → ✓ 沙箱执行成功！
+输出shape: (172568, 3)
+输出列: ['wallet_id', 'level_1', '0']
+
+--- 自动评估结果 ---
+合并后行数不匹配: 21863208 vs 1384512
+2026-05-17 17:41:39,292 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:41:47,300 [INFO] src.agent.single_agent: Step 79: generate_feature({"feature_name": "hourly_amount_profile_deviation", "dimension": "time_region", "code": "\ndef featu) → 特征 'hourly_amount_profile_deviation' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:41:47,796 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:43:59,617 [INFO] src.agent.single_agent: L3 failed for hourly_amount_profile_deviation (delta_f1=-0.001680), added to pending pool (2 in pool)
+2026-05-17 17:43:59,630 [INFO] src.agent.single_agent: Step 80: execute_sandbox({"feature_name": "hourly_amount_profile_deviation", "code": "\ndef feature_hourly_amount_profile_dev) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'night_amount_anomaly', 'hourly_profile_deviation', 'peak_hour_amount_ratio', 'offpeak_amount_ratio']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（2个待评估）
+IV: 0.00
+2026-05-17 17:44:00,262 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:44:10,134 [INFO] src.agent.single_agent: Step 81: generate_feature({"feature_name": "tx_interval_pattern_entropy", "dimension": "time_region", "code": "\ndef feature_t) → 特征 'tx_interval_pattern_entropy' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:44:10,566 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:46:23,527 [INFO] src.agent.single_agent: Step 82: execute_sandbox({"feature_name": "tx_interval_pattern_entropy", "code": "\ndef feature_tx_interval_pattern_entropy(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'interval_pattern_entropy', 'interval_cluster_score', 'short_interval_burst_ratio', 'long_pause_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.3977)
+IV:
+2026-05-17 17:46:24,258 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:46:31,740 [INFO] src.agent.single_agent: Step 83: generate_feature({"feature_name": "dst_ip_region_divergence", "dimension": "time_region", "code": "\ndef feature_dst_) → 特征 'dst_ip_region_divergence' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:46:32,244 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:48:44,118 [INFO] src.agent.single_agent: Step 84: execute_sandbox({"feature_name": "dst_ip_region_divergence", "code": "\ndef feature_dst_ip_region_divergence(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'unique_dst_ip_prefixes', 'dst_prefix_change_ratio', 'dst_prefix_entropy', 'dst_prefix_diversity']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.1387)
+IV: 0.01
+2026-05-17 17:48:44,934 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:48:52,664 [INFO] src.agent.single_agent: Step 85: generate_feature({"feature_name": "first_tx_time_anomaly", "dimension": "time_region", "code": "\ndef feature_first_t) → 特征 'first_tx_time_anomaly' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:48:53,106 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:48:59,383 [INFO] src.agent.single_agent: Step 86: execute_sandbox({"feature_name": "first_tx_time_anomaly", "code": "\ndef feature_first_tx_time_anomaly(open_df, tx_d) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 immediate_tx 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 17:48:59,779 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:49:05,053 [INFO] src.agent.single_agent: Step 87: generate_feature({"feature_name": "first_tx_time_anomaly", "dimension": "time_region", "code": "\ndef feature_first_t) → 特征 'first_tx_time_anomaly' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:49:05,468 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:49:10,991 [INFO] src.agent.single_agent: Step 88: execute_sandbox({"feature_name": "first_tx_time_anomaly", "code": "\ndef feature_first_tx_time_anomaly(open_df, tx_d) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 immediate_tx 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 17:49:11,483 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:49:17,209 [INFO] src.agent.single_agent: Step 89: generate_feature({"feature_name": "first_tx_time_anomaly", "dimension": "time_region", "code": "\ndef feature_first_t) → 特征 'first_tx_time_anomaly' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:49:17,699 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:49:26,301 [INFO] src.agent.single_agent: Step 90: execute_sandbox({"feature_name": "first_tx_time_anomaly", "code": "\ndef feature_first_tx_time_anomaly(open_df, tx_d) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'hours_to_first_tx', 'first_tx_hour', 'first_tx_night', 'first_tx_small_amount']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0036
+KS: 0.0161
+冗余度: 0.1181
+缺失率: 0.0
+2026-05-17 17:49:26,710 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:49:34,031 [INFO] src.agent.single_agent: Step 91: generate_feature({"feature_name": "region_tx_flow_imbalance", "dimension": "time_region", "code": "\ndef feature_regi) → 特征 'region_tx_flow_imbalance' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:49:34,430 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:50:47,451 [INFO] src.agent.single_agent: Step 92: execute_sandbox({"feature_name": "region_tx_flow_imbalance", "code": "\ndef feature_region_tx_flow_imbalance(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'cross_region_ratio', 'cross_region_amount_ratio', 'unique_dst_regions', 'region_flow_concentration']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0033
+KS: 0.0172
+2026-05-17 17:50:48,283 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:50:55,681 [INFO] src.agent.single_agent: Step 93: generate_feature({"feature_name": "wallet_lifecycle_velocity", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'wallet_lifecycle_velocity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:50:56,307 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:52:49,137 [INFO] src.agent.single_agent: Step 94: execute_sandbox({"feature_name": "wallet_lifecycle_velocity", "code": "\ndef feature_wallet_lifecycle_velocity(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 7)
+输出列: ['wallet_id', 'lifecycle_days', 'active_days', 'daily_tx_volume', 'daily_tx_count', 'short_life_high_volume', 'typical_laundering_lifecycle']
+
+--- 自动评估结果 ---
+✓ 特征评估通
+2026-05-17 17:52:49,854 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:52:57,035 [INFO] src.agent.single_agent: Step 95: generate_feature({"feature_name": "amount_dispersion_pattern", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'amount_dispersion_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:52:57,762 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:53:22,771 [INFO] src.agent.single_agent: Step 96: execute_sandbox({"feature_name": "amount_dispersion_pattern", "code": "\ndef feature_amount_dispersion_pattern(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'amount_dispersion_index', 'small_tx_ratio', 'medium_tx_ratio', 'large_tx_ratio', 'amount_bin_entropy']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0363
+KS: 0.08
+2026-05-17 17:53:23,735 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:53:30,470 [INFO] src.agent.single_agent: Step 97: generate_feature({"feature_name": "src_dst_wallet_level_mismatch", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'src_dst_wallet_level_mismatch' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:53:30,948 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:56:11,857 [INFO] src.agent.single_agent: Step 98: execute_sandbox({"feature_name": "src_dst_wallet_level_mismatch", "code": "\ndef feature_src_dst_wallet_level_mismat) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'level_up_ratio', 'level_down_ratio', 'level_same_ratio', 'mean_level_diff', 'level4_to_other_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.1342)
+IV: 0
+2026-05-17 17:56:12,791 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:56:18,984 [INFO] src.agent.single_agent: Step 99: generate_feature({"feature_name": "multi_channel_withdrawal_pattern", "dimension": "behavior_sequence", "code": "\nde) → 特征 'multi_channel_withdrawal_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 17:56:19,490 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 17:57:15,414 [INFO] src.agent.single_agent: Step 100: execute_sandbox({"feature_name": "multi_channel_withdrawal_pattern", "code": "\ndef feature_multi_channel_withdrawal) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'has_bank_ratio', 'cross_channel_ratio', 'avg_channel_count', 'unique_bank_patterns']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0295
+KS: 0.0796
+冗余度: 0.7887
+缺失率
+2026-05-17 17:57:17,486 [INFO] src.evaluation.validator: Forward selection: 2 candidates, baseline F1=0.944999
+2026-05-17 17:59:01,313 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 17:59:49,934 [INFO] src.evaluation.validator: Forward selection done: 0 features selected, final F1=0.941909, Recall=0.8983, Precision=0.9902
+2026-05-17 17:59:50,065 [INFO] src.evaluation.validator: Pending pool evaluation: 0 accepted, 2 rejected
+2026-05-17 17:59:50,065 [INFO] src.agent.single_agent: Pending pool evaluation: 0 accepted, 2 rejected out of 2
+2026-05-17 17:59:50,065 [INFO] src.search.pending_pool: Purged time_slot_transition_pattern: consecutive_rejects=2
+2026-05-17 17:59:50,065 [INFO] src.agent.single_agent: Purged 1 expired features from pending pool
+2026-05-17 17:59:55,837 [INFO] src.agent.single_agent: === Round 4 started (budget injected) ===
+2026-05-17 17:59:56,576 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:01:44,251 [INFO] src.agent.single_agent: Step 101: evaluate_feature({"feature_name": "hourly_amount_profile_deviation"}) → ✓ 特征评估通过！已接受。(score=0.6642)
+IV: 0.0093
+KS: 0.0296
+冗余度: 0.0072
+SHAP Rank: #57
+Delta F1: 0.002663
+Delta Recall: 0.005353
+当前已接受特征数: 13/30
+缓刑池: 1 个待评估
+2026-05-17 18:01:44,946 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:01:53,603 [INFO] src.agent.single_agent: Step 102: generate_feature({"feature_name": "src_ip_location_consistency", "dimension": "time_region", "code": "\ndef feature_s) → 特征 'src_ip_location_consistency' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:01:54,156 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:02:25,955 [INFO] src.agent.single_agent: Step 103: execute_sandbox({"feature_name": "src_ip_location_consistency", "code": "\ndef feature_src_ip_location_consistency(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'ip_a_change_ratio', 'ip_full_change_ratio', 'unique_ip_a_count', 'ip_a_entropy']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0000
+KS: 0.0052
+冗余度: 0.0132
+缺失率: 0.
+2026-05-17 18:02:26,641 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:02:34,340 [INFO] src.agent.single_agent: Step 104: generate_feature({"feature_name": "tx_date_gap_pattern", "dimension": "time_region", "code": "\ndef feature_tx_date_g) → 特征 'tx_date_gap_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:02:34,835 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:04:44,461 [INFO] src.agent.single_agent: Step 105: execute_sandbox({"feature_name": "tx_date_gap_pattern", "code": "\ndef feature_tx_date_gap_pattern(open_df, tx_df, c) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'avg_date_gap', 'max_date_gap', 'date_gap_std', 'consecutive_date_ratio', 'week_coverage_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2003)
+IV: 0.0106
+2026-05-17 18:04:45,442 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:04:50,970 [INFO] src.agent.single_agent: Step 106: generate_feature({"feature_name": "dst_device_diversity", "dimension": "time_region", "code": "\ndef feature_dst_devi) → 特征 'dst_device_diversity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:04:51,537 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:05:17,076 [INFO] src.agent.single_agent: Step 107: execute_sandbox({"feature_name": "dst_device_diversity", "code": "\ndef feature_dst_device_diversity(open_df, tx_df,) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'unique_dst_device_count', 'dst_device_ratio', 'dst_device_change_ratio', 'dst_device_entropy']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0172
+KS: 0.0562
+冗余度: 
+2026-05-17 18:05:17,826 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:05:25,287 [INFO] src.agent.single_agent: Step 108: generate_feature({"feature_name": "hourly_tx_volume_profile", "dimension": "time_region", "code": "\ndef feature_hour) → 特征 'hourly_tx_volume_profile' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:05:25,957 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:08:03,738 [INFO] src.agent.single_agent: Step 109: execute_sandbox({"feature_name": "hourly_tx_volume_profile", "code": "\ndef feature_hourly_tx_volume_profile(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'hourly_volume_skew', 'hourly_volume_kurtosis', 'peak_hour_tx_ratio', 'non_peak_hour_activity']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2234)
+IV: 0.0130
+
+2026-05-17 18:08:04,553 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:08:10,330 [INFO] src.agent.single_agent: Step 110: generate_feature({"feature_name": "amount_ratio_to_previous_tx", "dimension": "behavior_sequence", "code": "\ndef fea) → 特征 'amount_ratio_to_previous_tx' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:08:11,060 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:10:18,048 [INFO] src.agent.single_agent: Step 111: execute_sandbox({"feature_name": "amount_ratio_to_previous_tx", "code": "\ndef feature_amount_ratio_to_previous_tx(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'amount_ratio_mean', 'amount_ratio_std', 'amount_ratio_cv', 'same_amount_ratio', 'amount_increasing_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2401)
+2026-05-17 18:10:18,879 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:10:26,905 [INFO] src.agent.single_agent: Step 112: generate_feature({"feature_name": "tx_interval_zigzag", "dimension": "behavior_sequence", "code": "\ndef feature_tx_i) → 特征 'tx_interval_zigzag' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:10:27,491 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:11:05,555 [INFO] src.agent.single_agent: Step 113: execute_sandbox({"feature_name": "tx_interval_zigzag", "code": "\ndef feature_tx_interval_zigzag(open_df, tx_df, clo) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'interval_zigzag_count', 'interval_zigzag_ratio', 'interval_turning_point_ratio', 'interval_trend_strength']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0400
+KS:
+2026-05-17 18:11:06,256 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:11:12,999 [INFO] src.agent.single_agent: Step 114: generate_feature({"feature_name": "tx_motif_transition_matrix", "dimension": "behavior_sequence", "code": "\ndef feat) → 特征 'tx_motif_transition_matrix' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:11:13,586 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:11:37,535 [INFO] src.agent.single_agent: Step 115: execute_sandbox({"feature_name": "tx_motif_transition_matrix", "code": "\ndef feature_tx_motif_transition_matrix(ope) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'normal_to_risk_ratio', 'risk_to_normal_ratio', 'risk_persistence_ratio', 'normal_persistence_ratio', 'risk_ratio']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0
+2026-05-17 18:11:38,421 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:11:45,287 [INFO] src.agent.single_agent: Step 116: generate_feature({"feature_name": "tx_amount_momentum", "dimension": "behavior_sequence", "code": "\ndef feature_tx_a) → 特征 'tx_amount_momentum' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:11:45,919 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:14:05,920 [INFO] src.agent.single_agent: Step 117: execute_sandbox({"feature_name": "tx_amount_momentum", "code": "\ndef feature_tx_amount_momentum(open_df, tx_df, clo) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'amount_momentum', 'amount_acceleration', 'upward_trend_strength', 'downward_trend_strength', 'amount_range_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score
+2026-05-17 18:14:06,715 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:14:14,166 [INFO] src.agent.single_agent: Step 118: generate_feature({"feature_name": "amount_interval_correlation", "dimension": "amount_frequency", "code": "\ndef feat) → 特征 'amount_interval_correlation' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:14:14,683 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:16:56,095 [INFO] src.agent.single_agent: Step 119: execute_sandbox({"feature_name": "amount_interval_correlation", "code": "\ndef feature_amount_interval_correlation(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'amount_interval_corr', 'amount_interval_spearman', 'amount_interval_mutual_info', 'amount_given_interval_std']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.4
+2026-05-17 18:16:57,212 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:17:03,107 [INFO] src.agent.single_agent: Step 120: generate_feature({"feature_name": "shared_ip_cluster_risk", "dimension": "entity_association", "code": "\ndef feature) → 特征 'shared_ip_cluster_risk' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:17:03,785 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:17:12,168 [INFO] src.agent.single_agent: Step 121: execute_sandbox({"feature_name": "shared_ip_cluster_risk", "code": "\ndef feature_shared_ip_cluster_risk(open_df, tx) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'max_ip_shared_wallets', 'mean_ip_shared_wallets', 'ip_sharing_density', 'high_ip_sharing_risk']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0049
+KS: 0.0199
+冗余度:
+2026-05-17 18:17:12,891 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:17:19,634 [INFO] src.agent.single_agent: Step 122: generate_feature({"feature_name": "wallet_type_behavior_mismatch", "dimension": "entity_association", "code": "\ndef ) → 特征 'wallet_type_behavior_mismatch' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:17:20,594 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:19:39,246 [INFO] src.agent.single_agent: Step 123: execute_sandbox({"feature_name": "wallet_type_behavior_mismatch", "code": "\ndef feature_wallet_type_behavior_mismat) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'complex_mode_ratio', 'personal_complex_tx', 'merchant_fan_out', 'level4_high_volume']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.3739)
+IV: 0.0215
+KS: 0.056
+2026-05-17 18:19:40,062 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:19:47,097 [INFO] src.agent.single_agent: Step 124: generate_feature({"feature_name": "wallet_open_time_anomaly", "dimension": "entity_association", "code": "\ndef featu) → 特征 'wallet_open_time_anomaly' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:19:47,725 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:19:53,437 [INFO] src.agent.single_agent: Step 125: execute_sandbox({"feature_name": "wallet_open_time_anomaly", "code": "\ndef feature_wallet_open_time_anomaly(open_df) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 batch_open_same_tel 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:19:55,667 [INFO] src.evaluation.validator: Forward selection: 1 candidates, baseline F1=0.944999
+2026-05-17 18:20:45,389 [INFO] src.evaluation.validator: Forward selection added hourly_amount_profile_deviation: F1=0.946097, Recall=0.9068, Precision=0.9890
+2026-05-17 18:21:34,758 [INFO] src.evaluation.validator: Forward selection done: 1 features selected, final F1=0.946097, Recall=0.9068, Precision=0.9890
+2026-05-17 18:21:34,906 [INFO] src.evaluation.validator: Pending pool evaluation: 1 accepted, 0 rejected
+2026-05-17 18:21:34,906 [INFO] src.agent.single_agent: Pending pool evaluation: 1 accepted, 0 rejected out of 1
+2026-05-17 18:21:34,914 [INFO] src.agent.single_agent: Accepted from pending pool: hourly_amount_profile_deviation (score=0.4380)
+2026-05-17 18:21:40,789 [INFO] src.agent.single_agent: === Round 5 started (budget injected) ===
+2026-05-17 18:21:41,732 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:21:46,958 [INFO] src.agent.single_agent: Step 126: generate_feature({"feature_name": "wallet_open_time_anomaly", "dimension": "entity_association", "code": "\ndef featu) → 特征 'wallet_open_time_anomaly' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:21:47,582 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:21:54,727 [INFO] src.agent.single_agent: Step 127: execute_sandbox({"feature_name": "wallet_open_time_anomaly", "code": "\ndef feature_wallet_open_time_anomaly(open_df) → ✓ 沙箱执行成功！
+输出shape: (100000, 6)
+输出列: ['wallet_id', 'open_hour', 'open_at_night', 'tel_wallet_count', 'tel_open_span_hours', 'cert_wallet_count']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0036
+KS: 0.0118
+冗余度: 0
+2026-05-17 18:21:55,522 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:22:01,555 [INFO] src.agent.single_agent: Step 128: generate_feature({"feature_name": "time_since_last_tx_ratio", "dimension": "time_region", "code": "\ndef feature_time) → 特征 'time_since_last_tx_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:22:02,450 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:24:37,353 [INFO] src.agent.single_agent: L3 failed for time_since_last_tx_ratio (delta_f1=-0.004549), added to pending pool (1 in pool)
+2026-05-17 18:24:37,365 [INFO] src.agent.single_agent: Step 129: execute_sandbox({"feature_name": "time_since_last_tx_ratio", "code": "\ndef feature_time_since_last_tx_ratio(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'interval_q25', 'interval_q75', 'interval_iqr', 'interval_skew', 'short_interval_density']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（1个待评估）
+IV: 0.0178, KS: 0.0
+2026-05-17 18:24:38,078 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:24:44,364 [INFO] src.agent.single_agent: Step 130: generate_feature({"feature_name": "device_region_consistency", "dimension": "time_region", "code": "\ndef feature_dev) → 特征 'device_region_consistency' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:24:45,150 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:24:51,539 [INFO] src.agent.single_agent: Step 131: execute_sandbox({"feature_name": "device_region_consistency", "code": "\ndef feature_device_region_consistency(open_) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 max_device_ip_count 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:24:52,137 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:24:57,723 [INFO] src.agent.single_agent: Step 132: generate_feature({"feature_name": "tx_timestamp_second_distribution", "dimension": "time_region", "code": "\ndef feat) → 特征 'tx_timestamp_second_distribution' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:24:58,198 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:25:21,562 [INFO] src.agent.single_agent: Step 133: execute_sandbox({"feature_name": "tx_timestamp_second_distribution", "code": "\ndef feature_tx_timestamp_second_dist) → ✓ 沙箱执行成功！
+输出shape: (132762, 3)
+输出列: ['wallet_id', 'level_1', '0']
+
+--- 自动评估结果 ---
+合并后行数不匹配: 12643173 vs 1384512
+2026-05-17 18:25:22,916 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:25:26,291 [INFO] src.agent.single_agent: Step 134: generate_feature({"feature_name": "tx_timestamp_second_distribution", "dimension": "time_region", "code": "\ndef feat) → 特征 'tx_timestamp_second_distribution' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:25:27,154 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:25:49,453 [INFO] src.agent.single_agent: Step 135: execute_sandbox({"feature_name": "tx_timestamp_second_distribution", "code": "\ndef feature_tx_timestamp_second_dist) → ✓ 沙箱执行成功！
+输出shape: (43142, 4)
+输出列: ['wallet_id', 'second_entropy', 'second_concentration', 'round_second_ratio']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0284
+KS: 0.0767
+冗余度: 0.7665
+缺失率: 0.00%
+原因: redundancy
+2026-05-17 18:25:50,247 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:25:55,999 [INFO] src.agent.single_agent: Step 136: generate_feature({"feature_name": "tx_frequency_weekend_ratio", "dimension": "time_region", "code": "\ndef feature_tx) → 特征 'tx_frequency_weekend_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:25:56,644 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:27:20,462 [INFO] src.agent.single_agent: Step 137: execute_sandbox({"feature_name": "tx_frequency_weekend_ratio", "code": "\ndef feature_tx_frequency_weekend_ratio(ope) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'weekend_tx_per_day', 'weekday_tx_per_day', 'weekend_weekday_ratio', 'weekend_amount_per_day', 'weekend_active_days']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0
+2026-05-17 18:27:21,336 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:27:27,006 [INFO] src.agent.single_agent: Step 138: generate_feature({"feature_name": "tx_sequence_consistency_score", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'tx_sequence_consistency_score' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:27:27,656 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:29:42,929 [INFO] src.agent.single_agent: Step 139: execute_sandbox({"feature_name": "tx_sequence_consistency_score", "code": "\ndef feature_tx_sequence_consistency_sco) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'amount_consistency', 'mode_consistency', 'interval_consistency', 'overall_consistency']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.1287)
+IV: 0.0219
+KS: 0.0
+2026-05-17 18:29:44,922 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:29:52,227 [INFO] src.agent.single_agent: Step 140: generate_feature({"feature_name": "amount_ending_digit_pattern", "dimension": "amount_frequency", "code": "\ndef feat) → 特征 'amount_ending_digit_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:29:53,089 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:32:18,617 [INFO] src.agent.single_agent: Step 141: execute_sandbox({"feature_name": "amount_ending_digit_pattern", "code": "\ndef feature_amount_ending_digit_pattern(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'round_hundred_ratio', 'round_thousand_ratio', 'last_digit_entropy', 'zero_last_digit_ratio', 'common_last_two_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(sc
+2026-05-17 18:32:24,878 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:32:30,231 [INFO] src.agent.single_agent: Step 142: generate_feature({"feature_name": "fan_in_fan_out_ratio_sequence", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'fan_in_fan_out_ratio_sequence' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:32:30,966 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:32:53,780 [INFO] src.agent.single_agent: Step 143: execute_sandbox({"feature_name": "fan_in_fan_out_ratio_sequence", "code": "\ndef feature_fan_in_fan_out_ratio_sequen) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 single_ratio 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:32:55,030 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:33:01,362 [INFO] src.agent.single_agent: Step 144: generate_feature({"feature_name": "fan_in_fan_out_ratio_sequence", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'fan_in_fan_out_ratio_sequence' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:33:04,849 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:33:28,401 [INFO] src.agent.single_agent: Step 145: execute_sandbox({"feature_name": "fan_in_fan_out_ratio_sequence", "code": "\ndef feature_fan_in_fan_out_ratio_sequen) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'fan_out_ratio', 'fan_in_ratio', 'complex_ratio', 'fan_out_dominance']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0340
+KS: 0.0876
+冗余度: 0.8042
+缺失率: 0.00%
+原因: red
+2026-05-17 18:33:29,707 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:33:35,994 [INFO] src.agent.single_agent: Step 146: generate_feature({"feature_name": "tx_daily_pattern_shift", "dimension": "time_region", "code": "\ndef feature_tx_dai) → 特征 'tx_daily_pattern_shift' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:33:36,485 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:35:05,034 [INFO] src.agent.single_agent: Step 147: execute_sandbox({"feature_name": "tx_daily_pattern_shift", "code": "\ndef feature_tx_daily_pattern_shift(open_df, tx) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'hour_trend_slope', 'hour_std_between_days', 'daily_hour_range_avg', 'hour_shift_rate']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0056
+KS: 0.0197
+冗余度: 0.0603
+缺
+2026-05-17 18:35:06,307 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:35:12,498 [INFO] src.agent.single_agent: Step 148: generate_feature({"feature_name": "tx_device_rotation_rate", "dimension": "behavior_sequence", "code": "\ndef feature) → 特征 'tx_device_rotation_rate' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:35:13,312 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:36:32,557 [INFO] src.agent.single_agent: Step 149: execute_sandbox({"feature_name": "tx_device_rotation_rate", "code": "\ndef feature_tx_device_rotation_rate(open_df, ) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'device_rotation_rate', 'device_return_ratio', 'device_session_count', 'avg_tx_per_device_session']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0000
+KS: 0.0049
+冗
+2026-05-17 18:36:35,003 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:36:41,738 [INFO] src.agent.single_agent: Step 150: generate_feature({"feature_name": "tx_amount_sequence_complexity", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'tx_amount_sequence_complexity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:36:43,948 [INFO] src.evaluation.validator: Forward selection: 1 candidates, baseline F1=0.944999
+2026-05-17 18:37:34,196 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 18:38:27,521 [INFO] src.evaluation.validator: Forward selection done: 0 features selected, final F1=0.943680, Recall=0.9016, Precision=0.9900
+2026-05-17 18:38:27,672 [INFO] src.evaluation.validator: Pending pool evaluation: 0 accepted, 1 rejected
+2026-05-17 18:38:27,672 [INFO] src.agent.single_agent: Pending pool evaluation: 0 accepted, 1 rejected out of 1
+2026-05-17 18:38:34,166 [INFO] src.agent.single_agent: === Round 6 started (budget injected) ===
+2026-05-17 18:38:35,273 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:40:26,242 [INFO] src.agent.single_agent: L3 failed for time_since_last_tx_ratio (delta_f1=-0.001386), added to pending pool (1 in pool)
+2026-05-17 18:40:26,255 [INFO] src.agent.single_agent: Step 151: evaluate_feature({"feature_name": "time_since_last_tx_ratio"}) → △ L3模型增量不足，已加入缓刑池（1个待评估）
+IV: 0.0178, KS: 0.0857
+Delta F1: -0.001386
+Delta Recall: -0.002004
+注: 该特征统计上有区分力，将在后续轮次中与其他特征组合重新评估。
+建议: 继续探索其他方向，缓刑池特征可能在后续被接受。
+2026-05-17 18:40:27,457 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:42:02,938 [INFO] src.agent.single_agent: Step 152: execute_sandbox({"feature_name": "tx_amount_sequence_complexity", "code": "\ndef feature_tx_amount_sequence_complexi) → ✗ 沙箱执行失败
+错误信息: 执行失败: 执行超时 (90s)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:42:04,465 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:42:09,813 [INFO] src.agent.single_agent: Step 153: generate_feature({"feature_name": "tx_amount_sequence_complexity", "dimension": "behavior_sequence", "code": "\ndef f) → 特征 'tx_amount_sequence_complexity' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:42:10,389 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:44:26,954 [INFO] src.agent.single_agent: Step 154: execute_sandbox({"feature_name": "tx_amount_sequence_complexity", "code": "\ndef feature_tx_amount_sequence_complexi) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'amount_unique_ratio', 'amount_run_ratio', 'amount_change_direction_entropy', 'amount_repeat_ratio']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2573)
+IV: 0.
+2026-05-17 18:44:28,442 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:44:33,610 [INFO] src.agent.single_agent: Step 155: generate_feature({"feature_name": "tx_interval_first_vs_rest", "dimension": "time_region", "code": "\ndef feature_tx_) → 特征 'tx_interval_first_vs_rest' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:44:34,356 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:46:49,654 [INFO] src.agent.single_agent: Step 156: execute_sandbox({"feature_name": "tx_interval_first_vs_rest", "code": "\ndef feature_tx_interval_first_vs_rest(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'first_interval', 'rest_mean_interval', 'first_rest_ratio', 'first_is_short']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.4504)
+IV: 0.0132
+KS: 0.0451
+冗余度: 0.
+2026-05-17 18:46:51,116 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:46:56,909 [INFO] src.agent.single_agent: Step 157: generate_feature({"feature_name": "tx_interval_reversal_pattern", "dimension": "behavior_sequence", "code": "\ndef fe) → 特征 'tx_interval_reversal_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:46:58,019 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:47:35,954 [INFO] src.agent.single_agent: Step 158: execute_sandbox({"feature_name": "tx_interval_reversal_pattern", "code": "\ndef feature_tx_interval_reversal_pattern) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'first_half_mean_interval', 'second_half_mean_interval', 'interval_slope', 'interval_acceleration']
+
+--- 自动评估结果 ---
+✗ L2统计质量未通过
+IV: 0.0383
+KS: 0.0872
+冗
+2026-05-17 18:47:38,336 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:47:44,800 [INFO] src.agent.single_agent: Step 159: generate_feature({"feature_name": "tx_mode_switch_frequency", "dimension": "behavior_sequence", "code": "\ndef featur) → 特征 'tx_mode_switch_frequency' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:47:45,415 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:49:59,212 [INFO] src.agent.single_agent: Step 160: execute_sandbox({"feature_name": "tx_mode_switch_frequency", "code": "\ndef feature_tx_mode_switch_frequency(open_df) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'mode_switch_count', 'mode_switch_rate', 'mode_persistence', 'mode_transition_entropy']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.1150)
+IV: 0.0071
+KS: 0.03
+2026-05-17 18:50:08,218 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:50:13,916 [INFO] src.agent.single_agent: Step 161: generate_feature({"feature_name": "tx_amount_roundness_ratio", "dimension": "amount_frequency", "code": "\ndef featur) → 特征 'tx_amount_roundness_ratio' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:50:14,709 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:52:33,279 [INFO] src.agent.single_agent: Step 162: execute_sandbox({"feature_name": "tx_amount_roundness_ratio", "code": "\ndef feature_tx_amount_roundness_ratio(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 6)
+输出列: ['wallet_id', 'integer_ratio', 'round_10_ratio', 'round_100_ratio', 'round_1000_ratio', 'roundness_score']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2338)
+IV: 0.0074
+KS:
+2026-05-17 18:52:34,537 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:52:40,217 [INFO] src.agent.single_agent: Step 163: generate_feature({"feature_name": "tx_amount_clustering_entropy", "dimension": "amount_frequency", "code": "\ndef fea) → 特征 'tx_amount_clustering_entropy' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:52:40,973 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:54:56,656 [INFO] src.agent.single_agent: L3 failed for tx_amount_clustering_entropy (delta_f1=-0.001245), added to pending pool (2 in pool)
+2026-05-17 18:54:56,665 [INFO] src.agent.single_agent: Step 164: execute_sandbox({"feature_name": "tx_amount_clustering_entropy", "code": "\ndef feature_tx_amount_clustering_entropy) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'amount_cluster_entropy', 'amount_mode_ratio', 'amount_top3_ratio', 'amount_value_density']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（2个待评估）
+IV: 0.0116, KS: 0.
+2026-05-17 18:54:57,886 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:55:05,411 [INFO] src.agent.single_agent: Step 165: generate_feature({"feature_name": "tx_reciprocal_network_features", "dimension": "entity_association", "code": "\ndef) → 特征 'tx_reciprocal_network_features' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:55:06,414 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:56:41,054 [INFO] src.agent.single_agent: Step 166: execute_sandbox({"feature_name": "tx_reciprocal_network_features", "code": "\ndef feature_tx_reciprocal_network_feat) → ✗ 沙箱执行失败
+错误信息: 执行失败: 执行超时 (90s)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:56:42,215 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:56:47,396 [INFO] src.agent.single_agent: Step 167: generate_feature({"feature_name": "tx_reciprocal_network_features", "dimension": "entity_association", "code": "\ndef) → 特征 'tx_reciprocal_network_features' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:56:48,251 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:58:50,358 [INFO] src.agent.single_agent: Step 168: execute_sandbox({"feature_name": "tx_reciprocal_network_features", "code": "\ndef feature_tx_reciprocal_network_feat) → ✓ 沙箱执行成功！
+输出shape: (43860, 5)
+输出列: ['wallet_id', 'out_degree', 'in_degree', 'degree_ratio', 'is_both_src_dst']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.3832)
+IV: 0.0172
+KS: 0.0562
+冗余度: 0.6673
+SHAP Rank: 
+2026-05-17 18:58:51,830 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:58:57,185 [INFO] src.agent.single_agent: Step 169: generate_feature({"feature_name": "tx_bank_switching_pattern", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'tx_bank_switching_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:58:57,943 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:05,727 [INFO] src.agent.single_agent: Step 170: execute_sandbox({"feature_name": "tx_bank_switching_pattern", "code": "\ndef feature_tx_bank_switching_pattern(open_) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 68, in
+2026-05-17 18:59:06,476 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:11,522 [INFO] src.agent.single_agent: Step 171: generate_feature({"feature_name": "tx_bank_switching_pattern", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'tx_bank_switching_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:59:12,504 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:42,259 [INFO] src.agent.single_agent: Step 172: execute_sandbox({"feature_name": "tx_bank_switching_pattern", "code": "\ndef feature_tx_bank_switching_pattern(open_) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 src_bank_change_ratio 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 18:59:43,419 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:48,914 [INFO] src.agent.single_agent: Step 173: generate_feature({"feature_name": "tx_amount_ratio_to_limit", "dimension": "amount_frequency", "code": "\ndef feature) → 特征 'tx_amount_ratio_to_limit' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 18:59:49,649 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:54,236 [INFO] src.agent.single_agent: Step 174: execute_sandbox({"feature_name": "tx_amount_ratio_to_limit", "code": "\ndef feature_tx_amount_ratio_to_limit(open_df) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 56, in
+2026-05-17 18:59:55,013 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 18:59:59,623 [INFO] src.agent.single_agent: Step 175: generate_feature({"feature_name": "tx_amount_ratio_to_limit", "dimension": "amount_frequency", "code": "\ndef feature) → 特征 'tx_amount_ratio_to_limit' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:00:02,334 [INFO] src.evaluation.validator: Forward selection: 2 candidates, baseline F1=0.944999
+2026-05-17 19:01:48,224 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 19:02:38,545 [INFO] src.evaluation.validator: Forward selection done: 0 features selected, final F1=0.946846, Recall=0.9095, Precision=0.9877
+2026-05-17 19:02:38,689 [INFO] src.evaluation.validator: Pending pool evaluation: 0 accepted, 2 rejected
+2026-05-17 19:02:38,689 [INFO] src.agent.single_agent: Pending pool evaluation: 0 accepted, 2 rejected out of 2
+2026-05-17 19:02:38,689 [INFO] src.search.pending_pool: Purged time_since_last_tx_ratio: consecutive_rejects=2
+2026-05-17 19:02:38,689 [INFO] src.agent.single_agent: Purged 1 expired features from pending pool
+2026-05-17 19:02:44,847 [INFO] src.agent.single_agent: === Round 7 started (budget injected) ===
+2026-05-17 19:02:46,043 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:02:51,619 [INFO] src.agent.single_agent: Step 176: execute_sandbox({"feature_name": "tx_amount_ratio_to_limit", "code": "\ndef feature_tx_amount_ratio_to_limit(open_df) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 56, in
+2026-05-17 19:02:52,260 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:02:57,298 [INFO] src.agent.single_agent: Step 177: generate_feature({"feature_name": "tx_amount_ratio_to_limit", "dimension": "amount_frequency", "code": "\ndef feature) → 特征 'tx_amount_ratio_to_limit' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:02:58,465 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:03:03,443 [INFO] src.agent.single_agent: Step 178: execute_sandbox({"feature_name": "tx_amount_ratio_to_limit", "code": "\ndef feature_tx_amount_ratio_to_limit(open_df) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/大模型提取特征/src/evaluation/sandbox.py", line 92, in _run_in_process
+    exec(code, global_ns, local_ns)
+  File "<string>", line 49, in
+2026-05-17 19:03:04,239 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:03:09,090 [INFO] src.agent.single_agent: Step 179: generate_feature({"feature_name": "tx_amount_ratio_to_limit", "dimension": "amount_frequency", "code": "\ndef feature) → 特征 'tx_amount_ratio_to_limit' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:03:09,803 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:03:15,202 [INFO] src.agent.single_agent: Step 180: execute_sandbox({"feature_name": "tx_amount_ratio_to_limit", "code": "\ndef feature_tx_amount_ratio_to_limit(open_df) → ✗ 沙箱执行失败
+错误信息: 执行失败: Traceback (most recent call last):
+  File "/root/miniconda3/lib/python3.12/site-packages/pandas/core/indexes/base.py", line 3641, in get_loc
+    return self._engine.get_loc(casted
+2026-05-17 19:03:15,845 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:03:20,536 [INFO] src.agent.single_agent: Step 181: generate_feature({"feature_name": "tx_amount_ratio_to_limit_v2", "dimension": "amount_frequency", "code": "\ndef feat) → 特征 'tx_amount_ratio_to_limit_v2' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:03:21,261 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:05:26,269 [INFO] src.agent.single_agent: Step 182: execute_sandbox({"feature_name": "tx_amount_ratio_to_limit_v2", "code": "\ndef feature_tx_amount_ratio_to_limit_v2(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'mean_limit_ratio', 'max_limit_ratio', 'near_limit_ratio', 'limit_ratio_std']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.2244)
+IV: 0.0249
+KS: 0.0591
+冗余度: 0.
+2026-05-17 19:05:27,395 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:05:34,044 [INFO] src.agent.single_agent: Step 183: generate_feature({"feature_name": "tx_amount_entropy_by_mode", "dimension": "behavior_sequence", "code": "\ndef featu) → 特征 'tx_amount_entropy_by_mode' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:05:34,877 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:08:25,600 [INFO] src.agent.single_agent: Step 184: execute_sandbox({"feature_name": "tx_amount_entropy_by_mode", "code": "\ndef feature_tx_amount_entropy_by_mode(open_) → ✓ 沙箱执行成功！
+输出shape: (43142, 4)
+输出列: ['wallet_id', 'mode_amount_cv', 'mode_amount_range', 'single_mode_dominance']
+
+--- 自动评估结果 ---
+✓ 特征评估通过！已接受。(score=0.3655)
+IV: 0.0046
+KS: 0.0205
+冗余度: 0.1752
+SHAP Rank
+2026-05-17 19:08:26,851 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:08:31,924 [INFO] src.agent.single_agent: Step 185: generate_feature({"feature_name": "tx_device_ip_ratio_entropy", "dimension": "entity_association", "code": "\ndef fea) → 特征 'tx_device_ip_ratio_entropy' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:08:32,650 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:08:37,978 [INFO] src.agent.single_agent: Step 186: execute_sandbox({"feature_name": "tx_device_ip_ratio_entropy", "code": "\ndef feature_tx_device_ip_ratio_entropy(ope) → ✗ 沙箱执行失败
+错误信息: 输出验证失败: 特征 max_device_ip_count 只有一个唯一值 (全0/全1)
+请修复代码后重新生成，或换一个特征方向。
+2026-05-17 19:08:38,614 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:08:43,325 [INFO] src.agent.single_agent: Step 187: generate_feature({"feature_name": "tx_amount_skewness_kurtosis", "dimension": "amount_frequency", "code": "\ndef feat) → 特征 'tx_amount_skewness_kurtosis' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:08:44,063 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:11:35,575 [INFO] src.agent.single_agent: L3 failed for tx_amount_skewness_kurtosis (delta_f1=-0.000639), added to pending pool (2 in pool)
+2026-05-17 19:11:35,585 [INFO] src.agent.single_agent: Step 188: execute_sandbox({"feature_name": "tx_amount_skewness_kurtosis", "code": "\ndef feature_tx_amount_skewness_kurtosis(o) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'amount_skewness', 'amount_kurtosis', 'amount_outlier_ratio', 'amount_tail_ratio']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（2个待评估）
+IV: 0.0136, KS: 0.0509
+Delt
+2026-05-17 19:11:36,920 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:11:43,132 [INFO] src.agent.single_agent: Step 189: generate_feature({"feature_name": "tx_region_flow_entropy", "dimension": "time_region", "code": "\ndef feature_tx_reg) → 特征 'tx_region_flow_entropy' 已生成，请使用 execute_sandbox 工具验证代码。
+2026-05-17 19:11:43,981 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:14:09,203 [INFO] src.agent.single_agent: L3 failed for tx_region_flow_entropy (delta_f1=-0.001266), added to pending pool (3 in pool)
+2026-05-17 19:14:09,214 [INFO] src.agent.single_agent: Step 190: execute_sandbox({"feature_name": "tx_region_flow_entropy", "code": "\ndef feature_tx_region_flow_entropy(open_df, tx) → ✓ 沙箱执行成功！
+输出shape: (43142, 5)
+输出列: ['wallet_id', 'dst_region_entropy', 'dst_region_concentration', 'cross_region_tx_ratio', 'same_region_tx_ratio']
+
+--- 自动评估结果 ---
+△ L3模型增量不足，已加入缓刑池（3个待评估）
+IV: 0.0129,
+2026-05-17 19:14:10,718 [INFO] httpx: HTTP Request: POST https://api.deepseek.com/chat/completions "HTTP/1.1 200 OK"
+2026-05-17 19:14:16,666 [INFO] src.agent.single_agent: Step 191: finish({"reason": "已生成30个候选特征，覆盖4个维度。共29个特征通过评估被接受，1个在缓刑池待评估。", "summary": "\n## 特征生成总结\n\n### 总体统计\n- **目标) → Agent结束运行。
+原因: 已生成30个候选特征，覆盖4个维度。共29个特征通过评估被接受，1个在缓刑池待评估。
+共生成 29 个有效特征
+覆盖维度: ['amount_frequency', 'behavior_sequence', 'entity_association', 'time_region']
+总尝试次数: 92
+缓刑池剩余: 3 个
+2026-05-17 19:14:19,160 [INFO] src.evaluation.validator: Forward selection: 3 candidates, baseline F1=0.944999
+2026-05-17 19:17:05,425 [INFO] src.evaluation.validator: Forward selection added tx_amount_clustering_entropy: F1=0.946857, Recall=0.9066, Precision=0.9910
+2026-05-17 19:18:52,766 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 19:19:43,221 [INFO] src.evaluation.validator: Forward selection done: 1 features selected, final F1=0.946857, Recall=0.9066, Precision=0.9910
+2026-05-17 19:19:43,349 [INFO] src.evaluation.validator: Pending pool evaluation: 1 accepted, 2 rejected
+2026-05-17 19:19:43,349 [INFO] src.agent.single_agent: Pending pool evaluation: 1 accepted, 2 rejected out of 3
+2026-05-17 19:19:43,356 [INFO] src.agent.single_agent: Accepted from pending pool: tx_amount_clustering_entropy (score=0.1302)
+2026-05-17 19:19:43,356 [INFO] src.agent.single_agent: Final pending pool evaluation: 1 accepted
+2026-05-17 19:19:43,356 [INFO] src.agent.single_agent: === Agent 完成 ===
+2026-05-17 19:19:43,356 [INFO] src.agent.single_agent: 接受: 30, 失败: 58, 步数: 191, 轮数: 7, 缓刑池剩余: 2
+2026-05-17 19:19:43,356 [INFO] main: 
+[Step 4] Agent完成，耗时: 10013.7s (166.9min)
+2026-05-17 19:19:43,356 [INFO] main:   接受: 30, 失败: 58, 步数: 191
+2026-05-17 19:19:43,356 [INFO] main: 
+[Step 5] 保存结果...
+2026-05-17 19:19:43,369 [INFO] main:   结果JSON: /root/大模型提取特征/outputs/single_agent_run/result_20260517_163045.json
+2026-05-17 19:19:43,369 [INFO] main: 
+[Step 6] 评估增量效果...
+2026-05-17 19:19:43,369 [INFO] main:   基线: F1=0.944999, Recall=0.904101, Precision=0.990017, PR-AUC=0.983285
+2026-05-17 19:19:43,369 [INFO] main:   重新执行Agent生成的特征代码...
+2026-05-17 19:20:12,810 [INFO] main:     OK: night_operation_intensity
+2026-05-17 19:20:44,864 [INFO] main:     OK: transaction_mode_sequence_entropy
+2026-05-17 19:21:10,871 [INFO] main:     OK: tx_interval_velocity
+2026-05-17 19:21:49,698 [INFO] main:     OK: amount_rolling_volatility
+2026-05-17 19:22:08,231 [INFO] main:     OK: hourly_tx_concentration
+2026-05-17 19:22:34,753 [INFO] main:     OK: tx_interval_velocity
+2026-05-17 19:22:53,772 [INFO] main:     OK: tx_burst_detector
+2026-05-17 19:23:23,812 [INFO] main:     OK: time_slot_transition_pattern
+2026-05-17 19:23:41,568 [INFO] main:     OK: tx_interval_pattern_entropy
+2026-05-17 19:24:03,574 [INFO] main:     OK: dst_ip_region_divergence
+2026-05-17 19:24:05,413 [INFO] main:     OK: wallet_lifecycle_velocity
+2026-05-17 19:24:51,754 [INFO] main:     OK: src_dst_wallet_level_mismatch
+2026-05-17 19:25:10,446 [INFO] main:     OK: hourly_amount_profile_deviation
+2026-05-17 19:25:29,761 [INFO] main:     OK: tx_date_gap_pattern
+2026-05-17 19:26:14,041 [INFO] main:     OK: hourly_tx_volume_profile
+2026-05-17 19:26:32,271 [INFO] main:     OK: amount_ratio_to_previous_tx
+2026-05-17 19:27:04,718 [INFO] main:     OK: tx_amount_momentum
+2026-05-17 19:27:55,471 [INFO] main:     OK: amount_interval_correlation
+2026-05-17 19:28:19,068 [INFO] main:     OK: wallet_type_behavior_mismatch
+2026-05-17 19:28:39,935 [INFO] main:     OK: hourly_amount_profile_deviation
+2026-05-17 19:29:03,696 [INFO] main:     OK: tx_sequence_consistency_score
+2026-05-17 19:29:26,211 [INFO] main:     OK: amount_ending_digit_pattern
+2026-05-17 19:29:43,959 [INFO] main:     OK: tx_amount_sequence_complexity
+2026-05-17 19:29:59,468 [INFO] main:     OK: tx_interval_first_vs_rest
+2026-05-17 19:30:16,840 [INFO] main:     OK: tx_mode_switch_frequency
+2026-05-17 19:30:37,117 [INFO] main:     OK: tx_amount_roundness_ratio
+2026-05-17 19:30:38,631 [INFO] main:     OK: tx_reciprocal_network_features
+2026-05-17 19:30:40,221 [INFO] main:     OK: tx_amount_ratio_to_limit_v2
+2026-05-17 19:31:29,297 [INFO] main:     OK: tx_amount_entropy_by_mode
+2026-05-17 19:31:45,658 [INFO] main:     OK: tx_amount_clustering_entropy
+2026-05-17 19:31:45,658 [INFO] main:   候选特征: 28 个，开始Forward Selection...
+2026-05-17 19:31:46,576 [INFO] src.evaluation.validator: Forward selection: 28 candidates, baseline F1=0.944999
+2026-05-17 19:54:01,093 [INFO] src.evaluation.validator: Forward selection added amount_rolling_volatility: F1=0.948723, Recall=0.9110, Precision=0.9898
+2026-05-17 20:16:29,621 [INFO] src.evaluation.validator: Forward selection added tx_interval_first_vs_rest: F1=0.948991, Recall=0.9119, Precision=0.9894
+2026-05-17 20:37:42,810 [INFO] src.evaluation.validator: Forward selection stopped: no feature improves F1
+2026-05-17 20:38:32,347 [INFO] src.evaluation.validator: Forward selection done: 2 features selected, final F1=0.948991, Recall=0.9119, Precision=0.9894
+2026-05-17 20:38:32,486 [INFO] main:   Forward Selection选出: 2 个特征: ['amount_rolling_volatility', 'tx_interval_first_vs_rest']
+2026-05-17 20:38:32,486 [INFO] main:   组合: F1=0.948991, Recall=0.911906, Precision=0.989366, PR-AUC=0.983231
+2026-05-17 20:38:32,486 [INFO] main:   增量: dF1=+0.003991, dRecall=+0.007805, dPrecision=-0.000651, dPR-AUC=-0.000054
+2026-05-17 20:38:32,487 [INFO] main:   评估结果: /root/大模型提取特征/outputs/single_agent_run/evaluation_20260517_163045.json
+2026-05-17 20:38:32,487 [INFO] main: 
+[Step 7] 生成可视化报告...
+2026-05-17 20:38:32,495 [INFO] main:   可视化报告: /root/大模型提取特征/outputs/single_agent_run/report_20260517_163045.html
+2026-05-17 20:38:32,495 [INFO] main: 
+============================================================
+2026-05-17 20:38:32,495 [INFO] main: 全部流程完成！
+2026-05-17 20:38:32,495 [INFO] main: ============================================================
+2026-05-17 20:38:32,495 [INFO] main: 输出目录: /root/大模型提取特征/outputs/single_agent_run
+2026-05-17 20:38:32,495 [INFO] main:   result_20260517_163045.json    - 完整结果
+2026-05-17 20:38:32,495 [INFO] main:   evaluation_20260517_163045.json - 评估指标
+2026-05-17 20:38:32,495 [INFO] main:   report_20260517_163045.html     - 可视化报告
+2026-05-17 20:38:32,495 [INFO] main:   run_20260517_163045.log         - 运行日志
+2026-05-17 20:38:32,495 [INFO] main: ============================================================
