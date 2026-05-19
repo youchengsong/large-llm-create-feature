@@ -6,6 +6,7 @@ from sklearn.metrics import average_precision_score
 from sklearn.model_selection import StratifiedKFold
 from xgboost import XGBClassifier
 
+from src.compat import safe_tree_explainer
 from src.config import DEFAULT_CONFIG
 
 
@@ -36,8 +37,6 @@ def _cv_prauc(
 
 def _compute_shap_ranks(X: pd.DataFrame, y: np.ndarray) -> dict[str, int]:
     """训练 XGBoost + SHAP，返回 {feature_name: rank(1-based)}。"""
-    import shap
-
     cfg = DEFAULT_CONFIG.xgboost
     model = XGBClassifier(
         scale_pos_weight=cfg.scale_pos_weight,
@@ -51,7 +50,7 @@ def _compute_shap_ranks(X: pd.DataFrame, y: np.ndarray) -> dict[str, int]:
         device=cfg.device,
     )
     model.fit(X, y, verbose=False)
-    explainer = shap.TreeExplainer(model)
+    explainer = safe_tree_explainer(model)
     shap_sample_size = min(5000, len(X))
     X_shap = X.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X) else X
     shap_values = explainer.shap_values(X_shap)

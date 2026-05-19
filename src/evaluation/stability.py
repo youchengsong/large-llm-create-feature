@@ -5,6 +5,7 @@ import pandas as pd
 from sklearn.utils import resample
 from xgboost import XGBClassifier
 
+from src.compat import safe_tree_explainer
 from src.config import DEFAULT_CONFIG
 
 
@@ -60,8 +61,6 @@ def run_l4_stability(
     Returns:
         {stability_index, per_round_rankings, pass}
     """
-    import shap
-
     cfg = DEFAULT_CONFIG.xgboost
     top_k = min(top_k, X_final.shape[1])
 
@@ -87,7 +86,7 @@ def run_l4_stability(
         )
         model.fit(X_boot, y_boot, verbose=False)
 
-        explainer = shap.TreeExplainer(model)
+        explainer = safe_tree_explainer(model)
         shap_sample_size = min(5000, len(X_boot))
         if shap_sample_size < len(X_boot):
             sample_idx = rng.choice(len(X_boot), shap_sample_size, replace=False)

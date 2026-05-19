@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import shap
 from xgboost import XGBClassifier
 
+from src.compat import safe_tree_explainer
 from src.config import DEFAULT_CONFIG, ISLANDS
 
 
@@ -44,7 +44,7 @@ def generate_shap_feedback(X_all: pd.DataFrame, y: pd.Series) -> dict:
     model.fit(X_all, y, verbose=False)
 
     try:
-        explainer = shap.TreeExplainer(model)
+        explainer = safe_tree_explainer(model)
         max_shap_samples = 50000
         if len(X_all) > max_shap_samples:
             X_shap = X_all.sample(n=max_shap_samples, random_state=42)

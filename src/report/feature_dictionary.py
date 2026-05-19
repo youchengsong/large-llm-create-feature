@@ -7,7 +7,8 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 from xgboost import XGBClassifier
-import shap
+
+from src.compat import safe_tree_explainer
 
 from src.config import ISLANDS, DEFAULT_CONFIG
 
@@ -43,7 +44,7 @@ def _compute_shap_rankings(X_final: pd.DataFrame, y: pd.Series) -> dict:
         verbosity=0,
     )
     model.fit(X_final, y)
-    explainer = shap.TreeExplainer(model)
+    explainer = safe_tree_explainer(model)
     shap_sample_size = min(5000, len(X_final))
     X_shap = X_final.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X_final) else X_final
     shap_values = explainer.shap_values(X_shap)

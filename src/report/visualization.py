@@ -15,6 +15,7 @@ plt.rcParams["axes.unicode_minus"] = False
 
 from xgboost import XGBClassifier
 
+from src.compat import safe_tree_explainer
 from src.config import DEFAULT_CONFIG, ISLANDS
 
 
@@ -31,8 +32,6 @@ def plot_shap_summary(
     top_k: int = 20,
 ) -> str:
     """SHAP summary plot（特征重要性）。"""
-    import shap
-
     out = _ensure_dir(output_dir)
     cfg = DEFAULT_CONFIG.xgboost
     model = XGBClassifier(
@@ -47,7 +46,7 @@ def plot_shap_summary(
         device=cfg.device,
     )
     model.fit(X_final, y, verbose=False)
-    explainer = shap.TreeExplainer(model)
+    explainer = safe_tree_explainer(model)
     shap_sample_size = min(5000, len(X_final))
     X_shap = X_final.sample(n=shap_sample_size, random_state=42) if shap_sample_size < len(X_final) else X_final
     shap_values = explainer.shap_values(X_shap)

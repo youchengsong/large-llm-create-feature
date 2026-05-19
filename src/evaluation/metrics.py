@@ -235,8 +235,8 @@ def compute_shap_rank(
         return len(columns)
 
     try:
-        import shap
-        explainer = shap.TreeExplainer(model)
+        from src.compat import safe_tree_explainer
+        explainer = safe_tree_explainer(model)
         if len(X_all) > max_samples:
             X_sample = X_all.sample(n=max_samples, random_state=42)
         else:
