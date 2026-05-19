@@ -225,25 +225,28 @@ def compute_shap_rank(
     X_all: pd.DataFrame, y: pd.Series, feature_name: str,
     max_samples: int = 50000,
 ) -> int:
-    """训练 XGBoost 并用 SHAP 计算指定特征的重要性排名（1-based，1=最重要）。"""
-    import shap
-
+    """训练 XGBoost 并计算指定特征的重要性排名（1-based，1=最重要）。"""
     params = _get_xgb_params()
     model = XGBClassifier(**params)
     model.fit(X_all, y, verbose=False)
 
-    explainer = shap.TreeExplainer(model)
-    if len(X_all) > max_samples:
-        X_sample = X_all.sample(n=max_samples, random_state=42)
-    else:
-        X_sample = X_all
-    shap_values = explainer.shap_values(X_sample)
-    mean_abs = np.mean(np.abs(shap_values), axis=0)
-
-    sorted_indices = np.argsort(-mean_abs)
     columns = list(X_all.columns)
     if feature_name not in columns:
         return len(columns)
+
+    try:
+        import shap
+        explainer = shap.TreeExplainer(model)
+        if len(X_all) > max_samples:
+            X_sample = X_all.sample(n=max_samples, random_state=42)
+        else:
+            X_sample = X_all
+        shap_values = explainer.shap_values(X_sample)
+        importance = np.mean(np.abs(shap_values), axis=0)
+    except Exception:
+        importance = model.feature_importances_
+
+    sorted_indices = np.argsort(-importance)
     feat_idx = columns.index(feature_name)
     rank = int(np.where(sorted_indices == feat_idx)[0][0]) + 1
     return rank

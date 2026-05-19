@@ -43,14 +43,17 @@ def generate_shap_feedback(X_all: pd.DataFrame, y: pd.Series) -> dict:
     )
     model.fit(X_all, y, verbose=False)
 
-    explainer = shap.TreeExplainer(model)
-    max_shap_samples = 50000
-    if len(X_all) > max_shap_samples:
-        X_shap = X_all.sample(n=max_shap_samples, random_state=42)
-    else:
-        X_shap = X_all
-    shap_values = explainer.shap_values(X_shap)
-    mean_abs = np.mean(np.abs(shap_values), axis=0)
+    try:
+        explainer = shap.TreeExplainer(model)
+        max_shap_samples = 50000
+        if len(X_all) > max_shap_samples:
+            X_shap = X_all.sample(n=max_shap_samples, random_state=42)
+        else:
+            X_shap = X_all
+        shap_values = explainer.shap_values(X_shap)
+        mean_abs = np.mean(np.abs(shap_values), axis=0)
+    except Exception:
+        mean_abs = model.feature_importances_
 
     total = mean_abs.sum()
     if total > 0:
