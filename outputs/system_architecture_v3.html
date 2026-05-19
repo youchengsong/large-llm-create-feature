@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM 自动特征工程系统 — 方案说明</title>
+<title>LLM 自动特征工程系统 — 技术方案</title>
 <style>
   :root {
-    --bg: #f8f9fa;
+    --bg: #f0f2f5;
     --card: #ffffff;
-    --border: #dee2e6;
-    --primary: #2563eb;
-    --primary-light: #dbeafe;
-    --success: #16a34a;
-    --success-light: #dcfce7;
+    --border: #e2e8f0;
+    --primary: #1a56db;
+    --primary-light: #e1effe;
+    --primary-dark: #1e40af;
+    --success: #059669;
+    --success-light: #d1fae5;
     --warning: #d97706;
     --warning-light: #fef3c7;
     --danger: #dc2626;
@@ -21,707 +22,871 @@
     --text-secondary: #64748b;
     --accent: #7c3aed;
     --accent-light: #ede9fe;
+    --code-bg: #1e293b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.7;
-    padding: 0;
+    line-height: 1.8;
   }
+
+  /* Header */
   .header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #3b82f6 100%);
     color: white;
-    padding: 48px 0;
+    padding: 60px 0 48px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
-  .header h1 { font-size: 2.2em; margin-bottom: 12px; }
-  .header p { font-size: 1.1em; opacity: 0.9; max-width: 700px; margin: 0 auto; }
-  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .header h1 { font-size: 2.4em; margin-bottom: 12px; position: relative; font-weight: 700; letter-spacing: 0.02em; }
+  .header .subtitle { font-size: 1.15em; opacity: 0.85; max-width: 650px; margin: 0 auto; position: relative; }
+  .header .tags { margin-top: 20px; position: relative; }
+  .header .tag {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(4px);
+    font-size: 0.85em;
+    margin: 4px;
+  }
+
+  /* Layout */
+  .container { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
   .section {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 32px;
+    border-radius: 16px;
+    padding: 36px;
     margin-bottom: 28px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.02);
+    transition: box-shadow 0.2s;
   }
+  .section:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04); }
   .section h2 {
-    font-size: 1.5em;
+    font-size: 1.45em;
     margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--primary);
-    color: var(--primary);
+    padding-bottom: 14px;
+    border-bottom: 3px solid var(--primary);
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .section h3 {
-    font-size: 1.15em;
-    margin: 20px 0 10px;
-    color: var(--text);
+  .section h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.85em;
+    flex-shrink: 0;
   }
-  .section h4 {
-    font-size: 1em;
-    margin: 16px 0 8px;
-    color: var(--text-secondary);
-  }
+  .section h3 { font-size: 1.12em; margin: 24px 0 12px; color: var(--text); }
   p, li { margin-bottom: 8px; }
   ul, ol { padding-left: 24px; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 16px 0;
-    font-size: 0.92em;
-  }
-  th, td {
-    border: 1px solid var(--border);
-    padding: 10px 14px;
-    text-align: left;
-  }
-  th { background: #f1f5f9; font-weight: 600; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { border: 1px solid var(--border); padding: 10px 14px; text-align: left; }
+  th { background: #f8fafc; font-weight: 600; color: var(--primary-dark); }
   tr:nth-child(even) { background: #fafbfc; }
+  tr:hover { background: #f1f5f9; }
+
+  /* Code */
   code {
     background: #f1f5f9;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.9em;
-    font-family: "Fira Code", "Consolas", monospace;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 0.88em;
+    font-family: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+    color: var(--primary-dark);
   }
   pre {
-    background: #1e293b;
+    background: var(--code-bg);
     color: #e2e8f0;
-    padding: 20px;
-    border-radius: 8px;
+    padding: 24px;
+    border-radius: 12px;
     overflow-x: auto;
-    font-size: 0.88em;
-    line-height: 1.6;
-    margin: 12px 0;
+    font-size: 0.86em;
+    line-height: 1.65;
+    margin: 14px 0;
+    border: 1px solid #334155;
   }
   pre code { background: none; padding: 0; color: inherit; }
+
+  /* Cards and Grids */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    background: #fafbfc;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .card-title { font-weight: 700; margin-bottom: 8px; color: var(--primary-dark); font-size: 0.95em; }
+
+  /* Callout boxes */
+  .callout {
+    padding: 18px 22px;
+    border-radius: 12px;
+    margin: 16px 0;
+    border-left: 5px solid;
+  }
+  .callout-blue { border-color: var(--primary); background: var(--primary-light); }
+  .callout-green { border-color: var(--success); background: var(--success-light); }
+  .callout-yellow { border-color: var(--warning); background: var(--warning-light); }
+  .callout-red { border-color: var(--danger); background: var(--danger-light); }
+  .callout-purple { border-color: var(--accent); background: var(--accent-light); }
+  .callout strong { display: block; margin-bottom: 6px; }
+
+  /* Flow diagram */
+  .flow-container {
+    background: linear-gradient(135deg, #f8fafc, #f0f4f8);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+  .flow-box {
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88em;
+    text-align: center;
+    min-width: 120px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  }
+  .flow-arrow { color: var(--text-secondary); font-size: 1.4em; font-weight: 300; }
+  .flow-arrow-down {
+    display: block;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 1.4em;
+    margin: 4px 0;
+  }
+  .flow-group {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+    position: relative;
+  }
+  .flow-group-label {
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--card);
+    padding: 0 10px;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  /* Metrics */
+  .metric-row { display: flex; gap: 16px; margin: 16px 0; }
+  .metric-item {
+    flex: 1;
+    text-align: center;
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, #fafbfc, #f0f4f8);
+  }
+  .metric-value { font-size: 2em; font-weight: 800; color: var(--primary); }
+  .metric-label { font-size: 0.82em; color: var(--text-secondary); margin-top: 4px; }
+
+  /* Badge */
   .badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 12px;
-    font-size: 0.82em;
+    font-size: 0.8em;
     font-weight: 600;
   }
-  .badge-primary { background: var(--primary-light); color: var(--primary); }
-  .badge-success { background: var(--success-light); color: var(--success); }
-  .badge-warning { background: var(--warning-light); color: var(--warning); }
-  .badge-danger { background: var(--danger-light); color: var(--danger); }
-  .badge-accent { background: var(--accent-light); color: var(--accent); }
-  .flow-diagram {
-    background: #f8fafc;
+  .badge-blue { background: var(--primary-light); color: var(--primary); }
+  .badge-green { background: var(--success-light); color: var(--success); }
+  .badge-yellow { background: var(--warning-light); color: var(--warning); }
+  .badge-red { background: var(--danger-light); color: var(--danger); }
+  .badge-purple { background: var(--accent-light); color: var(--accent); }
+
+  /* Ref */
+  .ref { font-size: 0.85em; color: var(--text-secondary); margin-top: 8px; }
+  .ref a { color: var(--primary); text-decoration: none; }
+  .ref a:hover { text-decoration: underline; }
+
+  /* TOC */
+  .toc {
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 24px;
-    margin: 16px 0;
+    border-radius: 16px;
+    padding: 28px 36px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .toc h3 { margin-bottom: 14px; color: var(--primary-dark); }
+  .toc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 32px; }
+  .toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.92em;
+    display: block;
+    padding: 4px 0;
+    border-bottom: 1px solid transparent;
+  }
+  .toc a:hover { color: var(--primary); border-bottom-color: var(--primary); }
+  .toc .toc-num { color: var(--primary); font-weight: 600; margin-right: 8px; }
+
+  /* Footer */
+  .footer {
     text-align: center;
-  }
-  .flow-box {
-    display: inline-block;
-    padding: 10px 20px;
-    border-radius: 8px;
-    margin: 4px;
-    font-weight: 600;
-    font-size: 0.9em;
-  }
-  .flow-arrow {
-    display: inline-block;
-    margin: 0 6px;
+    padding: 36px 0;
     color: var(--text-secondary);
-    font-size: 1.2em;
+    font-size: 0.88em;
+    border-top: 1px solid var(--border);
+    margin-top: 20px;
   }
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .grid-3 {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-  }
-  .card {
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-    background: #fafbfc;
-  }
-  .card-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--primary);
-  }
-  .highlight-box {
-    border-left: 4px solid var(--primary);
-    background: var(--primary-light);
-    padding: 16px 20px;
-    border-radius: 0 8px 8px 0;
-    margin: 16px 0;
-  }
-  .warn-box {
-    border-left: 4px solid var(--warning);
-    background: var(--warning-light);
-    padding: 16px 20px;
-    border-radius: 0 8px 8px 0;
-    margin: 16px 0;
-  }
-  .metric-row {
-    display: flex;
-    gap: 16px;
-    margin: 16px 0;
-  }
-  .metric-item {
-    flex: 1;
-    text-align: center;
-    padding: 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-  }
-  .metric-value {
-    font-size: 1.8em;
-    font-weight: 700;
-    color: var(--primary);
-  }
-  .metric-label {
-    font-size: 0.85em;
-    color: var(--text-secondary);
-    margin-top: 4px;
-  }
+
   @media (max-width: 768px) {
-    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .grid-2, .grid-3, .grid-4, .toc-grid { grid-template-columns: 1fr; }
     .metric-row { flex-direction: column; }
     .header h1 { font-size: 1.6em; }
+    .section { padding: 24px 18px; }
+    .flow-row { flex-direction: column; }
   }
 </style>
 </head>
 <body>
 
+<!-- ====== Header ====== -->
 <div class="header">
   <h1>LLM 自动特征工程系统</h1>
-  <p>基于大语言模型的反洗钱特征自动发现与验证方案</p>
+  <p class="subtitle">基于大语言模型的数字人民币反洗钱特征自动发现与验证</p>
+  <div class="tags">
+    <span class="tag">DeepSeek LLM</span>
+    <span class="tag">XGBoost + SHAP</span>
+    <span class="tag">三级验证</span>
+    <span class="tag">前向选择</span>
+    <span class="tag">Recall 优先</span>
+  </div>
 </div>
 
 <div class="container">
 
+<!-- ====== TOC ====== -->
+<div class="toc">
+  <h3>目录</h3>
+  <div class="toc-grid">
+    <a href="#sec1"><span class="toc-num">1</span>系统概述与设计理念</a>
+    <a href="#sec8"><span class="toc-num">8</span>下游模型与评估方法</a>
+    <a href="#sec2"><span class="toc-num">2</span>整体架构与数据流</a>
+    <a href="#sec9"><span class="toc-num">9</span>SHAP 反馈与预算分配</a>
+    <a href="#sec3"><span class="toc-num">3</span>数据与基线</a>
+    <a href="#sec10"><span class="toc-num">10</span>特征复合打分</a>
+    <a href="#sec4"><span class="toc-num">4</span>分组搜索策略</a>
+    <a href="#sec11"><span class="toc-num">11</span>收敛检测与终止</a>
+    <a href="#sec5"><span class="toc-num">5</span>三级验证流水线 (L1/L2/L3)</a>
+    <a href="#sec12"><span class="toc-num">12</span>可解释性生成</a>
+    <a href="#sec6"><span class="toc-num">6</span>候选缓冲池</a>
+    <a href="#sec13"><span class="toc-num">13</span>LLM 配置与工具</a>
+    <a href="#sec7"><span class="toc-num">7</span>前向选择 (Forward Selection)</a>
+    <a href="#sec14"><span class="toc-num">14</span>关键参数总览</a>
+  </div>
+</div>
+
 <!-- ====== 1. 系统概述 ====== -->
-<div class="section">
-  <h2>1. 系统概述</h2>
-  <p>本系统利用大语言模型（DeepSeek）自动发现反洗钱检测特征。系统以<strong>岛屿探索</strong>策略遍历多个特征维度，通过<strong>三级验证流水线</strong>（L1/L2/L3）确保特征质量，使用 <strong>SHAP 反馈</strong>动态调整探索方向，并通过<strong>缓刑池 + 前向选择</strong>机制挖掘特征的组合效应。</p>
+<div class="section" id="sec1">
+  <h2><span class="num">1</span>系统概述与设计理念</h2>
+
+  <p>本系统利用大语言模型（DeepSeek）在数字人民币交易数据上自动发现反洗钱检测特征。系统将特征空间<strong>按业务维度分组</strong>，通过 <strong>SHAP 反馈</strong>动态调整各组的探索力度，使用<strong>三级验证流水线</strong>（L1 代码安全 → L2 统计质量 → L3 模型增量）过滤候选特征，并通过<strong>前向选择</strong>（Forward Selection）挖掘特征间的组合效应。</p>
 
   <h3>核心设计理念</h3>
-  <ul>
-    <li><strong>Recall 优先</strong>：反洗钱场景中，漏检比误报代价更高。所有验证条件以 Recall 提升为必要条件。</li>
-    <li><strong>动态基线</strong>：每接受一个新特征，后续所有验证（L3 和 FS）的基线自动更新，确保增量评估的准确性。</li>
-    <li><strong>领域知识注入</strong>：将 309 份法院判决书洗钱模式、38 个风险指标、8 种交易模式等专家知识注入 LLM prompt。</li>
-  </ul>
-
-  <h3>数据概况</h3>
-  <div class="grid-3">
+  <div class="grid-2">
     <div class="card">
-      <div class="card-title">open_df（开户表）</div>
-      <p>100,000 个钱包的开户信息：证件号、手机号、钱包等级/类型等</p>
+      <div class="card-title">Recall 优先</div>
+      <p>反洗钱场景中漏检代价远高于误报。所有验证条件以 Recall 提升为必要条件，Precision 只设绝对下限（95%），F1 不约束。</p>
     </div>
     <div class="card">
-      <div class="card-title">tx_df（交易表）</div>
-      <p>1,384,512 笔交易记录：金额、时间、IP、设备、交易模式、标签 <code>is_risk</code>（正样本率 0.32%）</p>
+      <div class="card-title">动态基线</div>
+      <p>每接受一个新特征，<code>existing_features</code> 立即更新。后续所有 L3 增量评估和前向选择都基于最新特征集，确保增量评估的准确性。</p>
     </div>
     <div class="card">
-      <div class="card-title">close_df（销户表）</div>
-      <p>500 条销户记录：销户时间、原因</p>
+      <div class="card-title">领域知识注入</div>
+      <p>将 309 份法院判决书洗钱模式、38 个风险指标、8 种交易模式、15 条检测规则等专家知识注入 LLM prompt，大幅提升特征生成的针对性。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">组合效应捕获</div>
+      <p>单特征评估（L3）无法发现的互补效应，通过每轮末尾的前向选择从候选缓冲池中发掘。</p>
     </div>
   </div>
 </div>
 
 <!-- ====== 2. 整体架构 ====== -->
-<div class="section">
-  <h2>2. 整体架构流程</h2>
+<div class="section" id="sec2">
+  <h2><span class="num">2</span>整体架构与数据流</h2>
 
-  <h3>2.1 全局流程</h3>
-  <div class="flow-diagram">
-    <div class="flow-box" style="background:#dbeafe;color:#2563eb;">数据加载</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#dcfce7;color:#16a34a;">基线特征工程<br>(95个特征)</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#fef3c7;color:#d97706;">L2阈值校准</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#dbeafe;color:#2563eb;">基线CV指标</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#ede9fe;color:#7c3aed;">Agent 探索<br>(10轮 × 4岛屿)</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#dcfce7;color:#16a34a;">输出结果</div>
+  <div class="flow-container">
+    <!-- Row 1: Data loading and baseline -->
+    <div class="flow-row">
+      <div class="flow-box" style="background:#e0e7ff;color:#3730a3;">
+        数据加载<br><small>open_df / tx_df / close_df</small>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box" style="background:#dbeafe;color:#1e40af;">
+        基线特征工程<br><small>95 个基线特征</small>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box" style="background:#fef3c7;color:#92400e;">
+        L2 阈值校准<br><small>噪声基准校准</small>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box" style="background:#dbeafe;color:#1e40af;">
+        基线 CV 指标<br><small>F1 / Recall / Precision / PR-AUC</small>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr;</div>
+
+    <!-- Row 2: Agent loop -->
+    <div class="flow-group">
+      <div class="flow-group-label">Agent 主循环 (Round 1 ~ 10)</div>
+
+      <div class="flow-row" style="margin-top:16px;">
+        <div class="flow-box" style="background:#ede9fe;color:#5b21b6;">
+          SHAP 反馈<br><small>计算维度重要性</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="flow-box" style="background:#ede9fe;color:#5b21b6;">
+          预算分配<br><small>薄弱维度多分配</small>
+        </div>
+      </div>
+
+      <div class="flow-arrow-down">&darr;</div>
+
+      <div class="flow-group" style="margin: 0 20px;">
+        <div class="flow-group-label">分组循环 (4 个维度组)</div>
+        <div class="flow-row" style="margin-top:16px;">
+          <div class="flow-box" style="background:#fce7f3;color:#9d174d;">
+            LLM 生成<br><small>候选特征代码</small>
+          </div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-box" style="background:#fef3c7;color:#92400e;">
+            L1 沙盒<br><small>代码安全 + 执行</small>
+          </div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-box" style="background:#e0e7ff;color:#3730a3;">
+            L2 统计<br><small>IV / KS / 冗余</small>
+          </div>
+          <span class="flow-arrow">&rarr;</span>
+          <div class="flow-box" style="background:#dbeafe;color:#1e40af;">
+            L3 模型<br><small>delta Recall + Precision</small>
+          </div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box" style="background:#d1fae5;color:#065f46;">
+            L3 通过 &rarr; 加入 existing_features
+          </div>
+          <div class="flow-box" style="background:#fef3c7;color:#92400e;">
+            L3 未通过 &rarr; 进入候选缓冲池
+          </div>
+        </div>
+      </div>
+
+      <div class="flow-arrow-down">&darr;</div>
+
+      <div class="flow-row">
+        <div class="flow-box" style="background:#d1fae5;color:#065f46;">
+          轮末：前向选择 (Forward Selection)<br><small>基线 = 当前 existing_features 的真实 CV 指标</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr;</div>
+
+    <!-- Row 3: Output -->
+    <div class="flow-row">
+      <div class="flow-box" style="background:#dcfce7;color:#166534;">
+        收敛终止<br><small>连续 2 轮无新特征</small>
+      </div>
+      <span class="flow-arrow">&rarr;</span>
+      <div class="flow-box" style="background:#dcfce7;color:#166534;">
+        输出结果<br><small>result.json / report.html</small>
+      </div>
+    </div>
   </div>
-
-  <h3>2.2 Agent 探索主循环</h3>
-  <pre><code>for round in 1..10:
-    # 1. SHAP 反馈 → 计算各岛屿预算（薄弱维度多分配）
-    budgets = compute_island_budgets(shap_importance)
-
-    # 2. 遍历 4 个岛屿
-    for island in [金额频次, 时间地域, 行为序列, 主体关联]:
-        for turn in 1..3:   # 岛屿内最多3轮对话
-            # LLM 生成候选特征 → L1/L2/L3 验证
-            accepted, failed = run_island_turn(island, budgets[island])
-            if accepted > 0 or turn >= 2: break
-
-    # 3. 轮末：缓刑池前向选择
-    pending_pool_evaluation()   # 基线 = 当前 existing_features 的真实指标
-
-    # 4. 收敛检测
-    if 连续2轮无新特征: 终止</code></pre>
-
-  <h3>2.3 existing_features 动态更新</h3>
-  <div class="highlight-box">
-    <strong>关键设计：</strong><code>existing_features</code> 是动态增长的特征矩阵。初始为 95 个基线特征，每当一个新特征通过 L3 验证或被缓刑池 FS 接受，立即加入。所有后续的 L3 增量评估、FS 基线计算、SHAP 反馈训练都基于最新的 <code>existing_features</code>。
-  </div>
-  <p>举例：Round 1 接受了 2 个特征 → Round 2 的所有 L3 和 FS 都在 97 个特征的基础上评估。</p>
 </div>
 
-<!-- ====== 3. 岛屿探索策略 ====== -->
-<div class="section">
-  <h2>3. 岛屿探索策略</h2>
+<!-- ====== 3. 数据 ====== -->
+<div class="section" id="sec3">
+  <h2><span class="num">3</span>数据与基线</h2>
 
-  <h3>3.1 四个探索维度（岛屿）</h3>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">open_df（开户表）</div>
+      <p><strong>100,000</strong> 个钱包的开户信息</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">证件号、手机号、钱包等级、钱包类型等</p>
+    </div>
+    <div class="card">
+      <div class="card-title">tx_df（交易表）</div>
+      <p><strong>1,384,512</strong> 笔交易记录</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">金额、时间、IP、设备、交易模式<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
+    </div>
+    <div class="card">
+      <div class="card-title">close_df（销户表）</div>
+      <p><strong>500</strong> 条销户记录</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">销户时间、销户原因</p>
+    </div>
+  </div>
+
+  <h3>基线特征</h3>
+  <p>数据表共 106 列，去除标签列和 10 个低质量列后，得到 <strong>95 个基线特征</strong>。这些特征作为 <code>existing_features</code> 的初始值，Agent 在此基础上寻找增量提升。</p>
+</div>
+
+<!-- ====== 4. 分组搜索 ====== -->
+<div class="section" id="sec4">
+  <h2><span class="num">4</span>分组搜索策略</h2>
+
+  <h3>4.1 术语说明</h3>
+  <p>本系统将特征空间按业务含义划分为 4 个<strong>维度组</strong>，每组聚焦不同的风险信号方向。这种分组设计借鉴了进化计算中的<strong>岛屿模型</strong>（Island Model）<sup>[1]</sup>的思路——将搜索种群分割为独立子群，各自进化后交换优秀个体——但在本系统中简化为<strong>按业务维度的分组搜索</strong>：每组有独立的候选预算和 LLM 对话上下文，组间通过 SHAP 反馈动态调整预算。</p>
+
+  <div class="callout callout-blue">
+    <strong>为什么分组？</strong>
+    反洗钱特征涉及金额、时间、行为、关联等多个维度。如果不分组，LLM 容易集中在某一维度上反复生成相似特征。分组搜索保证每个维度都能得到探索，同时通过 SHAP 反馈让薄弱维度获得更多资源。
+  </div>
+
+  <p class="ref">[1] Whitley, D., Rana, S., & Heckendorn, R. B. "The Island Model Genetic Algorithm: On Separability, Population Size and Convergence." Journal of Computing and Information Technology, 1999. 该策略也被 LLM-FE (Abhyankar et al., ICLR 2026 Workshop, arXiv:2503.14434) 应用于 LLM 驱动的特征搜索中。</p>
+
+  <h3>4.2 四个维度组</h3>
   <table>
     <tr>
-      <th>岛屿</th>
-      <th>维度 ID</th>
+      <th>维度组</th>
       <th>关联字段</th>
       <th>探索方向</th>
     </tr>
     <tr>
-      <td><strong>金额频次</strong></td>
-      <td>amount_frequency</td>
+      <td><strong>金额频次</strong><br><span class="badge badge-blue">amount_frequency</span></td>
       <td>amount, interval, hour, transaction_motif</td>
-      <td>金额分布异常、交易频率模式、整数金额比例等</td>
+      <td>金额分布异常、交易频率模式、整数金额比例、金额集中度等</td>
     </tr>
     <tr>
-      <td><strong>时间地域</strong></td>
-      <td>time_region</td>
+      <td><strong>时间地域</strong><br><span class="badge badge-green">time_region</span></td>
       <td>timestamp, src_ip, dst_ip, region_code, hour</td>
-      <td>夜间交易、IP 多样性、地域异常、时间集中度等</td>
+      <td>夜间交易、IP 多样性/子网特征、地域异常、时间集中度等</td>
     </tr>
     <tr>
-      <td><strong>行为序列</strong></td>
-      <td>behavior_sequence</td>
+      <td><strong>行为序列</strong><br><span class="badge badge-purple">behavior_sequence</span></td>
       <td>timestamp, transaction_mode, zs_timestamp, zs_channel</td>
-      <td>交易模式转移、序列自相关、收支不平衡等</td>
+      <td>交易模式转移、序列自相关、收支不平衡、操作节奏等</td>
     </tr>
     <tr>
-      <td><strong>主体关联</strong></td>
-      <td>entity_association</td>
+      <td><strong>主体关联</strong><br><span class="badge badge-yellow">entity_association</span></td>
       <td>wallet_open_cert, wallet_open_tel, src_device, dst_device</td>
-      <td>设备共享、身份复用、交易网络结构等</td>
+      <td>设备共享、身份复用、交易网络结构、fan-in/fan-out 模式等</td>
     </tr>
   </table>
 
-  <h3>3.2 SHAP 反馈驱动的预算分配</h3>
-  <p>每轮开始时，系统在当前 <code>existing_features</code> 上训练 XGBoost 并计算全局 SHAP 重要性，按<strong>反比</strong>分配各岛屿的候选名额：</p>
-  <ul>
-    <li><strong>薄弱维度</strong>（SHAP 贡献低）→ 分配更多名额（最多 5 个）</li>
-    <li><strong>饱和维度</strong>（SHAP 贡献高）→ 分配更少名额（最少 1 个）</li>
-    <li>总预算：每轮 12 个候选，各岛屿范围 [1, 5]</li>
-  </ul>
-  <pre><code>weight[dim] = 1.0 / (importance[dim] + eps)
-budget[dim] = clamp(weight[dim] / sum(weights) * 12, min=1, max=5)</code></pre>
+  <h3>4.3 组内多轮对话机制</h3>
+  <p>每个维度组在每轮（Round）中最多进行 <strong>2 轮有效对话</strong>（配置上限为 3，但逻辑上第 2 轮后即退出）：</p>
 
-  <h3>3.3 岛屿内多轮对话</h3>
-  <p>每个岛屿最多进行 3 轮对话（intra-island turns）：</p>
-  <ul>
-    <li><strong>第 1 轮</strong>：提供完整的系统 prompt + 领域知识 + 种子代码示例，让 LLM 生成候选特征</li>
-    <li><strong>后续轮</strong>：提供上一轮的 SHAP 分析、失败特征原因、高分特征示例作为反馈</li>
-    <li>如果某轮有特征被接受，或已完成 2 轮，则停止该岛屿的探索</li>
-  </ul>
+  <table>
+    <tr><th>轮次</th><th>行为</th><th>退出条件</th></tr>
+    <tr>
+      <td><strong>Turn 1</strong></td>
+      <td>提供完整系统 prompt + 领域知识 + 种子代码示例，LLM 生成 N 个候选特征并逐个验证</td>
+      <td>如果有特征被 L3 接受 → 退出（已有收获）<br>如果没有失败特征 → 退出（LLM 无产出）</td>
+    </tr>
+    <tr>
+      <td><strong>Turn 2</strong></td>
+      <td>将 Turn 1 的失败原因、SHAP 分析、高分特征示例作为反馈注入 prompt，LLM 重新尝试</td>
+      <td>无论结果如何，Turn 2 结束后必定退出（<code>turn &ge; 2</code> 即 break）</td>
+    </tr>
+  </table>
+
+  <div class="callout callout-yellow">
+    <strong>为什么 Turn 2 后强制退出？</strong>
+    实践发现超过 2 轮对话后，LLM 倾向于在相似方向上微调而非探索新思路。强制退出让系统进入下一个维度组，保证探索的广度。如果 Turn 1 已有特征被接受，说明该维度已有收获，无需继续。
+  </div>
+
+  <h3>4.4 预算（Budget）机制</h3>
+  <p>每个维度组每轮被分配一个<strong>候选预算 N</strong>（由 SHAP 反馈驱动，详见第 9 节）。这个 N 控制的是<strong>LLM 在该维度组内需要生成并验证的候选特征数量</strong>。具体流程：</p>
+  <ol>
+    <li>LLM 生成候选特征代码（<code>generate_feature</code>）</li>
+    <li>LLM 调用沙盒验证（<code>execute_sandbox</code>），触发 L1 → L2 → L3 验证链</li>
+    <li>当该组已验证的候选特征数达到 N（无论通过还是失败），该组的探索结束</li>
+  </ol>
+  <p>其中 <strong>L1 有 2 次自动修复机会</strong>（代码执行失败时，LLM 自动修改代码重试），L2 和 L3 是单次评估，不重试。</p>
 </div>
 
-<!-- ====== 4. 三级验证流水线 ====== -->
-<div class="section">
-  <h2>4. 三级验证流水线</h2>
+<!-- ====== 5. 三级验证 ====== -->
+<div class="section" id="sec5">
+  <h2><span class="num">5</span>三级验证流水线 (L1 / L2 / L3)</h2>
 
-  <div class="flow-diagram">
-    <div class="flow-box" style="background:#dbeafe;color:#2563eb;">LLM 生成代码</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#fef3c7;color:#d97706;">L1 沙盒执行</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#ede9fe;color:#7c3aed;">L2 统计验证</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#dcfce7;color:#16a34a;">L3 模型验证</div>
-    <span class="flow-arrow">&rarr;</span>
-    <div class="flow-box" style="background:#dcfce7;color:#16a34a;">接受 / 缓刑池</div>
-  </div>
-
-  <h3>4.1 L1：沙盒执行验证</h3>
+  <h3>5.1 L1：沙盒执行验证</h3>
   <div class="card" style="margin: 12px 0;">
     <div class="card-title">目标：确保代码可安全执行，输出格式正确</div>
-    <ul>
-      <li><strong>安全检查</strong>：AST 解析，禁止 <code>os</code>、<code>sys</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等危险操作</li>
-      <li><strong>允许的库</strong>：pandas, numpy, scipy, sklearn, datetime, collections, math</li>
-      <li><strong>执行方式</strong>：独立进程 + 90 秒超时</li>
-      <li><strong>输出校验</strong>：必须包含 <code>wallet_id</code> 或 <code>tx_id</code>，特征列非空，NaN &lt; 50%，<code>nunique</code> &gt; 1</li>
-      <li><strong>自动修复</strong>：执行失败时，最多调用 LLM 2 次自动修复代码</li>
-    </ul>
+    <table>
+      <tr><th>检查项</th><th>内容</th></tr>
+      <tr><td>安全检查</td><td>AST 解析，禁止 <code>os</code>、<code>sys</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等危险操作</td></tr>
+      <tr><td>允许的库</td><td>pandas, numpy, scipy, sklearn, datetime, collections, math</td></tr>
+      <tr><td>执行方式</td><td>独立进程 + 90 秒超时</td></tr>
+      <tr><td>输出校验</td><td>必须含 <code>wallet_id</code> 或 <code>tx_id</code>；特征列非空；NaN &lt; 50%；<code>nunique</code> &gt; 1</td></tr>
+      <tr><td>自动修复</td><td>执行失败时，最多调用 LLM <strong>2 次</strong>修复代码后重试</td></tr>
+    </table>
   </div>
 
-  <h3>4.2 L2：统计质量验证</h3>
+  <h3>5.2 L2：统计质量验证</h3>
   <div class="card" style="margin: 12px 0;">
     <div class="card-title">目标：确保特征有区分力、低冗余、低缺失</div>
     <table>
-      <tr><th>指标</th><th>含义</th><th>阈值</th><th>说明</th></tr>
-      <tr>
-        <td><strong>IV</strong> (Information Value)</td>
-        <td>特征对标签的区分能力</td>
-        <td>&ge; 0.001</td>
-        <td>基于分箱的正负样本分布差异</td>
-      </tr>
-      <tr>
-        <td><strong>KS</strong></td>
-        <td>正负样本累积分布的最大分离度</td>
-        <td>&ge; 0.001</td>
-        <td>越高说明特征越能区分正负样本</td>
-      </tr>
-      <tr>
-        <td><strong>冗余度</strong></td>
-        <td>与已有特征的最大 |Pearson 相关系数|</td>
-        <td>&lt; 0.7</td>
-        <td>避免与已有特征高度重复</td>
-      </tr>
-      <tr>
-        <td><strong>缺失率</strong></td>
-        <td>NaN 值比例</td>
-        <td>&le; 0.5</td>
-        <td>缺失过多的特征不可用</td>
-      </tr>
+      <tr><th>指标</th><th>含义</th><th>阈值</th></tr>
+      <tr><td><strong>IV</strong> (Information Value)</td><td>正负样本分布差异（分箱后计算）</td><td>&ge; 校准值（默认 0.001，基于噪声基准调整）</td></tr>
+      <tr><td><strong>KS</strong> 统计量</td><td>正负样本累积分布最大分离度</td><td>&ge; 校准值（默认 0.001）</td></tr>
+      <tr><td><strong>冗余度</strong></td><td>与已有特征的最大 |Pearson 相关系数|</td><td>&lt; 0.7</td></tr>
+      <tr><td><strong>缺失率</strong></td><td>NaN 值比例</td><td>&le; 0.5</td></tr>
     </table>
-    <p>注：IV 和 KS 阈值会在实验开始时通过<strong>噪声基准校准</strong>（生成 100 个随机噪声特征，取其分布的某个分位数作为下限），确保阈值适应当前数据集。</p>
+    <p style="font-size:0.9em;color:var(--text-secondary);margin-top:8px;">注：IV 和 KS 阈值在实验开始时通过<strong>噪声基准校准</strong>（生成 100 个随机噪声特征，取其分布的特定分位数作为下限），适应当前数据集特性。</p>
   </div>
 
-  <h3>4.3 L3：模型增量验证</h3>
+  <h3>5.3 L3：模型增量验证</h3>
   <div class="card" style="margin: 12px 0;">
-    <div class="card-title">目标：确保新特征能提升模型 Recall，且不显著损害 Precision</div>
-    <p><strong>评估方式</strong>：5 折交叉验证（StratifiedKFold），在每折训练集上寻找最优 F1 阈值，然后在验证集上评估。</p>
-    <p><strong>增量对比</strong>：分别训练两个 XGBoost 模型：</p>
+    <div class="card-title">目标：确保新特征能提升模型 Recall，且不严重损害 Precision</div>
+
+    <p><strong>评估方式</strong>：5 折交叉验证（StratifiedKFold）。在每折训练集上搜索最优 F1 阈值（0.05~0.95），然后在验证集上评估。</p>
+
+    <p><strong>增量对比</strong>（<code>compute_delta_metrics</code>）：</p>
     <ul>
-      <li><strong>基线模型</strong>：仅使用当前 <code>existing_features</code></li>
+      <li><strong>基线模型</strong>：仅使用当前 <code>existing_features</code>（动态，含之前已接受的所有特征）</li>
       <li><strong>增强模型</strong>：使用 <code>existing_features</code> + 新特征</li>
     </ul>
-    <p>计算 delta_recall、delta_f1、delta_precision 以及 aug_precision（增强模型的绝对 Precision）。</p>
+    <p>两个模型在相同的 5 折拆分上训练和评估，计算 delta_recall、delta_f1、delta_precision 以及 aug_precision。</p>
 
-    <div class="highlight-box">
+    <div class="callout callout-green">
       <strong>L3 接受条件（Recall 优先）：</strong>
-      <ol>
-        <li><code>delta_recall &gt; 0</code> — Recall 必须提升（不可降低）</li>
+      <ol style="margin-bottom:0;">
+        <li><code>delta_recall &gt; 0</code> — Recall 必须有提升（不可降低）</li>
         <li><code>aug_precision &ge; 0.95</code> — 加入新特征后 Precision 绝对值不低于 95%</li>
       </ol>
-      <p style="margin-top:8px;margin-bottom:0;">F1 不设约束——只要 Recall 提升且 Precision 在安全线之上即可接受。</p>
+      <p style="margin-top:10px;margin-bottom:0;">F1 不设约束。只要 Recall 提升且 Precision 安全即可接受。</p>
     </div>
 
-    <p><strong>通过 L3</strong> → 特征立即加入 <code>existing_features</code>，后续评估基线自动更新。</p>
-    <p><strong>未通过 L3</strong>（但已通过 L2）→ 进入<strong>缓刑池</strong>（Pending Pool），等待组合评估。</p>
+    <div class="grid-2" style="margin-top:16px;">
+      <div class="card" style="border-color:#059669;">
+        <div class="card-title" style="color:#059669;">通过 L3</div>
+        <p>特征<strong>立即加入</strong> <code>existing_features</code>。后续所有 L3 评估和前向选择的基线自动更新为包含该特征后的状态。</p>
+      </div>
+      <div class="card" style="border-color:#d97706;">
+        <div class="card-title" style="color:#d97706;">未通过 L3（但已通过 L2）</div>
+        <p>进入<strong>候选缓冲池</strong>，等待轮末前向选择评估组合效应。该特征可能单独无效但与其他特征组合后有效。</p>
+      </div>
+    </div>
   </div>
 
-  <h3>4.4 L3 附加指标：SHAP Rank</h3>
-  <p>每个通过 L2 的特征还会计算 SHAP 重要性排名（在所有 existing_features + 新特征上训练 XGBoost，排 mean |SHAP|）。此排名用于复合打分，不参与 L3 接受/拒绝判定。</p>
+  <h3>5.4 附加指标：SHAP Rank</h3>
+  <p>每个通过 L2 的特征还会计算 SHAP 重要性排名（在 existing_features + 新特征上训练 XGBoost，排 mean |SHAP|）。此排名用于复合打分（第 10 节），<strong>不参与 L3 接受/拒绝判定</strong>。</p>
 </div>
 
-<!-- ====== 5. 缓刑池与前向选择 ====== -->
-<div class="section">
-  <h2>5. 缓刑池与前向选择（FS）</h2>
+<!-- ====== 6. 候选缓冲池 ====== -->
+<div class="section" id="sec6">
+  <h2><span class="num">6</span>候选缓冲池</h2>
 
-  <h3>5.1 缓刑池（Pending Pool）</h3>
-  <p>通过 L2 但未通过 L3 的特征不会被直接丢弃，而是进入缓刑池等待<strong>组合效应</strong>评估。</p>
+  <p>通过 L2 但未通过 L3 的特征进入<strong>候选缓冲池</strong>（Candidate Buffer），等待轮末前向选择评估其组合效应。这种"延迟评估"机制在 Wrapper-based 特征选择<sup>[2]</sup>中是常见做法：单特征评估可能遗漏交互效应，批量组合评估可以捕获。</p>
 
   <table>
     <tr><th>参数</th><th>值</th><th>说明</th></tr>
-    <tr><td>最大容量</td><td>20</td><td>超出时淘汰互信息最低的特征</td></tr>
-    <tr><td>最大年龄</td><td>3 轮</td><td>超过 3 轮未被接受则清除</td></tr>
-    <tr><td>最大连续拒绝</td><td>2 次</td><td>连续 2 轮被 FS 拒绝则清除</td></tr>
+    <tr><td>最大容量</td><td>20</td><td>超出时淘汰互信息（MI）最低的特征</td></tr>
+    <tr><td>最大存活轮数</td><td>3 轮</td><td>超过 3 轮未被接受则清除</td></tr>
+    <tr><td>最大连续拒绝</td><td>2 次</td><td>被前向选择连续拒绝 2 轮则清除</td></tr>
   </table>
 
-  <h3>5.2 前向选择（Forward Selection）</h3>
-  <p>每轮所有岛屿探索结束后，对缓刑池中的候选特征执行贪心前向选择：</p>
+  <h3>生命周期</h3>
+  <ol>
+    <li>特征通过 L2 但 L3 失败 → 加入缓冲池</li>
+    <li>每轮结束时 → 前向选择评估所有候选</li>
+    <li>被选中 → 从缓冲池移除，加入 <code>existing_features</code></li>
+    <li>被拒绝 → 连续拒绝计数 +1</li>
+    <li>轮次推进 → 年龄 +1，超龄或超拒清除</li>
+  </ol>
 
-  <pre><code># 前向选择流程
-X_current = existing_features   # 当前所有已接受的特征（动态）
-current_metrics = compute_cv_metrics(X_current, y)  # 真实当前基线
+  <p class="ref">[2] Kohavi, R. & John, G. H. "Wrappers for Feature Subset Selection." Artificial Intelligence, 97(1-2), 273-324, 1997.</p>
+</div>
+
+<!-- ====== 7. 前向选择 ====== -->
+<div class="section" id="sec7">
+  <h2><span class="num">7</span>前向选择 (Forward Selection)</h2>
+
+  <p><strong>前向选择</strong>（Forward Selection）是一种经典的 Wrapper 特征选择方法<sup>[2][3]</sup>：从空集开始，每轮贪心地加入使目标指标改善最大的特征，直到没有特征能满足接受条件。</p>
+
+  <h3>7.1 本系统中的前向选择流程</h3>
+  <p>每轮所有维度组探索结束后，对候选缓冲池中的特征执行贪心前向选择：</p>
+
+  <pre><code># 前向选择 (每轮末执行)
+X_current = existing_features          # 当前所有已接受的特征（95 基线 + 已通过的新特征）
+current_metrics = compute_cv_metrics(X_current, y)   # 计算真实当前基线指标
 
 while 还有候选:
-    best = None
+    best_candidate = None
+    best_score = -inf
+
     for candidate in remaining_candidates:
         X_try = X_current + candidate
-        m = compute_cv_metrics(X_try, y)
+        m = compute_cv_metrics(X_try, y)     # 5-fold CV
+
+        delta_recall = m["recall"] - current_metrics["recall"]
 
         if delta_recall > 0 and m["precision"] >= 0.95:
-            score = delta_recall + 0.3 * delta_f1
+            score = delta_recall + 0.3 * (m["f1"] - current_metrics["f1"])
             if score > best_score:
-                best = candidate
+                best_candidate = candidate
+                best_score = score
 
-    if best is None: break
-    X_current += best
-    current_metrics = best_metrics</code></pre>
+    if best_candidate is None:
+        break   # 没有候选能满足条件
 
-  <div class="highlight-box">
-    <strong>FS 接受条件与 L3 一致：</strong><code>delta_recall &gt; 0</code> 且 <code>precision &ge; 0.95</code>。<br>
-    <strong>排序依据：</strong><code>delta_recall + 0.3 &times; delta_f1</code>（Recall 主导，F1 辅助）。
+    # 接受最佳候选，更新基线
+    X_current += best_candidate
+    current_metrics = compute_cv_metrics(X_current, y)</code></pre>
+
+  <h3>7.2 接受条件</h3>
+  <div class="callout callout-green">
+    <strong>与 L3 一致：</strong><code>delta_recall &gt; 0</code> 且 <code>precision &ge; 0.95</code>。
   </div>
 
-  <h3>5.3 L3 与 FS 的区别</h3>
+  <h3>7.3 排序依据</h3>
+  <p>当多个候选都满足条件时，选择 <code>delta_recall + 0.3 &times; delta_f1</code> 最大的。这是一个<strong>以 Recall 为主导、F1 为辅助</strong>的启发式排序。F1 的权重 0.3 确保在 Recall 提升相近时，优先选择 F1 也有提升的候选（即 Precision 损失更小的），但不会让 F1 反过来主导选择。</p>
+
+  <div class="callout callout-yellow">
+    <strong>关于排序公式：</strong>这是一种多目标特征选择的启发式权重方案。在特征选择文献中，标准前向选择<sup>[3]</sup>通常使用单一指标排序。多目标排序常见于多目标优化领域<sup>[4]</sup>，通过加权和（Weighted Sum）将多个目标合并为标量是最简单的处理方式。本系统选择 Recall 权重 1.0、F1 权重 0.3 是基于业务优先级：Recall 是反洗钱的核心指标，F1 作为平衡指标起辅助参考作用。
+  </div>
+
+  <h3>7.4 L3 与前向选择的区别</h3>
   <table>
-    <tr><th></th><th>L3 验证</th><th>FS 前向选择</th></tr>
+    <tr><th></th><th>L3 验证</th><th>前向选择 (FS)</th></tr>
     <tr>
       <td><strong>触发时机</strong></td>
       <td>每个特征生成后立即评估</td>
-      <td>每轮结束时批量评估缓刑池</td>
+      <td>每轮结束时，批量评估候选缓冲池</td>
     </tr>
     <tr>
       <td><strong>评估方式</strong></td>
-      <td>单特征增量：加/不加这一个特征</td>
+      <td>单特征增量：加/不加<strong>这一个</strong>特征</td>
       <td>组合贪心：逐步选最优组合</td>
     </tr>
     <tr>
       <td><strong>解决的问题</strong></td>
       <td>这个特征单独加进去有没有用？</td>
-      <td>这些单独看不够好的特征，组合起来有没有用？</td>
+      <td>这些单独看不够好的特征，<strong>组合</strong>起来有没有用？</td>
     </tr>
     <tr>
       <td><strong>基线</strong></td>
       <td>当前 existing_features（动态）</td>
-      <td>当前 existing_features（动态，含 L3 新通过的）</td>
+      <td>当前 existing_features（动态，含本轮 L3 新通过的）</td>
     </tr>
     <tr>
-      <td><strong>接受条件</strong></td>
-      <td>delta_recall &gt; 0, aug_precision &ge; 95%</td>
-      <td>相同</td>
+      <td><strong>举例</strong></td>
+      <td>特征 A 单独加入 → Recall -0.001 → L3 拒绝</td>
+      <td>A+B 组合 → Recall +0.003 → FS 接受 A 和 B</td>
     </tr>
   </table>
 
-  <div class="warn-box">
-    <strong>为什么需要 FS？</strong>例如特征 A 单独加入使 Recall 下降 0.001（L3 拒绝），但特征 A+B 一起加入使 Recall 提升 0.003。L3 无法发现这种组合效应，FS 可以。
-  </div>
+  <p class="ref">[3] Guyon, I. & Elisseeff, A. "An Introduction to Variable and Feature Selection." JMLR, 3, 1157-1182, 2003.<br>
+  [4] Deb, K. "Multi-Objective Optimization Using Evolutionary Algorithms." Wiley, 2001.</p>
 </div>
 
-<!-- ====== 6. 知识注入 ====== -->
-<div class="section">
-  <h2>6. 领域知识注入</h2>
-  <p>系统通过 prompt 向 LLM 注入大量反洗钱领域知识，显著提高特征生成的针对性：</p>
+<!-- ====== 8. 模型与评估 ====== -->
+<div class="section" id="sec8">
+  <h2><span class="num">8</span>下游模型与评估方法</h2>
 
-  <div class="grid-2">
-    <div class="card">
-      <div class="card-title">交易模式知识（8种 Motif）</div>
-      <p>3 种正常模式 + 5 种异常模式，每种包含金额特征、时间间隔、交易方式、适用钱包类型等详细描述。</p>
-      <ul style="font-size:0.9em;">
-        <li>正常：single_transaction, normal_small_high_freq, regular_large_low_freq</li>
-        <li>异常：small_amount_testing, merchant_laundering, class4_laundering, online_laundering, victim_laundering</li>
-      </ul>
-    </div>
-    <div class="card">
-      <div class="card-title">专家访谈（309份判决书）</div>
-      <p>从法院判决书中提取的 7 种洗钱模型：薅羊毛、线下跑分、线上跑分、商户收款码跑分等。包含转账链条模式、典型操作流程、佣金特征、关键行为签名、时间特征、组织层级等 9 个维度的深度分析。</p>
-    </div>
-    <div class="card">
-      <div class="card-title">风险指标（38个）</div>
-      <p>按维度组织的风险指标体系：金额、时间、IP、设备、身份、行为、交易模式等。每个指标标注风险类型、数据类型、方向。</p>
-    </div>
-    <div class="card">
-      <div class="card-title">检测规则（15条）+ 代码示例</div>
-      <p>现有的检测规则及其逻辑。系统自动将其中 2 条规则转换为 Python 代码示例，作为 LLM 的参考模板（如休眠账户激活、商户异常流量检测）。</p>
-    </div>
-  </div>
-
-  <h3>额外注入信息</h3>
-  <ul>
-    <li><strong>数据库 Schema</strong>：三张表的完整字段描述</li>
-    <li><strong>分布差异</strong>：正常 vs 异常交易在各字段上的分布对比</li>
-    <li><strong>Join 统计</strong>：表间关联关系和匹配率</li>
-    <li><strong>已有基线特征列表</strong>：避免 LLM 生成重复特征</li>
-    <li><strong>失败记忆</strong>：之前失败的特征名和原因，避免重蹈覆辙</li>
-  </ul>
-</div>
-
-<!-- ====== 7. 模型与评估 ====== -->
-<div class="section">
-  <h2>7. 下游模型与评估方法</h2>
-
-  <h3>7.1 XGBoost 配置</h3>
+  <h3>8.1 XGBoost 配置</h3>
   <table>
     <tr><th>参数</th><th>值</th><th>说明</th></tr>
-    <tr><td>scale_pos_weight</td><td>19.0</td><td>正负样本比例 ~1:19（正样本率 0.32%）</td></tr>
+    <tr><td>scale_pos_weight</td><td>19.0</td><td>正负样本比例约 1:19（正样本率 0.32%）</td></tr>
     <tr><td>n_estimators</td><td>200</td><td>树的数量</td></tr>
     <tr><td>max_depth</td><td>6</td><td>最大树深度</td></tr>
     <tr><td>learning_rate</td><td>0.1</td><td>学习率</td></tr>
-    <tr><td>eval_metric</td><td>aucpr</td><td>评估指标（PR-AUC）</td></tr>
-    <tr><td>tree_method</td><td>hist</td><td>GPU 加速需要</td></tr>
+    <tr><td>eval_metric</td><td>aucpr</td><td>PR-AUC 作为训练评估指标</td></tr>
+    <tr><td>tree_method</td><td>hist</td><td>直方图加速（GPU 需要）</td></tr>
     <tr><td>device</td><td>cuda</td><td>GPU 计算</td></tr>
   </table>
 
-  <h3>7.2 评估指标</h3>
-  <ul>
-    <li><strong>Recall</strong>（召回率）：最核心指标，衡量检出异常交易的能力</li>
-    <li><strong>Precision</strong>（精确率）：衡量误报率，绝对值需 &ge; 95%</li>
-    <li><strong>F1</strong>：Recall 和 Precision 的调和均值</li>
-    <li><strong>PR-AUC</strong>：精确率-召回率曲线下面积</li>
-  </ul>
+  <h3>8.2 阈值优化</h3>
+  <p>不使用固定 0.5 阈值。在每折<strong>训练集</strong>上遍历 0.05~0.95（步长 0.01），选择使 F1 最大化的阈值，然后用该阈值在<strong>验证集</strong>上计算 Recall、Precision 等指标。</p>
 
-  <h3>7.3 阈值优化</h3>
-  <p>不使用固定 0.5 阈值。在每折训练集上遍历 0.05~0.95（步长 0.01），选择使 F1 最大化的阈值，然后用该阈值在验证集上计算 Recall、Precision。</p>
-
-  <h3>7.4 SHAP 兼容性</h3>
-  <p>XGBoost 3.2 GPU 模型的 <code>base_score</code> 以带方括号字符串返回（如 <code>'[1.4586365E-1]'</code>），shap 0.49.1 无法解析。系统通过 <code>src/compat.py</code> 中的 <code>safe_tree_explainer()</code> 自动修复：在创建 TreeExplainer 前清理 base_score 格式，确保全程使用真正的 SHAP 值而非 fallback 到 gain-based importance。</p>
+  <h3>8.3 SHAP 兼容性处理</h3>
+  <p>XGBoost 3.2 GPU 模型的 <code>base_score</code> 以带方括号字符串返回（如 <code>'[1.4586365E-1]'</code>），SHAP 0.49.1 无法解析。系统通过 <code>src/compat.py</code> 的 <code>safe_tree_explainer()</code> 在创建 TreeExplainer 前自动修复 base_score 格式，确保全程使用真正的 SHAP 值。</p>
 </div>
 
-<!-- ====== 8. 复合打分 ====== -->
-<div class="section">
-  <h2>8. 特征复合打分</h2>
-  <p>每个被接受的特征会计算一个综合分数，用于排序和展示（不影响接受/拒绝判定）：</p>
+<!-- ====== 9. SHAP 反馈 ====== -->
+<div class="section" id="sec9">
+  <h2><span class="num">9</span>SHAP 反馈与预算分配</h2>
 
+  <p>每轮开始时，系统在当前 <code>existing_features</code> 上训练 XGBoost 并计算全局 SHAP 重要性。借鉴 MedFeat<sup>[5]</sup> 的思路，用 SHAP 值引导 LLM 的搜索方向。</p>
+
+  <h3>9.1 反馈内容（注入 LLM Prompt）</h3>
+  <ul>
+    <li><strong>Top 10 特征</strong>：归一化 SHAP 值最高的 10 个特征名和权重</li>
+    <li><strong>薄弱维度</strong>：SHAP 贡献低于均值的维度组</li>
+  </ul>
+
+  <h3>9.2 预算分配公式</h3>
+  <p>按 SHAP 维度重要性的<strong>反比</strong>分配各组候选名额：薄弱维度获得更多探索资源。</p>
+  <pre><code>weight[dim] = 1.0 / (importance[dim] + eps)        # eps = 0.01
+budget[dim] = round(weight[dim] / sum(weights) * B_total)
+budget[dim] = clamp(budget[dim], min=1, max=5)      # B_total = 12</code></pre>
+
+  <p class="ref">[5] "MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs." arXiv:2603.02221, 2026.</p>
+</div>
+
+<!-- ====== 10. 复合打分 ====== -->
+<div class="section" id="sec10">
+  <h2><span class="num">10</span>特征复合打分</h2>
+  <p>每个被接受的特征计算一个综合分数，用于排序和展示（<strong>不影响接受/拒绝判定</strong>）：</p>
   <table>
     <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
-    <tr><td>SHAP 排名</td><td>30%</td><td>1/rank（排名越高，分数越高）</td></tr>
+    <tr><td>SHAP 排名</td><td>30%</td><td>1/rank（排名越高分数越高）</td></tr>
     <tr><td>IV 值</td><td>20%</td><td>原始 IV 值</td></tr>
     <tr><td>冗余度</td><td>20%</td><td>1 - redundancy（越低越好）</td></tr>
     <tr><td>Delta F1</td><td>30%</td><td>加入该特征后 F1 的变化量</td></tr>
   </table>
-
   <p>四个维度分别做 Min-Max 归一化（基于历史所有被评估特征的分值），然后加权求和。</p>
 </div>
 
-<!-- ====== 9. 收敛与终止 ====== -->
-<div class="section">
-  <h2>9. 收敛检测与终止条件</h2>
-
+<!-- ====== 11. 收敛 ====== -->
+<div class="section" id="sec11">
+  <h2><span class="num">11</span>收敛检测与终止条件</h2>
   <ul>
     <li><strong>正常终止</strong>：完成 10 轮迭代</li>
-    <li><strong>收敛终止</strong>：连续 2 轮没有新特征被接受（L3 + FS 均无产出）→ 提前终止</li>
+    <li><strong>收敛终止</strong>：连续 <strong>2 轮</strong>没有新特征被接受（L3 直接通过 + 前向选择 均无产出）→ 提前终止</li>
   </ul>
-
-  <p>终止后执行最终的缓刑池评估（final pending pool evaluation），给剩余候选最后一次机会。</p>
+  <p>终止后执行最终的候选缓冲池评估（Final Pending Pool Evaluation），给剩余候选最后一次机会。</p>
 </div>
 
-<!-- ====== 10. 可解释性 ====== -->
-<div class="section">
-  <h2>10. 可解释性生成</h2>
-  <p>每个通过验证的特征，系统自动调用 LLM 生成可解释性报告，包含：</p>
-  <ul>
-    <li><strong>value_meaning</strong>：特征值的业务含义</li>
-    <li><strong>risk_threshold</strong>：风险阈值建议</li>
-    <li><strong>synergy</strong>：与其他特征的协同效应</li>
-    <li><strong>false_positive_cases</strong>：可能的误报场景</li>
-    <li><strong>regulatory_explanation</strong>：监管解释（满足反洗钱合规要求）</li>
-  </ul>
-</div>
-
-<!-- ====== 11. 关键参数总览 ====== -->
-<div class="section">
-  <h2>11. 关键参数总览</h2>
-  <table>
-    <tr><th>类别</th><th>参数</th><th>值</th><th>说明</th></tr>
-    <tr><td rowspan="4">搜索策略</td><td>max_rounds (T)</td><td>10</td><td>最大搜索轮数</td></tr>
-    <tr><td>islands (m)</td><td>4</td><td>探索维度数</td></tr>
-    <tr><td>B_total</td><td>12</td><td>每轮总候选预算</td></tr>
-    <tr><td>intra_island_turns</td><td>3</td><td>岛屿内最大对话轮数</td></tr>
-    <tr><td rowspan="4">L2 阈值</td><td>iv_min</td><td>0.001</td><td>最小 IV 值（校准后可能调整）</td></tr>
-    <tr><td>ks_min</td><td>0.001</td><td>最小 KS 值</td></tr>
-    <tr><td>corr_max</td><td>0.7</td><td>最大冗余度</td></tr>
-    <tr><td>missing_rate_max</td><td>0.5</td><td>最大缺失率</td></tr>
-    <tr><td rowspan="2">L3 条件</td><td>delta_recall</td><td>&gt; 0</td><td>Recall 必须提升</td></tr>
-    <tr><td>aug_precision</td><td>&ge; 0.95</td><td>Precision 绝对值 &ge; 95%</td></tr>
-    <tr><td rowspan="3">缓刑池</td><td>max_size</td><td>20</td><td>最大容量</td></tr>
-    <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
-    <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
-    <tr><td rowspan="2">收敛</td><td>连续空轮</td><td>2</td><td>连续 2 轮无新特征则终止</td></tr>
-    <tr><td>沙盒超时</td><td>90s</td><td>代码执行超时限制</td></tr>
-  </table>
-</div>
-
-<!-- ====== 12. 完整数据流图 ====== -->
-<div class="section">
-  <h2>12. 完整数据流</h2>
-  <pre><code>
-┌─────────────────────────────────────────────────────────────────────┐
-│                         输入数据                                     │
-│  open_df (100K钱包)  tx_df (138万交易)  close_df (500销户)            │
-│  label: is_risk (正样本率 0.32%)                                     │
-└──────────────────────────┬──────────────────────────────────────────┘
-                           │
-                    ┌──────▼──────┐
-                    │  基线特征工程  │ → 95 个基线特征 (existing_features 初始值)
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  基线 CV 指标  │ → F1, Recall, Precision, PR-AUC
-                    └──────┬──────┘
-                           │
-         ┌─────────────────▼─────────────────────────────────┐
-         │              Agent 主循环 (Round 1~10)              │
-         │                                                     │
-         │  ┌─ SHAP 反馈 → 岛屿预算分配 ────────────────────┐  │
-         │  │                                                │  │
-         │  │  ┌─ 岛屿循环 (4个维度) ─────────────────────┐  │  │
-         │  │  │                                          │  │  │
-         │  │  │  LLM 生成候选特征                         │  │  │
-         │  │  │       │                                  │  │  │
-         │  │  │  ┌────▼────┐                             │  │  │
-         │  │  │  │ L1 沙盒  │ → 失败: LLM 自动修复(2次)   │  │  │
-         │  │  │  └────┬────┘                             │  │  │
-         │  │  │  ┌────▼────┐                             │  │  │
-         │  │  │  │ L2 统计  │ → 失败: 丢弃               │  │  │
-         │  │  │  └────┬────┘                             │  │  │
-         │  │  │  ┌────▼────┐                             │  │  │
-         │  │  │  │ L3 模型  │ → 通过: 加入 existing       │  │  │
-         │  │  │  └────┬────┘   失败: 进入缓刑池           │  │  │
-         │  │  │       │                                  │  │  │
-         │  │  └───────┘                                  │  │  │
-         │  │                                                │  │
-         │  │  ┌─ 轮末：缓刑池前向选择(FS) ──────────────┐   │  │
-         │  │  │  基线 = compute_cv(existing_features)   │   │  │
-         │  │  │  贪心选择: delta_recall > 0 且 P≥95%    │   │  │
-         │  │  │  通过 → 加入 existing_features          │   │  │
-         │  │  │  拒绝 → mark_rejected / purge           │   │  │
-         │  │  └─────────────────────────────────────────┘   │  │
-         │  └────────────────────────────────────────────────┘  │
-         │                                                     │
-         │  收敛检测: 连续2轮无新特征 → 提前终止                   │
-         └──────────────────────┬────────────────────────────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │  输出                   │
-                    │  - result.json          │
-                    │  - evaluation.json      │
-                    │  - report.html          │
-                    └─────────────────────────┘
-  </code></pre>
+<!-- ====== 12. 可解释性 ====== -->
+<div class="section" id="sec12">
+  <h2><span class="num">12</span>可解释性生成</h2>
+  <p>每个通过验证的特征，系统自动调用 LLM 生成可解释性报告：</p>
+  <div class="grid-3" style="margin-top:12px;">
+    <div class="card">
+      <div class="card-title">value_meaning</div>
+      <p>特征值的业务含义</p>
+    </div>
+    <div class="card">
+      <div class="card-title">risk_threshold</div>
+      <p>风险阈值建议</p>
+    </div>
+    <div class="card">
+      <div class="card-title">synergy</div>
+      <p>与其他特征的协同效应</p>
+    </div>
+    <div class="card">
+      <div class="card-title">false_positive_cases</div>
+      <p>可能的误报场景</p>
+    </div>
+    <div class="card">
+      <div class="card-title">regulatory_explanation</div>
+      <p>监管合规解释</p>
+    </div>
+  </div>
 </div>
 
 <!-- ====== 13. LLM 配置 ====== -->
-<div class="section">
-  <h2>13. LLM 配置</h2>
+<div class="section" id="sec13">
+  <h2><span class="num">13</span>LLM 配置与工具</h2>
   <table>
     <tr><th>参数</th><th>值</th></tr>
     <tr><td>API</td><td>api.deepseek.com</td></tr>
     <tr><td>模型</td><td>deepseek-chat</td></tr>
-    <tr><td>Temperature</td><td>0.7（特征生成），0.3（代码修复）</td></tr>
-    <tr><td>调用格式</td><td>OpenAI 兼容 Tool Use（explore_data, generate_feature, execute_sandbox）</td></tr>
+    <tr><td>Temperature</td><td>0.7（特征生成）/ 0.3（代码修复）</td></tr>
+    <tr><td>调用格式</td><td>OpenAI 兼容 Tool Use</td></tr>
   </table>
 
   <h3>LLM 工具定义</h3>
   <div class="grid-3">
     <div class="card">
       <div class="card-title">explore_data</div>
-      <p>在 DataFrame 上执行查询代码，探索数据分布和模式，15 秒超时。</p>
+      <p>在 DataFrame 上执行查询代码，探索数据分布和模式。15 秒超时。</p>
     </div>
     <div class="card">
       <div class="card-title">generate_feature</div>
-      <p>提交特征代码（函数签名：<code>def feature_xxx(open_df, tx_df, close_df) -> pd.DataFrame</code>），附带特征名、维度、解释。</p>
+      <p>提交特征代码，函数签名：<code>def feature_xxx(open_df, tx_df, close_df) -&gt; pd.DataFrame</code></p>
     </div>
     <div class="card">
       <div class="card-title">execute_sandbox</div>
-      <p>触发 L1+L2+L3 验证流水线，返回验证结果和指标。</p>
+      <p>触发 L1 → L2 → L3 验证流水线，返回验证结果和指标。</p>
+    </div>
+  </div>
+
+  <h3>领域知识注入</h3>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">交易模式知识（8 种 Motif）</div>
+      <p>3 种正常模式 + 5 种异常模式，含金额特征、时间间隔、交易方式、适用钱包类型。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">专家访谈（309 份判决书）</div>
+      <p>7 种洗钱模型的详细模式：转账链条、操作流程、佣金特征、行为签名等 9 个维度。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">风险指标（38 个）</div>
+      <p>按维度组织的风险指标体系，每个标注风险类型、数据类型、方向。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">检测规则（15 条）+ 代码示例</div>
+      <p>现有规则逻辑，2 条自动转 Python 代码作为 LLM 参考模板。</p>
     </div>
   </div>
 </div>
 
+<!-- ====== 14. 参数总览 ====== -->
+<div class="section" id="sec14">
+  <h2><span class="num">14</span>关键参数总览</h2>
+  <table>
+    <tr><th>类别</th><th>参数</th><th>值</th><th>说明</th></tr>
+    <tr><td rowspan="4">搜索策略</td><td>max_rounds</td><td>10</td><td>最大搜索轮数</td></tr>
+    <tr><td>维度组数</td><td>4</td><td>金额频次 / 时间地域 / 行为序列 / 主体关联</td></tr>
+    <tr><td>B_total</td><td>12</td><td>每轮总候选预算</td></tr>
+    <tr><td>组内最大对话轮数</td><td>2</td><td>配置 3，但 Turn 2 后强制退出</td></tr>
+    <tr><td rowspan="4">L2 阈值</td><td>iv_min</td><td>0.001（校准后调整）</td><td>最小 IV 值</td></tr>
+    <tr><td>ks_min</td><td>0.001（校准后调整）</td><td>最小 KS 值</td></tr>
+    <tr><td>corr_max</td><td>0.7</td><td>最大冗余度</td></tr>
+    <tr><td>missing_rate_max</td><td>0.5</td><td>最大缺失率</td></tr>
+    <tr><td rowspan="2">L3 / FS 条件</td><td>delta_recall</td><td>&gt; 0</td><td>Recall 必须提升</td></tr>
+    <tr><td>aug_precision</td><td>&ge; 0.95</td><td>Precision 绝对值不低于 95%</td></tr>
+    <tr><td rowspan="3">候选缓冲池</td><td>max_size</td><td>20</td><td>最大容量</td></tr>
+    <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
+    <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
+    <tr><td>收敛</td><td>连续空轮</td><td>2</td><td>连续 2 轮无新特征则终止</td></tr>
+    <tr><td>沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
+    <tr><td>L1 修复</td><td>自动修复次数</td><td>2</td><td>代码执行失败后 LLM 修复重试</td></tr>
+  </table>
+</div>
+
 <!-- ====== Footer ====== -->
-<div style="text-align:center; padding: 32px 0; color: var(--text-secondary); font-size: 0.9em;">
-  <p>Generated: 2026-05-20 | LLM 自动特征工程系统 v3</p>
+<div class="footer">
+  <p>LLM 自动特征工程系统 &mdash; 技术方案文档</p>
+  <p style="margin-top:4px;">Generated: 2026-05-20</p>
 </div>
 
 </div>
