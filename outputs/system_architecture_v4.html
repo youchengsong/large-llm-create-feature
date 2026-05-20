@@ -295,12 +295,104 @@
     margin-bottom: 4px;
   }
 
+  /* Interactive architecture diagram */
+  .arch-diagram {
+    background: linear-gradient(135deg, #f0fdfa, #f0f4f8);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    margin: 20px 0;
+    position: relative;
+  }
+  .arch-node {
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.88em;
+    text-align: center;
+    min-width: 130px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .arch-node:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    z-index: 10;
+  }
+  .arch-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--code-bg);
+    color: #e2e8f0;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.82em;
+    font-weight: 400;
+    line-height: 1.6;
+    white-space: nowrap;
+    z-index: 20;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    pointer-events: none;
+  }
+  .arch-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--code-bg);
+  }
+  .arch-node:hover .arch-tooltip { display: block; }
+  .arch-contain {
+    border: 2px solid var(--warning);
+    border-radius: 14px;
+    padding: 16px;
+    background: rgba(254,243,199,0.3);
+    position: relative;
+  }
+  .arch-contain-label {
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: var(--warning-light);
+    padding: 0 10px;
+    font-size: 0.78em;
+    font-weight: 700;
+    color: #92400e;
+    border-radius: 4px;
+  }
+  .arch-output-group {
+    border: 2px dashed var(--success);
+    border-radius: 12px;
+    padding: 16px 20px;
+    background: rgba(209,250,229,0.2);
+    position: relative;
+  }
+  .arch-output-label {
+    position: absolute;
+    top: -11px;
+    left: 16px;
+    background: var(--success-light);
+    padding: 0 10px;
+    font-size: 0.78em;
+    font-weight: 700;
+    color: #065f46;
+    border-radius: 4px;
+  }
+
   @media (max-width: 768px) {
     .grid-2, .grid-3, .toc-grid { grid-template-columns: 1fr; }
     .metric-row { flex-direction: column; }
     .header h1 { font-size: 1.6em; }
     .section { padding: 24px 18px; }
     .flow-row { flex-direction: column; }
+    .arch-tooltip { white-space: normal; min-width: 200px; }
   }
 </style>
 </head>
@@ -369,7 +461,7 @@
       <ul>
         <li>沙盒：在隔离环境中执行 Agent 提交的代码（E2B microVM 或本地进程）</li>
         <li>三级验证器：L1(安全) → L2(统计) → L3(模型增量)</li>
-        <li>SHAP 分析器：告诉 Agent 哪些维度薄弱</li>
+        <li>SHAP 分析器：告诉 Agent 哪些特征重要</li>
         <li>候选缓冲池：暂存 L3 未通过但有潜力的特征</li>
         <li>前向选择器：在轮末评估特征组合效应</li>
       </ul>
@@ -421,77 +513,139 @@
 
   <p class="ref">[1] Yao, S. et al. "ReAct: Synergizing Reasoning and Acting in Language Models." ICLR 2023.</p>
 
-  <h3>2.2 完整架构图</h3>
-  <div class="flow-container">
-    <!-- Row 1: Knowledge Injection -->
+  <h3>2.2 完整架构图 <span style="font-size:0.7em;color:var(--text-secondary);">（悬停查看详情，点击跳转对应章节）</span></h3>
+  <div class="arch-diagram">
+    <!-- Row 1: Knowledge + Agent + SHAP -->
     <div class="flow-row">
-      <div class="flow-box" style="background: #fce7f3; color: #9d174d;">
-        领域知识注入<br><small>Schema / 分布差异 / 判决书 / 风险指标</small>
-      </div>
+      <a href="#sec3" style="text-decoration:none;">
+        <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
+          领域知识注入<br><small>System Prompt</small>
+          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 309份判决书<br>38个风险指标 / 15条检测规则 / 8种交易模式<br>→ 点击查看第 3 章详情</div>
+        </div>
+      </a>
       <span class="flow-arrow">&rarr;</span>
-      <div class="flow-box" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
-        <strong>LLM Agent</strong><br><small>DeepSeek-Chat</small><br><small>System Prompt + 对话历史</small>
-      </div>
-      <span class="flow-arrow">&larr;</span>
-      <div class="flow-box" style="background: #ede9fe; color: #5b21b6;">
-        SHAP 反馈<br><small>薄弱维度 / 重要特征</small>
-      </div>
+      <a href="#sec2" style="text-decoration:none;">
+        <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
+          <strong>LLM Agent</strong><br><small>DeepSeek-Chat · ReAct 范式</small><br><small>System Prompt + 对话历史</small>
+          <div class="arch-tooltip">Agent 自主决定探索方向、生成特征、修复代码<br>通过 Function Calling 调用工具<br>Temperature: 0.7(生成) / 0.3(修复)</div>
+        </div>
+      </a>
+      <span class="flow-arrow">&larr; <small style="font-size:0.6em;">信息流</small></span>
+      <a href="#sec6" style="text-decoration:none;">
+        <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
+          SHAP 反馈<br><small>哪些特征重要 / 预算分配</small>
+          <div class="arch-tooltip">来源：前向选择后的模型 SHAP 分析<br>按重要性反比分配各维度探索预算<br>薄弱维度获得更多候选名额<br>→ 点击查看第 6 章详情</div>
+        </div>
+      </a>
     </div>
 
     <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
 
-    <!-- Row 2: Tools -->
+    <!-- Row 2: Tools with sequential order -->
     <div class="flow-group">
-      <div class="flow-group-label">Agent 工具箱</div>
+      <div class="flow-group-label">Agent 工具箱（按使用顺序）</div>
       <div class="flow-row" style="margin-top: 16px;">
-        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
-          explore_data<br><small>数据探索查询</small>
-        </div>
-        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
-          generate_feature<br><small>提交特征代码</small>
-        </div>
-        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
-          execute_sandbox<br><small>触发验证流水线</small>
-        </div>
+        <a href="#sec4" style="text-decoration:none;">
+          <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
+            <small style="opacity:0.6;">①</small> explore_data<br><small>数据查询</small>
+            <div class="arch-tooltip">在 DataFrame 上执行 Python 查询代码<br>探索数据分布、验证假设<br>超时: 15秒 | 可选步骤</div>
+          </div>
+        </a>
+        <span class="flow-arrow">&rarr;</span>
+        <a href="#sec4" style="text-decoration:none;">
+          <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
+            <small style="opacity:0.6;">②</small> generate_feature<br><small>特征代码生成</small>
+            <div class="arch-tooltip">提交: 特征名 + Python代码 + 维度 + 解释<br>代码签名: def feature_xxx(open_df, tx_df, close_df)<br>返回: pd.DataFrame</div>
+          </div>
+        </a>
+        <span class="flow-arrow">&rarr;</span>
+        <a href="#sec5" style="text-decoration:none;">
+          <!-- Validation contained within execute_sandbox -->
+          <div class="arch-contain">
+            <div class="arch-contain-label">execute_sandbox 内部</div>
+            <div class="arch-node" style="background: var(--warning-light); color: #92400e; margin-bottom: 12px;">
+              <small style="opacity:0.6;">③</small> execute_sandbox<br><small>验证特征有效性</small>
+              <div class="arch-tooltip">Agent 获得验证反馈的唯一入口<br>自动触发 L1→L2→L3 验证流水线<br>返回所有指标和判定结果<br>→ 点击查看第 5 章详情</div>
+            </div>
+            <div class="flow-row" style="gap: 6px;">
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
+                L1 沙盒执行
+              </div>
+              <span class="flow-arrow" style="font-size:1em;">&rarr;</span>
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
+                L2 统计质量
+              </div>
+              <span class="flow-arrow" style="font-size:1em;">&rarr;</span>
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
+                L3 模型增量
+              </div>
+            </div>
+          </div>
+        </a>
       </div>
     </div>
 
-    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">自动触发</small></div>
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">验证结果分流</small></div>
 
-    <!-- Row 3: Validation Environment -->
-    <div class="flow-group">
-      <div class="flow-group-label">验证环境（对 Agent 透明，自动执行）</div>
-      <div class="flow-row" style="margin-top: 16px;">
-        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
-          L1 沙盒<br><small>代码安全 + 执行</small>
+    <!-- Row 3: Results routing -->
+    <div class="flow-row">
+      <a href="#sec5" style="text-decoration:none;">
+        <div class="arch-node" style="background: var(--success-light); color: #065f46;">
+          L3 通过<br><small>加入 existing_features</small>
+          <div class="arch-tooltip">特征立即接受，动态基线更新<br>后续所有评估基于更高的基线<br>同时触发可解释性报告生成</div>
         </div>
-        <span class="flow-arrow">&rarr;</span>
-        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
-          L2 统计<br><small>IV / KS / 冗余</small>
+      </a>
+      <a href="#sec5" style="text-decoration:none;">
+        <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
+          L3 未通过<br><small>进入候选缓冲池</small>
+          <div class="arch-tooltip">单特征增量不足，但可能与其他特征互补<br>等待轮末前向选择评估组合效应<br>最大容量: 20 / 最大存活: 3轮</div>
         </div>
-        <span class="flow-arrow">&rarr;</span>
-        <div class="flow-box" style="background: var(--env-light); color: var(--env);">
-          L3 模型<br><small>&Delta;Recall + Precision</small>
-        </div>
-      </div>
-      <div class="flow-row">
-        <div class="flow-box" style="background: var(--success-light); color: #065f46;">
-          通过 &rarr; 加入 existing_features
-        </div>
-        <div class="flow-box" style="background: var(--warning-light); color: #92400e;">
-          L3 未通过 &rarr; 候选缓冲池
-        </div>
-        <div class="flow-box" style="background: var(--danger-light); color: #991b1b;">
-          L2 未通过 &rarr; 淘汰
-        </div>
+      </a>
+      <div class="arch-node" style="background: var(--danger-light); color: #991b1b; cursor: default;">
+        L2 未通过<br><small>淘汰</small>
+        <div class="arch-tooltip">IV/KS 过低或冗余度过高<br>特征不具备统计区分力，直接丢弃</div>
       </div>
     </div>
 
     <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
 
+    <!-- Row 4: Forward Selection → SHAP -->
     <div class="flow-row">
-      <div class="flow-box" style="background: var(--success-light); color: #065f46;">
-        前向选择 (Forward Selection)<br><small>评估候选缓冲池中的组合效应</small>
+      <a href="#sec5" style="text-decoration:none;">
+        <div class="arch-node" style="background: var(--success-light); color: #065f46; min-width: 220px;">
+          前向选择 (Forward Selection)<br><small>评估候选缓冲池中的组合效应</small>
+          <div class="arch-tooltip">贪心搜索: 逐个尝试加入候选特征<br>选使 Recall 提升最大的加入<br>重复直到无增量<br>→ 点击查看第 5.5 节</div>
+        </div>
+      </a>
+      <span class="flow-arrow">&rarr; <small style="font-size:0.6em;">SHAP 分析</small> &rarr;</span>
+      <div class="arch-node" style="background: #ede9fe; color: #5b21b6; cursor: default;">
+        更新 SHAP 反馈<br><small>反馈到下一轮 Agent</small>
+        <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>信息流向: FS结果 → SHAP → Agent prompt</div>
+      </div>
+    </div>
+
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">系统产出</small></div>
+
+    <!-- Row 5: Outputs -->
+    <div class="arch-output-group">
+      <div class="arch-output-label">系统输出</div>
+      <div class="flow-row" style="margin-top: 8px;">
+        <a href="#sec12" style="text-decoration:none;">
+          <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+            接受的特征集<br><small>代码 + 指标 + 维度</small>
+            <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
+          </div>
+        </a>
+        <a href="#sec7" style="text-decoration:none;">
+          <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+            可解释性报告<br><small>业务含义 + 风险阈值</small>
+            <div class="arch-tooltip">每个接受特征的结构化解释<br>value_meaning / risk_threshold / synergy<br>false_positive_cases / regulatory_explanation</div>
+          </div>
+        </a>
+        <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
+          搜索日志<br><small>推理过程 + 失败记录</small>
+          <div class="arch-tooltip">Agent 的完整推理轨迹<br>每个候选特征的验证结果<br>失败原因分析与策略调整记录</div>
+        </div>
       </div>
     </div>
   </div>
@@ -588,7 +742,7 @@
     <tr>
       <td><strong>SHAP 反馈</strong>（每轮动态注入）</td>
       <td>当前模型的 SHAP 分析</td>
-      <td>告诉 Agent 哪些维度是薄弱环节</td>
+      <td>告诉 Agent 哪些特征重要，各维度的 SHAP 贡献排名</td>
     </tr>
     <tr>
       <td><strong>失败记忆</strong>（每轮动态注入）</td>
@@ -691,12 +845,37 @@
 
   <h3>5.2 L2：统计质量验证 <span class="role-tag role-env">ENV</span></h3>
   <table>
-    <tr><th>指标</th><th>含义</th><th>阈值</th></tr>
-    <tr><td><strong>IV</strong></td><td>正负样本分布差异（分箱后计算）</td><td>&ge; 校准值（噪声基准调整）</td></tr>
-    <tr><td><strong>KS</strong></td><td>正负样本累积分布最大分离度</td><td>&ge; 校准值</td></tr>
-    <tr><td><strong>冗余度</strong></td><td>与已有特征的最大 |Pearson 相关系数|</td><td>&lt; 0.7</td></tr>
-    <tr><td><strong>缺失率</strong></td><td>NaN 比例</td><td>&le; 0.5</td></tr>
+    <tr><th>指标</th><th>全称</th><th>含义</th><th>阈值</th></tr>
+    <tr>
+      <td><strong>IV</strong></td>
+      <td>Information Value<br>（信息价值）</td>
+      <td>衡量特征对正负样本的区分能力。将特征分箱后，计算每个箱中正负样本分布的差异总和。IV &lt; 0.02 通常认为无预测力，0.02~0.1 弱预测力，0.1~0.3 中等，&gt; 0.3 强预测力。</td>
+      <td>&ge; 校准值<br><small>（基于随机噪声特征的 IV 动态确定基线，排除偶然波动）</small></td>
+    </tr>
+    <tr>
+      <td><strong>KS</strong></td>
+      <td>Kolmogorov-Smirnov<br>（K-S 统计量）</td>
+      <td>衡量正负样本累积分布函数（CDF）之间的最大距离。KS 值越大，说明该特征越能将正负样本在某个切分点上分开。常用于信用评分模型中评估变量区分力。</td>
+      <td>&ge; 校准值<br><small>（同样基于噪声基准动态校准）</small></td>
+    </tr>
+    <tr>
+      <td><strong>冗余度</strong></td>
+      <td>Max |Pearson r|<br>（最大皮尔逊相关系数绝对值）</td>
+      <td>新特征与已有特征集中每个特征的 Pearson 相关系数绝对值的最大值。过高说明新特征与已有特征高度线性相关，不提供新信息。</td>
+      <td>&lt; 0.7</td>
+    </tr>
+    <tr>
+      <td><strong>缺失率</strong></td>
+      <td>Missing Rate<br>（NaN 比例）</td>
+      <td>特征中缺失值占总样本的比例。过高的缺失率会导致模型训练不稳定，且可能暗示特征计算逻辑有问题。</td>
+      <td>&le; 0.5</td>
+    </tr>
   </table>
+
+  <div class="callout callout-env">
+    <strong>为什么用"校准值"而不是固定阈值？</strong>
+    固定阈值（如 IV &ge; 0.02）在不同数据集上表现不稳定。系统先生成若干随机噪声特征，计算其 IV/KS 分布，取上分位数作为基线。只有超过这个"纯噪声能达到的水平"的特征才被认为有真实区分力，避免了随机波动带来的假阳性。
+  </div>
 
   <h3>5.3 L3：模型增量验证 <span class="role-tag role-env">ENV</span></h3>
   <p>在当前 <code>existing_features</code>（动态基线）上评估新特征的增量贡献。5-fold StratifiedKFold CV，每折搜索最优 F1 阈值。</p>
@@ -792,7 +971,7 @@ while 还有候选:
   <p class="ref">[5] 分组搜索的思路借鉴了进化计算中的分治策略：将搜索空间分割为独立子群，各自探索后交换优秀个体。参见 Whitley, D. et al. "The Island Model Genetic Algorithm: On Separability, Population Size and Convergence." J. Computing and Information Technology, 1999.</p>
 
   <h3>6.2 SHAP 驱动的预算分配 <span class="role-tag role-env">ENV</span></h3>
-  <p>每轮开始时，环境计算当前模型各维度的 SHAP 重要性，按<strong>反比</strong>分配预算：薄弱维度获得更多探索资源（借鉴 MedFeat<sup>[6]</sup>）。</p>
+  <p>每轮开始时，环境基于<strong>上一轮前向选择后的模型</strong>计算各维度的 SHAP 重要性，按<strong>反比</strong>分配预算：SHAP 贡献低的维度（薄弱维度）获得更多探索资源（借鉴 MedFeat<sup>[6]</sup>）。信息流向：前向选择结果 → SHAP 分析 → 预算分配 → 注入 Agent prompt。</p>
   <pre><code>weight[dim] = 1.0 / (importance[dim] + eps)
 budget[dim] = round(weight[dim] / sum(weights) * B_total)   # B_total = 12
 budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
@@ -947,26 +1126,110 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 <div class="section" id="sec10">
   <h2><span class="num">10</span>关键参数总览</h2>
   <table>
-    <tr><th>类别</th><th>参数</th><th>值</th><th>说明</th></tr>
-    <tr><td rowspan="2">Agent</td><td>LLM 模型</td><td>DeepSeek-Chat</td><td>通过 OpenAI 兼容 API 调用</td></tr>
-    <tr><td>Temperature</td><td>0.7 / 0.3</td><td>特征生成 0.7，代码修复 0.3</td></tr>
-    <tr><td rowspan="4">搜索策略</td><td>max_rounds</td><td>10</td><td>最大搜索轮数</td></tr>
-    <tr><td>维度组数</td><td>4</td><td>金额频次 / 时间地域 / 行为序列 / 主体关联</td></tr>
-    <tr><td>B_total</td><td>12</td><td>每轮总候选预算</td></tr>
-    <tr><td>组内对话轮数</td><td>2</td><td>Turn 2 后强制退出</td></tr>
-    <tr><td rowspan="4">L2 阈值</td><td>iv_min</td><td>校准值</td><td>基于噪声基准动态调整</td></tr>
-    <tr><td>ks_min</td><td>校准值</td><td>基于噪声基准动态调整</td></tr>
-    <tr><td>corr_max</td><td>0.7</td><td>最大冗余度</td></tr>
-    <tr><td>missing_rate_max</td><td>0.5</td><td>最大缺失率</td></tr>
-    <tr><td rowspan="2">L3 / FS</td><td>delta_recall</td><td>&gt; 0</td><td>Recall 必须提升</td></tr>
-    <tr><td>aug_precision</td><td>&ge; 0.95</td><td>Precision 绝对值 &ge; 95%</td></tr>
-    <tr><td rowspan="3">候选缓冲池</td><td>max_size</td><td>20</td><td>最大容量</td></tr>
-    <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
-    <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
-    <tr><td>收敛</td><td>连续空轮</td><td>2</td><td>连续 2 轮无新特征则终止</td></tr>
-    <tr><td rowspan="2">沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
-    <tr><td>隔离后端</td><td>E2B / local</td><td>E2B: Firecracker microVM；local: 进程隔离 + AST 白名单</td></tr>
-    <tr><td>L1 修复</td><td>自动修复次数</td><td>2</td><td>Agent 修复代码重试</td></tr>
+    <tr><th>类别</th><th>参数</th><th>值</th><th>详细说明</th></tr>
+    <tr>
+      <td rowspan="2">Agent</td>
+      <td>LLM 模型</td>
+      <td>DeepSeek-Chat</td>
+      <td>通过 OpenAI 兼容 API 调用（<code>base_url</code> + <code>api_key</code>）。选用 DeepSeek 因其中文理解和代码生成能力强，且 API 成本低于 GPT-4。</td>
+    </tr>
+    <tr>
+      <td>Temperature</td>
+      <td>0.7 / 0.3</td>
+      <td><strong>0.7</strong>：特征生成阶段，鼓励多样性和创造性探索；<strong>0.3</strong>：代码修复阶段，降低随机性以提高修复成功率。</td>
+    </tr>
+    <tr>
+      <td rowspan="4">搜索策略</td>
+      <td>max_rounds</td>
+      <td>10</td>
+      <td>最大搜索轮数。每轮遍历所有 4 个维度组 + 轮末前向选择。实际实验中第 4 轮即因连续空轮收敛终止。</td>
+    </tr>
+    <tr>
+      <td>维度组数</td>
+      <td>4</td>
+      <td>金额频次 / 时间地域 / 行为序列 / 主体关联。按业务语义划分，保证搜索广度覆盖交易数据的各个方面。</td>
+    </tr>
+    <tr>
+      <td>B_total</td>
+      <td>12</td>
+      <td>每轮总候选预算（所有维度组共享）。由 SHAP 反馈按反比分配到各组。例如薄弱维度可能分得 5 个名额，强势维度只有 1 个。</td>
+    </tr>
+    <tr>
+      <td>组内对话轮数</td>
+      <td>2</td>
+      <td>每个维度组最多 2 轮有效对话。Turn 1 给 Agent 任务指令 + 上下文；如果有失败特征，Turn 2 给 Agent 反馈让其调整方向。防止在单个维度上过度消耗 token。</td>
+    </tr>
+    <tr>
+      <td rowspan="4">L2 阈值</td>
+      <td>iv_min</td>
+      <td>校准值</td>
+      <td>Information Value 最小阈值。基于噪声特征的 IV 分布动态确定（取 95 分位数），排除随机波动。典型值约 0.01~0.02。</td>
+    </tr>
+    <tr>
+      <td>ks_min</td>
+      <td>校准值</td>
+      <td>KS 统计量最小阈值。同样基于噪声基准校准。KS 衡量正负样本 CDF 最大分离度，过低说明特征无区分力。</td>
+    </tr>
+    <tr>
+      <td>corr_max</td>
+      <td>0.7</td>
+      <td>最大冗余度。新特征与已有特征的 |Pearson r| 不得超过 0.7。高相关意味着信息重复，加入后反而增加过拟合风险。</td>
+    </tr>
+    <tr>
+      <td>missing_rate_max</td>
+      <td>0.5</td>
+      <td>最大缺失率。超过 50% NaN 的特征说明覆盖度不足，可能是计算逻辑有缺陷（如 JOIN 失败或条件过严）。</td>
+    </tr>
+    <tr>
+      <td rowspan="2">L3 / FS</td>
+      <td>delta_recall</td>
+      <td>&gt; 0</td>
+      <td>Recall 必须有正向提升（哪怕很小）。反洗钱场景中漏检代价极高，任何能多召回一笔可疑交易的特征都有价值。</td>
+    </tr>
+    <tr>
+      <td>aug_precision</td>
+      <td>&ge; 0.95</td>
+      <td>加入特征后的 Precision 绝对值不低于 95%。这是 Precision 的下限保护——允许 Recall 提升带来的小幅 Precision 下降，但不能降太多。</td>
+    </tr>
+    <tr>
+      <td rowspan="3">候选缓冲池</td>
+      <td>max_size</td>
+      <td>20</td>
+      <td>缓冲池最大容量。超出时淘汰互信息（MI）最低的特征。避免无限积累导致前向选择搜索空间过大。</td>
+    </tr>
+    <tr>
+      <td>max_age</td>
+      <td>3</td>
+      <td>最大存活轮数。超过 3 轮仍未被前向选择接受的特征，说明在多种特征组合下都无增量，清除释放空间。</td>
+    </tr>
+    <tr>
+      <td>max_rejects</td>
+      <td>2</td>
+      <td>最大连续被前向选择拒绝次数。连续 2 次不被选中说明该特征大概率无法与任何组合产生互补效应。</td>
+    </tr>
+    <tr>
+      <td>收敛</td>
+      <td>连续空轮</td>
+      <td>2</td>
+      <td>连续 2 轮没有任何新特征被接受（L3 直通 + 前向选择均无产出），判定 Agent 已穷尽有效搜索空间，终止实验。</td>
+    </tr>
+    <tr>
+      <td rowspan="2">沙盒</td>
+      <td>执行超时</td>
+      <td>90s</td>
+      <td>代码执行时间限制。超时后强制终止进程/沙盒。大多数特征计算在 10s 内完成，90s 给复杂聚合留足余量。</td>
+    </tr>
+    <tr>
+      <td>隔离后端</td>
+      <td>E2B / local</td>
+      <td><strong>E2B</strong>：Firecracker microVM（硬件虚拟化，独立内核），推荐用于生产环境；<strong>local</strong>：进程隔离 + AST 白名单 + builtins 替换，适合本地调试。通过 <code>SANDBOX_MODE</code> 环境变量切换。</td>
+    </tr>
+    <tr>
+      <td>L1 修复</td>
+      <td>自动修复次数</td>
+      <td>2</td>
+      <td>代码执行失败时，环境将错误信息发给 Agent（低温度 0.3 修复模式），Agent 输出修复代码后再次执行。最多重试 2 次，避免无限修复循环。</td>
+    </tr>
   </table>
 </div>
 
