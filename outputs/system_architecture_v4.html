@@ -559,14 +559,19 @@
           </div>
         </a>
         <span class="flow-arrow">&rarr;</span>
-        <a href="#sec5" style="text-decoration:none;">
-          <!-- Validation contained within execute_sandbox -->
-          <div class="arch-contain">
-            <div class="arch-contain-label">execute_sandbox 内部</div>
-            <div class="arch-node" style="background: var(--warning-light); color: #92400e; margin-bottom: 12px;">
-              <small style="opacity:0.6;">③</small> execute_sandbox<br><small>验证特征有效性</small>
-              <div class="arch-tooltip">Agent 获得验证反馈的唯一入口<br>自动触发 L1→L2→L3 验证流水线<br>返回所有指标和判定结果<br>→ 点击查看第 5 章详情</div>
+        <!-- execute_sandbox: contains L1→L2→L3, results routing, and FS -->
+        <a href="#sec5" style="text-decoration:none; flex: 1;">
+          <div class="arch-contain" style="border-color: var(--env); background: rgba(224,231,255,0.15);">
+            <div class="arch-contain-label" style="background: var(--env-light); color: var(--env);">③ 验证特征有效性（execute_sandbox 触发的完整流水线）</div>
+
+            <!-- L1 → L2 → L3 -->
+            <div class="arch-node" style="background: var(--warning-light); color: #92400e; margin: 16px auto 12px; max-width: 260px;">
+              execute_sandbox<br><small>Agent 获得验证反馈的唯一入口</small>
+              <div class="arch-tooltip">调用后自动触发下方全部验证流程<br>返回所有指标和最终判定结果<br>→ 点击查看第 5 章详情</div>
             </div>
+
+            <div class="flow-arrow-down" style="margin:4px 0;">&darr;</div>
+
             <div class="flow-row" style="gap: 6px;">
               <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
                 L1 沙盒执行
@@ -580,46 +585,40 @@
                 L3 模型增量
               </div>
             </div>
+
+            <!-- Results routing (inside execute_sandbox boundary) -->
+            <div class="flow-arrow-down" style="margin:6px 0;">&darr; <small style="font-size:0.6em;">验证结果分流</small></div>
+
+            <div class="flow-row" style="gap: 8px;">
+              <div style="padding:8px 14px; border-radius:8px; background:var(--success-light); color:#065f46; font-size:0.82em; font-weight:600; text-align:center;">
+                L3 通过<br><small>→ 加入 existing_features</small>
+              </div>
+              <div style="padding:8px 14px; border-radius:8px; background:var(--warning-light); color:#92400e; font-size:0.82em; font-weight:600; text-align:center;">
+                L3 未通过<br><small>→ 候选缓冲池</small>
+              </div>
+              <div style="padding:8px 14px; border-radius:8px; background:var(--danger-light); color:#991b1b; font-size:0.82em; font-weight:600; text-align:center;">
+                L2 未通过<br><small>→ 淘汰</small>
+              </div>
+            </div>
+
+            <!-- Forward Selection (inside execute_sandbox boundary, at round end) -->
+            <div class="flow-arrow-down" style="margin:6px 0;">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
+
+            <div style="padding:10px 16px; border-radius:10px; background:var(--success-light); color:#065f46; font-size:0.84em; font-weight:600; text-align:center; max-width: 340px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.06);">
+              前向选择 (Forward Selection)<br><small style="font-weight:400;">贪心评估候选缓冲池中的组合效应</small>
+            </div>
+
           </div>
         </a>
       </div>
     </div>
 
-    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">验证结果分流</small></div>
+    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">轮末产出</small></div>
 
-    <!-- Row 3: Results routing -->
+    <!-- Row 3: FS → SHAP feedback (outside execute_sandbox) -->
     <div class="flow-row">
-      <a href="#sec5" style="text-decoration:none;">
-        <div class="arch-node" style="background: var(--success-light); color: #065f46;">
-          L3 通过<br><small>加入 existing_features</small>
-          <div class="arch-tooltip">特征立即接受，动态基线更新<br>后续所有评估基于更高的基线<br>同时触发可解释性报告生成</div>
-        </div>
-      </a>
-      <a href="#sec5" style="text-decoration:none;">
-        <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
-          L3 未通过<br><small>进入候选缓冲池</small>
-          <div class="arch-tooltip">单特征增量不足，但可能与其他特征互补<br>等待轮末前向选择评估组合效应<br>最大容量: 20 / 最大存活: 3轮</div>
-        </div>
-      </a>
-      <div class="arch-node" style="background: var(--danger-light); color: #991b1b; cursor: default;">
-        L2 未通过<br><small>淘汰</small>
-        <div class="arch-tooltip">IV/KS 过低或冗余度过高<br>特征不具备统计区分力，直接丢弃</div>
-      </div>
-    </div>
-
-    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
-
-    <!-- Row 4: Forward Selection → SHAP -->
-    <div class="flow-row">
-      <a href="#sec5" style="text-decoration:none;">
-        <div class="arch-node" style="background: var(--success-light); color: #065f46; min-width: 220px;">
-          前向选择 (Forward Selection)<br><small>评估候选缓冲池中的组合效应</small>
-          <div class="arch-tooltip">贪心搜索: 逐个尝试加入候选特征<br>选使 Recall 提升最大的加入<br>重复直到无增量<br>→ 点击查看第 5.5 节</div>
-        </div>
-      </a>
-      <span class="flow-arrow">&rarr; <small style="font-size:0.6em;">SHAP 分析</small> &rarr;</span>
       <div class="arch-node" style="background: #ede9fe; color: #5b21b6; cursor: default;">
-        更新 SHAP 反馈<br><small>反馈到下一轮 Agent</small>
+        SHAP 分析 + 预算更新<br><small>前向选择结果 → 反馈到下一轮 Agent</small>
         <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>信息流向: FS结果 → SHAP → Agent prompt</div>
       </div>
     </div>
@@ -1152,9 +1151,40 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
     </tr>
   </table>
 
+  <h3 style="margin-top:20px;">校准值的计算方法（噪声基线法）</h3>
+  <p>固定阈值（如 IV &ge; 0.02）在不同数据集上表现不稳定——正样本率仅 0.32% 的极度不平衡数据中，纯随机噪声也可能因采样偶然性产生较高的 IV/KS。系统采用<strong>噪声基线法</strong>动态校准阈值：</p>
+
   <div class="callout callout-env">
-    <strong>为什么用"校准值"而不是固定阈值？</strong>
-    固定阈值（如 IV &ge; 0.02）在不同数据集上表现不稳定。系统先生成若干随机噪声特征，计算其 IV/KS 分布，取上分位数作为基线。只有超过这个"纯噪声能达到的水平"的特征才被认为有真实区分力，避免了随机波动带来的假阳性。
+    <strong>校准算法（实验开始时执行一次）</strong>
+    <ol style="font-size: 0.9em; margin-top: 8px;">
+      <li><strong>生成噪声特征</strong>：用固定随机种子（seed=42）生成 <strong>100 个</strong>标准正态分布随机特征（与真实数据等长，但与标签完全无关）</li>
+      <li><strong>计算噪声指标</strong>：对每个噪声特征计算 IV 和 KS，得到 100 个 IV 值和 100 个 KS 值的分布</li>
+      <li><strong>取 95 分位数</strong>：<code>calibrated_iv = max(percentile(noise_ivs, 95), 0.001)</code>，KS 同理</li>
+      <li><strong>设为阈值</strong>：候选特征的 IV/KS 必须超过此校准值才算通过 L2</li>
+    </ol>
+  </div>
+
+  <pre><code># 噪声基线校准（伪代码）
+rng = np.random.RandomState(42)
+noise_ivs, noise_ks = [], []
+
+for i in range(100):                           # 生成 100 个随机噪声特征
+    noise = pd.Series(rng.randn(n_samples))    # 标准正态分布，与标签无关
+    noise_ivs.append(compute_iv(noise, label))
+    noise_ks.append(compute_ks(noise, label))
+
+iv_threshold = max(np.percentile(noise_ivs, 95), 0.001)   # 取 p95
+ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
+
+  <div class="grid-2" style="margin-top: 12px;">
+    <div class="card">
+      <div class="card-title">为什么是 95 分位数？</div>
+      <p style="font-size:0.88em;">对应统计学中 <strong>p &lt; 0.05</strong> 的显著性水平。即：如果一个特征的 IV/KS 落在随机噪声分布的 95% 以上，那么它"纯属偶然"的概率不超过 5%，我们有 95% 的信心认为它具有真实区分力。</p>
+    </div>
+    <div class="card">
+      <div class="card-title">为什么不用固定值？</div>
+      <p style="font-size:0.88em;">经典的 IV &ge; 0.02 阈值假设数据均衡。但在 0.32% 正样本率下，噪声特征的 IV 可能本身就波动在 0.01~0.03 之间。固定阈值会放过大量"看似有效但实际是噪声"的特征，校准法自适应地解决了这个问题。</p>
+    </div>
   </div>
 
   <h3>5.3 L3：模型增量验证 <span class="role-tag role-env">ENV</span></h3>
