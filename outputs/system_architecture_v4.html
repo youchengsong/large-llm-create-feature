@@ -520,7 +520,7 @@
       <a href="#sec3" style="text-decoration:none;">
         <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
           领域知识注入<br><small>System Prompt</small>
-          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 309份判决书<br>38个风险指标 / 15条检测规则 / 8种交易模式<br>→ 点击查看第 3 章详情</div>
+          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家访谈<br>309份裁判文书 / 38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
         </div>
       </a>
       <span class="flow-arrow">&rarr;</span>
@@ -724,9 +724,15 @@
       <td>静态</td>
     </tr>
     <tr>
-      <td><strong>专家访谈（309 份判决书）</strong></td>
-      <td>结构化领域知识</td>
-      <td>7 种洗钱模型 + 9 个子维度的详细模式</td>
+      <td><strong>专家访谈</strong></td>
+      <td>邮储银行专家访谈</td>
+      <td>4 种数字人民币洗钱运营模式</td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td><strong>裁判文书（309 份）</strong></td>
+      <td>裁判文书全文阅读提取</td>
+      <td>9 个子维度的真实案例洗钱特征</td>
       <td>静态</td>
     </tr>
     <tr>
@@ -830,12 +836,14 @@
     </div>
   </div>
 
-  <h3>3.4 专家访谈知识（309 份裁判文书提取）</h3>
-  <p>从 309 份数字人民币相关裁判文书全文阅读 + 邮储银行专家访谈中提取的洗钱模式知识，共覆盖 <strong>4 种运营模式 + 9 个子维度</strong>：</p>
+  <h3>3.4 专家访谈 + 裁判文书知识</h3>
+  <p>这部分知识来自<strong>两个独立来源</strong>，在 System Prompt 中分两段注入：</p>
 
   <div class="grid-2" style="margin: 12px 0;">
     <div class="card" style="border-color: var(--danger);">
-      <div class="card-title" style="color: var(--danger);">4 种运营模式</div>
+      <div class="card-title" style="color: var(--danger);">来源 A：邮储银行专家访谈</div>
+      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家访谈_数币洗钱模式.docx</p>
+      <p>由邮储银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
         <li><strong>薅羊毛</strong>：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
         <li><strong>线下跑分</strong>：个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额</li>
@@ -844,17 +852,19 @@
       </ol>
     </div>
     <div class="card" style="border-color: var(--accent);">
-      <div class="card-title" style="color: var(--accent);">9 个子维度</div>
+      <div class="card-title" style="color: var(--accent);">来源 B：309 份裁判文书全文阅读</div>
+      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">从 309 份数字人民币相关裁判文书中提取的真实案例特征</p>
+      <p>覆盖 <strong>9 个子维度</strong>的洗钱行为模式：</p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
         <li>资金转移链路模式（7 种路径）</li>
         <li>典型操作流程（跑分模式，61/309 案件）</li>
         <li>佣金/提成特征（1%-5%，可作异常金额识别）</li>
-        <li>关键行为特征（10 类，含案件频率统计）</li>
+        <li>关键行为特征（11 类，含案件频率统计）</li>
         <li>时间特征（夜班模式、当日清模式）</li>
         <li>组织分工特征（6 种角色）</li>
         <li>规模化钱包网络特征（5-36个/人）</li>
         <li>商户/企业钱包洗钱特征（珠宝店/茶庄等）</li>
-        <li>"博盈"平台 USDT 套利模式</li>
+        <li>"博盈"平台 USDT 套利模式（2024年高发）</li>
       </ol>
     </div>
   </div>
@@ -1748,7 +1758,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <div class="callout callout-green">
     <strong>关键发现</strong>
     <ol style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>Agent 具备领域推理能力</strong>：3 个特征均源自 Agent 对领域知识的深度理解——从判决书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
+      <li><strong>Agent 具备领域推理能力</strong>：3 个特征均源自 Agent 对领域知识的深度理解——从裁判文书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
       <li><strong>Recall 优先策略有效</strong>：3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
       <li><strong>Precision 代价可控</strong>：Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
       <li><strong>动态基线严格过滤</strong>：候选缓冲池的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
