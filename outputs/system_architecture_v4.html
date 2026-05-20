@@ -314,6 +314,7 @@
     <span class="tag">ReAct Agent</span>
     <span class="tag">Tool Use (Function Calling)</span>
     <span class="tag">DeepSeek LLM</span>
+    <span class="tag">E2B 沙盒</span>
     <span class="tag">三级验证环境</span>
     <span class="tag">SHAP 反馈驱动</span>
   </div>
@@ -366,7 +367,7 @@
     <div class="card" style="border-color: var(--env);">
       <div class="card-title" style="color: var(--env);"><span class="role-tag role-env">ENVIRONMENT</span> 外围工具与反馈</div>
       <ul>
-        <li>沙盒：安全执行 Agent 提交的代码</li>
+        <li>沙盒：在隔离环境中执行 Agent 提交的代码（E2B microVM 或本地进程）</li>
         <li>三级验证器：L1(安全) → L2(统计) → L3(模型增量)</li>
         <li>SHAP 分析器：告诉 Agent 哪些维度薄弱</li>
         <li>候选缓冲池：暂存 L3 未通过但有潜力的特征</li>
@@ -521,7 +522,7 @@
 
   <div class="conv-tool">
     <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — 含完整验证结果）</div>
-    &#10003; 沙箱执行成功！输出 shape: (43142, 2)<br>
+    &#10003; 沙盒执行成功！输出 shape: (43142, 2)<br>
     --- 自动评估结果 ---<br>
     &#10003; 特征评估通过！已接受。(score=0.5000)<br>
     IV: 0.0329, KS: 0.0815, 冗余度: 0.0791<br>
@@ -638,7 +639,7 @@
     </div>
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title"><span class="role-tag role-tool">TOOL</span> execute_sandbox</div>
-      <p><strong>作用</strong>：触发完整的 L1 &rarr; L2 &rarr; L3 验证流水线。</p>
+      <p><strong>作用</strong>：在隔离沙盒（E2B microVM 或本地进程）中执行代码，触发 L1 &rarr; L2 &rarr; L3 验证流水线。</p>
       <p><strong>参数</strong>：<code>feature_name</code>（自动关联之前 generate_feature 的代码）</p>
       <p style="font-size:0.85em;color:var(--text-secondary);">这是 Agent 获得验证反馈的唯一入口。返回的结果包含所有指标和判定。</p>
     </div>
@@ -657,12 +658,30 @@
   <p>当 Agent 调用 <code>execute_sandbox</code> 时，环境自动执行三级验证。Agent 无需关心验证细节，只需读取返回的结果并据此调整策略。</p>
 
   <h3>5.1 L1：沙盒执行验证 <span class="role-tag role-env">ENV</span></h3>
+  <p>Agent 生成的特征代码在<strong>隔离沙盒</strong>中执行。系统支持两种沙盒后端，通过环境变量 <code>SANDBOX_MODE</code> 切换：</p>
+
+  <div class="grid-2" style="margin: 12px 0;">
+    <div class="card" style="border-color: var(--agent);">
+      <div class="card-title" style="color: var(--agent);">E2B 云端沙盒（推荐）</div>
+      <p><strong>隔离级别</strong>：Firecracker microVM（硬件虚拟化）</p>
+      <p>每个沙盒是一个独立的轻量虚拟机，拥有独立内核，与宿主完全隔离。Agent 的代码在云端 VM 中执行，结果通过 Parquet 文件回传。基于 <a href="https://e2b.dev" style="color:var(--agent);">E2B</a> 代码解释器 SDK。</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);"><code>SANDBOX_MODE=e2b</code> + <code>E2B_API_KEY</code></p>
+    </div>
+    <div class="card" style="border-color: var(--env);">
+      <div class="card-title" style="color: var(--env);">本地进程沙盒（回退）</div>
+      <p><strong>隔离级别</strong>：进程隔离 + AST 白名单</p>
+      <p>在独立子进程中执行，替换 <code>__builtins__</code> 移除危险函数，AST 静态分析拦截禁止模块。适合无网络环境或本地调试。</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);"><code>SANDBOX_MODE=local</code>（默认）</p>
+    </div>
+  </div>
+
   <table>
     <tr><th>检查项</th><th>内容</th></tr>
-    <tr><td>安全检查</td><td>AST 解析，禁止 <code>os</code>、<code>sys</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等</td></tr>
-    <tr><td>执行方式</td><td>独立进程 + 90 秒超时</td></tr>
+    <tr><td>静态安全检查</td><td>AST 解析，白名单模块（pandas/numpy/scipy/sklearn/datetime/collections/math），禁止 <code>os</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等（两种模式均执行）</td></tr>
+    <tr><td>执行隔离</td><td>E2B 模式：Firecracker microVM；本地模式：独立子进程 + builtins 替换</td></tr>
+    <tr><td>超时控制</td><td>90 秒（超时后强制终止）</td></tr>
     <tr><td>输出校验</td><td>含 <code>wallet_id</code> 或 <code>tx_id</code>；非空；NaN &lt; 50%；<code>nunique</code> &gt; 1</td></tr>
-    <tr><td>自动修复</td><td>失败时，环境自动调用 Agent（以代码修复身份）修复代码，最多 <strong>2 次</strong></td></tr>
+    <tr><td>自动修复</td><td>失败时，环境调用 Agent（低温度 0.3 修复模式）修复代码，最多 <strong>2 次</strong></td></tr>
   </table>
 
   <div class="callout callout-yellow">
@@ -945,7 +964,8 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     <tr><td>max_age</td><td>3</td><td>最大存活轮数</td></tr>
     <tr><td>max_rejects</td><td>2</td><td>最大连续拒绝次数</td></tr>
     <tr><td>收敛</td><td>连续空轮</td><td>2</td><td>连续 2 轮无新特征则终止</td></tr>
-    <tr><td>沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
+    <tr><td rowspan="2">沙盒</td><td>执行超时</td><td>90s</td><td>代码执行时间限制</td></tr>
+    <tr><td>隔离后端</td><td>E2B / local</td><td>E2B: Firecracker microVM；local: 进程隔离 + AST 白名单</td></tr>
     <tr><td>L1 修复</td><td>自动修复次数</td><td>2</td><td>Agent 修复代码重试</td></tr>
   </table>
 </div>
