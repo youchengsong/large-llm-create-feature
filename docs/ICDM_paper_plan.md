@@ -56,22 +56,18 @@ LLM Agent 驱动的自动特征工程系统，用于数字人民币反洗钱：
 
 这个 framing 更学术，novelty 更清晰——不是"用 LLM 写代码"，而是"解决领域知识到特征的鸿沟"。
 
-### 4.2 补公开数据集实验（P0，2-3 天）
+### 4.2 ~~补公开数据集实验~~ → 已决定：单数据集 + 领域深绑定
 
-审稿人必问泛化性。建议补充至少一个公开数据集：
+**决策（2026-05-20）**：不补公开数据集，聚焦数字人民币反洗钱单一场景。
 
-| 数据集 | 领域 | 来源 | 备注 |
-|--------|------|------|------|
-| IEEE-CIS Fraud Detection | 金融欺诈 | Kaggle | 最接近，数据量大 |
-| Elliptic Bitcoin Dataset | 区块链反洗钱 | 公开 | 主题高度相关 |
-| Credit Card Fraud (Kaggle) | 信用卡欺诈 | Kaggle | 简单但经典 |
+理由：
+- 本文的核心卖点就是深度领域绑定（专家访谈 + 裁判文书），换数据集会稀释这个优势
+- Applied Track 接受 domain-specific 研究，泛化性可放 future work
+- 审稿人质疑泛化性时的回应："本文聚焦数字人民币反洗钱这一高价值监管场景，框架设计具有通用性（领域知识模块可替换），跨领域验证留作后续工作"
 
-实施方式：
-- 替换 domain knowledge 模块为对应领域的知识（可以简化）
-- 复用整个 Agent 框架，证明可迁移性
-- 不需要和数字人民币数据集完全对等，能说明框架通用性即可
+### 4.3 补强 Baseline 对比（P0，提升优先级）
 
-### 4.3 补强 Baseline 对比（P1，2 天）
+单数据集策略下，实验必须足够扎实来弥补。Baseline 对比从 P1 提升为 P0。
 
 必须加的自动特征工程方法：
 
@@ -80,9 +76,12 @@ LLM Agent 驱动的自动特征工程系统，用于数字人民币反洗钱：
 | **OpenFE** | NeurIPS 2022 | 枚举 + 增量评估 | 数据驱动 SOTA |
 | **DIFER** | ICLR 2024 | 强化学习搜索特征变换 | RL-based SOTA |
 | **AutoFeat** | 经典 | 多项式展开 + 选择 | 经典 baseline |
-| **CAAFE** | 已有 | LLM 单轮生成 | 最直接对比 |
+| **CAAFE** | 已有 | LLM 单轮生成 | 最直接对比（无反馈、无领域知识） |
+| **手工特征** | 领域专家 | 人工设计 | 证明 Agent 接近/超越人类专家 |
 
-关键论点：即使在某些指标上不占优，也可以说明 **「LLM + domain knowledge 在高专业性/低数据量场景下优于纯数据驱动方法」**，这本身就是有价值的发现。
+关键论点：在专业领域场景下，LLM + domain knowledge 的自动化特征工程能达到甚至超越纯数据驱动方法和人工特征工程，同时生成的特征具有领域可解释性。
+
+如果某些 baseline 跑赢了我们：强调"我们的方法在保持领域可解释性的同时接近 SOTA 数据驱动方法的性能，且无需人工特征设计"。
 
 ### 4.4 形式化 Agent 搜索过程（P1，1-2 天）
 
@@ -121,14 +120,14 @@ LLM Agent 驱动的自动特征工程系统，用于数字人民币反洗钱：
 | 优先级 | 行动 | 预估耗时 | 对中稿概率影响 | 备注 |
 |--------|------|----------|----------------|------|
 | **P0** | 改 framing 为知识蒸馏 | 1 天 | +5-10% | 纯写作，不改代码 |
-| **P0** | 补公开数据集实验 | 2-3 天 | +5-10% | 需要准备数据和领域知识 |
-| **P1** | 补 OpenFE/DIFER baseline | 2 天 | +5% | 需要安装和调参 |
+| **P0** | 补强 Baseline（OpenFE/DIFER/AutoFeat/手工特征） | 2 天 | +10% | 单数据集下实验必须过硬 |
 | **P1** | 形式化搜索过程 | 1-2 天 | +5% | 纯写作 + 画图 |
 | **P2** | Domain Alignment Score | 1 天 | +2-3% | 锦上添花 |
+| ~~P0~~ | ~~补公开数据集~~ | — | — | 已决定不做，聚焦单一场景 |
 
-**全部完成后，Applied Track 中稿概率预估：40-50%。**
+**策略：单数据集 + 领域深绑定 + 多 baseline 对比。**
 
-最低限度（只做 P0）：**35-40%。**
+**Applied Track 中稿概率预估：35-45%。**
 
 ## 6. 论文结构草案
 
@@ -159,9 +158,9 @@ LLM Agent 驱动的自动特征工程系统，用于数字人民币反洗钱：
    5.2 收敛性的 empirical bound
 
 6. Experiments
-   6.1 Datasets（数字人民币 + 公开数据集）
-   6.2 Multi-model Validation
-   6.3 Comparison with Baselines（OpenFE, DIFER, CAAFE, Random）
+   6.1 Dataset & Setup（数字人民币反洗钱数据集）
+   6.2 Multi-model Validation（XGBoost/LightGBM/RF/LR）
+   6.3 Comparison with Baselines（OpenFE, DIFER, AutoFeat, CAAFE, 手工特征, Random）
    6.4 Ablation Studies
    6.5 Stability Analysis
    6.6 Case Study: Generated Features Interpretation
