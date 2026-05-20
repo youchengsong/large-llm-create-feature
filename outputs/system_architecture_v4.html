@@ -422,7 +422,7 @@
     <a href="#sec7"><span class="toc-num">7</span>Agent 的记忆与学习</a>
     <a href="#sec2"><span class="toc-num">2</span>Agent 架构总览</a>
     <a href="#sec8"><span class="toc-num">8</span>收敛检测与终止</a>
-    <a href="#sec3"><span class="toc-num">3</span>Agent 的知识注入</a>
+    <a href="#sec3"><span class="toc-num">3</span>Agent 的知识注入（详细）</a>
     <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
@@ -694,60 +694,70 @@
 <div class="section" id="sec3">
   <h2><span class="num">3</span>Agent 的知识注入</h2>
 
-  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。System Prompt 是 Agent "读到的第一份资料"，相当于给它一份详尽的工作手册。</p>
+  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。System Prompt 是 Agent "读到的第一份资料"，相当于给它一份详尽的工作手册。总注入量约 8000~12000 tokens，涵盖数据结构、领域知识、行为约束三大板块。</p>
 
-  <h3>3.1 System Prompt 结构</h3>
+  <h3>3.1 System Prompt 结构总览</h3>
   <table>
-    <tr><th>注入内容</th><th>来源</th><th>作用</th></tr>
+    <tr><th>注入内容</th><th>来源</th><th>作用</th><th>注入方式</th></tr>
     <tr>
       <td><strong>数据 Schema</strong></td>
       <td>自动提取自 open_df / tx_df / close_df</td>
       <td>Agent 了解可用字段、数据类型、取值范围</td>
+      <td>静态（实验开始时生成）</td>
     </tr>
     <tr>
       <td><strong>正常 vs 异常分布差异</strong></td>
       <td>自动统计，标注差异倍数</td>
       <td>引导 Agent 关注区分度最大的维度</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>三表关联统计</strong></td>
       <td>自动计算 JOIN 覆盖率</td>
       <td>Agent 知道 wallet_id 关联方式和匹配率</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>交易模式知识（8 种 Motif）</strong></td>
-      <td>预定义规则文件</td>
+      <td>硬编码领域知识</td>
       <td>3 种正常 + 5 种异常模式，含金额、时间、方式特征</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>专家访谈（309 份判决书）</strong></td>
       <td>结构化领域知识</td>
-      <td>7 种洗钱模型的详细模式：转账链条、佣金特征、行为签名等</td>
+      <td>7 种洗钱模型 + 9 个子维度的详细模式</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>风险指标（38 个）</strong></td>
-      <td>风险指标体系</td>
-      <td>按维度组织的指标名称、风险类型、数据方向</td>
+      <td>Excel 风险分类表</td>
+      <td>按 4 大维度、8 个风险类组织的指标体系</td>
+      <td>静态（从 Excel 解析）</td>
     </tr>
     <tr>
       <td><strong>检测规则（15 条）+ 代码示例</strong></td>
-      <td>现有规则 + 自动转 Python</td>
+      <td>Excel 检测规则表 + 自动转 Python</td>
       <td>给 Agent 提供参考模板（seed examples）</td>
+      <td>静态（从 Excel 解析 + 代码生成）</td>
     </tr>
     <tr>
-      <td><strong>已有基线特征列表</strong></td>
-      <td>baseline_features.columns</td>
-      <td>Agent 避免生成重复特征</td>
+      <td><strong>已有基线特征列表 + 代码示例</strong></td>
+      <td>baseline_features.columns + 示例代码</td>
+      <td>Agent 避免生成重复特征，参考已有实现风格</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>SHAP 反馈</strong>（每轮动态注入）</td>
-      <td>当前模型的 SHAP 分析</td>
+      <td>前向选择后的 SHAP 分析</td>
       <td>告诉 Agent 哪些特征重要，各维度的 SHAP 贡献排名</td>
+      <td>动态（每轮更新）</td>
     </tr>
     <tr>
       <td><strong>失败记忆</strong>（每轮动态注入）</td>
-      <td>历史失败记录</td>
+      <td>历史失败记录库</td>
       <td>Agent 避免重复相同的错误</td>
+      <td>动态（累积注入）</td>
     </tr>
   </table>
 
@@ -756,19 +766,255 @@
     <div class="card">
       <div class="card-title">open_df（开户表）</div>
       <p><strong>100,000</strong> 个钱包</p>
-      <p style="font-size:0.88em;color:var(--text-secondary);">证件号、手机号、钱包等级、钱包类型、region 等</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">wallet_id, wallet_open_cert（证件号）, wallet_open_tel（手机号）, wallet_level（等级1-4）, wallet_type（类型）, region_code（地区编码）, wallet_open_date 等</p>
     </div>
     <div class="card">
       <div class="card-title">tx_df（交易表）</div>
       <p><strong>1,384,512</strong> 笔交易</p>
-      <p style="font-size:0.88em;color:var(--text-secondary);">金额、时间、IP、设备、交易模式<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">tx_id, src/dst（钱包ID）, amount, timestamp, src_ip/dst_ip, src_device, transaction_mode（交易模式）, transaction_motif（交易动机）, hour, interval<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
     </div>
     <div class="card">
       <div class="card-title">close_df（销户表）</div>
       <p><strong>500</strong> 条销户记录</p>
-      <p style="font-size:0.88em;color:var(--text-secondary);">销户时间、销户原因</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">wallet_id, zs_timestamp（销户时间）, close_reason（销户原因）<br>关联：wallet_id → open_df / tx_df</p>
     </div>
   </div>
+
+  <h3>3.3 交易模式知识（8 种 Motif）</h3>
+  <p>系统向 Agent 注入 8 种交易模式的详细说明，Agent 据此理解数据中 <code>transaction_motif</code> 字段的含义，并从中提取特征灵感。</p>
+
+  <div class="grid-2">
+    <div class="card" style="border-color: var(--success);">
+      <div class="card-title" style="color: var(--success);">正常模式（3 种）</div>
+      <table style="font-size: 0.85em;">
+        <tr><th>模式</th><th>特征</th></tr>
+        <tr>
+          <td><strong>single_transaction</strong><br>单笔交易</td>
+          <td>频率适中，间隔随机，以单笔转账为主，白天和晚间活跃</td>
+        </tr>
+        <tr>
+          <td><strong>normal_small_high_freq</strong><br>正常小额高频</td>
+          <td>金额较小（日常消费），频率高，含扇入/扇出/多对多等多种模式</td>
+        </tr>
+        <tr>
+          <td><strong>regular_large_low_freq</strong><br>常规大额低频</td>
+          <td>金额较高（企业转账/工资），频率低，偏向工作时段，偏向商户钱包</td>
+        </tr>
+      </table>
+    </div>
+    <div class="card" style="border-color: var(--danger);">
+      <div class="card-title" style="color: var(--danger);">风险模式（5 种）</div>
+      <table style="font-size: 0.85em;">
+        <tr><th>模式</th><th>特征</th></tr>
+        <tr>
+          <td><strong>small_amount_testing</strong><br>小额测试交易</td>
+          <td>金额极小、短时间密集、深夜为主、来自休眠账户、以扇出为主</td>
+        </tr>
+        <tr>
+          <td><strong>merchant_laundering</strong><br>商户洗钱</td>
+          <td>金额跨度大、频繁、一对多+多对多模式、跨行偏好、佣金抽成</td>
+        </tr>
+        <tr>
+          <td><strong>class4_laundering</strong><br>四类钱包洗钱</td>
+          <td>金额高、快速流转、多对一+一对多、深夜操作、<strong>日累计额度控制</strong></td>
+        </tr>
+        <tr>
+          <td><strong>online_laundering</strong><br>在线洗钱</td>
+          <td>金额中等偏低、极频繁、含全类型交易模式、夜间及深夜偏好</td>
+        </tr>
+        <tr>
+          <td><strong>victim_laundering</strong><br>受害者洗钱</td>
+          <td>上游有正常交易→演化为异常流转、含诱导操作（设备一致）和盗用操作（设备偏离）</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>3.4 专家访谈知识（309 份裁判文书提取）</h3>
+  <p>从 309 份数字人民币相关裁判文书全文阅读 + 邮储银行专家访谈中提取的洗钱模式知识，共覆盖 <strong>4 种运营模式 + 9 个子维度</strong>：</p>
+
+  <div class="grid-2" style="margin: 12px 0;">
+    <div class="card" style="border-color: var(--danger);">
+      <div class="card-title" style="color: var(--danger);">4 种运营模式</div>
+      <ol style="font-size: 0.88em; padding-left: 18px;">
+        <li><strong>薅羊毛</strong>：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
+        <li><strong>线下跑分</strong>：个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额</li>
+        <li><strong>线上跑分</strong>：凌晨高频交易(20时-1时)，分散转出(fan_out)模式，金额10-1000元</li>
+        <li><strong>商户收款码跑分</strong>：商户钱包大量收款后转至个人钱包，many_to_many模式，佣金约0.5-1%</li>
+      </ol>
+    </div>
+    <div class="card" style="border-color: var(--accent);">
+      <div class="card-title" style="color: var(--accent);">9 个子维度</div>
+      <ol style="font-size: 0.88em; padding-left: 18px;">
+        <li>资金转移链路模式（7 种路径）</li>
+        <li>典型操作流程（跑分模式，61/309 案件）</li>
+        <li>佣金/提成特征（1%-5%，可作异常金额识别）</li>
+        <li>关键行为特征（10 类，含案件频率统计）</li>
+        <li>时间特征（夜班模式、当日清模式）</li>
+        <li>组织分工特征（6 种角色）</li>
+        <li>规模化钱包网络特征（5-36个/人）</li>
+        <li>商户/企业钱包洗钱特征（珠宝店/茶庄等）</li>
+        <li>"博盈"平台 USDT 套利模式</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="callout callout-agent">
+    <strong>关键行为特征（可直接转化为特征工程线索）</strong>
+    <table style="font-size: 0.85em; margin-top: 8px;">
+      <tr><th>行为</th><th>案件频率</th><th>特征工程方向</th></tr>
+      <tr><td>当日即转即取</td><td>58/309 (18.8%)</td><td>资金滞留时间、入账-转出时间差</td></tr>
+      <tr><td>刷脸认证频繁</td><td>128/309 (41.4%)</td><td>短时间内多次验证 → 多次转账操作</td></tr>
+      <tr><td>验卡行为</td><td>13/309 (4.2%)</td><td>小额测试交易后跟大额交易</td></tr>
+      <tr><td>冻结后换卡</td><td>77/309 (24.9%)</td><td>账户活跃周期短 + 后续新账户关联</td></tr>
+      <tr><td>拆分多次转出</td><td>41/309 (13.3%)</td><td>平均 2218 元/笔的分散转出模式</td></tr>
+      <tr><td>跨行转账偏好</td><td>—</td><td>入账和转出倾向不同银行</td></tr>
+      <tr><td>多银行钱包注册</td><td>—</td><td>同一人 7+ 家银行开通数币钱包</td></tr>
+      <tr><td>亲属身份注册</td><td>—</td><td>单人控制 5-36 个钱包</td></tr>
+    </table>
+  </div>
+
+  <div class="callout callout-yellow">
+    <strong>时间特征（来自裁判文书统计）</strong>
+    <ul style="font-size: 0.88em; margin-top: 6px;">
+      <li>犯罪操作集中在 <strong>14-17 时</strong>（下午最多），其次上午和晚间</li>
+      <li>夜班大额跑分集中在 <strong>22:00-04:00</strong>，单晚可达 100 万+</li>
+      <li>凌晨 0-5 时也有显著活动（14%），对应在线洗钱模式</li>
+      <li>资金到账后通常 <strong>数小时内完成全部转移</strong>（当日清模式），最快 75 秒出账</li>
+      <li>钱包活跃周期：平均 2-28 天后被冻结或主动废弃</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-env">
+    <strong>佣金特征（可作为异常金额模式识别依据）</strong>
+    <ul style="font-size: 0.88em; margin-top: 6px;">
+      <li>按比例：1%-5%（最集中 2%-4%），多层级时逐级递减：250→200→150→20 元/万</li>
+      <li>按笔计算：150-500 元/万元</li>
+      <li>固定日薪：300-500 元/天（底层操作员）</li>
+      <li><strong>特征表现</strong>：转出金额 ≈ 转入金额 × (1 - 佣金率)，差额为固定比例</li>
+    </ul>
+  </div>
+
+  <h3>3.5 风险指标体系（38 个）</h3>
+  <p>从风险分类表中提取 38 个风险指标，按 <strong>4 大维度、8 个风险类</strong>组织，以结构化表格注入 Agent：</p>
+
+  <table style="font-size: 0.88em;">
+    <tr><th>维度</th><th>风险类</th><th>指标数</th><th>代表性指标</th></tr>
+    <tr>
+      <td rowspan="3"><strong>交易行为异常类</strong></td>
+      <td>金额与频次异常</td>
+      <td>7</td>
+      <td>单笔交易金额远超日常阈值、交易频率（短期大额高频）、交易金额波动幅度、多账户小额分散转账（拆分规避监管）等</td>
+    </tr>
+    <tr>
+      <td>时间与地域异常</td>
+      <td>8</td>
+      <td>非日常时段频繁交易（凌晨/深夜）、交易时间间隔异常、短期跨多地域交易、交易地域与注册地/常用地严重不符等</td>
+    </tr>
+    <tr>
+      <td>行为序列异常</td>
+      <td>8</td>
+      <td>休眠账户突然激活并大额交易、高风险陌生交易对手、关联账户交叉转账、交易用途与账户属性偏离等</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>主体与关联类</strong></td>
+      <td>账户关联风险</td>
+      <td>3</td>
+      <td>多账户交叉转账形成异常网络（闭环/嵌套）、与高风险名单账户关联、借用他人账户规避实名</td>
+    </tr>
+    <tr>
+      <td>主体信用与历史</td>
+      <td>3</td>
+      <td>历史欺诈/洗钱/违规记录、主体身份冒用、企业实控人与风险人员关联</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>合规与场景类</strong></td>
+      <td>合规性风险</td>
+      <td>3</td>
+      <td>利用数币匿名性规避监管、跨境交易未遵守外汇管理、经营性交易未履行纳税</td>
+    </tr>
+    <tr>
+      <td>场景适配风险</td>
+      <td>3</td>
+      <td>交易场景与账户用途严重不符、高风险场景（非法平台/陌生跨境支付）、缺乏真实贸易背景</td>
+    </tr>
+    <tr>
+      <td><strong>市场与信用类</strong></td>
+      <td>市场与信用风险</td>
+      <td>3</td>
+      <td>交易对手违约、利用数币投机炒作、关联主体经营恶化</td>
+    </tr>
+  </table>
+
+  <p style="font-size:0.85em;color:var(--text-secondary);margin-top:8px;">38 个指标中，前 23 个（交易行为异常类）与本项目数据字段直接对应，可直接转化为特征；后 15 个（合规、市场类）更多作为风险理解背景。</p>
+
+  <h3>3.6 检测规则（15 条）</h3>
+  <p>从检测规则表中提取 15 条规则，每条包含<strong>自然语言描述 + 一阶逻辑表达式 + 置信度 + 异常模式分类</strong>。Agent 将这些规则作为特征设计的灵感来源。</p>
+
+  <table style="font-size: 0.85em;">
+    <tr><th>规则 ID</th><th>自然语言描述</th><th>规则类型</th><th>异常模式类别</th></tr>
+    <tr><td>RULE_001</td><td>四类账户短时间内大额取现（2h 内 10+ 账户 ATM 取现，总额超 10 万）</td><td>behavior</td><td>数字人民币相关</td></tr>
+    <tr><td>RULE_002</td><td>开户后沉睡期异常（3月+ 无交易 → 小额测试 → 大额频繁交易）</td><td>behavior</td><td>数字人民币相关</td></tr>
+    <tr><td>RULE_003</td><td>虚拟币与数币交易关联异常（虚拟币购买 + 数币取现时间关联，快进快出）</td><td>composite</td><td>数字人民币相关</td></tr>
+    <tr><td>RULE_004</td><td>商户账户异常交易（多商户同时段大额交易，金额与经营规模不符）</td><td>behavior</td><td>数字人民币相关</td></tr>
+    <tr><td>RULE_005</td><td>跨地区流动洗钱（不同城市间流动，每地停留 ≤3 天，交易模式相似度 ≥0.8）</td><td>behavior</td><td>新兴犯罪</td></tr>
+    <tr><td>RULE_006</td><td>地下钱庄分散转入集中转出（日 20+ 笔，百万级流水，当日余额 ≤1%）</td><td>behavior</td><td>传统金融犯罪</td></tr>
+    <tr><td>RULE_007</td><td>频繁混合多种业务规避监管（3+ 业务类型，金额刻意低于报告标准）</td><td>behavior</td><td>监管规避</td></tr>
+    <tr><td>RULE_008</td><td>诈骗资金转移（电子方式频繁接收 → 1h 内网银/ATM 转出 → 不留余额）</td><td>behavior</td><td>传统金融犯罪</td></tr>
+    <tr><td>RULE_009</td><td>批量开户异常（同时段同网点 5+ 账户开户，80%+ 异地人员，资料相似 70%+）</td><td>attribute</td><td>监管规避</td></tr>
+    <tr><td>RULE_010</td><td>腐败资金特征（公职人员账户大额交易远超收入，传统节日前后集中存款）</td><td>composite</td><td>传统金融犯罪</td></tr>
+    <tr><td>RULE_011</td><td>毒品交易资金（ATM 为主，金额为毒品价格整数倍，毒品重点地区往来）</td><td>behavior</td><td>传统金融犯罪</td></tr>
+    <tr><td>RULE_012</td><td>信用卡套现（POS 交易额超经营规模 5 倍，整数金额 ≥80%，实控人频繁刷卡）</td><td>behavior</td><td>监管规避</td></tr>
+    <tr><td>RULE_013</td><td>传销资金网络（金字塔结构，周期性交易，固定返利时间和比例 ≥90%）</td><td>behavior</td><td>新兴犯罪</td></tr>
+    <tr><td>RULE_014</td><td>恐怖融资（高风险地区客户，小额频繁交易，现金主导 ≥80%，与恐怖事件相关）</td><td>composite</td><td>特殊风险</td></tr>
+    <tr><td>RULE_015</td><td>网络赌博资金（分散转入转出，金额为 100 倍数 ≥70%，深夜网银 ≥50%）</td><td>behavior</td><td>新兴犯罪</td></tr>
+  </table>
+
+  <p style="margin-top: 12px;">每条规则附带<strong>一阶逻辑表达式</strong>（如 <code>∀x [ (sleep_period(x)≥90days ∧ test_transaction(x)&lt;1000 ...) → money_laundering_risk(x) ]</code>），系统自动将前 2 条转为 Python 函数示例注入 Agent 的 prompt 作为代码风格参考（seed examples）。</p>
+
+  <div class="callout callout-env">
+    <strong>异常模式分类（5 类）</strong>
+    <div class="grid-3" style="margin-top: 8px; gap: 8px;">
+      <div style="padding:8px 12px;border-radius:8px;background:#fee2e2;font-size:0.85em;"><strong>数字人民币相关异常</strong><br>利用数币技术特性进行的新型违法犯罪<br><small>RULE 001-004</small></div>
+      <div style="padding:8px 12px;border-radius:8px;background:#fef3c7;font-size:0.85em;"><strong>传统金融犯罪</strong><br>经典金融犯罪手法在数字化时代的延续<br><small>RULE 006,008,010,011</small></div>
+      <div style="padding:8px 12px;border-radius:8px;background:#e0e7ff;font-size:0.85em;"><strong>新兴犯罪模式</strong><br>结合现代科技和社会变化的新型犯罪<br><small>RULE 005,013,015</small></div>
+      <div style="padding:8px 12px;border-radius:8px;background:#fce7f3;font-size:0.85em;"><strong>监管规避与合规风险</strong><br>专门针对现行监管制度设计的规避行为<br><small>RULE 007,009,012</small></div>
+      <div style="padding:8px 12px;border-radius:8px;background:#d1fae5;font-size:0.85em;"><strong>特殊风险与安全威胁</strong><br>涉及国家安全和社会稳定的特殊风险<br><small>RULE 014</small></div>
+    </div>
+  </div>
+
+  <h3>3.7 Seed Examples（代码示例注入）</h3>
+  <p>系统自动将检测规则转为 Python 函数示例，让 Agent 了解期望的代码风格和签名格式：</p>
+
+  <pre><code># 示例 1: RULE_002 — 休眠账户突然激活
+def feature_dormant_account_activation(open_df, tx_df, close_df):
+    """开户后 >= 90天无交易后突然出现交易"""
+    open_df["wallet_open_date"] = pd.to_datetime(open_df["wallet_open_date"])
+    first_tx = tx_df.groupby("src")["timestamp"].min().reset_index()
+    merged = open_df[["wallet_id","wallet_open_date"]].merge(first_tx, ...)
+    merged["dormant_days"] = (merged["first_tx_time"] - merged["wallet_open_date"]).dt.days
+    merged["is_dormant_activated"] = (merged["dormant_days"] >= 90).astype(int)
+    return merged[["wallet_id", "is_dormant_activated"]]
+
+# 示例 2: RULE_004 — 商户账户异常交易量
+def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
+    """商户钱包短时间内大额交易"""
+    merchant_wallets = open_df[open_df["wallet_type"] == 3]["wallet_id"]
+    daily = merchant_tx.groupby(["dst","date"])["amount"].agg(["sum","count"])
+    stats["merchant_volume_ratio"] = max_daily / mean_daily
+    return stats[["wallet_id", "merchant_volume_ratio"]]</code></pre>
+
+  <h3>3.8 正常 vs 异常分布差异（动态生成）</h3>
+  <p>系统自动统计正常交易和异常交易的分布差异，标注差异倍数，注入 Agent 的 prompt。这是 Agent 选择探索方向的核心依据之一。</p>
+
+  <table style="font-size: 0.88em;">
+    <tr><th>统计维度</th><th>比较内容</th><th>目的</th></tr>
+    <tr><td>数值型字段</td><td>amount / interval / hour 的 median 和 mean 对比</td><td>发现金额、时间间隔、交易时段的异常偏移</td></tr>
+    <tr><td>夜间交易占比</td><td>22:00-05:00 交易比例对比</td><td>夜间活动差异（异常交易夜间占比显著高于正常）</td></tr>
+    <tr><td>分类型字段</td><td>transaction_mode / transaction_motif 各类别占比差异 &gt; 2%</td><td>交易模式和动机的分布偏移</td></tr>
+    <tr><td>钱包等级</td><td>wallet_level 各等级占比对比</td><td>四类钱包在异常交易中的占比是否异常</td></tr>
+    <tr><td>账户维度</td><td>同证件/手机号关联钱包数、钱包平均交易数</td><td>身份复用和交易密度差异</td></tr>
+  </table>
 </div>
 
 <!-- ====== 4. Agent 工具箱 ====== -->
@@ -779,23 +1025,47 @@
 
   <div class="grid-3">
     <div class="card" style="border-color: var(--warning);">
-      <div class="card-title"><span class="role-tag role-tool">TOOL</span> explore_data</div>
+      <div class="card-title"><span class="role-tag role-tool">TOOL ①</span> explore_data</div>
       <p><strong>作用</strong>：在 DataFrame 上执行查询代码，探索数据分布。</p>
-      <p><strong>参数</strong>：<code>question</code>（问题描述） + <code>code</code>（Python 代码）</p>
+      <p><strong>参数</strong>：</p>
+      <ul style="font-size:0.88em;">
+        <li><code>question</code> — 问题描述（如"异常交易的夜间占比"）</li>
+        <li><code>code</code> — Python 查询代码</li>
+      </ul>
       <p><strong>超时</strong>：15 秒</p>
-      <p style="font-size:0.85em;color:var(--text-secondary);">Agent 在生成特征前可以先探索数据，验证自己的假设。</p>
+      <p><strong>返回</strong>：<code>query_result</code> 变量的文本表示（最多 2000 字符）</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);">可选步骤。Agent 在生成特征前可以先探索数据，验证自己的假设。例如检查某个字段的分布、计算正负样本的差异统计量。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
-      <div class="card-title"><span class="role-tag role-tool">TOOL</span> generate_feature</div>
+      <div class="card-title"><span class="role-tag role-tool">TOOL ②</span> generate_feature</div>
       <p><strong>作用</strong>：提交特征的代码、名称、维度、解释、推理过程。</p>
-      <p><strong>参数</strong>：<code>feature_name</code> / <code>dimension</code> / <code>code</code> / <code>explanation</code> / <code>reasoning</code></p>
-      <p style="font-size:0.85em;color:var(--text-secondary);">代码签名固定：<code>def feature_xxx(open_df, tx_df, close_df) &rarr; pd.DataFrame</code></p>
+      <p><strong>参数</strong>：</p>
+      <ul style="font-size:0.88em;">
+        <li><code>feature_name</code> — 特征名（如 "amount_concentration_pattern"）</li>
+        <li><code>dimension</code> — 所属维度组</li>
+        <li><code>code</code> — Python 代码（签名固定：<code>def feature_xxx(open_df, tx_df, close_df) → pd.DataFrame</code>）</li>
+        <li><code>explanation</code> — 特征含义解释</li>
+        <li><code>reasoning</code> — 设计推理过程</li>
+      </ul>
+      <p><strong>返回</strong>：确认特征已注册，提示调用 execute_sandbox</p>
+      <p style="font-size:0.85em;color:var(--text-secondary);">代码必须返回含 <code>wallet_id</code> 或 <code>tx_id</code> 列的 DataFrame。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
-      <div class="card-title"><span class="role-tag role-tool">TOOL</span> execute_sandbox</div>
-      <p><strong>作用</strong>：在隔离沙盒（E2B microVM 或本地进程）中执行代码，触发 L1 &rarr; L2 &rarr; L3 验证流水线。</p>
-      <p><strong>参数</strong>：<code>feature_name</code>（自动关联之前 generate_feature 的代码）</p>
-      <p style="font-size:0.85em;color:var(--text-secondary);">这是 Agent 获得验证反馈的唯一入口。返回的结果包含所有指标和判定。</p>
+      <div class="card-title"><span class="role-tag role-tool">TOOL ③</span> execute_sandbox</div>
+      <p><strong>作用</strong>：在隔离沙盒中执行代码，自动触发 L1 → L2 → L3 完整验证流水线。</p>
+      <p><strong>参数</strong>：</p>
+      <ul style="font-size:0.88em;">
+        <li><code>feature_name</code> — 自动关联之前 generate_feature 的代码</li>
+      </ul>
+      <p><strong>返回</strong>（包含完整验证结果）：</p>
+      <ul style="font-size:0.85em;">
+        <li>沙盒执行状态 + 输出 shape</li>
+        <li>IV / KS / 冗余度 / 缺失率</li>
+        <li>Delta Recall / Delta F1 / Delta Precision</li>
+        <li>SHAP Rank / 综合分数</li>
+        <li>最终判定：接受 / 候选缓冲池 / 淘汰</li>
+      </ul>
+      <p style="font-size:0.85em;color:var(--text-secondary);">这是 Agent 获得验证反馈的<strong>唯一入口</strong>。Agent 根据返回结果决定下一步策略。</p>
     </div>
   </div>
 
@@ -1052,7 +1322,12 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <p>环境维护一个结构化的失败记录库，每个失败特征记录名称、代码、失败原因。每轮注入 prompt 时取最近的失败案例，显式告诉 Agent "避免重复这些错误"。</p>
 
   <h3>7.3 跨维度知识传播 <span class="role-tag role-env">ENV</span></h3>
-  <p>当一个维度组产出高分特征，环境自动将该特征的信息传播到其他维度组（<code>migrate_best</code>）。下次 Agent 在其他维度探索时，能看到跨维度的高分示例作为参考。</p>
+  <p>当一个维度组产出高分特征，环境自动将该特征的信息（名称、代码、指标、SHAP 排名）传播到其他维度组（<code>migrate_best</code>）。下次 Agent 在其他维度探索时，能看到跨维度的高分示例作为参考，可能激发交叉维度的特征灵感。</p>
+
+  <div class="callout callout-agent">
+    <strong>知识传播示例</strong>
+    Agent 在「金额频次」维度生成了高分特征 <code>amount_concentration_pattern</code>（金额集中度），该特征的信息随后注入到「时间地域」维度的 prompt 中。Agent 在探索「时间地域」时看到这个跨维度示例，可能设计出"金额集中度 × 夜间交易"的交叉特征。
+  </div>
 
   <h3>7.4 可解释性报告 <span class="role-tag role-agent">AGENT</span></h3>
   <p>每个通过 L3 的特征，环境调用 Agent（以分析专家身份）生成可解释性报告，包含：</p>
@@ -1085,12 +1360,32 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <h2><span class="num">8</span>收敛检测与终止</h2>
 
   <p>Agent 的搜索不是无限的。环境通过以下条件控制终止：</p>
-  <ul>
-    <li><strong>收敛终止</strong>：连续 <strong>2 轮</strong>没有新特征被接受（L3 直通 + 前向选择 均无产出）→ Agent 已穷尽有效搜索空间</li>
-    <li><strong>目标达成</strong>：已接受特征数达到上限（默认 30）</li>
-    <li><strong>轮次上限</strong>：完成 10 轮迭代</li>
-  </ul>
-  <p>终止后环境执行最终的候选缓冲池评估，给剩余候选最后一次机会。</p>
+
+  <table>
+    <tr><th>终止条件</th><th>判定标准</th><th>设计意图</th></tr>
+    <tr>
+      <td><strong>收敛终止</strong></td>
+      <td>连续 <strong>2 轮</strong>没有新特征被接受（L3 直通 + 前向选择均无产出）</td>
+      <td>Agent 已穷尽有效搜索空间。在当前知识和数据条件下，继续探索的边际收益趋近于零。</td>
+    </tr>
+    <tr>
+      <td><strong>目标达成</strong></td>
+      <td>已接受特征数达到上限（默认 <strong>30</strong>）</td>
+      <td>防止特征过多导致维度灾难。30 个新特征 + 95 个基线已足够覆盖各维度。</td>
+    </tr>
+    <tr>
+      <td><strong>轮次上限</strong></td>
+      <td>完成 <strong>10 轮</strong>迭代</td>
+      <td>硬性时间/成本上限。每轮约 1 小时（含 4 维度探索 + 前向选择），10 轮 ≈ 10 小时。</td>
+    </tr>
+  </table>
+
+  <p style="margin-top:12px;">终止后环境执行<strong>最终的候选缓冲池评估</strong>，给剩余候选最后一次前向选择机会。然后输出完整的实验报告：接受的特征列表、指标汇总、搜索日志。</p>
+
+  <div class="callout callout-green">
+    <strong>实际收敛情况</strong>
+    在首次实验中，Agent 在第 4 轮即触发收敛终止：第 1-2 轮接受了 3 个特征，第 3-4 轮连续无新产出。这表明在当前基线（95 个人工特征）较强的情况下，Agent 能找到的增量空间确实有限——3 个特征已经是有效的补充。
+  </div>
 </div>
 
 <!-- ====== 9. 模型与评估 ====== -->
@@ -1108,11 +1403,14 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     <tr><td>device</td><td>cuda</td><td>GPU 加速</td></tr>
   </table>
 
-  <h3>9.2 阈值优化</h3>
-  <p>不使用固定 0.5 阈值。每折<strong>训练集</strong>上遍历 0.05~0.95（步长 0.01），选使 F1 最大的阈值，在<strong>验证集</strong>上计算最终指标。</p>
+  <h3>9.2 交叉验证策略</h3>
+  <p>使用 <strong>5-fold StratifiedKFold</strong> 交叉验证。Stratified 保证每折的正负样本比例与整体一致（0.32% 正样本率），避免某些折完全没有正样本。最终指标为 5 折平均值。</p>
 
-  <h3>9.3 特征复合打分</h3>
-  <p>每个被接受的特征计算综合分数（用于排序展示，<strong>不影响接受判定</strong>）：</p>
+  <h3>9.3 阈值优化</h3>
+  <p>不使用固定 0.5 阈值（在极度不平衡数据上 0.5 阈值几乎预测全负）。每折<strong>训练集</strong>上遍历 0.05~0.95（步长 0.01），选使 F1 最大的阈值，在<strong>验证集</strong>上计算最终指标。这确保阈值选择不受验证集信息泄露影响。</p>
+
+  <h3>9.4 特征复合打分</h3>
+  <p>每个被接受的特征计算综合分数（用于排序展示和跨维度传播优先级，<strong>不影响接受判定</strong>）：</p>
   <table>
     <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
     <tr><td>SHAP 排名</td><td>30%</td><td>1/rank</td></tr>
