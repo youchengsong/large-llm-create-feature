@@ -722,7 +722,7 @@
       <td>静态</td>
     </tr>
     <tr>
-      <td><strong>交易模式知识（8 种 Motif）</strong></td>
+      <td><strong>交易模式知识（8 种）</strong></td>
       <td>硬编码领域知识</td>
       <td>3 种正常 + 5 种异常模式，含金额、时间、方式特征</td>
       <td>静态</td>
@@ -781,7 +781,7 @@
     <div class="card">
       <div class="card-title">tx_df（交易表）</div>
       <p><strong>1,384,512</strong> 笔交易</p>
-      <p style="font-size:0.88em;color:var(--text-secondary);">tx_id, src/dst（钱包ID）, amount, timestamp, src_ip/dst_ip, src_device, transaction_mode（交易模式）, transaction_motif（交易动机）, hour, interval<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
+      <p style="font-size:0.88em;color:var(--text-secondary);">tx_id, src/dst（钱包ID）, amount, timestamp, src_ip/dst_ip, src_device, transaction_mode（交易模式）, hour, interval<br>标签 <code>is_risk</code>（正样本率 0.32%）</p>
     </div>
     <div class="card">
       <div class="card-title">close_df（销户表）</div>
@@ -790,8 +790,8 @@
     </div>
   </div>
 
-  <h3>3.3 交易模式知识（8 种 Motif）</h3>
-  <p>系统向 Agent 注入 8 种交易模式的详细说明，Agent 据此理解数据中 <code>transaction_motif</code> 字段的含义，并从中提取特征灵感。</p>
+  <h3>3.3 交易模式知识（8 种）</h3>
+  <p>系统向 Agent 注入 8 种交易模式的详细说明，Agent 据此理解数据中交易模式字段的含义，并从中提取特征灵感。</p>
 
   <div class="grid-2">
     <div class="card" style="border-color: var(--success);">
@@ -1025,7 +1025,7 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
     <tr><th>统计维度</th><th>比较内容</th><th>目的</th></tr>
     <tr><td>数值型字段</td><td>amount / interval / hour 的 median 和 mean 对比</td><td>发现金额、时间间隔、交易时段的异常偏移</td></tr>
     <tr><td>夜间交易占比</td><td>22:00-05:00 交易比例对比</td><td>夜间活动差异（异常交易夜间占比显著高于正常）</td></tr>
-    <tr><td>分类型字段</td><td>transaction_mode / transaction_motif 各类别占比差异 &gt; 2%</td><td>交易模式和动机的分布偏移</td></tr>
+    <tr><td>分类型字段</td><td>transaction_mode 各类别占比差异 &gt; 2%</td><td>交易模式的分布偏移</td></tr>
     <tr><td>钱包等级</td><td>wallet_level 各等级占比对比</td><td>四类钱包在异常交易中的占比是否异常</td></tr>
     <tr><td>账户维度</td><td>同证件/手机号关联钱包数、钱包平均交易数</td><td>身份复用和交易密度差异</td></tr>
   </table>
@@ -1263,7 +1263,7 @@ while 还有候选:
     <tr><th>维度组</th><th>关联字段</th><th>探索方向</th></tr>
     <tr>
       <td><strong>金额频次</strong></td>
-      <td>amount, interval, hour, transaction_motif</td>
+      <td>amount, interval, hour</td>
       <td>金额分布异常、交易频率模式、金额集中度等</td>
     </tr>
     <tr>
