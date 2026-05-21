@@ -430,8 +430,6 @@
     <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
     <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
-    <a href="#sec13" style="background: var(--accent-light); border-color: var(--accent);"><span class="toc-num">13</span>人员安排</a>
-    <a href="#sec14" style="background: var(--warning-light); border-color: var(--warning);"><span class="toc-num">14</span>修改方案</a>
   </div>
 </div>
 
@@ -439,19 +437,14 @@
 <div class="section" id="sec1">
   <h2><span class="num">1</span>核心思想</h2>
 
-  <p>本系统的核心是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略，并能根据数据类型选择合适的下游模型进行训练与评估，由 LLM 自主驱动。</p>
-
-  <div class="callout callout-agent">
-    <strong>Agent 与传统方法的区别</strong>
-    传统特征工程是<strong>预定义的</strong>：固定的特征模板 → 批量计算 → 筛选，模型选择也是人工指定的。而本系统中，LLM Agent 是<strong>自主决策</strong>的：它决定生成什么特征、如何实现、失败后如何调整，还能根据数据特性选择最优的下游模型。外围模块（沙盒、验证器、SHAP 分析器）是 Agent 的<strong>工具和环境</strong>，而不是控制它的固定流程。
-  </div>
+  <p>本系统的核心是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 理解领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略，并能根据数据类型选择合适的下游模型进行训练与评估，由 LLM 自主驱动。</p>
 
   <h3>1.1 Agent 视角下的系统角色划分</h3>
   <div class="grid-2">
     <div class="card" style="border-color: var(--agent);">
       <div class="card-title" style="color: var(--agent);"><span class="role-tag role-agent">AGENT</span> LLM Agent</div>
       <ul>
-        <li>阅读数据 Schema、分布差异、领域知识</li>
+        <li>理解数据 Schema、分布差异、领域知识</li>
         <li>自主决定探索哪个维度、生成什么特征</li>
         <li>编写 Python 特征代码</li>
         <li>根据验证反馈调整策略（换方向、改实现）</li>
@@ -462,11 +455,11 @@
     <div class="card" style="border-color: var(--env);">
       <div class="card-title" style="color: var(--env);"><span class="role-tag role-env">ENVIRONMENT</span> 外围工具与反馈</div>
       <ul>
-        <li>沙盒：在隔离环境中执行 Agent 提交的代码（E2B microVM 或本地进程）</li>
-        <li>三级验证器：L1(安全) → L2(统计) → L3(模型增量)</li>
+        <li>沙盒：在隔离环境中检验和执行 Agent 提交的代码（E2B microVM 或本地进程）</li>
+        <li>三级验证器：L1(安全) → L2(统计) → L3(模型效果)</li>
         <li>SHAP 分析器：告诉 Agent 哪些特征重要</li>
-        <li>候选缓冲池：暂存 L3 未通过但有潜力的特征</li>
-        <li>前向选择器：在轮末评估特征组合效应</li>
+        <li>候选特征集：暂存 L3 未通过但有潜力的特征</li>
+        <li>特征前向选择：在轮末评估特征组合效应</li>
         <li>模型训练接口：支持多种下游模型的训练与推理</li>
       </ul>
     </div>
@@ -594,7 +587,7 @@
               </div>
               <span class="flow-arrow" style="font-size:1em;">&rarr;</span>
               <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
-                L3 模型增量
+                L3 模型效果
               </div>
             </div>
 
@@ -606,7 +599,7 @@
                 L3 通过<br><small>→ 加入 existing_features</small>
               </div>
               <div style="padding:8px 14px; border-radius:8px; background:var(--warning-light); color:#92400e; font-size:0.82em; font-weight:600; text-align:center;">
-                L3 未通过<br><small>→ 候选缓冲池</small>
+                L3 未通过<br><small>→ 候选特征集</small>
               </div>
               <div style="padding:8px 14px; border-radius:8px; background:var(--danger-light); color:#991b1b; font-size:0.82em; font-weight:600; text-align:center;">
                 L2 未通过<br><small>→ 淘汰</small>
@@ -617,7 +610,7 @@
             <div class="flow-arrow-down" style="margin:6px 0;">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
 
             <div style="padding:10px 16px; border-radius:10px; background:var(--success-light); color:#065f46; font-size:0.84em; font-weight:600; text-align:center; max-width: 340px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.06);">
-              前向选择 (Forward Selection)<br><small style="font-weight:400;">贪心评估候选缓冲池中的组合效应</small>
+              前向选择 (Forward Selection)<br><small style="font-weight:400;">贪心评估候选特征集中的组合效应</small>
             </div>
 
           </div>
@@ -1087,7 +1080,7 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
         <li>IV / KS / 冗余度 / 缺失率</li>
         <li>Delta Recall / Delta F1 / Delta Precision</li>
         <li>SHAP Rank / 综合分数</li>
-        <li>最终判定：接受 / 候选缓冲池 / 淘汰</li>
+        <li>最终判定：接受 / 候选特征集 / 淘汰</li>
       </ul>
       <p style="font-size:0.85em;color:var(--text-secondary);">这是 Agent 获得验证反馈的<strong>唯一入口</strong>。Agent 根据返回结果决定下一步策略。</p>
     </div>
@@ -1202,7 +1195,7 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
     </div>
   </div>
 
-  <h3>5.3 L3：模型增量验证 <span class="role-tag role-env">ENV</span></h3>
+  <h3>5.3 L3：模型效果验证 <span class="role-tag role-env">ENV</span></h3>
   <p>在当前 <code>existing_features</code>（动态基线）上评估新特征的增量贡献。5-fold StratifiedKFold CV，每折搜索最优 F1 阈值。</p>
 
   <div class="callout callout-green">
@@ -1219,13 +1212,13 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
       <p>特征加入 <code>existing_features</code>，Agent 的后续探索在更高的基线上进行。环境还会为该特征调用 Agent 生成一份可解释性报告。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
-      <div class="card-title" style="color: var(--warning);">L3 未通过 &rarr; 候选缓冲池</div>
-      <p>进入候选缓冲池（Candidate Buffer），等待轮末前向选择评估组合效应。该特征可能单独无效但与其他特征互补<sup>[2]</sup>。</p>
+      <div class="card-title" style="color: var(--warning);">L3 未通过 &rarr; 候选特征集</div>
+      <p>进入候选特征集（Candidate Buffer），等待轮末前向选择评估组合效应。该特征可能单独无效但与其他特征互补<sup>[2]</sup>。</p>
     </div>
   </div>
 
-  <h3>5.4 候选缓冲池</h3>
-  <p>通过 L2 但未通过 L3 的特征进入<strong>候选缓冲池</strong>。这是一种延迟评估机制——单特征增量不够，但多特征组合可能有效。</p>
+  <h3>5.4 候选特征集</h3>
+  <p>通过 L2 但未通过 L3 的特征进入<strong>候选特征集</strong>。这是一种延迟评估机制——单特征增量不够，但多特征组合可能有效。</p>
   <table>
     <tr><th>参数</th><th>值</th><th>说明</th></tr>
     <tr><td>最大容量</td><td>20</td><td>超出时淘汰互信息最低的特征</td></tr>
@@ -1234,7 +1227,7 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
   </table>
 
   <h3>5.5 前向选择（Forward Selection）<sup>[3]</sup></h3>
-  <p>每轮所有维度探索结束后，环境对候选缓冲池中的特征执行贪心前向选择<sup>[4]</sup>——从当前 <code>existing_features</code> 出发，逐个尝试加入池中特征，选最优的加入，重复直到无增量。</p>
+  <p>每轮所有维度探索结束后，环境对候选特征集中的特征执行贪心前向选择<sup>[4]</sup>——从当前 <code>existing_features</code> 出发，逐个尝试加入池中特征，选最优的加入，重复直到无增量。</p>
 
   <pre><code># 前向选择（每轮末由环境自动执行，Agent 不参与）
 X_current = existing_features
@@ -1435,7 +1428,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     </tr>
   </table>
 
-  <p style="margin-top:12px;">终止后环境执行<strong>最终的候选缓冲池评估</strong>，给剩余候选最后一次前向选择机会。然后输出完整的实验报告：接受的特征列表、指标汇总、搜索日志。</p>
+  <p style="margin-top:12px;">终止后环境执行<strong>最终的候选特征集评估</strong>，给剩余候选最后一次前向选择机会。然后输出完整的实验报告：接受的特征列表、指标汇总、搜索日志。</p>
 
   <div class="callout callout-green">
     <strong>实际收敛情况</strong>
@@ -1545,7 +1538,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
       <td>加入特征后的 Precision 绝对值不低于 95%。这是 Precision 的下限保护——允许 Recall 提升带来的小幅 Precision 下降，但不能降太多。</td>
     </tr>
     <tr>
-      <td rowspan="3">候选缓冲池</td>
+      <td rowspan="3">候选特征集</td>
       <td>max_size</td>
       <td>20</td>
       <td>缓冲池最大容量。超出时淘汰互信息（MI）最低的特征。避免无限积累导致前向选择搜索空间过大。</td>
@@ -1610,7 +1603,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     <tr>
       <td><strong>组合效应</strong></td>
       <td>通常忽略</td>
-      <td>候选缓冲池 + 前向选择捕获互补效应</td>
+      <td>候选特征集 + 前向选择捕获互补效应</td>
     </tr>
     <tr>
       <td><strong>可解释性</strong></td>
@@ -1806,120 +1799,10 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
       <li><strong>Agent 具备领域推理能力</strong>：3 个特征均源自 Agent 对领域知识的深度理解——从裁判文书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
       <li><strong>Recall 优先策略有效</strong>：3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
       <li><strong>Precision 代价可控</strong>：Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
-      <li><strong>动态基线严格过滤</strong>：候选缓冲池的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
+      <li><strong>动态基线严格过滤</strong>：候选特征集的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
       <li><strong>多维度覆盖</strong>：3 个特征分别来自金额频次、时间地域、行为序列三个维度组，分组搜索策略保证了广度。</li>
       <li><strong>高淘汰率体现质量控制</strong>：43 个候选中仅 3 个通过（7.0%），三级验证环境起到了严格的质量把关作用。</li>
     </ol>
-  </div>
-</div>
-
-<!-- ====== 13. 人员安排 ====== -->
-<div class="section" id="sec13">
-  <h2><span class="num">13</span>人员安排</h2>
-
-  <table>
-    <tr>
-      <th style="width:120px;">成员</th>
-      <th>负责方向</th>
-      <th>具体任务</th>
-    </tr>
-    <tr>
-      <td><strong>阙维俏</strong></td>
-      <td>场景细分调研</td>
-      <td>调研反洗钱场景的细粒度分类；尝试用比特币公开数据集（如 Elliptic）进行更加详细的场景细分（诈骗、赌博、洗钱等），验证不同犯罪类型下领域知识注入策略的差异性。</td>
-    </tr>
-    <tr>
-      <td><strong>李王月</strong></td>
-      <td>数据 I/O 梳理</td>
-      <td>对系统数据输入（原始交易表、开户表、销户表、领域知识文件）和输出（特征代码、验证报告、SHAP 分析、可解释性文件）进行细节化梳理，明确每个模块的数据流转格式和接口规范。</td>
-    </tr>
-    <tr>
-      <td><strong>游承松</strong></td>
-      <td>代码安全 &amp; 特征评估优化</td>
-      <td>优化当前沙盒执行环境的代码安全检测方案（L1 层）；研究特征评估方案的改进空间（L2/L3 层），探索是否有更优的统计验证指标或模型增量评估策略。</td>
-    </tr>
-    <tr>
-      <td><strong>陈晓</strong></td>
-      <td>模型训练推理接口</td>
-      <td>提供下游模型的训练与推理接口，支持将 Agent 生成的特征用于模型训练和线上预测。</td>
-    </tr>
-    <tr>
-      <td><strong>卢立仁</strong></td>
-      <td>Auto Research 文献调研</td>
-      <td>调研 Auto Research 相关工具与方法，负责文献检索与科研调研，梳理自动特征工程、LLM Agent、反洗钱等方向的最新研究进展。</td>
-    </tr>
-  </table>
-</div>
-
-<!-- ====== 14. 修改方案 ====== -->
-<div class="section" id="sec14">
-  <h2><span class="num">14</span>修改方案</h2>
-
-  <div class="callout callout-blue" style="margin-bottom: 16px;">
-    <strong>方向概述</strong>：以下四项修改方案将从场景粒度、输出质量、系统安全、模型能力四个维度对系统进行全面升级。
-  </div>
-
-  <h3>14.1 场景细分 &mdash; 按犯罪类型注入专属领域知识</h3>
-  <div style="padding: 0 16px;">
-    <p><strong>现状</strong>：当前系统将所有异常交易统一为"洗钱"一个类别，领域知识按统一模式注入。</p>
-    <p><strong>改进</strong>：根据不同犯罪场景（诈骗、赌博、洗钱等）进行细粒度分类，为每种场景注入特有的领域知识。</p>
-    <ul>
-      <li>不同犯罪类型的资金流转模式差异显著（如赌博偏好高频小额、诈骗偏好单向大额转出）</li>
-      <li>为每种场景构建独立的风险指标子集和检测规则</li>
-      <li>Agent 在生成特征时可根据目标场景选择对应的知识模块</li>
-      <li>参考BABD-13 数据集的场景细分实践，验证方案可行性</li>
-    </ul>
-  </div>
-
-  <h3>14.2 输出结果可解释性增强</h3>
-  <div style="padding: 0 16px;">
-    <p><strong>现状</strong>：系统输出以特征代码和指标数值为主，缺少面向业务人员的可解释性说明。</p>
-    <p><strong>改进</strong>：强调输出结果的可解释性，为每个生成的特征配套可解释性文件。</p>
-    <ul>
-      <li>每个特征附带：领域含义说明、对应的领域知识来源（哪条规则/哪个模式）、SHAP 贡献分析</li>
-      <li>生成可视化报告：特征重要性排序、特征与标签的分布对比、领域知识覆盖率</li>
-      <li>输出格式标准化，便于监管审查和业务理解</li>
-      <li>支持追溯：从最终特征反向追踪到原始领域知识条目</li>
-    </ul>
-  </div>
-
-  <h3>14.3 代码安全检测与特征评估方案优化</h3>
-  <div style="padding: 0 16px;">
-    <p><strong>现状</strong>：L1 沙盒基于 <code>RestrictedPython</code> + <code>exec()</code>，L2 使用 IV/KS + 噪声校准。</p>
-    <p><strong>改进</strong>：继续调研更优的代码安全方案和特征评估指标。</p>
-    <ul>
-      <li><strong>代码安全方向</strong>：
-        <ul>
-          <li>调研容器级沙盒（如 gVisor、Firecracker）是否比 RestrictedPython 更安全</li>
-          <li>调研 AST 静态分析 + 动态沙盒的组合方案</li>
-          <li>评估当前白名单机制的覆盖率和漏洞风险</li>
-        </ul>
-      </li>
-      <li><strong>特征评估方向</strong>：
-        <ul>
-          <li>调研 PSI（Population Stability Index）作为特征稳定性的补充指标</li>
-          <li>探索互信息（Mutual Information）替代或补充 IV 的可行性</li>
-          <li>评估是否引入时序验证（Time-based Split）替代随机交叉验证</li>
-        </ul>
-      </li>
-    </ul>
-  </div>
-
-  <h3>14.4 接入 Agent 模型训练模块</h3>
-  <div style="padding: 0 16px;">
-    <p><strong>现状</strong>：Agent 生成特征后，系统仅通过 XGBoost 交叉验证评估特征质量，缺少独立的模型训练和推理流程。</p>
-    <p><strong>改进</strong>：接入下游模型训练接口，使系统具备完整的「特征生成 &rarr; 模型训练 &rarr; 推理预测」闭环能力。</p>
-    <ul>
-      <li>Agent 生成并筛选出有效特征后，自动触发下游模型训练流程</li>
-      <li>支持将基线特征 + Agent 生成特征组合为最终特征集，训练生产级模型</li>
-      <li>提供模型推理接口，对新数据进行实时/批量预测</li>
-      <li>支持模型版本管理：不同特征组合对应不同模型版本，便于对比和回滚</li>
-    </ul>
-  </div>
-
-  <h3>14.5 黑白名单</h3>
-  <div style="padding: 0 16px;">
-    <p>交易数据是存在 label 标签的，可以理解为黑白名单。</p>
   </div>
 </div>
 
