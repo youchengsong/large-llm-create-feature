@@ -426,7 +426,7 @@
     <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
-    <a href="#sec5"><span class="toc-num">5</span>环境：三级验证流水线</a>
+    <a href="#sec5"><span class="toc-num">5</span>环境：三级验证体系</a>
     <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
     <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
@@ -439,11 +439,11 @@
 <div class="section" id="sec1">
   <h2><span class="num">1</span>核心思想：Agent 即特征工程师</h2>
 
-  <p>本系统的核心不是一条固定流水线，而是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略——就像一个人类特征工程师的工作流程，但由 LLM 自主驱动。</p>
+  <p>本系统的核心不是一套固定规则，而是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略——就像一个人类特征工程师的工作流程，但由 LLM 自主驱动。</p>
 
   <div class="callout callout-agent">
     <strong>Agent 与传统流水线的区别</strong>
-    传统特征工程流水线是<strong>预定义的</strong>：固定的特征模板 → 批量计算 → 筛选。而本系统中，LLM Agent 是<strong>自主决策</strong>的：它决定生成什么特征、如何实现、失败后如何调整。外围模块（沙盒、验证器、SHAP 分析器）是 Agent 的<strong>工具和环境</strong>，而不是控制它的流水线。
+    传统特征工程是<strong>预定义的</strong>：固定的特征模板 → 批量计算 → 筛选。而本系统中，LLM Agent 是<strong>自主决策</strong>的：它决定生成什么特征、如何实现、失败后如何调整。外围模块（沙盒、验证器、SHAP 分析器）是 Agent 的<strong>工具和环境</strong>，而不是控制它的固定流程。
   </div>
 
   <h3>1.1 Agent 视角下的系统角色划分</h3>
@@ -564,7 +564,7 @@
         <!-- execute_sandbox: contains L1→L2→L3, results routing, and FS -->
         <a href="#sec5" style="text-decoration:none; flex: 1;">
           <div class="arch-contain" style="border-color: var(--env); background: rgba(224,231,255,0.15);">
-            <div class="arch-contain-label" style="background: var(--env-light); color: var(--env);">③ 验证特征有效性（execute_sandbox 触发的完整流水线）</div>
+            <div class="arch-contain-label" style="background: var(--env-light); color: var(--env);">③ 验证特征有效性（execute_sandbox 触发的完整验证流程）</div>
 
             <!-- L1 → L2 → L3 -->
             <div class="arch-node" style="background: var(--warning-light); color: #92400e; margin: 16px auto 12px; max-width: 260px;">
@@ -1066,7 +1066,7 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
     </div>
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title"><span class="role-tag role-tool">TOOL ③</span> execute_sandbox</div>
-      <p><strong>作用</strong>：在隔离沙盒中执行代码，自动触发 L1 → L2 → L3 完整验证流水线。</p>
+      <p><strong>作用</strong>：在隔离沙盒中执行代码，自动触发 L1 → L2 → L3 完整验证流程。</p>
       <p><strong>参数</strong>：</p>
       <ul style="font-size:0.88em;">
         <li><code>feature_name</code> — 自动关联之前 generate_feature 的代码</li>
@@ -1091,7 +1091,7 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
 
 <!-- ====== 5. 环境：三级验证 ====== -->
 <div class="section" id="sec5">
-  <h2><span class="num">5</span>环境：三级验证流水线</h2>
+  <h2><span class="num">5</span>环境：三级验证体系</h2>
 
   <p>当 Agent 调用 <code>execute_sandbox</code> 时，环境自动执行三级验证。Agent 无需关心验证细节，只需读取返回的结果并据此调整策略。</p>
 
