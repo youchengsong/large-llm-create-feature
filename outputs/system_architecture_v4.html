@@ -425,11 +425,10 @@
     <a href="#sec3"><span class="toc-num">3</span>Agent 的领域知识注入</a>
     <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
-    <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
+    <a href="#sec10"><span class="toc-num">10</span>与传统方法的对比</a>
     <a href="#sec5"><span class="toc-num">5</span>验证特征有效性</a>
-    <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
+    <a href="#sec11" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">11</span>实验结果</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
-    <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
   </div>
 </div>
 
@@ -704,7 +703,7 @@
     <div class="arch-output-group" style="margin-top: 16px;">
       <div class="arch-output-label">系统输出</div>
       <div class="flow-row" style="margin-top: 8px; gap: 8px;">
-        <a href="#sec12" style="text-decoration:none;">
+        <a href="#sec11" style="text-decoration:none;">
           <div class="arch-node" style="background: #d1fae5; color: #065f46;">
             有效特征集<br><small>代码 + 指标 + 维度</small>
             <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
@@ -1411,10 +1410,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <h3>9.2 交叉验证策略</h3>
   <p>使用 <strong>5-fold StratifiedKFold</strong> 交叉验证。Stratified 保证每折的正负样本比例与整体一致（0.32% 正样本率），避免某些折完全没有正样本。最终指标为 5 折平均值。</p>
 
-  <h3>9.3 阈值优化</h3>
-  <p>不使用固定 0.5 阈值（在极度不平衡数据上 0.5 阈值几乎预测全负）。每折<strong>训练集</strong>上遍历 0.05~0.95（步长 0.01），选使 F1 最大的阈值，在<strong>验证集</strong>上计算最终指标。这确保阈值选择不受验证集信息泄露影响。</p>
-
-  <h3>9.4 特征复合打分</h3>
+  <h3>9.3 特征复合打分</h3>
   <p>每个被接受的特征计算综合分数（用于排序展示和跨维度传播优先级，<strong>不影响接受判定</strong>）：</p>
   <table>
     <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
@@ -1425,120 +1421,9 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   </table>
 </div>
 
-<!-- ====== 10. 参数总览 ====== -->
+<!-- ====== 10. 与传统方法对比 ====== -->
 <div class="section" id="sec10">
-  <h2><span class="num">10</span>关键参数总览</h2>
-  <table>
-    <tr><th>类别</th><th>参数</th><th>值</th><th>详细说明</th></tr>
-    <tr>
-      <td rowspan="2">Agent</td>
-      <td>LLM 模型</td>
-      <td>DeepSeek-Chat</td>
-      <td>通过 OpenAI 兼容 API 调用（<code>base_url</code> + <code>api_key</code>）。选用 DeepSeek 因其中文理解和代码生成能力强，且 API 成本低于 GPT-4。</td>
-    </tr>
-    <tr>
-      <td>Temperature</td>
-      <td>0.7 / 0.3</td>
-      <td><strong>0.7</strong>：特征生成阶段，鼓励多样性和创造性探索；<strong>0.3</strong>：代码修复阶段，降低随机性以提高修复成功率。</td>
-    </tr>
-    <tr>
-      <td rowspan="4">搜索策略</td>
-      <td>max_rounds</td>
-      <td>10</td>
-      <td>最大搜索轮数。每轮遍历所有 4 个维度组 + 轮末前向选择。实际实验中第 4 轮即因连续空轮收敛终止。</td>
-    </tr>
-    <tr>
-      <td>维度组数</td>
-      <td>4</td>
-      <td>金额频次 / 时间地域 / 行为序列 / 主体关联。按业务语义划分，保证搜索广度覆盖交易数据的各个方面。</td>
-    </tr>
-    <tr>
-      <td>B_total</td>
-      <td>12</td>
-      <td>每轮总候选预算（所有维度组共享）。由 SHAP 反馈按反比分配到各组。例如薄弱维度可能分得 5 个名额，强势维度只有 1 个。</td>
-    </tr>
-    <tr>
-      <td>组内对话轮数</td>
-      <td>2</td>
-      <td>每个维度组最多 2 轮有效对话。Turn 1 给 Agent 任务指令 + 上下文；如果有失败特征，Turn 2 给 Agent 反馈让其调整方向。防止在单个维度上过度消耗 token。</td>
-    </tr>
-    <tr>
-      <td rowspan="4">L2 阈值</td>
-      <td>iv_min</td>
-      <td>校准值</td>
-      <td>Information Value 最小阈值。基于噪声特征的 IV 分布动态确定（取 95 分位数），排除随机波动。典型值约 0.01~0.02。</td>
-    </tr>
-    <tr>
-      <td>ks_min</td>
-      <td>校准值</td>
-      <td>KS 统计量最小阈值。同样基于噪声基准校准。KS 衡量正负样本 CDF 最大分离度，过低说明特征无区分力。</td>
-    </tr>
-    <tr>
-      <td>corr_max</td>
-      <td>0.7</td>
-      <td>最大冗余度。新特征与已有特征的 |Pearson r| 不得超过 0.7。高相关意味着信息重复，加入后反而增加过拟合风险。</td>
-    </tr>
-    <tr>
-      <td>missing_rate_max</td>
-      <td>0.5</td>
-      <td>最大缺失率。超过 50% NaN 的特征说明覆盖度不足，可能是计算逻辑有缺陷（如 JOIN 失败或条件过严）。</td>
-    </tr>
-    <tr>
-      <td rowspan="2">L3 / FS</td>
-      <td>delta_recall</td>
-      <td>&gt; 0</td>
-      <td>Recall 必须有正向提升（哪怕很小）。反洗钱场景中漏检代价极高，任何能多召回一笔可疑交易的特征都有价值。</td>
-    </tr>
-    <tr>
-      <td>aug_precision</td>
-      <td>&ge; 0.95</td>
-      <td>加入特征后的 Precision 绝对值不低于 95%。这是 Precision 的下限保护——允许 Recall 提升带来的小幅 Precision 下降，但不能降太多。</td>
-    </tr>
-    <tr>
-      <td rowspan="3">候选特征集</td>
-      <td>max_size</td>
-      <td>20</td>
-      <td>缓冲池最大容量。超出时淘汰互信息（MI）最低的特征。避免无限积累导致前向选择搜索空间过大。</td>
-    </tr>
-    <tr>
-      <td>max_age</td>
-      <td>3</td>
-      <td>最大存活轮数。超过 3 轮仍未被前向选择接受的特征，说明在多种特征组合下都无增量，清除释放空间。</td>
-    </tr>
-    <tr>
-      <td>max_rejects</td>
-      <td>2</td>
-      <td>最大连续被前向选择拒绝次数。连续 2 次不被选中说明该特征大概率无法与任何组合产生互补效应。</td>
-    </tr>
-    <tr>
-      <td>收敛</td>
-      <td>连续空轮</td>
-      <td>2</td>
-      <td>连续 2 轮没有任何新特征被接受（L3 直通 + 前向选择均无产出），判定 Agent 已穷尽有效搜索空间，终止实验。</td>
-    </tr>
-    <tr>
-      <td rowspan="2">沙盒</td>
-      <td>执行超时</td>
-      <td>90s</td>
-      <td>代码执行时间限制。超时后强制终止进程/沙盒。大多数特征计算在 10s 内完成，90s 给复杂聚合留足余量。</td>
-    </tr>
-    <tr>
-      <td>隔离后端</td>
-      <td>E2B / local</td>
-      <td><strong>E2B</strong>：Firecracker microVM（硬件虚拟化，独立内核），推荐用于生产环境；<strong>local</strong>：进程隔离 + AST 白名单 + builtins 替换，适合本地调试。通过 <code>SANDBOX_MODE</code> 环境变量切换。</td>
-    </tr>
-    <tr>
-      <td>L1 修复</td>
-      <td>自动修复次数</td>
-      <td>2</td>
-      <td>代码执行失败时，环境将错误信息发给 Agent（低温度 0.3 修复模式），Agent 输出修复代码后再次执行。最多重试 2 次，避免无限修复循环。</td>
-    </tr>
-  </table>
-</div>
-
-<!-- ====== 11. 与传统方法对比 ====== -->
-<div class="section" id="sec11">
-  <h2><span class="num">11</span>与传统方法的对比</h2>
+  <h2><span class="num">10</span>与传统方法的对比</h2>
 
   <table>
     <tr><th></th><th>传统特征工程</th><th>本系统（LLM Agent）</th></tr>
@@ -1617,11 +1502,11 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   </div>
 </div>
 
-<!-- ====== 12. 实验结果 ====== -->
-<div class="section" id="sec12">
-  <h2><span class="num">12</span>实验结果</h2>
+<!-- ====== 11. 实验结果 ====== -->
+<div class="section" id="sec11">
+  <h2><span class="num">11</span>实验结果</h2>
 
-  <h3>12.1 实验配置</h3>
+  <h3>11.1 实验配置</h3>
   <div class="metric-row">
     <div class="metric-item">
       <div class="metric-value">393</div>
@@ -1654,7 +1539,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     <tr><td>终止原因</td><td>连续 2 轮无新特征，收敛终止</td></tr>
   </table>
 
-  <h3>12.2 Agent 接受的特征</h3>
+  <h3>11.2 Agent 接受的特征</h3>
 
   <div style="overflow-x: auto;">
   <table>
@@ -1714,16 +1599,8 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     </ul>
   </div>
 
-  <div class="callout callout-agent" style="margin-top: 12px;">
-    <strong>Agent 的推理过程</strong>
-    <ul style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>amount_concentration_pattern</strong>：Agent 从分布差异中发现异常交易金额中位数 17410（正常 10660），结合"四类钱包洗钱存在日累计额度控制特征"的领域知识，设计了金额在整数倍上的集中度特征。</li>
-      <li><strong>region_night_risk_score</strong>：Agent 注意到高风险 region 中夜间交易占比差异 3 倍，结合"交易地域与账户常用地不符"的风险指标，设计了地域风险 &times; 夜间交易的交叉特征。</li>
-      <li><strong>fan_in_without_single_pattern</strong>：Agent 发现异常钱包"有 fan_in 但无 single"的比例差异 30 倍，结合"洗钱交易包含扇入、扇出等复杂资金流转模式"的领域知识，设计了交易模式组合特征。</li>
-    </ul>
-  </div>
 
-  <h3>12.3 整体增量效果</h3>
+  <h3>11.3 整体增量效果</h3>
   <p>将 Agent 生成的 3 个特征加入 95 个基线特征后，5-fold StratifiedKFold CV 结果：</p>
 
   <table>
@@ -1764,7 +1641,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     </tr>
   </table>
 
-  <h3>12.4 前向选择验证</h3>
+  <h3>11.4 前向选择验证</h3>
   <p>实验结束后，独立前向选择验证（以 95 个基线为起点），3 个特征全部通过：</p>
   <table>
     <tr><th>选择顺序</th><th>特征</th><th>累计 Recall</th><th>累计 F1</th><th>累计 Precision</th></tr>
@@ -1791,7 +1668,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     </tr>
   </table>
 
-  <h3>12.5 结果分析</h3>
+  <h3>11.5 结果分析</h3>
   <div class="callout callout-green">
     <strong>关键发现</strong>
     <ol style="margin-top: 8px; padding-left: 20px;">
