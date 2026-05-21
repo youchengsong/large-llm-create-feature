@@ -732,16 +732,28 @@
 <div class="section" id="sec3">
   <h2><span class="num">3</span>Agent 的知识注入</h2>
 
-  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。System Prompt 是 Agent "读到的第一份资料"，相当于给它一份详尽的工作手册。总注入量约 8000~12000 tokens，涵盖数据结构、领域知识、行为约束三大板块。</p>
+  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。知识注入分为<strong>两个阶段</strong>，对应架构图中的阶段一和阶段二：</p>
+
+  <div class="grid-2" style="margin: 12px 0;">
+    <div class="card" style="border-color: #f9a8d4;">
+      <div class="card-title" style="color: #9d174d;">阶段一：通用领域知识</div>
+      <p>适用于所有反洗钱场景的基础知识，包括数据 Schema、分布差异、交易模式、风险指标体系、检测规则等。</p>
+    </div>
+    <div class="card" style="border-color: #f97316;">
+      <div class="card-title" style="color: #c2410c;">阶段二：特有领域知识</div>
+      <p>针对具体犯罪场景（诈骗、赌博、洗钱等）的专属知识，包括场景专属的行为模式、佣金结构、时间规律等。两个阶段的流程完全一致，只是注入的知识不同。</p>
+    </div>
+  </div>
 
   <h3>3.1 System Prompt 结构总览</h3>
   <table>
-    <tr><th>注入内容</th><th>来源</th><th>作用</th><th>注入方式</th></tr>
+    <tr><th>阶段</th><th>注入内容</th><th>来源</th><th>作用</th><th>注入方式</th></tr>
     <tr>
+      <td rowspan="7" style="background:#fce7f3; color:#9d174d; font-weight:600; text-align:center;">阶段一<br>通用</td>
       <td><strong>数据 Schema</strong></td>
       <td>自动提取自 open_df / tx_df / close_df</td>
       <td>Agent 了解可用字段、数据类型、取值范围</td>
-      <td>静态（实验开始时生成）</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>正常 vs 异常分布差异</strong></td>
@@ -762,28 +774,16 @@
       <td>静态</td>
     </tr>
     <tr>
-      <td><strong>专家意见</strong></td>
-      <td>邮储银行专家意见</td>
-      <td>4 种数字人民币洗钱运营模式</td>
-      <td>静态</td>
-    </tr>
-    <tr>
-      <td><strong>裁判文书（309 份）</strong></td>
-      <td>裁判文书全文阅读提取</td>
-      <td>9 个子维度的真实案例洗钱特征</td>
-      <td>静态</td>
-    </tr>
-    <tr>
       <td><strong>风险指标（38 个）</strong></td>
       <td>Excel 风险分类表</td>
       <td>按 4 大维度、8 个风险类组织的指标体系</td>
-      <td>静态（从 Excel 解析）</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>检测规则（15 条）+ 代码示例</strong></td>
       <td>Excel 检测规则表 + 自动转 Python</td>
       <td>给 Agent 提供参考模板（seed examples）</td>
-      <td>静态（从 Excel 解析 + 代码生成）</td>
+      <td>静态</td>
     </tr>
     <tr>
       <td><strong>已有基线特征列表 + 代码示例</strong></td>
@@ -792,13 +792,27 @@
       <td>静态</td>
     </tr>
     <tr>
-      <td><strong>SHAP 反馈</strong>（每轮动态注入）</td>
+      <td rowspan="2" style="background:#fff7ed; color:#c2410c; font-weight:600; text-align:center;">阶段二<br>特有</td>
+      <td><strong>专家意见</strong></td>
+      <td>邮储银行专家意见</td>
+      <td>4 种数字人民币洗钱运营模式</td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td><strong>裁判文书（309 份）</strong></td>
+      <td>裁判文书全文阅读提取</td>
+      <td>9 个子维度的真实案例洗钱特征<br><small style="color:var(--text-secondary);">→ 关键行为特征、时间特征、佣金特征均源自裁判文书</small></td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td rowspan="2" style="background:var(--primary-light); color:var(--primary); font-weight:600; text-align:center;">两阶段<br>共用</td>
+      <td><strong>SHAP 反馈</strong></td>
       <td>前向选择后的 SHAP 分析</td>
       <td>告诉 Agent 哪些特征重要，各维度的 SHAP 贡献排名</td>
       <td>动态（每轮更新）</td>
     </tr>
     <tr>
-      <td><strong>失败记忆</strong>（每轮动态注入）</td>
+      <td><strong>失败记忆</strong></td>
       <td>历史失败记录库</td>
       <td>Agent 避免重复相同的错误</td>
       <td>动态（累积注入）</td>
@@ -908,7 +922,7 @@
   </div>
 
   <div class="callout callout-agent">
-    <strong>关键行为特征（可直接转化为特征工程线索）</strong>
+    <strong>关键行为特征（来源：309 份裁判文书 → 可直接转化为特征工程线索）</strong>
     <table style="font-size: 0.85em; margin-top: 8px;">
       <tr><th>行为</th><th>案件频率</th><th>特征工程方向</th></tr>
       <tr><td>当日即转即取</td><td>58/309 (18.8%)</td><td>资金滞留时间、入账-转出时间差</td></tr>
@@ -923,7 +937,7 @@
   </div>
 
   <div class="callout callout-yellow">
-    <strong>时间特征（来自裁判文书统计）</strong>
+    <strong>时间特征（来源：309 份裁判文书统计）</strong>
     <ul style="font-size: 0.88em; margin-top: 6px;">
       <li>犯罪操作集中在 <strong>14-17 时</strong>（下午最多），其次上午和晚间</li>
       <li>夜班大额跑分集中在 <strong>22:00-04:00</strong>，单晚可达 100 万+</li>
@@ -934,7 +948,7 @@
   </div>
 
   <div class="callout callout-env">
-    <strong>佣金特征（可作为异常金额模式识别依据）</strong>
+    <strong>佣金特征（来源：309 份裁判文书 → 可作为异常金额模式识别依据）</strong>
     <ul style="font-size: 0.88em; margin-top: 6px;">
       <li>按比例：1%-5%（最集中 2%-4%），多层级时逐级递减：250→200→150→20 元/万</li>
       <li>按笔计算：150-500 元/万元</li>
