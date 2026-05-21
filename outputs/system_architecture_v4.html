@@ -426,7 +426,7 @@
     <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
-    <a href="#sec5"><span class="toc-num">5</span>环境：三级验证体系</a>
+    <a href="#sec5"><span class="toc-num">5</span>验证特征有效性</a>
     <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
     <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
@@ -706,7 +706,7 @@
       <div class="flow-row" style="margin-top: 8px; gap: 8px;">
         <a href="#sec12" style="text-decoration:none;">
           <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-            接受的特征集<br><small>代码 + 指标 + 维度</small>
+            有效特征集<br><small>代码 + 指标 + 维度</small>
             <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
           </div>
         </a>
@@ -895,7 +895,7 @@
     <div class="card" style="border-color: var(--danger);">
       <div class="card-title" style="color: var(--danger);">来源 A：银行风控专家意见</div>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家意见_数币洗钱模式.docx</p>
-      <p>由邮储银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
+      <p>由银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
         <li><strong>薅羊毛</strong>：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
         <li><strong>线下跑分</strong>：个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额</li>
@@ -1092,33 +1092,31 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
 
 <!-- ====== 5. 环境：三级验证 ====== -->
 <div class="section" id="sec5">
-  <h2><span class="num">5</span>环境：三级验证体系</h2>
+  <h2><span class="num">5</span>验证特征有效性</h2>
 
   <p>当 Agent 调用 <code>execute_sandbox</code> 时，环境自动执行三级验证。Agent 无需关心验证细节，只需读取返回的结果并据此调整策略。</p>
 
   <h3>5.1 L1：沙盒执行验证 <span class="role-tag role-env">ENV</span></h3>
-  <p>Agent 生成的特征代码在<strong>隔离沙盒</strong>中执行。系统支持两种沙盒后端，通过环境变量 <code>SANDBOX_MODE</code> 切换：</p>
+  <p>Agent 生成的特征代码在<strong>E2B 云端隔离沙盒</strong>中执行，确保代码安全性和执行隔离。</p>
 
-  <div class="grid-2" style="margin: 12px 0;">
-    <div class="card" style="border-color: var(--agent);">
-      <div class="card-title" style="color: var(--agent);">E2B 云端沙盒（推荐）</div>
-      <p><strong>隔离级别</strong>：Firecracker microVM（硬件虚拟化）</p>
-      <p>每个沙盒是一个独立的轻量虚拟机，拥有独立内核，与宿主完全隔离。Agent 的代码在云端 VM 中执行，结果通过 Parquet 文件回传。基于 <a href="https://e2b.dev" style="color:var(--agent);">E2B</a> 代码解释器 SDK。</p>
-      <p style="font-size:0.85em;color:var(--text-secondary);"><code>SANDBOX_MODE=e2b</code> + <code>E2B_API_KEY</code></p>
-    </div>
-    <div class="card" style="border-color: var(--env);">
-      <div class="card-title" style="color: var(--env);">本地进程沙盒（回退）</div>
-      <p><strong>隔离级别</strong>：进程隔离 + AST 白名单</p>
-      <p>在独立子进程中执行，替换 <code>__builtins__</code> 移除危险函数，AST 静态分析拦截禁止模块。适合无网络环境或本地调试。</p>
-      <p style="font-size:0.85em;color:var(--text-secondary);"><code>SANDBOX_MODE=local</code>（默认）</p>
-    </div>
+  <div class="card" style="border-color: var(--agent); margin: 12px 0;">
+    <div class="card-title" style="color: var(--agent);">E2B 云端沙盒</div>
+    <p><strong>隔离级别</strong>：Firecracker microVM（硬件虚拟化）</p>
+    <p>每个沙盒是一个独立的轻量虚拟机，拥有独立内核，与宿主完全隔离。执行流程：</p>
+    <ol style="font-size: 0.88em;">
+      <li><strong>创建沙盒实例</strong>：通过 E2B 代码解释器 SDK 创建一个临时 microVM，预装 Python 运行环境和数据科学依赖（pandas/numpy/scipy/sklearn）</li>
+      <li><strong>上传数据</strong>：将数据文件以 Parquet 格式上传到沙盒 VM 的文件系统中</li>
+      <li><strong>执行代码</strong>：在沙盒内执行 Agent 生成的特征代码，VM 内核级隔离确保恶意代码无法影响宿主</li>
+      <li><strong>回传结果</strong>：执行成功后，将特征计算结果以 Parquet 文件回传到宿主进行后续验证</li>
+      <li><strong>销毁沙盒</strong>：执行完毕后自动销毁 VM 实例，不保留任何状态</li>
+    </ol>
   </div>
 
   <table>
     <tr><th>检查项</th><th>内容</th></tr>
-    <tr><td>静态安全检查</td><td>AST 解析，白名单模块（pandas/numpy/scipy/sklearn/datetime/collections/math），禁止 <code>os</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等（两种模式均执行）</td></tr>
-    <tr><td>执行隔离</td><td>E2B 模式：Firecracker microVM；本地模式：独立子进程 + builtins 替换</td></tr>
-    <tr><td>超时控制</td><td>90 秒（超时后强制终止）</td></tr>
+    <tr><td>静态安全检查</td><td>AST 解析，白名单模块（pandas/numpy/scipy/sklearn/datetime/collections/math），禁止 <code>os</code>、<code>subprocess</code>、<code>open</code>、<code>eval</code> 等</td></tr>
+    <tr><td>执行隔离</td><td>Firecracker microVM，独立内核，硬件级隔离</td></tr>
+    <tr><td>超时控制</td><td>90 秒（超时后强制终止并销毁沙盒）</td></tr>
     <tr><td>输出校验</td><td>含 <code>wallet_id</code> 或 <code>tx_id</code>；非空；NaN &lt; 50%；<code>nunique</code> &gt; 1</td></tr>
     <tr><td>自动修复</td><td>失败时，环境调用 Agent（低温度 0.3 修复模式）修复代码，最多 <strong>2 次</strong></td></tr>
   </table>
@@ -1161,7 +1159,7 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
   <p>固定阈值（如 IV &ge; 0.02）在不同数据集上表现不稳定——正样本率仅 0.32% 的极度不平衡数据中，纯随机噪声也可能因采样偶然性产生较高的 IV/KS。系统采用<strong>噪声基线法</strong>动态校准阈值：</p>
 
   <div class="callout callout-env">
-    <strong>校准算法（实验开始时执行一次）</strong>
+    <strong>校准算法</strong>（实验开始时执行一次）
     <ol style="font-size: 0.9em; margin-top: 8px;">
       <li><strong>生成噪声特征</strong>：用固定随机种子（seed=42）生成 <strong>100 个</strong>标准正态分布随机特征（与真实数据等长，但与标签完全无关）</li>
       <li><strong>计算噪声指标</strong>：对每个噪声特征计算 IV 和 KS，得到 100 个 IV 值和 100 个 KS 值的分布</li>
@@ -1200,7 +1198,7 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
     <strong>L3 接受条件（Recall 优先）：</strong>
     <ol style="margin-bottom:0;">
       <li><code>delta_recall &gt; 0</code> — Recall 必须有提升</li>
-      <li><code>aug_precision &ge; 0.95</code> — 加入后 Precision 绝对值不低于 95%</li>
+      <li><code>aug_precision &ge; 0.90</code> — 加入后 Precision 绝对值不低于 90%</li>
     </ol>
   </div>
 
