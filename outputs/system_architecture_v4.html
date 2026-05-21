@@ -422,7 +422,7 @@
     <a href="#sec7"><span class="toc-num">7</span>Agent 的记忆与学习</a>
     <a href="#sec2"><span class="toc-num">2</span>Agent 架构总览</a>
     <a href="#sec8"><span class="toc-num">8</span>收敛检测与终止</a>
-    <a href="#sec3"><span class="toc-num">3</span>Agent 的知识注入（详细）</a>
+    <a href="#sec3"><span class="toc-num">3</span>Agent 的领域知识注入</a>
     <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>关键参数总览</a>
@@ -730,9 +730,9 @@
 
 <!-- ====== 3. Agent 知识注入 ====== -->
 <div class="section" id="sec3">
-  <h2><span class="num">3</span>Agent 的知识注入</h2>
+  <h2><span class="num">3</span>Agent 的领域知识注入</h2>
 
-  <p>Agent 的能力来源于两部分：LLM 自身的通用知识 + 通过 System Prompt 注入的<strong>领域特定知识</strong>。知识注入分为<strong>两个阶段</strong>，对应架构图中的阶段一和阶段二：</p>
+  <p>Agent 的领域知识来源于通过 System Prompt 注入的<strong>领域特定知识</strong>。知识注入分为<strong>两个阶段</strong>，对应架构图中的阶段一和阶段二：</p>
 
   <div class="grid-2" style="margin: 12px 0;">
     <div class="card" style="border-color: #f9a8d4;">
@@ -794,7 +794,7 @@
     <tr>
       <td rowspan="2" style="background:#fff7ed; color:#c2410c; font-weight:600; text-align:center;">阶段二<br>特有</td>
       <td><strong>专家意见</strong></td>
-      <td>邮储银行专家意见</td>
+      <td>银行风控专家意见</td>
       <td>4 种数字人民币洗钱运营模式</td>
       <td>静态</td>
     </tr>
@@ -819,7 +819,7 @@
     </tr>
   </table>
 
-  <h3>3.2 数据环境</h3>
+  <h3>3.2 数据来源</h3>
   <div class="grid-3">
     <div class="card">
       <div class="card-title">open_df（开户表）</div>
@@ -893,7 +893,7 @@
 
   <div class="grid-2" style="margin: 12px 0;">
     <div class="card" style="border-color: var(--danger);">
-      <div class="card-title" style="color: var(--danger);">来源 A：邮储银行专家意见</div>
+      <div class="card-title" style="color: var(--danger);">来源 A：银行风控专家意见</div>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家意见_数币洗钱模式.docx</p>
       <p>由邮储银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
@@ -919,42 +919,6 @@
         <li>"博盈"平台 USDT 套利模式（2024年高发）</li>
       </ol>
     </div>
-  </div>
-
-  <div class="callout callout-agent">
-    <strong>关键行为特征（来源：309 份裁判文书 → 可直接转化为特征工程线索）</strong>
-    <table style="font-size: 0.85em; margin-top: 8px;">
-      <tr><th>行为</th><th>案件频率</th><th>特征工程方向</th></tr>
-      <tr><td>当日即转即取</td><td>58/309 (18.8%)</td><td>资金滞留时间、入账-转出时间差</td></tr>
-      <tr><td>刷脸认证频繁</td><td>128/309 (41.4%)</td><td>短时间内多次验证 → 多次转账操作</td></tr>
-      <tr><td>验卡行为</td><td>13/309 (4.2%)</td><td>小额测试交易后跟大额交易</td></tr>
-      <tr><td>冻结后换卡</td><td>77/309 (24.9%)</td><td>账户活跃周期短 + 后续新账户关联</td></tr>
-      <tr><td>拆分多次转出</td><td>41/309 (13.3%)</td><td>平均 2218 元/笔的分散转出模式</td></tr>
-      <tr><td>跨行转账偏好</td><td>—</td><td>入账和转出倾向不同银行</td></tr>
-      <tr><td>多银行钱包注册</td><td>—</td><td>同一人 7+ 家银行开通数币钱包</td></tr>
-      <tr><td>亲属身份注册</td><td>—</td><td>单人控制 5-36 个钱包</td></tr>
-    </table>
-  </div>
-
-  <div class="callout callout-yellow">
-    <strong>时间特征（来源：309 份裁判文书统计）</strong>
-    <ul style="font-size: 0.88em; margin-top: 6px;">
-      <li>犯罪操作集中在 <strong>14-17 时</strong>（下午最多），其次上午和晚间</li>
-      <li>夜班大额跑分集中在 <strong>22:00-04:00</strong>，单晚可达 100 万+</li>
-      <li>凌晨 0-5 时也有显著活动（14%），对应在线洗钱模式</li>
-      <li>资金到账后通常 <strong>数小时内完成全部转移</strong>（当日清模式），最快 75 秒出账</li>
-      <li>钱包活跃周期：平均 2-28 天后被冻结或主动废弃</li>
-    </ul>
-  </div>
-
-  <div class="callout callout-env">
-    <strong>佣金特征（来源：309 份裁判文书 → 可作为异常金额模式识别依据）</strong>
-    <ul style="font-size: 0.88em; margin-top: 6px;">
-      <li>按比例：1%-5%（最集中 2%-4%），多层级时逐级递减：250→200→150→20 元/万</li>
-      <li>按笔计算：150-500 元/万元</li>
-      <li>固定日薪：300-500 元/天（底层操作员）</li>
-      <li><strong>特征表现</strong>：转出金额 ≈ 转入金额 × (1 - 佣金率)，差额为固定比例</li>
-    </ul>
   </div>
 
   <h3>3.5 风险指标体系（38 个）</h3>
@@ -1033,17 +997,6 @@
   </table>
 
   <p style="margin-top: 12px;">每条规则附带<strong>一阶逻辑表达式</strong>（如 <code>∀x [ (sleep_period(x)≥90days ∧ test_transaction(x)&lt;1000 ...) → money_laundering_risk(x) ]</code>），系统自动将前 2 条转为 Python 函数示例注入 Agent 的 prompt 作为代码风格参考（seed examples）。</p>
-
-  <div class="callout callout-env">
-    <strong>异常模式分类（5 类）</strong>
-    <div class="grid-3" style="margin-top: 8px; gap: 8px;">
-      <div style="padding:8px 12px;border-radius:8px;background:#fee2e2;font-size:0.85em;"><strong>数字人民币相关异常</strong><br>利用数币技术特性进行的新型违法犯罪<br><small>RULE 001-004</small></div>
-      <div style="padding:8px 12px;border-radius:8px;background:#fef3c7;font-size:0.85em;"><strong>传统金融犯罪</strong><br>经典金融犯罪手法在数字化时代的延续<br><small>RULE 006,008,010,011</small></div>
-      <div style="padding:8px 12px;border-radius:8px;background:#e0e7ff;font-size:0.85em;"><strong>新兴犯罪模式</strong><br>结合现代科技和社会变化的新型犯罪<br><small>RULE 005,013,015</small></div>
-      <div style="padding:8px 12px;border-radius:8px;background:#fce7f3;font-size:0.85em;"><strong>监管规避与合规风险</strong><br>专门针对现行监管制度设计的规避行为<br><small>RULE 007,009,012</small></div>
-      <div style="padding:8px 12px;border-radius:8px;background:#d1fae5;font-size:0.85em;"><strong>特殊风险与安全威胁</strong><br>涉及国家安全和社会稳定的特殊风险<br><small>RULE 014</small></div>
-    </div>
-  </div>
 
   <h3>3.7 Seed Examples（代码示例注入）</h3>
   <p>系统自动将检测规则转为 Python 函数示例，让 Agent 了解期望的代码风格和签名格式：</p>
