@@ -1257,6 +1257,7 @@ while 还有候选:
 
   <h3>6.1 分组搜索</h3>
   <p>特征空间按业务含义划分为 4 个<strong>维度组</strong><sup>[5]</sup>，环境在每轮中依次向 Agent 指派维度任务，每组有独立的候选预算，保证多维度均衡探索。</p>
+  <p>4 个维度组的划分依据来自<a href="#sec3">第 3.5 节</a>的<strong>风险指标体系</strong>：38 个风险指标按业务语义归纳为金额频次、时间地域、行为序列、主体关联 4 个维度，分组搜索直接复用该维度结构，确保 Agent 的探索方向与领域知识对齐。</p>
 
   <table>
     <tr><th>维度组</th><th>关联字段</th><th>探索方向</th></tr>
@@ -1293,23 +1294,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 
   <p class="ref">[6] "MedFeat: Model-Aware and Explainability-Driven Feature Engineering with LLMs." arXiv:2603.02221, 2026.</p>
 
-  <h3>6.3 组内多轮对话</h3>
-  <p>每个维度组在每轮中最多进行 <strong>2 轮有效对话</strong>：</p>
-  <table>
-    <tr><th>轮次</th><th>Agent 收到的信息</th><th>退出条件</th></tr>
-    <tr>
-      <td><strong>Turn 1</strong></td>
-      <td>维度任务 + SHAP 反馈 + 高分示例 + 失败记忆</td>
-      <td>有特征被 L3 接受 → 退出（已有收获）<br>无失败特征 → 退出（无产出）</td>
-    </tr>
-    <tr>
-      <td><strong>Turn 2</strong></td>
-      <td>Turn 1 的通过/失败反馈 → Agent 调整方向重试</td>
-      <td>无论结果如何，强制退出进入下一维度组</td>
-    </tr>
-  </table>
-
-  <h3>6.4 完整轮次结构</h3>
+  <h3>6.3 完整轮次结构</h3>
   <div class="flow-container">
     <div class="flow-group">
       <div class="flow-group-label">Round N（最多 10 轮）</div>
@@ -1341,7 +1326,7 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
         <span class="flow-arrow">&rarr;</span>
         <div class="flow-box" style="background: var(--success-light); color: #065f46;">
           <span class="role-tag role-env" style="font-size:0.7em;">ENV</span><br>
-          前向选择<br>(缓冲池评估)
+          前向选择<br>(候选特征评估)
         </div>
       </div>
     </div>
@@ -1373,30 +1358,6 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     Agent 在「金额频次」维度生成了高分特征 <code>amount_concentration_pattern</code>（金额集中度），该特征的信息随后注入到「时间地域」维度的 prompt 中。Agent 在探索「时间地域」时看到这个跨维度示例，可能设计出"金额集中度 × 夜间交易"的交叉特征。
   </div>
 
-  <h3>7.4 可解释性报告 <span class="role-tag role-agent">AGENT</span></h3>
-  <p>每个通过 L3 的特征，环境调用 Agent（以分析专家身份）生成可解释性报告，包含：</p>
-  <div class="grid-3">
-    <div class="card">
-      <div class="card-title">value_meaning</div>
-      <p>特征值的业务含义</p>
-    </div>
-    <div class="card">
-      <div class="card-title">risk_threshold</div>
-      <p>风险阈值建议</p>
-    </div>
-    <div class="card">
-      <div class="card-title">synergy</div>
-      <p>与其他特征的协同效应</p>
-    </div>
-    <div class="card">
-      <div class="card-title">false_positive_cases</div>
-      <p>可能的误报场景</p>
-    </div>
-    <div class="card">
-      <div class="card-title">regulatory_explanation</div>
-      <p>面向监管的一句话解释</p>
-    </div>
-  </div>
 </div>
 
 <!-- ====== 8. 收敛与终止 ====== -->
