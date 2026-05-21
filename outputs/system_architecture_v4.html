@@ -522,7 +522,7 @@
       <a href="#sec3" style="text-decoration:none;">
         <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
           领域知识注入<br><small>System Prompt</small>
-          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家访谈<br>309份裁判文书 / 38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
+          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家意见<br>309份裁判文书 / 38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
         </div>
       </a>
       <span class="flow-arrow">&rarr;</span>
@@ -664,7 +664,7 @@
 
   <div class="conv-agent">
     <div class="conv-label" style="color: var(--agent);">AGENT（思考 + 行动）</div>
-    从 System Prompt 注入的分布差异统计看<small style="color:var(--text-secondary);">（由 <code>extract_distribution_diff()</code> 动态计算后注入，见 3.8 节）</small>，异常交易中 regular_large_low_freq 占比 69.7%（正常 59.9%），金额中位数 17410（正常 10660）。结合领域知识"四类钱包洗钱存在日累计额度控制特征"，设计一个金额集中度特征...<br>
+    从 System Prompt 注入的分布差异统计看<small style="color:var(--text-secondary);">（由 <code>extract_distribution_diff()</code> 动态计算后注入，见 3.8 节）</small>，结合领域知识"四类钱包洗钱存在日累计额度控制特征"，设计一个金额集中度特征...<br>
     <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", code: "def feature_xxx(...) ...", ...})</code>
   </div>
 
@@ -728,8 +728,8 @@
       <td>静态</td>
     </tr>
     <tr>
-      <td><strong>专家访谈</strong></td>
-      <td>邮储银行专家访谈</td>
+      <td><strong>专家意见</strong></td>
+      <td>邮储银行专家意见</td>
       <td>4 种数字人民币洗钱运营模式</td>
       <td>静态</td>
     </tr>
@@ -840,13 +840,13 @@
     </div>
   </div>
 
-  <h3>3.4 专家访谈 + 裁判文书知识</h3>
+  <h3>3.4 专家意见 + 裁判文书知识</h3>
   <p>这部分知识来自<strong>两个独立来源</strong>，在 System Prompt 中分两段注入：</p>
 
   <div class="grid-2" style="margin: 12px 0;">
     <div class="card" style="border-color: var(--danger);">
-      <div class="card-title" style="color: var(--danger);">来源 A：邮储银行专家访谈</div>
-      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家访谈_数币洗钱模式.docx</p>
+      <div class="card-title" style="color: var(--danger);">来源 A：邮储银行专家意见</div>
+      <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家意见_数币洗钱模式.docx</p>
       <p>由邮储银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
         <li><strong>薅羊毛</strong>：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
