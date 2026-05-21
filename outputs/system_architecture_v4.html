@@ -1830,8 +1830,8 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     </tr>
     <tr>
       <td><strong>陈晓</strong></td>
-      <td>Agent 模型训练接口</td>
-      <td>提供 Agent 模型的训练接口，支持在特定领域数据上微调 LLM。</td>
+      <td>模型训练推理接口</td>
+      <td>提供下游模型的训练与推理接口，支持将 Agent 生成的特征用于模型训练和线上预测。</td>
     </tr>
   </table>
 </div>
@@ -1892,13 +1892,13 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 
   <h3>14.4 接入 Agent 模型训练模块</h3>
   <div style="padding: 0 16px;">
-    <p><strong>现状</strong>：Agent 使用通用 LLM（如 GPT-4 / DeepSeek），依赖 prompt engineering 注入领域能力。</p>
-    <p><strong>改进</strong>：接入模型训练接口，支持在领域数据上微调 Agent 模型。</p>
+    <p><strong>现状</strong>：Agent 生成特征后，系统仅通过 XGBoost 交叉验证评估特征质量，缺少独立的模型训练和推理流程。</p>
+    <p><strong>改进</strong>：接入下游模型训练接口，使系统具备完整的「特征生成 &rarr; 模型训练 &rarr; 推理预测」闭环能力。</p>
     <ul>
-      <li>收集 Agent 历史生成记录（成功/失败的特征代码 + 验证结果）作为训练数据</li>
-      <li>构建 SFT 数据集：(领域知识 + 数据描述 + SHAP反馈) &rarr; 高质量特征代码</li>
-      <li>微调后的模型可降低对 prompt engineering 的依赖，提高生成效率</li>
-      <li>支持领域自适应：不同金融场景使用不同的微调模型</li>
+      <li>Agent 生成并筛选出有效特征后，自动触发下游模型训练流程</li>
+      <li>支持将基线特征 + Agent 生成特征组合为最终特征集，训练生产级模型</li>
+      <li>提供模型推理接口，对新数据进行实时/批量预测</li>
+      <li>支持模型版本管理：不同特征组合对应不同模型版本，便于对比和回滚</li>
     </ul>
   </div>
 </div>
