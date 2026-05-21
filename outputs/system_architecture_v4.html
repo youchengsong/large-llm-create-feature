@@ -491,7 +491,7 @@
   <h2><span class="num">2</span>Agent 架构总览</h2>
 
   <h3>2.1 ReAct 范式</h3>
-  <p>系统采用 <strong>ReAct</strong>（Reasoning + Acting）<sup>[1]</sup> 范式：Agent 在每一步先<strong>思考</strong>（Reasoning），再<strong>行动</strong>（通过 Tool Use 调用工具），最后根据<strong>观测</strong>（工具返回结果）决定下一步。LLM 通过 OpenAI 兼容的 Function Calling 协议与环境交互。</p>
+  <p>系统采用 <strong>ReAct</strong>（Reasoning + Acting）<sup>[1]</sup> 范式：Agent 在每一步先<strong>思考</strong>（Reasoning），再<strong>行动</strong>（通过 Tool Use 调用工具），最后根据<strong>观测</strong>（工具返回结果）决定下一步。LLM 通过 Function Calling 协议与环境交互。</p>
 
   <div class="flow-container">
     <div class="flow-group">
@@ -525,7 +525,7 @@
     <div class="flow-group" style="border-color: #f9a8d4;">
       <div class="flow-group-label" style="background: #fce7f3; color: #9d174d;">阶段一：通用领域知识注入</div>
 
-      <!-- Row 1: Knowledge + Agent -->
+      <!-- Row 1: Knowledge + Agent + SHAP -->
       <div class="flow-row" style="margin-top: 16px;">
         <a href="#sec3" style="text-decoration:none;">
           <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
@@ -540,6 +540,17 @@
             <div class="arch-tooltip">Agent 自主决定探索方向、生成特征、修复代码<br>通过 Function Calling 调用工具<br>Temperature: 0.7(生成) / 0.3(修复)</div>
           </div>
         </a>
+        <span class="flow-arrow">&larr; <small style="font-size:0.6em;">反馈</small></span>
+        <a href="#sec6" style="text-decoration:none;">
+          <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
+            SHAP 反馈<br><small>哪些特征重要 / 预算分配</small>
+            <div class="arch-tooltip">来源：前向选择后的模型 SHAP 分析<br>按重要性反比分配各维度探索预算<br>薄弱维度获得更多候选名额<br>→ 点击查看第 6 章详情</div>
+          </div>
+        </a>
+        <span class="flow-arrow">&larr; <small style="font-size:0.6em;">来源</small></span>
+        <div style="padding:6px 10px; border-radius:8px; background:#ede9fe; color:#5b21b6; font-size:0.75em; font-weight:600; border: 1px dashed #5b21b6;">
+          FS 后模型分析<br><small>非原始数据</small>
+        </div>
       </div>
 
       <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
@@ -602,17 +613,17 @@
         </a>
       </div>
 
-      <!-- SHAP feedback loop -->
+      <!-- SHAP feedback output arrow -->
       <div class="flow-row" style="margin-top: 12px; justify-content: center;">
         <div style="text-align:center;">
           <div class="flow-arrow-down" style="margin: 0 0 8px;">&darr; <small style="font-size:0.6em;">轮末 SHAP 分析</small></div>
           <a href="#sec6" style="text-decoration:none;">
             <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
-              SHAP 分析 + 预算更新<br><small>来源：前向选择后的模型分析（非原始数据）</small>
-              <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>薄弱维度获得更多候选名额<br>→ 点击查看第 6 章详情</div>
+              SHAP 分析 + 预算更新
+              <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>→ 点击查看第 6 章详情</div>
             </div>
           </a>
-          <div style="text-align:center; margin-top:6px; color: #5b21b6; font-size:1.2em;">&uarr; <small style="font-size:0.6em;">反馈回 Agent，指导下一轮生成</small></div>
+          <div style="text-align:center; margin-top:6px; color: #5b21b6; font-size:1.2em;">&uarr; <small style="font-size:0.6em;">信息流出 → 反馈回顶部 SHAP 反馈框 → Agent</small></div>
         </div>
       </div>
     </div>
@@ -623,10 +634,7 @@
     <div class="flow-group" style="border-color: #f97316;">
       <div class="flow-group-label" style="background: #fff7ed; color: #c2410c;">阶段二：特有领域知识注入</div>
 
-      <div class="callout callout-blue" style="margin: 16px 16px 0; font-size: 0.88em;">
-        流程与阶段一完全一致（explore_data → generate_feature → 三级验证 → SHAP 反馈），区别在于注入的是<strong>场景特有的领域知识</strong>（如针对诈骗、赌博、洗钱等不同犯罪类型的专属规则和指标）。
-      </div>
-
+      <!-- Row 1: Knowledge + Agent + SHAP -->
       <div class="flow-row" style="margin-top: 16px;">
         <div class="arch-node" style="background: #fff7ed; color: #c2410c;">
           特有领域知识<br><small>场景专属规则 / 指标</small>
@@ -636,9 +644,37 @@
         <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
           <strong>LLM Agent</strong><br><small>同一 Agent，注入不同知识</small>
         </div>
+        <span class="flow-arrow">&larr; <small style="font-size:0.6em;">反馈</small></span>
+        <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
+          SHAP 反馈<br><small>哪些特征重要 / 预算分配</small>
+        </div>
+      </div>
+
+      <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
+
+      <!-- Row 2: Tools (same as stage 1, validation not expanded) -->
+      <div class="flow-row" style="margin-top: 8px;">
+        <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
+          <small style="opacity:0.6;">①</small> explore_data<br><small>数据查询</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
+          <small style="opacity:0.6;">②</small> generate_feature<br><small>特征代码生成</small>
+        </div>
         <span class="flow-arrow">&rarr;</span>
         <div class="arch-node" style="background: var(--env-light); color: var(--env);">
-          同阶段一验证流程<br><small>L1 → L2 → L3 → FS → SHAP</small>
+          ③ 验证特征有效性<br><small>L1 → L2 → L3 → 结果分流 → FS</small>
+        </div>
+      </div>
+
+      <!-- SHAP feedback -->
+      <div class="flow-row" style="margin-top: 12px; justify-content: center;">
+        <div style="text-align:center;">
+          <div class="flow-arrow-down" style="margin: 0 0 8px;">&darr; <small style="font-size:0.6em;">轮末</small></div>
+          <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
+            SHAP 分析 + 预算更新
+          </div>
+          <div style="text-align:center; margin-top:6px; color: #5b21b6; font-size:1.2em;">&uarr; <small style="font-size:0.6em;">反馈回 Agent</small></div>
         </div>
       </div>
     </div>
