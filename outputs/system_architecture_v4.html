@@ -430,6 +430,8 @@
     <a href="#sec11"><span class="toc-num">11</span>与传统方法的对比</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
     <a href="#sec12" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">12</span>实验结果</a>
+    <a href="#sec13" style="background: var(--accent-light); border-color: var(--accent);"><span class="toc-num">13</span>人员安排</a>
+    <a href="#sec14" style="background: var(--warning-light); border-color: var(--warning);"><span class="toc-num">14</span>修改方案</a>
   </div>
 </div>
 
@@ -1801,10 +1803,110 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   </div>
 </div>
 
+<!-- ====== 13. 人员安排 ====== -->
+<div class="section" id="sec13">
+  <h2><span class="num">13</span>人员安排</h2>
+
+  <table>
+    <tr>
+      <th style="width:120px;">成员</th>
+      <th>负责方向</th>
+      <th>具体任务</th>
+    </tr>
+    <tr>
+      <td><strong>阙维俏</strong></td>
+      <td>场景细分调研</td>
+      <td>调研反洗钱场景的细粒度分类；尝试用比特币公开数据集（如 Elliptic）进行更加详细的场景细分（诈骗、赌博、洗钱等），验证不同犯罪类型下领域知识注入策略的差异性。</td>
+    </tr>
+    <tr>
+      <td><strong>李王月</strong></td>
+      <td>数据 I/O 梳理</td>
+      <td>对系统数据输入（原始交易表、开户表、销户表、领域知识文件）和输出（特征代码、验证报告、SHAP 分析、可解释性文件）进行细节化梳理，明确每个模块的数据流转格式和接口规范。</td>
+    </tr>
+    <tr>
+      <td><strong>游承松</strong></td>
+      <td>代码安全 &amp; 特征评估优化</td>
+      <td>优化当前沙盒执行环境的代码安全检测方案（L1 层）；研究特征评估方案的改进空间（L2/L3 层），探索是否有更优的统计验证指标或模型增量评估策略。</td>
+    </tr>
+    <tr>
+      <td><strong>陈晓</strong></td>
+      <td>Agent 模型训练接口</td>
+      <td>提供 Agent 模型的训练接口，支持在特定领域数据上微调 LLM，使 Agent 具备更强的领域特征生成能力。</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ====== 14. 修改方案 ====== -->
+<div class="section" id="sec14">
+  <h2><span class="num">14</span>修改方案</h2>
+
+  <div class="callout callout-blue" style="margin-bottom: 16px;">
+    <strong>方向概述</strong>：以下四项修改方案将从场景粒度、输出质量、系统安全、模型能力四个维度对系统进行全面升级。
+  </div>
+
+  <h3>14.1 场景细分 &mdash; 按犯罪类型注入专属领域知识</h3>
+  <div style="padding: 0 16px;">
+    <p><strong>现状</strong>：当前系统将所有异常交易统一为"洗钱"一个类别，领域知识按统一模式注入。</p>
+    <p><strong>改进</strong>：根据不同犯罪场景（诈骗、赌博、洗钱等）进行细粒度分类，为每种场景注入特有的领域知识。</p>
+    <ul>
+      <li>不同犯罪类型的资金流转模式差异显著（如赌博偏好高频小额、诈骗偏好单向大额转出）</li>
+      <li>为每种场景构建独立的交易模式 Motif、风险指标子集和检测规则</li>
+      <li>Agent 在生成特征时可根据目标场景选择对应的知识模块</li>
+      <li>参考比特币数据集（Elliptic）的场景细分实践，验证方案可行性</li>
+    </ul>
+  </div>
+
+  <h3>14.2 输出结果可解释性增强</h3>
+  <div style="padding: 0 16px;">
+    <p><strong>现状</strong>：系统输出以特征代码和指标数值为主，缺少面向业务人员的可解释性说明。</p>
+    <p><strong>改进</strong>：强调输出结果的可解释性，为每个生成的特征配套可解释性文件。</p>
+    <ul>
+      <li>每个特征附带：领域含义说明、对应的领域知识来源（哪条规则/哪个模式）、SHAP 贡献分析</li>
+      <li>生成可视化报告：特征重要性排序、特征与标签的分布对比、领域知识覆盖率</li>
+      <li>输出格式标准化，便于监管审查和业务理解</li>
+      <li>支持追溯：从最终特征反向追踪到原始领域知识条目</li>
+    </ul>
+  </div>
+
+  <h3>14.3 代码安全检测与特征评估方案优化</h3>
+  <div style="padding: 0 16px;">
+    <p><strong>现状</strong>：L1 沙盒基于 <code>RestrictedPython</code> + <code>exec()</code>，L2 使用 IV/KS + 噪声校准。</p>
+    <p><strong>改进</strong>：继续调研更优的代码安全方案和特征评估指标。</p>
+    <ul>
+      <li><strong>代码安全方向</strong>：
+        <ul>
+          <li>调研容器级沙盒（如 gVisor、Firecracker）是否比 RestrictedPython 更安全</li>
+          <li>调研 AST 静态分析 + 动态沙盒的组合方案</li>
+          <li>评估当前白名单机制的覆盖率和漏洞风险</li>
+        </ul>
+      </li>
+      <li><strong>特征评估方向</strong>：
+        <ul>
+          <li>调研 PSI（Population Stability Index）作为特征稳定性的补充指标</li>
+          <li>探索互信息（Mutual Information）替代或补充 IV 的可行性</li>
+          <li>评估是否引入时序验证（Time-based Split）替代随机交叉验证</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <h3>14.4 接入 Agent 模型训练模块</h3>
+  <div style="padding: 0 16px;">
+    <p><strong>现状</strong>：Agent 使用通用 LLM（如 GPT-4 / DeepSeek），依赖 prompt engineering 注入领域能力。</p>
+    <p><strong>改进</strong>：接入模型训练接口，支持在领域数据上微调 Agent 模型。</p>
+    <ul>
+      <li>收集 Agent 历史生成记录（成功/失败的特征代码 + 验证结果）作为训练数据</li>
+      <li>构建 SFT 数据集：(领域知识 + 数据描述 + SHAP反馈) &rarr; 高质量特征代码</li>
+      <li>微调后的模型可降低对 prompt engineering 的依赖，提高生成效率</li>
+      <li>支持领域自适应：不同金融场景使用不同的微调模型</li>
+    </ul>
+  </div>
+</div>
+
 <!-- ====== Footer ====== -->
 <div class="footer">
   <p>LLM Agent 自动特征工程系统 &mdash; 技术方案文档 v4</p>
-  <p style="margin-top:4px;">Generated: 2026-05-20</p>
+  <p style="margin-top:4px;">Generated: 2026-05-21</p>
 </div>
 
 </div>
