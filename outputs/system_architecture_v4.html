@@ -455,7 +455,7 @@
     <div class="card" style="border-color: var(--env);">
       <div class="card-title" style="color: var(--env);"><span class="role-tag role-env">ENVIRONMENT</span> 外围工具与反馈</div>
       <ul>
-        <li>沙盒：在隔离环境中检验和执行 Agent 提交的代码（E2B microVM 或本地进程）</li>
+        <li>沙盒：在隔离环境中检验和执行 Agent 提交的代码</li>
         <li>三级验证器：L1(安全) → L2(统计) → L3(模型效果)</li>
         <li>SHAP 分析器：告诉 Agent 哪些特征重要</li>
         <li>候选特征集：暂存 L3 未通过但有潜力的特征</li>
@@ -469,11 +469,11 @@
   <div class="grid-2">
     <div class="card">
       <div class="card-title">Recall 优先</div>
-      <p>反洗钱场景中漏检代价远高于误报。所有验证条件以 Recall 提升为必要条件，Precision 只设绝对下限（95%）。</p>
+      <p>反洗钱场景中漏检代价远高于误报。所有验证条件以 Recall 提升为必要条件，Precision 只设下限（90%）。</p>
     </div>
     <div class="card">
       <div class="card-title">动态基线</div>
-      <p>Agent 每接受一个特征，<code>existing_features</code> 立即更新。后续所有评估都基于最新特征集，确保增量的真实性。</p>
+      <p>Agent 每接受一个特征，<code>有效特征集</code> 立即更新。后续所有评估都基于最新特征集，确保增量的实时性。</p>
     </div>
     <div class="card">
       <div class="card-title">模型自适应</div>
@@ -520,36 +520,32 @@
 
   <h3>2.2 完整架构图 <span style="font-size:0.7em;color:var(--text-secondary);">（悬停查看详情，点击跳转对应章节）</span></h3>
   <div class="arch-diagram">
-    <!-- Row 1: Knowledge + Agent + SHAP -->
-    <div class="flow-row">
-      <a href="#sec3" style="text-decoration:none;">
-        <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
-          领域知识注入<br><small>System Prompt</small>
-          <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家意见<br>309份裁判文书 / 38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
-        </div>
-      </a>
-      <span class="flow-arrow">&rarr;</span>
-      <a href="#sec2" style="text-decoration:none;">
-        <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
-          <strong>LLM Agent</strong><br><small>DeepSeek-Chat · ReAct 范式</small><br><small>System Prompt + 对话历史</small>
-          <div class="arch-tooltip">Agent 自主决定探索方向、生成特征、修复代码<br>通过 Function Calling 调用工具<br>Temperature: 0.7(生成) / 0.3(修复)</div>
-        </div>
-      </a>
-      <span class="flow-arrow">&larr; <small style="font-size:0.6em;">信息流</small></span>
-      <a href="#sec6" style="text-decoration:none;">
-        <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
-          SHAP 反馈<br><small>哪些特征重要 / 预算分配</small>
-          <div class="arch-tooltip">来源：前向选择后的模型 SHAP 分析<br>按重要性反比分配各维度探索预算<br>薄弱维度获得更多候选名额<br>→ 点击查看第 6 章详情</div>
-        </div>
-      </a>
-    </div>
 
-    <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
+    <!-- ===== 阶段一：通用领域知识注入 ===== -->
+    <div class="flow-group" style="border-color: #f9a8d4;">
+      <div class="flow-group-label" style="background: #fce7f3; color: #9d174d;">阶段一：通用领域知识注入</div>
 
-    <!-- Row 2: Tools with sequential order -->
-    <div class="flow-group">
-      <div class="flow-group-label">Agent 工具箱（按使用顺序）</div>
+      <!-- Row 1: Knowledge + Agent -->
       <div class="flow-row" style="margin-top: 16px;">
+        <a href="#sec3" style="text-decoration:none;">
+          <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
+            通用领域知识<br><small>System Prompt</small>
+            <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家意见<br>38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
+          </div>
+        </a>
+        <span class="flow-arrow">&rarr;</span>
+        <a href="#sec2" style="text-decoration:none;">
+          <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
+            <strong>LLM Agent</strong><br><small>ReAct 范式</small><br><small>System Prompt + 对话历史</small>
+            <div class="arch-tooltip">Agent 自主决定探索方向、生成特征、修复代码<br>通过 Function Calling 调用工具<br>Temperature: 0.7(生成) / 0.3(修复)</div>
+          </div>
+        </a>
+      </div>
+
+      <div class="flow-arrow-down">&darr; <small style="font-size:0.6em;">Tool Use (Function Calling)</small></div>
+
+      <!-- Row 2: Tools -->
+      <div class="flow-row" style="margin-top: 8px;">
         <a href="#sec4" style="text-decoration:none;">
           <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
             <small style="opacity:0.6;">①</small> explore_data<br><small>数据查询</small>
@@ -564,138 +560,139 @@
           </div>
         </a>
         <span class="flow-arrow">&rarr;</span>
-        <!-- execute_sandbox: contains L1→L2→L3, results routing, and FS -->
+        <!-- execute_sandbox -->
         <a href="#sec5" style="text-decoration:none; flex: 1;">
           <div class="arch-contain" style="border-color: var(--env); background: rgba(224,231,255,0.15);">
-            <div class="arch-contain-label" style="background: var(--env-light); color: var(--env);">③ 验证特征有效性（execute_sandbox 触发的完整验证流程）</div>
+            <div class="arch-contain-label" style="background: var(--env-light); color: var(--env);">③ 验证特征有效性</div>
 
-            <!-- L1 → L2 → L3 -->
             <div class="arch-node" style="background: var(--warning-light); color: #92400e; margin: 16px auto 12px; max-width: 260px;">
               execute_sandbox<br><small>Agent 获得验证反馈的唯一入口</small>
-              <div class="arch-tooltip">调用后自动触发下方全部验证流程<br>返回所有指标和最终判定结果<br>→ 点击查看第 5 章详情</div>
             </div>
 
             <div class="flow-arrow-down" style="margin:4px 0;">&darr;</div>
 
             <div class="flow-row" style="gap: 6px;">
-              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
-                L1 沙盒执行
-              </div>
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">L1 沙盒执行</div>
               <span class="flow-arrow" style="font-size:1em;">&rarr;</span>
-              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
-                L2 统计质量
-              </div>
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">L2 统计质量</div>
               <span class="flow-arrow" style="font-size:1em;">&rarr;</span>
-              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">
-                L3 模型效果
-              </div>
+              <div style="padding:8px 12px; border-radius:8px; background:var(--env-light); color:var(--env); font-size:0.8em; font-weight:600;">L3 模型效果</div>
             </div>
 
-            <!-- Results routing (inside execute_sandbox boundary) -->
             <div class="flow-arrow-down" style="margin:6px 0;">&darr; <small style="font-size:0.6em;">验证结果分流</small></div>
 
             <div class="flow-row" style="gap: 8px;">
               <div style="padding:8px 14px; border-radius:8px; background:var(--success-light); color:#065f46; font-size:0.82em; font-weight:600; text-align:center;">
-                L3 通过<br><small>→ 加入 existing_features</small>
+                L3 通过<br><small>&rarr; 加入有效特征集</small>
               </div>
               <div style="padding:8px 14px; border-radius:8px; background:var(--warning-light); color:#92400e; font-size:0.82em; font-weight:600; text-align:center;">
-                L3 未通过<br><small>→ 候选特征集</small>
+                L3 未通过<br><small>&rarr; 候选特征集</small>
               </div>
               <div style="padding:8px 14px; border-radius:8px; background:var(--danger-light); color:#991b1b; font-size:0.82em; font-weight:600; text-align:center;">
-                L2 未通过<br><small>→ 淘汰</small>
+                L2 未通过<br><small>&rarr; 淘汰</small>
               </div>
             </div>
 
-            <!-- Forward Selection (inside execute_sandbox boundary, at round end) -->
             <div class="flow-arrow-down" style="margin:6px 0;">&darr; <small style="font-size:0.6em;">每轮末尾</small></div>
 
-            <div style="padding:10px 16px; border-radius:10px; background:var(--success-light); color:#065f46; font-size:0.84em; font-weight:600; text-align:center; max-width: 340px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.06);">
+            <div style="padding:10px 16px; border-radius:10px; background:var(--success-light); color:#065f46; font-size:0.84em; font-weight:600; text-align:center; max-width: 340px; margin: 0 auto;">
               前向选择 (Forward Selection)<br><small style="font-weight:400;">贪心评估候选特征集中的组合效应</small>
             </div>
-
           </div>
         </a>
       </div>
+
+      <!-- SHAP feedback loop -->
+      <div class="flow-row" style="margin-top: 12px; justify-content: center;">
+        <div style="text-align:center;">
+          <div class="flow-arrow-down" style="margin: 0 0 8px;">&darr; <small style="font-size:0.6em;">轮末 SHAP 分析</small></div>
+          <a href="#sec6" style="text-decoration:none;">
+            <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
+              SHAP 分析 + 预算更新<br><small>来源：前向选择后的模型分析（非原始数据）</small>
+              <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>薄弱维度获得更多候选名额<br>→ 点击查看第 6 章详情</div>
+            </div>
+          </a>
+          <div style="text-align:center; margin-top:6px; color: #5b21b6; font-size:1.2em;">&uarr; <small style="font-size:0.6em;">反馈回 Agent，指导下一轮生成</small></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Row 3: SHAP feedback (left) + Outputs (right), side by side -->
-    <div class="flow-row" style="align-items: flex-start; gap: 16px; margin-top: 16px;">
+    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">阶段一完成，进入阶段二</span></div>
 
-      <!-- Left: SHAP feedback -->
-      <div style="flex: 0 0 auto;">
-        <div class="flow-arrow-down" style="margin: 0 0 8px;">&darr; <small style="font-size:0.6em;">轮末</small></div>
-        <div class="arch-node" style="background: #ede9fe; color: #5b21b6; cursor: default;">
-          SHAP 分析 + 预算更新<br><small>反馈到下一轮 Agent</small>
-          <div class="arch-tooltip">前向选择结束后计算 SHAP 重要性<br>按反比分配下一轮各维度预算<br>信息流向: FS结果 → SHAP → Agent prompt</div>
-        </div>
-        <div style="text-align:center; margin-top:6px; color:var(--text-secondary); font-size:1.2em;">↑ <small style="font-size:0.6em;">回到 Agent</small></div>
+    <!-- ===== 阶段二：特有领域知识注入 ===== -->
+    <div class="flow-group" style="border-color: #f97316;">
+      <div class="flow-group-label" style="background: #fff7ed; color: #c2410c;">阶段二：特有领域知识注入</div>
+
+      <div class="callout callout-blue" style="margin: 16px 16px 0; font-size: 0.88em;">
+        流程与阶段一完全一致（explore_data → generate_feature → 三级验证 → SHAP 反馈），区别在于注入的是<strong>场景特有的领域知识</strong>（如针对诈骗、赌博、洗钱等不同犯罪类型的专属规则和指标）。
       </div>
 
-      <!-- Right: System outputs -->
-      <div class="arch-output-group" style="flex: 1;">
-        <div class="arch-output-label">系统输出（持续累积）</div>
-        <div class="flow-row" style="margin-top: 8px; gap: 8px;">
-          <a href="#sec12" style="text-decoration:none;">
-            <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-              接受的特征集<br><small>代码 + 指标 + 维度</small>
-              <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
-            </div>
-          </a>
-          <a href="#sec7" style="text-decoration:none;">
-            <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-              可解释性报告<br><small>业务含义 + 风险阈值</small>
-              <div class="arch-tooltip">每个接受特征的结构化解释<br>value_meaning / risk_threshold / synergy<br>false_positive_cases / regulatory_explanation</div>
-            </div>
-          </a>
-          <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
-            搜索日志<br><small>推理过程 + 失败记录</small>
-            <div class="arch-tooltip">Agent 的完整推理轨迹<br>每个候选特征的验证结果<br>失败原因分析与策略调整记录</div>
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="arch-node" style="background: #fff7ed; color: #c2410c;">
+          特有领域知识<br><small>场景专属规则 / 指标</small>
+          <div class="arch-tooltip">针对具体犯罪场景的专属知识<br>如：赌博场景的高频小额模式<br>诈骗场景的单向大额转出模式</div>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
+          <strong>LLM Agent</strong><br><small>同一 Agent，注入不同知识</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="arch-node" style="background: var(--env-light); color: var(--env);">
+          同阶段一验证流程<br><small>L1 → L2 → L3 → FS → SHAP</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">特征生成完成，进入模型训练</span></div>
+
+    <!-- ===== 阶段三：模型选择与训练 ===== -->
+    <div class="flow-group" style="border-color: var(--success);">
+      <div class="flow-group-label" style="background: var(--success-light); color: #065f46;">阶段三：模型选择与训练</div>
+
+      <div class="flow-row" style="margin-top: 16px;">
+        <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+          有效特征集<br><small>阶段一 + 阶段二 的全部有效特征</small>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
+          Agent 选择模型<br><small>根据数据类型自主决策</small>
+          <div class="arch-tooltip">表格数据 → XGBoost / LightGBM<br>时序数据 → LSTM / Transformer<br>图结构数据 → GNN<br>Agent 根据数据特性选择最优模型</div>
+        </div>
+        <span class="flow-arrow">&rarr;</span>
+        <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+          模型训练与推理<br><small>训练 → 评估 → 部署</small>
+          <div class="arch-tooltip">使用有效特征集训练下游模型<br>交叉验证评估模型效果<br>输出预测结果和模型报告</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- System outputs -->
+    <div class="arch-output-group" style="margin-top: 16px;">
+      <div class="arch-output-label">系统输出</div>
+      <div class="flow-row" style="margin-top: 8px; gap: 8px;">
+        <a href="#sec12" style="text-decoration:none;">
+          <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+            接受的特征集<br><small>代码 + 指标 + 维度</small>
+            <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
           </div>
+        </a>
+        <a href="#sec7" style="text-decoration:none;">
+          <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+            可解释性报告<br><small>业务含义 + 风险阈值</small>
+            <div class="arch-tooltip">每个接受特征的结构化解释<br>value_meaning / risk_threshold / synergy<br>false_positive_cases / regulatory_explanation</div>
+          </div>
+        </a>
+        <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
+          模型与预测结果<br><small>训练模型 + 推理输出</small>
+          <div class="arch-tooltip">训练好的下游模型<br>预测结果和评估指标<br>模型版本管理记录</div>
+        </div>
+        <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
+          搜索日志<br><small>推理过程 + 失败记录</small>
+          <div class="arch-tooltip">Agent 的完整推理轨迹<br>每个候选特征的验证结果<br>失败原因分析与策略调整记录</div>
         </div>
       </div>
-
     </div>
   </div>
-
-  <h3>2.3 一次完整交互示例</h3>
-  <p>以下展示 Agent 生成一个特征的完整交互过程：</p>
-
-  <div class="conv-env">
-    <div class="conv-label" style="color: var(--env);">ENVIRONMENT &rarr; Agent（任务指令）</div>
-    第 1 轮 — 维度: 金额频次。请为金额频次维度生成 3 个候选特征。对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。
-  </div>
-
-  <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（思考 + 行动）</div>
-    从 System Prompt 注入的分布差异统计看<small style="color:var(--text-secondary);">（由 <code>extract_distribution_diff()</code> 动态计算后注入，见 3.8 节）</small>，结合领域知识"四类钱包洗钱存在日累计额度控制特征"，设计一个金额集中度特征...<br>
-    <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", code: "def feature_xxx(...) ...", ...})</code>
-  </div>
-
-  <div class="conv-tool">
-    <div class="conv-label" style="color: var(--warning);">TOOL（generate_feature 返回）</div>
-    特征 'amount_concentration_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
-  </div>
-
-  <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（继续行动）</div>
-    <strong>&rarr; Tool Call:</strong> <code>execute_sandbox({feature_name: "amount_concentration_pattern"})</code>
-  </div>
-
-  <div class="conv-tool">
-    <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — 含完整验证结果）</div>
-    &#10003; 沙盒执行成功！输出 shape: (43142, 2)<br>
-    --- 自动评估结果 ---<br>
-    &#10003; 特征评估通过！已接受。(score=0.5000)<br>
-    IV: 0.0329, KS: 0.0815, 冗余度: 0.0791<br>
-    SHAP Rank: #82, Delta Recall: +0.002901<br>
-    当前已接受特征数: 1/30
-  </div>
-
-  <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（根据反馈继续）</div>
-    金额集中度特征通过了！Delta Recall +0.0029。继续第 2 个候选，换个角度探索金额的时序变化模式...
-  </div>
-</div>
 
 <!-- ====== 3. Agent 知识注入 ====== -->
 <div class="section" id="sec3">
@@ -1196,7 +1193,7 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
   </div>
 
   <h3>5.3 L3：模型效果验证 <span class="role-tag role-env">ENV</span></h3>
-  <p>在当前 <code>existing_features</code>（动态基线）上评估新特征的增量贡献。5-fold StratifiedKFold CV，每折搜索最优 F1 阈值。</p>
+  <p>在当前 <code>有效特征集</code>（动态基线）上评估新特征的增量贡献。5-fold StratifiedKFold CV，每折搜索最优 F1 阈值。</p>
 
   <div class="callout callout-green">
     <strong>L3 接受条件（Recall 优先）：</strong>
@@ -1209,7 +1206,7 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
   <div class="grid-2" style="margin-top:16px;">
     <div class="card" style="border-color: var(--success);">
       <div class="card-title" style="color: var(--success);">通过 L3 &rarr; 立即接受</div>
-      <p>特征加入 <code>existing_features</code>，Agent 的后续探索在更高的基线上进行。环境还会为该特征调用 Agent 生成一份可解释性报告。</p>
+      <p>特征加入 <code>有效特征集</code>，Agent 的后续探索在更高的基线上进行。环境还会为该特征调用 Agent 生成一份可解释性报告。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title" style="color: var(--warning);">L3 未通过 &rarr; 候选特征集</div>
@@ -1227,10 +1224,10 @@ ks_threshold = max(np.percentile(noise_ks, 95), 0.001)    # 取 p95</code></pre>
   </table>
 
   <h3>5.5 前向选择（Forward Selection）<sup>[3]</sup></h3>
-  <p>每轮所有维度探索结束后，环境对候选特征集中的特征执行贪心前向选择<sup>[4]</sup>——从当前 <code>existing_features</code> 出发，逐个尝试加入池中特征，选最优的加入，重复直到无增量。</p>
+  <p>每轮所有维度探索结束后，环境对候选特征集中的特征执行贪心前向选择<sup>[4]</sup>——从当前 <code>有效特征集</code> 出发，逐个尝试加入池中特征，选最优的加入，重复直到无增量。</p>
 
   <pre><code># 前向选择（每轮末由环境自动执行，Agent 不参与）
-X_current = existing_features
+X_current = 有效特征集
 current_metrics = compute_cv_metrics(X_current, y)   # 动态基线
 
 while 还有候选:
@@ -1616,6 +1613,48 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
       <td>更换 System Prompt 中的领域知识即可适配</td>
     </tr>
   </table>
+</div>
+
+<!-- ====== 附录：交互示例 ====== -->
+<div class="section" id="sec-example">
+  <h2><span class="num" style="background:var(--agent-light); color:var(--agent);">附</span>一次完整交互示例</h2>
+  <p>以下展示 Agent 生成一个特征的完整交互过程：</p>
+
+  <div class="conv-env">
+    <div class="conv-label" style="color: var(--env);">ENVIRONMENT &rarr; Agent（任务指令）</div>
+    第 1 轮 — 维度: 金额频次。请为金额频次维度生成 3 个候选特征。对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（思考 + 行动）</div>
+    从 System Prompt 注入的分布差异统计看<small style="color:var(--text-secondary);">（由 <code>extract_distribution_diff()</code> 动态计算后注入，见 3.8 节）</small>，结合领域知识"四类钱包洗钱存在日累计额度控制特征"，设计一个金额集中度特征...<br>
+    <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", code: "def feature_xxx(...) ...", ...})</code>
+  </div>
+
+  <div class="conv-tool">
+    <div class="conv-label" style="color: var(--warning);">TOOL（generate_feature 返回）</div>
+    特征 'amount_concentration_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（继续行动）</div>
+    <strong>&rarr; Tool Call:</strong> <code>execute_sandbox({feature_name: "amount_concentration_pattern"})</code>
+  </div>
+
+  <div class="conv-tool">
+    <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — 含完整验证结果）</div>
+    &#10003; 沙盒执行成功！输出 shape: (43142, 2)<br>
+    --- 自动评估结果 ---<br>
+    &#10003; 特征评估通过！已接受。(score=0.5000)<br>
+    IV: 0.0329, KS: 0.0815, 冗余度: 0.0791<br>
+    SHAP Rank: #82, Delta Recall: +0.002901<br>
+    当前已接受特征数: 1/30
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（根据反馈继续）</div>
+    金额集中度特征通过了！Delta Recall +0.0029。继续第 2 个候选，换个角度探索金额的时序变化模式...
+  </div>
 </div>
 
 <!-- ====== 12. 实验结果 ====== -->
