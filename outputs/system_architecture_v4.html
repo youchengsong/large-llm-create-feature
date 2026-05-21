@@ -418,7 +418,7 @@
 <div class="toc">
   <h3>目录</h3>
   <div class="toc-grid">
-    <a href="#sec1"><span class="toc-num">1</span>核心思想：Agent 即数据科学家</a>
+    <a href="#sec1"><span class="toc-num">1</span>核心思想</a>
     <a href="#sec7"><span class="toc-num">7</span>Agent 的记忆与学习</a>
     <a href="#sec2"><span class="toc-num">2</span>Agent 架构总览</a>
     <a href="#sec8"><span class="toc-num">8</span>收敛检测与终止</a>
@@ -437,9 +437,9 @@
 
 <!-- ====== 1. 核心思想 ====== -->
 <div class="section" id="sec1">
-  <h2><span class="num">1</span>核心思想：Agent 即数据科学家</h2>
+  <h2><span class="num">1</span>核心思想</h2>
 
-  <p>本系统的核心不是一套固定规则，而是<strong>一个 LLM Agent（大语言模型智能体）在自主执行数据科学任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略，并能根据数据类型自主选择合适的下游模型进行训练与评估——就像一个人类数据科学家的完整工作流程，但由 LLM 自主驱动。</p>
+  <p>本系统的核心是<strong>一个 LLM Agent（大语言模型智能体）在自主执行特征工程任务</strong>。Agent 阅读领域知识、探索数据分布、生成特征代码、提交验证、根据反馈调整策略，并能根据数据类型选择合适的下游模型进行训练与评估，由 LLM 自主驱动。</p>
 
   <div class="callout callout-agent">
     <strong>Agent 与传统方法的区别</strong>
@@ -449,7 +449,7 @@
   <h3>1.1 Agent 视角下的系统角色划分</h3>
   <div class="grid-2">
     <div class="card" style="border-color: var(--agent);">
-      <div class="card-title" style="color: var(--agent);"><span class="role-tag role-agent">AGENT</span> LLM 数据科学家</div>
+      <div class="card-title" style="color: var(--agent);"><span class="role-tag role-agent">AGENT</span> LLM Agent</div>
       <ul>
         <li>阅读数据 Schema、分布差异、领域知识</li>
         <li>自主决定探索哪个维度、生成什么特征</li>
