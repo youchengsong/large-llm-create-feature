@@ -894,12 +894,12 @@
     <div class="card" style="border-color: var(--danger);">
       <div class="card-title" style="color: var(--danger);">来源 A：银行风控专家意见</div>
       <p style="font-size:0.85em;color:var(--text-secondary);margin-bottom:8px;">来源文件：邮储专家意见_数币洗钱模式.docx</p>
-      <p>由银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong>：</p>
+      <p>由银行反洗钱专家总结的 <strong>4 种数字人民币洗钱运营模式</strong></p>
       <ol style="font-size: 0.88em; padding-left: 18px;">
-        <li><strong>薅羊毛</strong>：批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
-        <li><strong>线下跑分</strong>：个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额</li>
-        <li><strong>线上跑分</strong>：凌晨高频交易(20时-1时)，分散转出(fan_out)模式，金额10-1000元</li>
-        <li><strong>商户收款码跑分</strong>：商户钱包大量收款后转至个人钱包，many_to_many模式，佣金约0.5-1%</li>
+        <li><strong>薅羊毛</strong> — 批量注册4类钱包，同一身份证/手机号关联多个钱包，利用红包/优惠活动</li>
+        <li><strong>线下跑分</strong> — 个人钱包收到大额转入后立即转出，交易对手固定，金额接近限额</li>
+        <li><strong>线上跑分</strong> — 凌晨高频交易(20时-1时)，分散转出(fan_out)模式，金额10-1000元</li>
+        <li><strong>商户收款码跑分</strong> — 商户钱包大量收款后转至个人钱包，many_to_many模式，佣金约0.5-1%</li>
       </ol>
     </div>
     <div class="card" style="border-color: var(--accent);">
@@ -1040,20 +1040,20 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
   <div class="grid-3">
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title"><span class="role-tag role-tool">TOOL ①</span> explore_data</div>
-      <p><strong>作用</strong>：在 DataFrame 上执行查询代码，探索数据分布。</p>
-      <p><strong>参数</strong>：</p>
+      <p><strong>作用</strong> — 在 DataFrame 上执行查询代码，探索数据分布。</p>
+      <p><strong>参数</strong></p>
       <ul style="font-size:0.88em;">
         <li><code>question</code> — 问题描述（如"异常交易的夜间占比"）</li>
         <li><code>code</code> — Python 查询代码</li>
       </ul>
-      <p><strong>超时</strong>：15 秒</p>
-      <p><strong>返回</strong>：<code>query_result</code> 变量的文本表示（最多 2000 字符）</p>
+      <p><strong>超时</strong> — 15 秒</p>
+      <p><strong>返回</strong> — <code>query_result</code> 变量的文本表示（最多 2000 字符）</p>
       <p style="font-size:0.85em;color:var(--text-secondary);">可选步骤。Agent 在生成特征前可以先探索数据，验证自己的假设。例如检查某个字段的分布、计算正负样本的差异统计量。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title"><span class="role-tag role-tool">TOOL ②</span> generate_feature</div>
-      <p><strong>作用</strong>：提交特征的代码、名称、维度、解释、推理过程。</p>
-      <p><strong>参数</strong>：</p>
+      <p><strong>作用</strong> — 提交特征的代码、名称、维度、解释、推理过程。</p>
+      <p><strong>参数</strong></p>
       <ul style="font-size:0.88em;">
         <li><code>feature_name</code> — 特征名（如 "amount_concentration_pattern"）</li>
         <li><code>dimension</code> — 所属维度组</li>
@@ -1061,17 +1061,17 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
         <li><code>explanation</code> — 特征含义解释</li>
         <li><code>reasoning</code> — 设计推理过程</li>
       </ul>
-      <p><strong>返回</strong>：确认特征已注册，提示调用 execute_sandbox</p>
+      <p><strong>返回</strong> — 确认特征已注册，提示调用 execute_sandbox</p>
       <p style="font-size:0.85em;color:var(--text-secondary);">代码必须返回含 <code>wallet_id</code> 或 <code>tx_id</code> 列的 DataFrame。</p>
     </div>
     <div class="card" style="border-color: var(--warning);">
       <div class="card-title"><span class="role-tag role-tool">TOOL ③</span> execute_sandbox</div>
-      <p><strong>作用</strong>：在隔离沙盒中执行代码，自动触发 L1 → L2 → L3 完整验证流程。</p>
-      <p><strong>参数</strong>：</p>
+      <p><strong>作用</strong> — 在隔离沙盒中执行代码，自动触发 L1 → L2 → L3 完整验证流程。</p>
+      <p><strong>参数</strong></p>
       <ul style="font-size:0.88em;">
         <li><code>feature_name</code> — 自动关联之前 generate_feature 的代码</li>
       </ul>
-      <p><strong>返回</strong>（包含完整验证结果）：</p>
+      <p><strong>返回</strong>（包含完整验证结果）</p>
       <ul style="font-size:0.85em;">
         <li>沙盒执行状态 + 输出 shape</li>
         <li>IV / KS / 冗余度 / 缺失率</li>
@@ -1100,14 +1100,14 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
 
   <div class="card" style="border-color: var(--agent); margin: 12px 0;">
     <div class="card-title" style="color: var(--agent);">E2B 云端沙盒</div>
-    <p><strong>隔离级别</strong>：Firecracker microVM（硬件虚拟化）</p>
+    <p><strong>隔离级别</strong> — Firecracker microVM（硬件虚拟化）</p>
     <p>每个沙盒是一个独立的轻量虚拟机，拥有独立内核，与宿主完全隔离。执行流程：</p>
     <ol style="font-size: 0.88em;">
-      <li><strong>创建沙盒实例</strong>：通过 E2B 代码解释器 SDK 创建一个临时 microVM，预装 Python 运行环境和数据科学依赖（pandas/numpy/scipy/sklearn）</li>
-      <li><strong>上传数据</strong>：将数据文件以 Parquet 格式上传到沙盒 VM 的文件系统中</li>
-      <li><strong>执行代码</strong>：在沙盒内执行 Agent 生成的特征代码，VM 内核级隔离确保恶意代码无法影响宿主</li>
-      <li><strong>回传结果</strong>：执行成功后，将特征计算结果以 Parquet 文件回传到宿主进行后续验证</li>
-      <li><strong>销毁沙盒</strong>：执行完毕后自动销毁 VM 实例，不保留任何状态</li>
+      <li><strong>创建沙盒实例</strong> — 通过 E2B 代码解释器 SDK 创建一个临时 microVM，预装 Python 运行环境和数据科学依赖（pandas/numpy/scipy/sklearn）</li>
+      <li><strong>上传数据</strong> — 将数据文件以 Parquet 格式上传到沙盒 VM 的文件系统中</li>
+      <li><strong>执行代码</strong> — 在沙盒内执行 Agent 生成的特征代码，VM 内核级隔离确保恶意代码无法影响宿主</li>
+      <li><strong>回传结果</strong> — 执行成功后，将特征计算结果以 Parquet 文件回传到宿主进行后续验证</li>
+      <li><strong>销毁沙盒</strong> — 执行完毕后自动销毁 VM 实例，不保留任何状态</li>
     </ol>
   </div>
 
@@ -1160,10 +1160,10 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
   <div class="callout callout-env">
     <strong>校准算法</strong>（实验开始时执行一次）
     <ol style="font-size: 0.9em; margin-top: 8px;">
-      <li><strong>生成噪声特征</strong>：用固定随机种子（seed=42）生成 <strong>100 个</strong>标准正态分布随机特征（与真实数据等长，但与标签完全无关）</li>
-      <li><strong>计算噪声指标</strong>：对每个噪声特征计算 IV 和 KS，得到 100 个 IV 值和 100 个 KS 值的分布</li>
-      <li><strong>取 95 分位数</strong>：<code>calibrated_iv = max(percentile(noise_ivs, 95), 0.001)</code>，KS 同理</li>
-      <li><strong>设为阈值</strong>：候选特征的 IV/KS 必须超过此校准值才算通过 L2</li>
+      <li><strong>生成噪声特征</strong> — 用固定随机种子（seed=42）生成 <strong>100 个</strong>标准正态分布随机特征（与真实数据等长，但与标签完全无关）</li>
+      <li><strong>计算噪声指标</strong> — 对每个噪声特征计算 IV 和 KS，得到 100 个 IV 值和 100 个 KS 值的分布</li>
+      <li><strong>取 95 分位数</strong> — <code>calibrated_iv = max(percentile(noise_ivs, 95), 0.001)</code>，KS 同理</li>
+      <li><strong>设为阈值</strong> — 候选特征的 IV/KS 必须超过此校准值才算通过 L2</li>
     </ol>
   </div>
 
@@ -1256,7 +1256,7 @@ while 还有候选:
 
   <h3>6.1 分组搜索</h3>
   <p>特征空间按业务含义划分为 4 个<strong>维度组</strong><sup>[5]</sup>，环境在每轮中依次向 Agent 指派维度任务，每组有独立的候选预算，保证多维度均衡探索。</p>
-  <p>4 个维度组的划分依据来自<a href="#sec3">第 3.5 节</a>的<strong>风险指标体系</strong>：38 个风险指标按业务语义归纳为金额频次、时间地域、行为序列、主体关联 4 个维度，分组搜索直接复用该维度结构，确保 Agent 的探索方向与领域知识对齐。</p>
+  <p>4 个维度组的划分依据来自<a href="#sec3">第 3.5 节</a>的<strong>风险指标体系</strong>——38 个风险指标按业务语义归纳为金额频次、时间地域、行为序列、主体关联 4 个维度，分组搜索直接复用该维度结构，确保 Agent 的探索方向与领域知识对齐。</p>
 
   <table>
     <tr><th>维度组</th><th>关联字段</th><th>探索方向</th></tr>
@@ -1463,42 +1463,57 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 <!-- ====== 附录：交互示例 ====== -->
 <div class="section" id="sec-example">
   <h2><span class="num" style="background:var(--agent-light); color:var(--agent);">附</span>一次完整交互示例</h2>
-  <p>以下展示 Agent 生成一个特征的完整交互过程：</p>
+  <p>以下展示 Round 1 金额频次维度中，Agent 生成一个特征的完整交互过程。Agent 的 System Prompt 中已注入通用领域知识（数据 Schema、分布差异、风险指标体系、检测规则等）和特有领域知识（专家意见、裁判文书分析）。</p>
 
   <div class="conv-env">
-    <div class="conv-label" style="color: var(--env);">ENVIRONMENT &rarr; Agent（任务指令）</div>
-    第 1 轮 — 维度: 金额频次。请为金额频次维度生成 3 个候选特征。对每个候选特征：先 generate_feature，然后立即 execute_sandbox 验证。
+    <div class="conv-label" style="color: var(--env);">ENVIRONMENT &rarr; Agent（Round 1 任务指令）</div>
+    当前轮次: Round 1 / 10<br>
+    当前维度: 金额频次（预算 4 个候选）<br>
+    SHAP 反馈: 首轮无历史，均匀分配预算<br>
+    失败记忆: 无<br>
+    高分示例: 无<br>
+    请为金额频次维度生成 4 个候选特征。对每个候选：先 generate_feature 提交代码，然后立即 execute_sandbox 验证。
   </div>
 
   <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（思考 + 行动）</div>
-    从 System Prompt 注入的分布差异统计看<small style="color:var(--text-secondary);">（由 <code>extract_distribution_diff()</code> 动态计算后注入，见 3.8 节）</small>，结合领域知识"四类钱包洗钱存在日累计额度控制特征"，设计一个金额集中度特征...<br>
-    <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", code: "def feature_xxx(...) ...", ...})</code>
+    <div class="conv-label" style="color: var(--agent);">AGENT（探索数据）</div>
+    先看一下异常交易的金额分布特点...<br>
+    <strong>&rarr; Tool Call:</strong> <code>explore_data({question: "异常交易金额的整数倍集中程度", code: "..."})</code>
+  </div>
+
+  <div class="conv-tool">
+    <div class="conv-label" style="color: var(--warning);">TOOL（explore_data 返回）</div>
+    异常交易中金额为 100/500/1000 元整数倍的占比 42.3%，正常交易仅 18.7%。差异显著。
+  </div>
+
+  <div class="conv-agent">
+    <div class="conv-label" style="color: var(--agent);">AGENT（设计特征）</div>
+    结合领域知识"四类钱包洗钱存在日累计额度控制特征"，异常交易金额整数倍占比显著偏高——这与限额控制下的分拆行为一致。设计一个金额集中度特征。<br>
+    <strong>&rarr; Tool Call:</strong> <code>generate_feature({name: "amount_concentration_pattern", dimension: "金额频次", code: "def feature_amount_concentration_pattern(open_df, tx_df, close_df): ...", explanation: "检测钱包交易金额在整数倍上的集中程度", reasoning: "领域知识指出洗钱存在额度控制特征，数据探索发现异常交易整数倍占比42.3%远高于正常18.7%"})</code>
   </div>
 
   <div class="conv-tool">
     <div class="conv-label" style="color: var(--warning);">TOOL（generate_feature 返回）</div>
-    特征 'amount_concentration_pattern' 已生成，请使用 execute_sandbox 工具验证代码。
+    特征 'amount_concentration_pattern' 已注册，请调用 execute_sandbox 验证。
   </div>
 
   <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（继续行动）</div>
+    <div class="conv-label" style="color: var(--agent);">AGENT（提交验证）</div>
     <strong>&rarr; Tool Call:</strong> <code>execute_sandbox({feature_name: "amount_concentration_pattern"})</code>
   </div>
 
   <div class="conv-tool">
-    <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — 含完整验证结果）</div>
-    &#10003; 沙盒执行成功！输出 shape: (43142, 2)<br>
-    --- 自动评估结果 ---<br>
-    &#10003; 特征评估通过！已接受。(score=0.5000)<br>
-    IV: 0.0329, KS: 0.0815, 冗余度: 0.0791<br>
-    SHAP Rank: #82, Delta Recall: +0.002901<br>
-    当前已接受特征数: 1/30
+    <div class="conv-label" style="color: var(--warning);">TOOL（execute_sandbox 返回 — L1 → L2 → L3 完整验证结果）</div>
+    <strong>L1 沙盒执行</strong> &#10003; 成功，输出 shape: (43142, 2)，耗时 3.2s<br>
+    <strong>L2 统计质量</strong> &#10003; 通过 — IV: 0.0329 (阈值 0.012), KS: 0.0815 (阈值 0.031), 冗余度: 0.079 (&lt; 0.7), 缺失率: 0.0%<br>
+    <strong>L3 模型效果</strong> &#10003; 通过 — Delta Recall: +0.0029, Delta F1: +0.0006, Precision: 0.9879 (&ge; 0.90)<br>
+    综合得分: 0.5000, SHAP Rank: #82/96<br>
+    <span style="color: var(--success); font-weight: 600;">&#10003; 特征已接受，加入有效特征集。当前已接受: 1</span>
   </div>
 
   <div class="conv-agent">
-    <div class="conv-label" style="color: var(--agent);">AGENT（根据反馈继续）</div>
-    金额集中度特征通过了！Delta Recall +0.0029。继续第 2 个候选，换个角度探索金额的时序变化模式...
+    <div class="conv-label" style="color: var(--agent);">AGENT（继续生成下一个候选）</div>
+    金额集中度特征三级验证全部通过，Delta Recall +0.0029。还剩 3 个预算，换个角度探索金额的时序变化模式...
   </div>
 </div>
 
@@ -1593,9 +1608,9 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <div class="callout callout-env" style="margin-top: 16px;">
     <strong>特征说明</strong>
     <ul style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>amount_concentration_pattern</strong>：检测钱包中交易金额是否集中在特定值附近（100/500/1000 元整数倍）。洗钱交易因限额控制或佣金抽成，金额常集中在固定区间。</li>
-      <li><strong>region_night_risk_score</strong>：结合钱包所在 region 的风险水平和夜间交易倾向。高风险 region 中异常交易夜间占比 11.78%（正常仅 3.78%），差异 3 倍。</li>
-      <li><strong>fan_in_without_single_pattern</strong>：检测钱包是否使用 fan_in（资金汇聚）但从不使用 single（单笔交易）。异常钱包中该比例 18.5%（正常 0.6%），差异 30 倍。</li>
+      <li><strong>amount_concentration_pattern</strong> — 检测钱包中交易金额是否集中在特定值附近（100/500/1000 元整数倍）。洗钱交易因限额控制或佣金抽成，金额常集中在固定区间。</li>
+      <li><strong>region_night_risk_score</strong> — 结合钱包所在 region 的风险水平和夜间交易倾向。高风险 region 中异常交易夜间占比 11.78%（正常仅 3.78%），差异 3 倍。</li>
+      <li><strong>fan_in_without_single_pattern</strong> — 检测钱包是否使用 fan_in（资金汇聚）但从不使用 single（单笔交易）。异常钱包中该比例 18.5%（正常 0.6%），差异 30 倍。</li>
     </ul>
   </div>
 
@@ -1672,12 +1687,12 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <div class="callout callout-green">
     <strong>关键发现</strong>
     <ol style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>Agent 具备领域推理能力</strong>：3 个特征均源自 Agent 对领域知识的深度理解——从裁判文书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
-      <li><strong>Recall 优先策略有效</strong>：3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
-      <li><strong>Precision 代价可控</strong>：Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
-      <li><strong>动态基线严格过滤</strong>：候选特征集的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
-      <li><strong>多维度覆盖</strong>：3 个特征分别来自金额频次、时间地域、行为序列三个维度组，分组搜索策略保证了广度。</li>
-      <li><strong>高淘汰率体现质量控制</strong>：43 个候选中仅 3 个通过（7.0%），三级验证环境起到了严格的质量把关作用。</li>
+      <li><strong>Agent 具备领域推理能力</strong> — 3 个特征均源自 Agent 对领域知识的深度理解——从裁判文书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
+      <li><strong>Recall 优先策略有效</strong> — 3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
+      <li><strong>Precision 代价可控</strong> — Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
+      <li><strong>动态基线严格过滤</strong> — 候选特征集的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
+      <li><strong>多维度覆盖</strong> — 3 个特征分别来自金额频次、时间地域、行为序列三个维度组，分组搜索策略保证了广度。</li>
+      <li><strong>高淘汰率体现质量控制</strong> — 43 个候选中仅 3 个通过（7.0%），三级验证环境起到了严格的质量把关作用。</li>
     </ol>
   </div>
 </div>
