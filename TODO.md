@@ -124,7 +124,7 @@ knowfeat/
 
 ### Phase 3: 搜索策略 + 编排
 
-- [ ] **3.1 search/dimension_manager.py** — 维度管理
+- [x] **3.1 search/dimension_manager.py** — 维度管理
   - 4 维度定义 + 初始均匀预算
   - 多维度标签支持
   - 每轮预算根据 SHAP 反馈动态更新
