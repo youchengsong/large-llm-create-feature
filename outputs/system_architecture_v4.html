@@ -423,7 +423,7 @@
     <a href="#sec2"><span class="toc-num">2</span>Agent 架构总览</a>
     <a href="#sec8"><span class="toc-num">8</span>收敛检测与终止</a>
     <a href="#sec3"><span class="toc-num">3</span>Agent 的领域知识注入</a>
-    <a href="#sec9"><span class="toc-num">9</span>下游模型与评估方法</a>
+    <a href="#sec9"><span class="toc-num">9</span>评价指标与评估方法</a>
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>与传统方法的对比</a>
     <a href="#sec5"><span class="toc-num">5</span>验证特征有效性</a>
@@ -448,7 +448,6 @@
         <li>编写 Python 特征代码</li>
         <li>根据验证反馈调整策略（换方向、改实现）</li>
         <li>在失败后自动修复代码（最多 2 次）</li>
-        <li>根据数据类型和任务特性，自主选择下游训练模型（XGBoost / LightGBM / RandomForest 等）</li>
       </ul>
     </div>
     <div class="card" style="border-color: var(--env);">
@@ -459,7 +458,6 @@
         <li>SHAP 分析器：告诉 Agent 哪些特征重要</li>
         <li>候选特征集：暂存 L3 未通过但有潜力的特征</li>
         <li>特征前向选择：在轮末评估特征组合效应</li>
-        <li>模型训练接口：支持多种下游模型的训练与推理</li>
       </ul>
     </div>
   </div>
@@ -475,12 +473,12 @@
       <p>Agent 每接受一个特征，<code>有效特征集</code> 立即更新。后续所有评估都基于最新特征集，确保增量的实时性。</p>
     </div>
     <div class="card">
-      <div class="card-title">模型自适应</div>
-      <p>Agent 不绑定单一模型，可根据数据类型（表格型、时序型、图结构等）自主选择最合适的下游模型进行特征评估和最终训练。</p>
+      <div class="card-title">知识结构化</div>
+      <p>非结构化领域文档（新闻、裁判文书）经 Key-clue Extractor 转化为结构化风险因子，使隐性知识变为可操作的特征搜索信号。</p>
     </div>
     <div class="card">
-      <div class="card-title">端到端闭环</div>
-      <p>系统覆盖从领域知识注入、特征生成、统计验证到模型训练推理的完整链路，Agent 不仅是特征工程师，更是整个数据科学流程的驱动者。</p>
+      <div class="card-title">特征可溯源</div>
+      <p>每个生成的特征自带 Provenance Card（溯源卡片），记录知识来源、使用字段、风险逻辑，天然具备可解释性。</p>
     </div>
   </div>
 </div>
@@ -676,28 +674,7 @@
       </div>
     </div>
 
-    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">特征生成完成，进入模型训练</span></div>
-
-    <!-- ===== 阶段三：模型选择与训练 ===== -->
-    <div class="flow-group" style="border-color: var(--success);">
-      <div class="flow-group-label" style="background: var(--success-light); color: #065f46;">阶段三：模型选择与训练</div>
-
-      <div class="flow-row" style="margin-top: 16px;">
-        <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-          有效特征集<br><small>阶段一 + 阶段二 的全部有效特征</small>
-        </div>
-        <span class="flow-arrow">&rarr;</span>
-        <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent);">
-          Agent 选择模型<br><small>根据数据类型自主决策</small>
-          <div class="arch-tooltip">表格数据 → XGBoost / LightGBM<br>时序数据 → LSTM / Transformer<br>图结构数据 → GNN<br>Agent 根据数据特性选择最优模型</div>
-        </div>
-        <span class="flow-arrow">&rarr;</span>
-        <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-          模型训练与推理<br><small>训练 → 评估 → 部署</small>
-          <div class="arch-tooltip">使用有效特征集训练下游模型<br>交叉验证评估模型效果<br>输出预测结果和模型报告</div>
-        </div>
-      </div>
-    </div>
+    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">特征生成完成，输出有效特征集 A + B</span></div>
 
     <!-- System outputs -->
     <div class="arch-output-group" style="margin-top: 16px;">
@@ -711,14 +688,10 @@
         </a>
         <a href="#sec7" style="text-decoration:none;">
           <div class="arch-node" style="background: #d1fae5; color: #065f46;">
-            可解释性报告<br><small>业务含义 + 风险阈值</small>
-            <div class="arch-tooltip">每个接受特征的结构化解释<br>value_meaning / risk_threshold / synergy<br>false_positive_cases / regulatory_explanation</div>
+            Provenance Card<br><small>知识溯源 + 可解释性</small>
+            <div class="arch-tooltip">每个特征自动生成溯源卡片<br>knowledge_source / data_fields_used<br>risk_logic / dimension</div>
           </div>
         </a>
-        <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
-          模型与预测结果<br><small>训练模型 + 推理输出</small>
-          <div class="arch-tooltip">训练好的下游模型<br>预测结果和评估指标<br>模型版本管理记录</div>
-        </div>
         <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
           搜索日志<br><small>推理过程 + 失败记录</small>
           <div class="arch-tooltip">Agent 的完整推理轨迹<br>每个候选特征的验证结果<br>失败原因分析与策略调整记录</div>
@@ -731,16 +704,45 @@
 <div class="section" id="sec3">
   <h2><span class="num">3</span>Agent 的领域知识注入</h2>
 
-  <p>Agent 的领域知识来源于通过 System Prompt 注入的<strong>领域特定知识</strong>。知识注入分为<strong>两个阶段</strong>，对应架构图中的阶段一和阶段二：</p>
+  <p>Agent 的领域知识来源于通过 System Prompt 注入的<strong>领域特定知识</strong>。知识注入分为<strong>两个阶段</strong>，对应架构图中的阶段一和阶段二。在注入之前，非结构化知识（新闻案例、裁判文书等）先经过 <strong>Key-clue Extractor</strong> 转化为结构化风险因子。</p>
+
+  <div class="card" style="border-color: var(--accent); margin: 16px 0;">
+    <div class="card-title" style="color: var(--accent);">Key-clue Extractor（知识结构化前置模块）</div>
+    <p>非结构化领域文档（新闻报道、裁判文书、专家访谈）无法直接注入 Feature Agent 的 prompt。Key-clue Extractor 是一个独立的 LLM 预处理步骤，将这些文档转化为<strong>结构化风险因子列表</strong>：</p>
+    <table style="font-size: 0.88em; margin-top: 10px;">
+      <tr><th>字段</th><th>说明</th><th>示例</th></tr>
+      <tr>
+        <td><strong>pattern</strong></td>
+        <td>自然语言描述的洗钱模式</td>
+        <td>多层级虚拟币交易网络分散资金流向</td>
+      </tr>
+      <tr>
+        <td><strong>dimension</strong></td>
+        <td>归属维度（可多选）</td>
+        <td>[主体关联, 行为序列]</td>
+      </tr>
+      <tr>
+        <td><strong>observable_signals</strong></td>
+        <td>可观测的数据信号</td>
+        <td>短时间内资金经过 3 层以上地址；每层地址存活时间 &lt; 24h</td>
+      </tr>
+      <tr>
+        <td><strong>data_hint</strong></td>
+        <td>提示可能用到的原始字段</td>
+        <td>fan_out_depth, address_lifetime</td>
+      </tr>
+    </table>
+    <p style="margin-top: 10px; font-size: 0.9em;">Feature Agent 收到的不是一大段新闻原文，而是结构化的"这个案例暗示了什么样的特征方向"。这使得领域知识变为 <em>actionable signals</em>。</p>
+  </div>
 
   <div class="grid-2" style="margin: 12px 0;">
     <div class="card" style="border-color: #f9a8d4;">
-      <div class="card-title" style="color: #9d174d;">阶段一：通用领域知识</div>
-      <p>适用于所有反洗钱场景的基础知识，包括数据 Schema、分布差异、交易模式、风险指标体系、检测规则等。</p>
+      <div class="card-title" style="color: #9d174d;">阶段一：加密货币通用知识 + BABD-13</div>
+      <p>数据：BABD-13 数据集（148 个地址级特征作为基线）。知识：加密货币洗钱案例（新闻报道）经 Key-clue Extractor 结构化后注入。输出有效特征集 A。</p>
     </div>
     <div class="card" style="border-color: #f97316;">
-      <div class="card-title" style="color: #c2410c;">阶段二：特有领域知识</div>
-      <p>针对具体犯罪场景（诈骗、赌博、洗钱等）的专属知识，包括场景专属的行为模式、佣金结构、时间规律等。两个阶段的流程完全一致，只是注入的知识不同。</p>
+      <div class="card-title" style="color: #c2410c;">阶段二：数字人民币专属知识</div>
+      <p>数据：数字人民币模拟交易数据。知识：银行专家意见 + 裁判文书经 Key-clue Extractor 结构化后注入。<strong>基线 = 原始特征 + 阶段一的有效特征集 A</strong>（直接作为已有列拼入数据集）。输出有效特征集 B。</p>
     </div>
   </div>
 
@@ -1056,11 +1058,14 @@ def feature_merchant_abnormal_volume(open_df, tx_df, close_df):
       <p><strong>参数</strong>：</p>
       <ul style="font-size:0.88em;">
         <li><code>feature_name</code> — 特征名（如 "amount_concentration_pattern"）</li>
-        <li><code>dimension</code> — 所属维度组</li>
+        <li><code>dimension</code> — 所属维度组（支持多维度标签，如 <code>["金额频次", "时间地域"]</code>）</li>
         <li><code>code</code> — Python 代码（签名固定：<code>def feature_xxx(open_df, tx_df, close_df) → pd.DataFrame</code>）</li>
         <li><code>explanation</code> — 特征含义解释</li>
         <li><code>reasoning</code> — 设计推理过程</li>
+        <li><code>knowledge_source</code> — 知识溯源（来自哪个案例/规则/专家意见）</li>
+        <li><code>data_fields_used</code> — 使用的原始数据字段列表</li>
       </ul>
+      <p style="font-size:0.85em; margin-top: 6px;"><strong>Provenance Card</strong>：<code>explanation</code> + <code>reasoning</code> + <code>knowledge_source</code> + <code>data_fields_used</code> 自动组成特征的溯源卡片，记录该特征"从哪来、为什么、用了什么"，天然具备可解释性。</p>
       <p><strong>返回</strong>：确认特征已注册，提示调用 execute_sandbox</p>
       <p style="font-size:0.85em;color:var(--text-secondary);">代码必须返回含 <code>wallet_id</code> 或 <code>tx_id</code> 列的 DataFrame。</p>
     </div>
@@ -1349,12 +1354,14 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   <h3>7.2 失败记忆（FailureMemory） <span class="role-tag role-env">ENV</span></h3>
   <p>环境维护一个结构化的失败记录库，每个失败特征记录名称、代码、失败原因。每轮注入 prompt 时取最近的失败案例，显式告诉 Agent "避免重复这些错误"。</p>
 
-  <h3>7.3 跨维度知识传播 <span class="role-tag role-env">ENV</span></h3>
+  <h3>7.3 跨维度知识传播与多维度标签 <span class="role-tag role-env">ENV</span></h3>
   <p>当一个维度组产出高分特征，环境自动将该特征的信息（名称、代码、指标、SHAP 排名）传播到其他维度组（<code>migrate_best</code>）。下次 Agent 在其他维度探索时，能看到跨维度的高分示例作为参考，可能激发交叉维度的特征灵感。</p>
+
+  <p>特征允许声明<strong>多维度标签</strong>——例如一个特征同时标注 <code>[金额频次, 时间地域]</code>，表示它是跨维度交叉特征。SHAP 覆盖率统计时，该特征同时计入多个维度的贡献。这种轻量设计让跨维度组合自然发生，无需额外的组合阶段。</p>
 
   <div class="callout callout-agent">
     <strong>知识传播示例</strong>
-    Agent 在「金额频次」维度生成了高分特征 <code>amount_concentration_pattern</code>（金额集中度），该特征的信息随后注入到「时间地域」维度的 prompt 中。Agent 在探索「时间地域」时看到这个跨维度示例，可能设计出"金额集中度 × 夜间交易"的交叉特征。
+    Agent 在「金额频次」维度生成了高分特征 <code>amount_concentration_pattern</code>（金额集中度），该特征的信息随后注入到「时间地域」维度的 prompt 中。Agent 在探索「时间地域」时看到这个跨维度示例，设计出 <code>region_night_risk_score</code>（地域×夜间交叉特征），并标注维度为 <code>[金额频次, 时间地域]</code>。
   </div>
 
 </div>
@@ -1394,30 +1401,54 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 
 <!-- ====== 9. 模型与评估 ====== -->
 <div class="section" id="sec9">
-  <h2><span class="num">9</span>下游模型与评估方法</h2>
+  <h2><span class="num">9</span>评价指标与评估方法</h2>
 
-  <h3>9.1 XGBoost 配置</h3>
+  <h3>9.1 评价指标体系</h3>
+  <p>反洗钱场景下漏检代价远高于误报，因此评价指标以 <strong>Recall</strong> 为核心：</p>
   <table>
-    <tr><th>参数</th><th>值</th><th>说明</th></tr>
-    <tr><td>scale_pos_weight</td><td>19.0</td><td>正负样本比例约 1:19（正样本率 0.32%）</td></tr>
-    <tr><td>n_estimators</td><td>200</td><td>树的数量</td></tr>
-    <tr><td>max_depth</td><td>6</td><td>最大树深度</td></tr>
-    <tr><td>learning_rate</td><td>0.1</td><td>学习率</td></tr>
-    <tr><td>eval_metric</td><td>aucpr</td><td>PR-AUC 作为训练指标</td></tr>
-    <tr><td>device</td><td>cuda</td><td>GPU 加速</td></tr>
+    <tr><th>指标</th><th>角色</th><th>说明</th></tr>
+    <tr>
+      <td><strong>Recall</strong></td>
+      <td style="color: var(--danger); font-weight: 600;">核心指标</td>
+      <td>实际洗钱案例中被模型拦截的比例。所有实验对比以 Recall 提升为主要依据。</td>
+    </tr>
+    <tr>
+      <td><strong>Precision</strong></td>
+      <td style="color: var(--warning); font-weight: 600;">约束条件</td>
+      <td>要求 Precision &ge; 90%。在此约束下最大化 Recall，防止以过高误报换取召回。</td>
+    </tr>
+    <tr>
+      <td><strong>Top-K Capture Rate</strong></td>
+      <td style="color: var(--primary); font-weight: 600;">业务指标</td>
+      <td>按风险分数降序取前 K% 交易，计算其中捕获的洗钱案例占总洗钱数的比例。K = 1%, 3%, 5%（模拟调查员有限审查能力）。<br><code>CR@K = (Top K% 中的洗钱数) / (总洗钱数)</code></td>
+    </tr>
+    <tr>
+      <td><strong>F1</strong></td>
+      <td style="color: var(--text-secondary);">辅助参考</td>
+      <td>Precision 和 Recall 的调和平均，用于综合参考。</td>
+    </tr>
   </table>
 
-  <h3>9.2 交叉验证策略</h3>
-  <p>使用 <strong>5-fold StratifiedKFold</strong> 交叉验证。Stratified 保证每折的正负样本比例与整体一致（0.32% 正样本率），避免某些折完全没有正样本。最终指标为 5 折平均值。</p>
+  <h3>9.2 Wallet_type 分场景评估</h3>
+  <p>数字人民币交易涉及三种钱包类型，洗钱模式差异显著。按 <code>src_wallet_type</code> / <code>dst_wallet_type</code> 将测试集切分为三个子场景，分别计算指标：</p>
+  <table>
+    <tr><th>wallet_type</th><th>值</th><th>典型洗钱模式</th></tr>
+    <tr><td><strong>Corporate wallet</strong></td><td>1</td><td>对公账户大额转出、虚假贸易背景</td></tr>
+    <tr><td><strong>Personal wallet</strong></td><td>2</td><td>跑分模式、小额分散、夜间高频</td></tr>
+    <tr><td><strong>Merchant wallet</strong></td><td>3</td><td>收款码跑分、虚假交易流水、佣金抽成</td></tr>
+  </table>
 
-  <h3>9.3 特征复合打分</h3>
+  <h3>9.3 Model-Agnostic 验证</h3>
+  <p>为验证 KnowFeat 生成特征的<strong>模型无关性</strong>，在多个主流 AML 模型上对比 baseline vs. baseline + KnowFeat 的指标变化。使用 <strong>5-fold StratifiedKFold</strong> 交叉验证，Stratified 保证每折正负样本比例一致。</p>
+
+  <h3>9.4 特征复合打分</h3>
   <p>每个被接受的特征计算综合分数（用于排序展示和跨维度传播优先级，<strong>不影响接受判定</strong>）：</p>
   <table>
     <tr><th>维度</th><th>权重</th><th>计算方式</th></tr>
     <tr><td>SHAP 排名</td><td>30%</td><td>1/rank</td></tr>
     <tr><td>IV 值</td><td>20%</td><td>原始 IV</td></tr>
     <tr><td>冗余度</td><td>20%</td><td>1 - redundancy</td></tr>
-    <tr><td>Delta F1</td><td>30%</td><td>加入后 F1 变化量</td></tr>
+    <tr><td>Delta Recall</td><td>30%</td><td>加入后 Recall 变化量</td></tr>
   </table>
 </div>
 
