@@ -129,7 +129,7 @@ knowfeat/
   - 多维度标签支持
   - 每轮预算根据 SHAP 反馈动态更新
 
-- [ ] **3.2 search/shap_feedback.py** — SHAP 反馈 + 特征打分
+- [x] **3.2 search/shap_feedback.py** — SHAP 反馈 + 特征打分
   - 前向选择后对当前模型计算 SHAP 值
   - 按维度聚合 SHAP 贡献
   - 按贡献反比分配下一轮预算
