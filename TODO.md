@@ -136,7 +136,7 @@ knowfeat/
   - 特征复合打分（用于排序和跨维度传播优先级，不影响接受判定）：
     30% SHAP rank(1/rank) + 20% IV + 20% (1-redundancy) + 30% Delta Recall
 
-- [ ] **3.3 search/failure_memory.py** — 失败记忆
+- [x] **3.3 search/failure_memory.py** — 失败记忆
   - 记录每个失败特征：名称、代码、失败原因、轮次
   - 每轮注入最近 N 条到 prompt
 
