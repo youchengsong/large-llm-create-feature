@@ -427,7 +427,6 @@
     <a href="#sec4"><span class="toc-num">4</span>Agent 的工具箱</a>
     <a href="#sec10"><span class="toc-num">10</span>与传统方法的对比</a>
     <a href="#sec5"><span class="toc-num">5</span>验证特征有效性</a>
-    <a href="#sec11" style="background: var(--success-light); border-color: var(--success);"><span class="toc-num">11</span>实验结果</a>
     <a href="#sec6"><span class="toc-num">6</span>Agent 的搜索策略</a>
   </div>
 </div>
@@ -518,16 +517,16 @@
   <h3>2.2 完整架构图 <span style="font-size:0.7em;color:var(--text-secondary);">（悬停查看详情，点击跳转对应章节）</span></h3>
   <div class="arch-diagram">
 
-    <!-- ===== 阶段一：通用领域知识注入 ===== -->
+    <!-- ===== 阶段一：加密货币通用知识 ===== -->
     <div class="flow-group" style="border-color: #f9a8d4;">
-      <div class="flow-group-label" style="background: #fce7f3; color: #9d174d;">阶段一：通用领域知识注入</div>
+      <div class="flow-group-label" style="background: #fce7f3; color: #9d174d;">阶段一：加密货币通用知识 + BABD-13</div>
 
       <!-- Row 1: Knowledge + Agent + SHAP -->
       <div class="flow-row" style="margin-top: 16px;">
         <a href="#sec3" style="text-decoration:none;">
           <div class="arch-node" style="background: #fce7f3; color: #9d174d;">
-            通用领域知识<br><small>System Prompt</small>
-            <div class="arch-tooltip">Schema / 正常vs异常分布差异 / 专家意见<br>38个风险指标 / 15条检测规则<br>8种交易模式 → 点击查看第 3 章详情</div>
+            加密货币领域知识<br><small>Key-clue Extractor 结构化</small>
+            <div class="arch-tooltip">5 个加密货币洗钱案例 → 结构化风险因子<br>BABD-13 数据集（148 个地址级基线特征）<br>→ 点击查看第 3 章详情</div>
           </div>
         </a>
         <span class="flow-arrow">&rarr;</span>
@@ -561,7 +560,7 @@
         <a href="#sec4" style="text-decoration:none;">
           <div class="arch-node" style="background: var(--warning-light); color: #92400e;">
             <small style="opacity:0.6;">②</small> generate_feature<br><small>特征代码生成</small>
-            <div class="arch-tooltip">提交: 特征名 + Python代码 + 维度 + 解释<br>代码签名: def feature_xxx(open_df, tx_df, close_df)<br>返回: pd.DataFrame</div>
+            <div class="arch-tooltip">提交: 特征名 + Python代码 + 维度 + 解释 + 知识溯源<br>代码签名: def feature_xxx(open_df, tx_df, close_df)<br>自动生成 Provenance Card（溯源卡片）</div>
           </div>
         </a>
         <span class="flow-arrow">&rarr;</span>
@@ -622,21 +621,21 @@
       </div>
     </div>
 
-    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">阶段一完成，进入阶段二</span></div>
+    <div style="text-align:center; margin: 16px 0; font-size: 1.5em; color: var(--text-secondary);">&darr; <span style="font-size:0.5em;">阶段一完成，Feature Set A 作为基线列带入阶段二</span></div>
 
-    <!-- ===== 阶段二：特有领域知识注入 ===== -->
+    <!-- ===== 阶段二：数字人民币专属知识 ===== -->
     <div class="flow-group" style="border-color: #f97316;">
-      <div class="flow-group-label" style="background: #fff7ed; color: #c2410c;">阶段二：特有领域知识注入</div>
+      <div class="flow-group-label" style="background: #fff7ed; color: #c2410c;">阶段二：数字人民币专属知识</div>
 
       <!-- Row 1: Knowledge + Agent + SHAP -->
       <div class="flow-row" style="margin-top: 16px;">
         <div class="arch-node" style="background: #fff7ed; color: #c2410c;">
-          特有领域知识<br><small>场景专属规则 / 指标</small>
-          <div class="arch-tooltip">针对具体犯罪场景的专属知识<br>如：赌博场景的高频小额模式<br>诈骗场景的单向大额转出模式</div>
+          数字人民币领域知识<br><small>Key-clue Extractor 结构化</small>
+          <div class="arch-tooltip">银行专家意见（4 种数币洗钱模式）<br>309 份裁判文书（9 个子维度）<br>38 个风险指标 / 15 条检测规则 / 8 种交易模式<br>基线 = 原始特征 + Feature Set A</div>
         </div>
         <span class="flow-arrow">&rarr;</span>
         <div class="arch-node" style="background: var(--agent-light); color: var(--agent); border: 2px solid var(--agent); min-width: 200px;">
-          <strong>LLM Agent</strong><br><small>同一 Agent，注入不同知识</small>
+          <strong>LLM Agent</strong><br><small>同一 Agent，注入场景专属知识</small>
         </div>
         <span class="flow-arrow">&larr; <small style="font-size:0.6em;">反馈</small></span>
         <div class="arch-node" style="background: #ede9fe; color: #5b21b6;">
@@ -680,12 +679,10 @@
     <div class="arch-output-group" style="margin-top: 16px;">
       <div class="arch-output-label">系统输出</div>
       <div class="flow-row" style="margin-top: 8px; gap: 8px;">
-        <a href="#sec11" style="text-decoration:none;">
-          <div class="arch-node" style="background: #d1fae5; color: #065f46;">
+        <div class="arch-node" style="background: #d1fae5; color: #065f46; cursor: default;">
             有效特征集<br><small>代码 + 指标 + 维度</small>
-            <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标<br>→ 点击查看实验结果</div>
-          </div>
-        </a>
+            <div class="arch-tooltip">通过三级验证的特征代码<br>含完整的 IV/KS/SHAP/Recall 指标</div>
+        </div>
         <a href="#sec7" style="text-decoration:none;">
           <div class="arch-node" style="background: #d1fae5; color: #065f46;">
             Provenance Card<br><small>知识溯源 + 可解释性</small>
@@ -750,7 +747,26 @@
   <table>
     <tr><th>阶段</th><th>注入内容</th><th>来源</th><th>作用</th><th>注入方式</th></tr>
     <tr>
-      <td rowspan="7" style="background:#fce7f3; color:#9d174d; font-weight:600; text-align:center;">阶段一<br>通用</td>
+      <td rowspan="3" style="background:#fce7f3; color:#9d174d; font-weight:600; text-align:center;">阶段一<br>加密货币</td>
+      <td><strong>BABD-13 数据 Schema + 基线特征</strong></td>
+      <td>BABD-13 数据集（148 个地址级特征）</td>
+      <td>Agent 了解基线特征、数据结构，避免重复生成</td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td><strong>加密货币洗钱风险因子</strong></td>
+      <td>5 个新闻案例 → Key-clue Extractor</td>
+      <td>结构化风险因子（pattern / dimension / signals / data_hint）</td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td><strong>正常 vs 异常分布差异</strong></td>
+      <td>自动统计，标注差异倍数</td>
+      <td>引导 Agent 关注区分度最大的维度</td>
+      <td>静态</td>
+    </tr>
+    <tr>
+      <td rowspan="9" style="background:#fff7ed; color:#c2410c; font-weight:600; text-align:center;">阶段二<br>数字人民币</td>
       <td><strong>数据 Schema</strong></td>
       <td>自动提取自 open_df / tx_df / close_df</td>
       <td>Agent 了解可用字段、数据类型、取值范围</td>
@@ -788,21 +804,20 @@
     </tr>
     <tr>
       <td><strong>已有基线特征列表 + 代码示例</strong></td>
-      <td>baseline_features.columns + 示例代码</td>
+      <td>原始特征 + Feature Set A（阶段一产出）</td>
       <td>Agent 避免生成重复特征，参考已有实现风格</td>
       <td>静态</td>
     </tr>
     <tr>
-      <td rowspan="2" style="background:#fff7ed; color:#c2410c; font-weight:600; text-align:center;">阶段二<br>特有</td>
       <td><strong>专家意见</strong></td>
-      <td>银行风控专家意见</td>
-      <td>4 种数字人民币洗钱运营模式</td>
+      <td>银行风控专家意见 → Key-clue Extractor</td>
+      <td>4 种数字人民币洗钱运营模式（结构化风险因子）</td>
       <td>静态</td>
     </tr>
     <tr>
       <td><strong>裁判文书（309 份）</strong></td>
-      <td>裁判文书全文阅读提取</td>
-      <td>9 个子维度的真实案例洗钱特征<br><small style="color:var(--text-secondary);">→ 关键行为特征、时间特征、佣金特征均源自裁判文书</small></td>
+      <td>裁判文书全文阅读 → Key-clue Extractor</td>
+      <td>9 个子维度的真实案例洗钱特征（结构化风险因子）</td>
       <td>静态</td>
     </tr>
     <tr>
@@ -1575,190 +1590,11 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
   </div>
 </div>
 
-<!-- ====== 11. 实验结果 ====== -->
-<div class="section" id="sec11">
-  <h2><span class="num">11</span>实验结果</h2>
-
-  <h3>11.1 实验配置</h3>
-  <div class="metric-row">
-    <div class="metric-item">
-      <div class="metric-value">393</div>
-      <div class="metric-label">Agent 推理步数</div>
-    </div>
-    <div class="metric-item">
-      <div class="metric-value">4</div>
-      <div class="metric-label">搜索轮数</div>
-    </div>
-    <div class="metric-item">
-      <div class="metric-value">43</div>
-      <div class="metric-label">候选特征总数</div>
-    </div>
-    <div class="metric-item">
-      <div class="metric-value">3</div>
-      <div class="metric-label">最终接受</div>
-    </div>
-    <div class="metric-item">
-      <div class="metric-value">4.6h</div>
-      <div class="metric-label">总运行时长</div>
-    </div>
-  </div>
-
-  <table>
-    <tr><th>配置项</th><th>值</th></tr>
-    <tr><td>Agent 模型</td><td>DeepSeek-Chat</td></tr>
-    <tr><td>数据规模</td><td>1,384,512 笔交易 / 100,000 个钱包</td></tr>
-    <tr><td>正样本率</td><td>0.3239%（4,484 / 1,384,512）</td></tr>
-    <tr><td>基线特征数</td><td>95</td></tr>
-    <tr><td>终止原因</td><td>连续 2 轮无新特征，收敛终止</td></tr>
-  </table>
-
-  <h3>11.2 Agent 接受的特征</h3>
-
-  <div style="overflow-x: auto;">
-  <table>
-    <tr>
-      <th>特征名</th>
-      <th>维度组</th>
-      <th>IV</th>
-      <th>KS</th>
-      <th>冗余度</th>
-      <th>&Delta;Recall</th>
-      <th>&Delta;F1</th>
-      <th>&Delta;Precision</th>
-      <th>SHAP Rank</th>
-    </tr>
-    <tr>
-      <td><strong>amount_concentration_pattern</strong></td>
-      <td>金额频次</td>
-      <td>0.0329</td>
-      <td>0.0815</td>
-      <td>0.079</td>
-      <td style="color: var(--success); font-weight: 600;">+0.0029</td>
-      <td style="color: var(--success);">+0.0006</td>
-      <td style="color: var(--danger);">&minus;0.0021</td>
-      <td>82 / 96</td>
-    </tr>
-    <tr>
-      <td><strong>region_night_risk_score</strong></td>
-      <td>时间地域</td>
-      <td>0.0236</td>
-      <td>0.0641</td>
-      <td>0.558</td>
-      <td style="color: var(--success); font-weight: 600;">+0.0018</td>
-      <td style="color: var(--success);">+0.0008</td>
-      <td style="color: var(--danger);">&minus;0.0005</td>
-      <td>76 / 97</td>
-    </tr>
-    <tr>
-      <td><strong>fan_in_without_single_pattern</strong></td>
-      <td>行为序列</td>
-      <td>0.0103</td>
-      <td>0.0380</td>
-      <td>0.415</td>
-      <td style="color: var(--success); font-weight: 600;">+0.0020</td>
-      <td style="color: var(--success);">+0.0014</td>
-      <td style="color: var(--success);">+0.0008</td>
-      <td>75 / 98</td>
-    </tr>
-  </table>
-  </div>
-
-  <div class="callout callout-env" style="margin-top: 16px;">
-    <strong>特征说明</strong>
-    <ul style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>amount_concentration_pattern</strong> — 检测钱包中交易金额是否集中在特定值附近（100/500/1000 元整数倍）。洗钱交易因限额控制或佣金抽成，金额常集中在固定区间。</li>
-      <li><strong>region_night_risk_score</strong> — 结合钱包所在 region 的风险水平和夜间交易倾向。高风险 region 中异常交易夜间占比 11.78%（正常仅 3.78%），差异 3 倍。</li>
-      <li><strong>fan_in_without_single_pattern</strong> — 检测钱包是否使用 fan_in（资金汇聚）但从不使用 single（单笔交易）。异常钱包中该比例 18.5%（正常 0.6%），差异 30 倍。</li>
-    </ul>
-  </div>
-
-
-  <h3>11.3 整体增量效果</h3>
-  <p>将 Agent 生成的 3 个特征加入 95 个基线特征后，5-fold StratifiedKFold CV 结果：</p>
-
-  <table>
-    <tr>
-      <th>指标</th>
-      <th>基线（95 特征）</th>
-      <th>增强后（98 特征）</th>
-      <th>变化量</th>
-      <th>变化率</th>
-    </tr>
-    <tr>
-      <td><strong>Recall</strong></td>
-      <td>0.9041</td>
-      <td>0.9108</td>
-      <td style="color: var(--success); font-weight: 700;">+0.0067</td>
-      <td style="color: var(--success);">+0.74%</td>
-    </tr>
-    <tr>
-      <td><strong>F1</strong></td>
-      <td>0.9450</td>
-      <td>0.9478</td>
-      <td style="color: var(--success); font-weight: 700;">+0.0028</td>
-      <td style="color: var(--success);">+0.30%</td>
-    </tr>
-    <tr>
-      <td><strong>Precision</strong></td>
-      <td>0.9900</td>
-      <td>0.9882</td>
-      <td style="color: var(--danger);">&minus;0.0018</td>
-      <td style="color: var(--danger);">&minus;0.19%</td>
-    </tr>
-    <tr>
-      <td><strong>PR-AUC</strong></td>
-      <td>0.9833</td>
-      <td>0.9828</td>
-      <td style="color: var(--danger);">&minus;0.0004</td>
-      <td style="color: var(--danger);">&minus;0.05%</td>
-    </tr>
-  </table>
-
-  <h3>11.4 前向选择验证</h3>
-  <p>实验结束后，独立前向选择验证（以 95 个基线为起点），3 个特征全部通过：</p>
-  <table>
-    <tr><th>选择顺序</th><th>特征</th><th>累计 Recall</th><th>累计 F1</th><th>累计 Precision</th></tr>
-    <tr>
-      <td>1</td>
-      <td>amount_concentration_pattern</td>
-      <td>0.9070 <span style="color: var(--success);">(+0.0029)</span></td>
-      <td>0.9456</td>
-      <td>0.9879</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>region_night_risk_score</td>
-      <td>0.9088 <span style="color: var(--success);">(+0.0018)</span></td>
-      <td>0.9464</td>
-      <td>0.9874</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>fan_in_without_single_pattern</td>
-      <td>0.9108 <span style="color: var(--success);">(+0.0020)</span></td>
-      <td>0.9478</td>
-      <td>0.9882</td>
-    </tr>
-  </table>
-
-  <h3>11.5 结果分析</h3>
-  <div class="callout callout-green">
-    <strong>关键发现</strong>
-    <ol style="margin-top: 8px; padding-left: 20px;">
-      <li><strong>Agent 具备领域推理能力</strong> — 3 个特征均源自 Agent 对领域知识的深度理解——从裁判文书中的"限额控制"推导出金额集中度，从 region 风险差异推导出地域&times;夜间交叉特征，从交易模式分布异常推导出 fan_in + 无 single 组合。</li>
-      <li><strong>Recall 优先策略有效</strong> — 3 个特征累计提升 Recall +0.67%（绝对值），在正样本率仅 0.32% 的极度不平衡数据上，这意味着多召回约 30 笔洗钱交易。</li>
-      <li><strong>Precision 代价可控</strong> — Precision 仅下降 0.19%（从 99.00% 到 98.82%），仍保持在极高水平。</li>
-      <li><strong>动态基线严格过滤</strong> — 候选特征集的 4 次前向选择均未选出特征（累计评估约 80 个组合），说明动态基线有效防止了"虚假增量"。</li>
-      <li><strong>多维度覆盖</strong> — 3 个特征分别来自金额频次、时间地域、行为序列三个维度组，分组搜索策略保证了广度。</li>
-      <li><strong>高淘汰率体现质量控制</strong> — 43 个候选中仅 3 个通过（7.0%），三级验证环境起到了严格的质量把关作用。</li>
-    </ol>
-  </div>
-</div>
 
 <!-- ====== Footer ====== -->
 <div class="footer">
   <p>LLM Agent 自动特征工程系统 &mdash; 技术方案文档 v4</p>
-  <p style="margin-top:4px;">Generated: 2026-05-21</p>
+  <p style="margin-top:4px;">Generated: 2026-05-27</p>
 </div>
 
 </div>
