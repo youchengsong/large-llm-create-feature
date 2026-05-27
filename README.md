@@ -48,6 +48,48 @@ data/                          # Digital Yuan transaction data
 裁判文书docx/                    # 309 judicial documents
 ```
 
+## Quick Start
+
+### Install
+
+```bash
+pip install -r requirements.txt
+# PyTorch: install separately per your CUDA version
+# https://pytorch.org/get-started/locally/
+```
+
+### Deploy to GPU Server
+
+```bash
+# Default (uses env vars DEPLOY_HOST/DEPLOY_PORT or built-in defaults)
+./deploy.sh
+
+# Custom server
+./deploy.sh --host <host> --port <port>
+
+# Preview what would be synced
+./deploy.sh --dry-run
+
+# Only sync code (skip pip install)
+./deploy.sh --sync-only
+```
+
+### Run Experiments
+
+```bash
+# Stage 2 (Digital Yuan, data available)
+nohup python3 -m knowfeat.main > logs/stage2.log 2>&1 &
+
+# Monitor progress
+tail -f logs/stage2.log
+```
+
+### Run Tests
+
+```bash
+pytest tests/ -v
+```
+
 ## Documentation
 
 - **System Design**: `docs/KnowFeat_design.md`
