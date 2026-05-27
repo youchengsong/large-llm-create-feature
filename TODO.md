@@ -174,7 +174,7 @@ knowfeat/
   - 按 Recall（Precision ≥ 90% 约束）自动推荐最优模型
   - 输出：模型对比表 + 推荐理由（数据特征 → 模型适配分析）
 
-- [ ] **5.3 output/report.py** — 实验报告
+- [x] **5.3 output/report.py** — 实验报告
   - 生成 Recall / CR@K / wallet_type 分场景结果表
   - 消融实验对比表
   - 导出 CSV + HTML
