@@ -106,7 +106,7 @@ knowfeat/
   - 硬编码 8 种交易模式描述
   - 加载专家意见文本
 
-- [ ] **2.3 prompt/builder.py** — System Prompt 组装
+- [x] **2.3 prompt/builder.py** — System Prompt 组装
   - Stage 1 prompt：BABD-13 schema + 风险因子 + 分布差异
   - Stage 2 prompt：SimECNY schema + 全部领域知识 + 基线特征列表
   - 动态注入：SHAP 反馈 + 失败记忆 + 跨维度高分示例
