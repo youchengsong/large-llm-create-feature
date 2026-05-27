@@ -77,7 +77,7 @@ knowfeat/
   - 超时 30s，捕获异常
   - 验证输出 DataFrame 格式（必须含 wallet_id 或 tx_id 列）
 
-- [ ] **1.5 verification/statistics.py** — L2 统计验证
+- [x] **1.5 verification/statistics.py** — L2 统计验证
   - IV 值计算（WoE 分箱）
   - KS 统计量计算
   - 噪声校准：生成 100 个随机特征，取 IV/KS 的 p95 作为动态阈值
