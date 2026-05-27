@@ -174,12 +174,12 @@ Agent 在每一步先思考 → 调用工具 → 根据观测决定下一步。�
 | Personal wallet | 2 | 跑分、小额分散、夜间高频 |
 | Merchant wallet | 3 | 收款码跑分、虚假流水、佣金抽成 |
 
-### 7.3 Model-Agnostic 验证
+### 7.3 自动模型选择与训练
 
-在 ModelSet 的 11 个模型上对比 baseline vs. baseline + KnowFeat：
-- catboost, ga2m, scorecard, acxgb, wav_xgb, ensemble, lgbm, resample_boost, gbdt_fm, dnn_res, mlp
-- 使用 5-fold StratifiedKFold CV
-- 展示 KnowFeat 特征在不同模型上的一致性提升
+特征生成完成后，系统根据数据特性从 ModelSet 的 11 个候选模型中自动选择最优模型：
+- 候选：catboost, ga2m, scorecard, acxgb, wav_xgb, ensemble, lgbm, resample_boost, gbdt_fm, dnn_res, mlp
+- 选择依据：数据规模、特征类型、类别不平衡程度等
+- 使用 5-fold StratifiedKFold CV 评估各模型表现，自动选取最优模型进行训练和推理
 
 ## 8. 实验设计
 
@@ -189,7 +189,7 @@ Agent 在每一步先思考 → 调用工具 → 根据观测决定下一步。�
 |------|------|------|
 | Recall + CR@K 对比 | baseline vs +KnowFeat，多模型 | 主表：证明特征有效 |
 | Wallet_type 分场景 | 三种钱包类型分别计算指标 | 场景差异分析 |
-| Model-Agnostic | 11 个模型一致性 | 特征不依赖特定模型 |
+| 自动模型选择 | 11 个候选模型中自动选最优 | 端到端自动化能力 |
 
 ### 8.2 消融实验
 
@@ -265,7 +265,7 @@ Agent 在每一步先思考 → 调用工具 → 根据观测决定下一步。�
 | 决策 | 结论 | 理由 |
 |------|------|------|
 | 特征模板图（方案 B） | 不做 | 时间不够，Applied Track 不要求硬 algorithmic contribution |
-| Stage 3（模型选择训练） | 不入方法论 | 是标准评估流程，不是方法贡献；ModelSet 作为实验验证工具 |
+| Stage 3（模型选择训练） | 纳入评估方法（9.3） | 自动选择最优模型，体现端到端能力；不单独作为方法论 Stage |
 | 跨维度组合 | 方案 1（多维度标签） | 轻量实现，消融风险低；方案 2 增量 novelty 有限 |
 | AUC | 不作为核心指标 | Recall 是核心，Precision ≥ 90% 是约束，Top-K 是业务指标 |
 | Feature Set A 迁移 | 直接拼为已有列 | 简单直接，Stage 2 视为基线特征 |

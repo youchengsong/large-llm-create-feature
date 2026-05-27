@@ -1453,8 +1453,8 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
     <tr><td><strong>Merchant wallet</strong></td><td>3</td><td>收款码跑分、虚假交易流水、佣金抽成</td></tr>
   </table>
 
-  <h3>9.3 Model-Agnostic 验证</h3>
-  <p>为验证 KnowFeat 生成特征的<strong>模型无关性</strong>，在多个主流 AML 模型上对比 baseline vs. baseline + KnowFeat 的指标变化。使用 <strong>5-fold StratifiedKFold</strong> 交叉验证，Stratified 保证每折正负样本比例一致。</p>
+  <h3>9.3 自动模型选择与训练</h3>
+  <p>特征生成完成后，系统根据数据特性自动从 11 个候选模型中选择最优模型进行训练和推理。候选模型涵盖集成学习、深度学习、规则融合及可解释 AI 等方向（CatBoost、LightGBM、XGBoost、Stacking 集成、DNN 残差网络、评分卡等）。选择依据包括数据规模、特征类型、类别不平衡程度等，使用 <strong>5-fold StratifiedKFold</strong> 交叉验证评估各模型表现，自动选取最优模型输出最终预测结果。</p>
 
   <h3>9.4 特征复合打分</h3>
   <p>每个被接受的特征计算综合分数（用于排序展示和跨维度传播优先级，<strong>不影响接受判定</strong>）：</p>
