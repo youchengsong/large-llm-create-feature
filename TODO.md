@@ -84,7 +84,7 @@ knowfeat/
   - 冗余度检测（与已有特征的最大相关系数）
   - 缺失率计算
 
-- [ ] **1.6 verification/model_eval.py** — L3 模型效果验证
+- [x] **1.6 verification/model_eval.py** — L3 模型效果验证
   - XGBoost 5-fold StratifiedKFold CV
   - 计算 delta-recall, delta-F1, precision
   - 通过条件：delta_recall > 0 AND precision >= 0.90
