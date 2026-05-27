@@ -155,7 +155,7 @@ knowfeat/
 
 ### Phase 4: Key-clue Extractor
 
-- [ ] **4.1 extractor/key_clue_extractor.py**
+- [x] **4.1 extractor/key_clue_extractor.py**
   - 输入：非结构化文本（新闻案例 / 裁判文书摘要）
   - 调用 LLM，prompt 要求输出结构化 JSON（pattern/dimension/signals/data_hint）
   - 批量处理多个文档
