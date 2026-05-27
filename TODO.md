@@ -181,7 +181,7 @@ knowfeat/
 
 ### Phase 6: 部署 + 运行实验
 
-- [ ] **6.1 requirements.txt** — 依赖清单
+- [x] **6.1 requirements.txt** — 依赖清单
 - [ ] **6.2 部署到服务器** — scp 代码到服务器，安装依赖
 - [ ] **6.3 Stage 2 实验** — 先跑 Stage 2（数据已有）
 - [ ] **6.4 Stage 1 实验** — 下载 BABD-13，跑 Stage 1
