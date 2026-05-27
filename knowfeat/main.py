@@ -65,6 +65,7 @@ class StageResult:
     elapsed_sec: float = 0.0
     feature_codes: dict[str, str] = field(default_factory=dict)
     feature_dimensions: dict[str, list[str]] = field(default_factory=dict)
+    feature_provenance: dict[str, dict] = field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -327,6 +328,12 @@ def run_stage(
     for fname, cand in tool_ctx.accepted_features.items():
         result.feature_codes[fname] = cand.code
         result.feature_dimensions[fname] = cand.dimension
+        result.feature_provenance[fname] = {
+            "explanation": cand.explanation,
+            "reasoning": cand.reasoning,
+            "knowledge_source": cand.knowledge_source,
+            "data_fields_used": cand.data_fields_used,
+        }
 
     result.elapsed_sec = time.time() - t0
     logger.info(
@@ -342,12 +349,12 @@ def run_stage(
 # ---------------------------------------------------------------------------
 
 def save_results(result: StageResult, output_dir: Path) -> dict[str, Path]:
-    """Save accepted features (JSON) and run summary (JSON).
+    """Save accepted features (JSON), run summary (JSON), and provenance cards.
 
     Returns
     -------
     dict[str, Path]
-        {"features": features_path, "summary": summary_path}
+        {"features": ..., "summary": ..., "provenance_json": ..., "provenance_md": ...}
     """
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -379,7 +386,30 @@ def save_results(result: StageResult, output_dir: Path) -> dict[str, Path]:
         json.dump(summary, f, ensure_ascii=False, indent=2)
     logger.info("运行摘要 → %s", summary_path)
 
-    return {"features": features_path, "summary": summary_path}
+    paths: dict[str, Path] = {
+        "features": features_path,
+        "summary": summary_path,
+    }
+
+    from knowfeat.output.provenance import ProvenanceCard, build_card, save_provenance
+    cards = []
+    for fname in result.accepted_feature_names:
+        prov = result.feature_provenance.get(fname, {})
+        cards.append(build_card(
+            feature_name=fname,
+            dimensions=result.feature_dimensions.get(fname, []),
+            code=result.feature_codes.get(fname, ""),
+            explanation=prov.get("explanation", ""),
+            reasoning=prov.get("reasoning", ""),
+            knowledge_source=prov.get("knowledge_source", ""),
+            data_fields_used=prov.get("data_fields_used", []),
+        ))
+    if cards:
+        prov_paths = save_provenance(cards, output_dir, stage=result.stage)
+        paths["provenance_json"] = prov_paths["json"]
+        paths["provenance_md"] = prov_paths["markdown"]
+
+    return paths
 
 
 # ---------------------------------------------------------------------------
