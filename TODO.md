@@ -112,7 +112,7 @@ knowfeat/
   - 动态注入：SHAP 反馈 + 失败记忆 + 跨维度高分示例
   - 每轮任务指令（当前轮次、维度、预算、候选数）
 
-- [ ] **2.4 agent/tools.py** — 3 个 Function Calling 工具
+- [x] **2.4 agent/tools.py** — 3 个 Function Calling 工具
   - explore_data：接收 Python 代码，在 DataFrame 上执行，返回结果文本
   - generate_feature：接收 name/dimension/code/explanation/reasoning/knowledge_source/data_fields_used，注册特征
   - execute_sandbox：调用 L1→L2→L3 验证流水线，返回完整结果
