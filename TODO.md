@@ -167,7 +167,7 @@ knowfeat/
   - 从 generate_feature 的参数自动生成溯源卡片
   - 格式：feature_name / description / knowledge_source / data_fields / dimension / risk_logic
 
-- [ ] **5.2 model_select/auto_select.py** — 自动模型选择
+- [x] **5.2 model_select/auto_select.py** — 自动模型选择
   - 调用 ModelSet/runner.py 全量跑 11 个模型（5-fold StratifiedKFold CV）
   - 解析 results/global_results.csv，汇总各模型指标
   - 分析数据特征（样本量、不平衡比、特征维度、特征类型分布）与模型表现的关联
