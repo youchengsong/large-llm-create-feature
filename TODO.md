@@ -117,7 +117,7 @@ knowfeat/
   - generate_feature：接收 name/dimension/code/explanation/reasoning/knowledge_source/data_fields_used，注册特征
   - execute_sandbox：调用 L1→L2→L3 验证流水线，返回完整结果
 
-- [ ] **2.5 agent/react_agent.py** — ReAct 主循环
+- [x] **2.5 agent/react_agent.py** — ReAct 主循环
   - 循环：发送 prompt → 解析 LLM 响应 → 执行 tool call → 拼接 observation → 继续
   - 单轮终止：预算用完或 LLM 声明完成
   - 代码修复：L1 失败后自动修复（最多 2 次）
