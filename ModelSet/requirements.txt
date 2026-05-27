@@ -1,0 +1,27 @@
+# 基础数据处理
+pandas>=1.5.0
+numpy>=1.23.0
+scipy>=1.9.0
+joblib>=1.2.0
+tqdm>=4.64.0
+psutil>=5.9.0
+
+# 机器学习核心库
+scikit-learn>=1.1.0
+xgboost>=1.7.0
+lightgbm>=3.3.0
+catboost>=1.1.0
+
+# 专项模型库
+toad>=0.1.0            # 评分卡模型
+interpret>=0.3.0       # GA2M (EBM) 模型
+imbalanced-learn>=0.10.0 # SMOTE / ADASYN
+PyWavelets>=1.4.0      # 小波变换
+
+# 深度学习 (GBDT-FM / DNN-Res / MLP)
+torch>=1.12.0          # 建议根据显卡安装对应版本
+
+# 模型解释与可视化
+shap>=0.41.0           # SHAP 分析
+matplotlib>=3.6.0
+seaborn>=0.12.0

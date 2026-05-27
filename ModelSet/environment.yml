@@ -1,0 +1,25 @@
+name: aml_model_set
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - xgboost
+  - lightgbm
+  - catboost
+  - matplotlib
+  - seaborn
+  - tqdm
+  - joblib
+  - pywavelets
+  - pip:
+      - toad
+      - interpret
+      - imbalanced-learn
+      - shap
+      - torch

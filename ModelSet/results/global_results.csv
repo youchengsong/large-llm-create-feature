@@ -1,0 +1,3 @@
+model_name,start_time,end_time,threshold,precision,recall,f1_score,auc
+CatBoost,2026-03-15 14:49:47,2026-03-15 14:49:59,0.7475,0.9751,0.8116,0.8859,0.9966
+GBDT_FM_Hybrid,2026-03-15 14:49:59,2026-03-15 14:51:55,0.1212,0.9787,0.7598,0.8555,0.9935
