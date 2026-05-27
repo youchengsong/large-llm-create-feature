@@ -163,7 +163,7 @@ knowfeat/
 
 ### Phase 5: 可解释性 + 模型选择
 
-- [ ] **5.1 output/provenance.py** — Provenance Card
+- [x] **5.1 output/provenance.py** — Provenance Card
   - 从 generate_feature 的参数自动生成溯源卡片
   - 格式：feature_name / description / knowledge_source / data_fields / dimension / risk_logic
 
