@@ -89,7 +89,7 @@ knowfeat/
   - 计算 delta-recall, delta-F1, precision
   - 通过条件：delta_recall > 0 AND precision >= 0.90
 
-- [ ] **1.7 search/forward_selection.py** — 前向选择
+- [x] **1.7 search/forward_selection.py** — 前向选择
   - 从候选池中贪心搜索：逐个加入，delta_recall > 0 → 接受
   - 每轮末尾执行
 
