@@ -140,7 +140,7 @@ knowfeat/
   - 记录每个失败特征：名称、代码、失败原因、轮次
   - 每轮注入最近 N 条到 prompt
 
-- [ ] **3.4 search/cross_dim.py** — 跨维度传播
+- [x] **3.4 search/cross_dim.py** — 跨维度传播
   - 高分特征信息（名称、代码、指标、SHAP rank）传播到其他维度
   - 每轮更新传播列表
 
