@@ -95,7 +95,7 @@ knowfeat/
 
 ### Phase 2: LLM 交互层
 
-- [ ] **2.1 llm/client.py** — LLM 接口
+- [x] **2.1 llm/client.py** — LLM 接口
   - OpenAI 兼容接口（DeepSeek / GPT / 其他）
   - Function Calling 支持（tools 定义 + 响应解析）
   - 重试 + 错误处理
