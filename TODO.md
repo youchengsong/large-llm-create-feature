@@ -100,7 +100,7 @@ knowfeat/
   - Function Calling 支持（tools 定义 + 响应解析）
   - 重试 + 错误处理
 
-- [ ] **2.2 prompt/domain_knowledge.py** — 领域知识加载
+- [x] **2.2 prompt/domain_knowledge.py** — 领域知识加载
   - 解析 风险分类表_38指标.xlsx → 4 维度 × 8 风险类文本
   - 解析 检测规则_15条.xlsx → 规则文本 + Python 代码示例
   - 硬编码 8 种交易模式描述
