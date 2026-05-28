@@ -1,0 +1,153 @@
+{
+  "source": "13_Beosin2025虚拟资产反洗钱报告",
+  "risk_factors": [
+    {
+      "pattern": "跑分平台批量控制个人账户接收和转移涉诈资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "大量个人账户在短时间内接收来自同一来源的资金",
+        "账户间资金转移频率高且金额呈比例分成",
+        "账户数量与交易量异常增长"
+      ],
+      "data_hint": "address, from_address, to_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "地下钱庄利用虚拟货币进行跨境资金转移",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从境内地址快速转移至境外地址",
+        "交易涉及多个国家或地区的IP地址",
+        "资金在短时间内经过多层地址流转"
+      ],
+      "data_hint": "address, from_address, to_address, amount, timestamp, ip_country, transaction_chain"
+    },
+    {
+      "pattern": "混币器（如Tornado Cash）打断资金链条追踪",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金流入混币合约地址",
+        "混币后资金分散至多个新地址",
+        "混币前后地址关联性低"
+      ],
+      "data_hint": "address, to_address, contract_address, amount, timestamp, transaction_graph"
+    },
+    {
+      "pattern": "高频小额交易模式规避监管",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额低于阈值（如1万美元）",
+        "交易频率显著高于正常用户",
+        "短时间内大量小额交易"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, address"
+    },
+    {
+      "pattern": "夜间集中转账行为",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在夜间（如0:00-6:00）",
+        "夜间交易量占全天比例异常高",
+        "夜间交易频率显著高于白天"
+      ],
+      "data_hint": "timestamp, hour_of_day, address, amount"
+    },
+    {
+      "pattern": "资金快速流转（入账后短时间内转出）",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内（如1小时内）转出",
+        "资金在账户中停留时间极短",
+        "转出金额与入账金额接近"
+      ],
+      "data_hint": "timestamp, from_address, to_address, amount, holding_time"
+    },
+    {
+      "pattern": "多层级转账链条掩盖资金来源",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过3层以上地址转移",
+        "每层地址数量增加",
+        "最终地址与初始地址无直接关联"
+      ],
+      "data_hint": "transaction_chain, address, from_address, to_address, depth"
+    },
+    {
+      "pattern": "USDT作为主要洗钱媒介",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "交易中USDT占比异常高",
+        "USDT交易金额与涉诈资金规模匹配",
+        "USDT交易频率高于其他代币"
+      ],
+      "data_hint": "token_symbol, amount, transaction_count, address"
+    },
+    {
+      "pattern": "跑分平台多层级组织架构（平台方→代理→跑分人员）",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "地址间存在层级关系",
+        "上级地址向下级地址分配资金",
+        "下级地址向上级地址返还分成"
+      ],
+      "data_hint": "address, from_address, to_address, amount, timestamp, network_graph"
+    },
+    {
+      "pattern": "跑分平台按比例分成（通常3%-5%）",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金转移金额与原始金额呈固定比例",
+        "分成比例在3%-5%范围内",
+        "分成交易金额与原始交易金额可匹配"
+      ],
+      "data_hint": "amount, from_address, to_address, ratio, timestamp"
+    },
+    {
+      "pattern": "大量'卡农'提供银行卡和虚拟货币账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一控制人操作",
+        "账户注册信息相似（如IP地址、设备指纹）",
+        "账户间资金频繁互转"
+      ],
+      "data_hint": "address, ip_address, device_id, registration_time, transaction_graph"
+    },
+    {
+      "pattern": "资金在多个跑分平台间快速流转",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从一平台地址转移至另一平台地址",
+        "跨平台转移时间间隔短",
+        "资金在多个平台间循环流转"
+      ],
+      "data_hint": "address, from_address, to_address, amount, timestamp, platform_label"
+    }
+  ]
+}

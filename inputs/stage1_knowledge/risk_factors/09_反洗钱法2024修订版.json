@@ -1,0 +1,50 @@
+{
+  "source": "09_反洗钱法2024修订版",
+  "risk_factors": [
+    {
+      "pattern": "虚拟货币交易中资金来源和去向不明，可能涉及洗钱",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易资金经过多个虚拟货币地址且最终来源或去向无法追踪",
+        "交易链中存在匿名地址或混币服务"
+      ],
+      "data_hint": "from_address, to_address, transaction_hash, amount, timestamp, chain_type"
+    },
+    {
+      "pattern": "金融机构对虚拟货币相关交易的可疑报告缺失或延迟",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "虚拟货币交易金额超过阈值但未触发可疑报告",
+        "同一账户或关联账户频繁进行虚拟货币交易但未被标记"
+      ],
+      "data_hint": "account_id, transaction_type, amount, report_flag, timestamp"
+    },
+    {
+      "pattern": "虚拟货币交易中资金快速流转，试图规避监测",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内大量小额虚拟货币交易",
+        "交易频率异常高且交易时间集中在非正常时段"
+      ],
+      "data_hint": "transaction_count, amount, timestamp, hour_of_day, day_of_week"
+    },
+    {
+      "pattern": "虚拟货币交易涉及多个账户或地址的批量控制",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个虚拟货币地址由同一实体控制或存在关联关系",
+        "多个地址在短时间内向同一地址发送或接收资金"
+      ],
+      "data_hint": "address, cluster_id, transaction_graph, from_address, to_address"
+    }
+  ]
+}

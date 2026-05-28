@@ -1,0 +1,119 @@
+{
+  "source": "12_慢雾2024区块链安全与反洗钱报告",
+  "risk_factors": [
+    {
+      "pattern": "被盗资金从山寨币转换为ETH后，通过多个钱包拆分存入混币器（如Tornado Cash、Thorchain）",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从单一地址拆分为多个地址，每笔金额接近混币器存款阈值",
+        "短时间内多笔小额存款进入同一混币器合约",
+        "存款地址与攻击事件关联地址存在资金流入"
+      ],
+      "data_hint": "amount, from_address, to_address, contract_address, timestamp, transaction_hash"
+    },
+    {
+      "pattern": "资金跨多个区块链网络（Ethereum→Bitcoin→Solana→TRON）桥接转移，以规避单链追踪",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内依次出现在不同区块链的地址上",
+        "跨链桥合约交互频繁，且每次桥接金额较大",
+        "桥接后资金立即被拆分或合并"
+      ],
+      "data_hint": "from_chain, to_chain, bridge_contract_address, amount, timestamp, cross_chain_tx_hash"
+    },
+    {
+      "pattern": "资金经过超过12个钱包地址，跨四个区块链网络，形成分散-聚合模式",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易路径中地址数量超过12个",
+        "资金从多个地址合并到单一地址，或从单一地址分散到多个地址",
+        "地址间交易时间间隔短，形成链式结构"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_graph"
+    },
+    {
+      "pattern": "最终资金通过场外交易（OTC）市场兑换为法币或稳定币，缺乏KYC审查",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从交易所或DeFi平台转入OTC地址",
+        "OTC地址与多个无关联地址有频繁交易",
+        "交易对手方为高风险OTC服务商"
+      ],
+      "data_hint": "to_address, address_tags, transaction_volume, counterparty_risk_score"
+    },
+    {
+      "pattern": "使用混币工具（Tornado Cash、eXch）大幅增加交易复杂性，隐藏资金来源",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "与Tornado Cash或eXch合约交互的存款/提款交易",
+        "存款金额接近混币池标准金额（如0.1, 1, 10, 100 ETH）",
+        "混币器使用量同比增长超过40%"
+      ],
+      "data_hint": "contract_address, amount, timestamp, pool_id, deposit_or_withdraw"
+    },
+    {
+      "pattern": "社会工程学攻击：冒充知名机构通过虚假会议链接诱导下载恶意软件窃取密钥",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "受害者地址在攻击前与冒充机构地址有交互",
+        "恶意域名（如app.us4zoom.us）关联的地址",
+        "攻击后短时间内密钥相关地址出现异常交易"
+      ],
+      "data_hint": "address, domain, phishing_url, malware_hash, victim_address"
+    },
+    {
+      "pattern": "朝鲜IT工作者使用伪造凭证渗透到区块链公司，内部窃取资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "员工地址与公司内部地址有异常资金转移",
+        "员工入职时间与攻击事件时间相关",
+        "员工地址关联多个伪造身份"
+      ],
+      "data_hint": "employee_address, company_wallet, employment_date, transaction_timestamp"
+    },
+    {
+      "pattern": "资金通过跨链桥从Bitcoin网络提取后分散到多个地址再合并，以USDT形式跨链回Ethereum",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "Bitcoin网络提取交易后，资金被分散到多个BTC地址",
+        "多个BTC地址在短时间内将资金合并到一个地址",
+        "合并后地址发起跨链桥交易转换为USDT"
+      ],
+      "data_hint": "from_address, to_address, amount, blockchain, cross_chain_tx, token_type"
+    },
+    {
+      "pattern": "最终资金存入交易所或转移到TRON网络的OTC市场，完成洗钱闭环",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从跨链桥转入交易所存款地址",
+        "交易所地址在短时间内收到大量来自混币器或跨链桥的资金",
+        "资金最终流向TRON网络上的高风险OTC地址"
+      ],
+      "data_hint": "to_address, exchange_address, tron_address, otc_marker, final_destination"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "source": "10_八部门虚拟货币风险通知2026",
+  "risk_factors": [
+    {
+      "pattern": "虚拟货币交易涉及非法金融活动，如非法集资、传销、洗钱等",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易金额呈现小额高频特征",
+        "资金在多个地址间快速流转",
+        "存在多层嵌套的地址链",
+        "同一主体控制多个地址进行交易"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_count, address_cluster"
+    },
+    {
+      "pattern": "利用虚拟货币进行跨境资金转移，规避监管",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易涉及多个国家或地区的IP地址",
+        "资金在短时间内跨多个交易所流转",
+        "交易时间与目标国家工作时间不符",
+        "交易金额接近但不超过跨境申报阈值"
+      ],
+      "data_hint": "ip_address, country_code, exchange_id, amount, timestamp, transaction_path"
+    },
+    {
+      "pattern": "通过虚拟货币交易平台进行非法集资或传销活动",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新注册地址向大量地址发送小额资金",
+        "地址间存在层级结构，类似金字塔模式",
+        "交易频率在特定时间段内急剧增加",
+        "资金最终汇聚到少数几个地址"
+      ],
+      "data_hint": "address_registration_time, transaction_count, amount, from_address, to_address, network_graph"
+    },
+    {
+      "pattern": "利用虚拟货币交易进行洗钱，通过混币服务或隐私币掩盖资金来源",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易涉及已知混币服务地址",
+        "使用隐私币（如Monero、Zcash）进行交易",
+        "资金在多个地址间拆分和合并",
+        "交易路径复杂，存在多跳转"
+      ],
+      "data_hint": "coin_type, mixer_address, transaction_graph, amount, timestamp, address_anonymity_score"
+    },
+    {
+      "pattern": "虚拟货币交易中出现的异常时间模式，如夜间或非工作时间交易",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在当地夜间（0:00-6:00）",
+        "交易时间与正常商业活动时间不符",
+        "交易时间呈现周期性规律",
+        "交易时间与已知犯罪活动时间相关"
+      ],
+      "data_hint": "timestamp, timezone, transaction_hour, day_of_week, user_activity_pattern"
+    },
+    {
+      "pattern": "虚拟货币交易中出现的金额异常模式，如规避大额报告阈值",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "交易金额频繁接近但不超过报告阈值（如10000美元等值）",
+        "同一地址在短时间内进行多笔接近阈值的交易",
+        "交易金额呈现整数或模式化特征",
+        "交易金额与市场行情明显偏离"
+      ],
+      "data_hint": "amount, threshold_currency, transaction_count, amount_pattern, market_price"
+    },
+    {
+      "pattern": "虚拟货币交易中出现的账户关联异常，如批量注册或控制多个地址",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个地址在短时间内从同一IP地址注册",
+        "多个地址共享相同的身份信息或设备指纹",
+        "地址之间存在频繁的资金往来",
+        "地址控制权集中在少数实体手中"
+      ],
+      "data_hint": "ip_address, device_fingerprint, registration_time, address_cluster, shared_identity"
+    }
+  ]
+}

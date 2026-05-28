@@ -1,0 +1,57 @@
+{
+  "source": "07_北京8亿虚拟币地下钱庄案",
+  "risk_factors": [
+    {
+      "pattern": "境内外团伙勾结，利用虚拟币进行跨境资金转移",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易对手地址涉及境外IP或境外注册交易所",
+        "交易时间与境内境外工作时间交叉",
+        "资金从境内地址流向境外地址"
+      ],
+      "data_hint": "address, counterparty_address, ip_country, exchange_registration, timestamp"
+    },
+    {
+      "pattern": "利用虚拟币将职务侵占赃款洗白，通过地下钱庄运作",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金来源地址与已知的职务侵占案件关联地址有关联",
+        "资金经过多层地址转移（如3层以上）后进入交易所",
+        "交易金额与职务侵占案发金额相近"
+      ],
+      "data_hint": "address, transaction_graph, amount, case_related_address_list"
+    },
+    {
+      "pattern": "跨省市大规模资金转移网络，涉及全国十余个省市",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "交易地址分布在多个省市",
+        "短时间内从多个省市地址向同一地址汇聚资金",
+        "交易金额总和超过8亿元"
+      ],
+      "data_hint": "address, geographic_location, amount, timestamp, transaction_network"
+    },
+    {
+      "pattern": "地下钱庄运作模式，通过虚拟币进行大额资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔交易金额接近但不超过交易所大额报告阈值",
+        "交易频率异常高，短时间内大量交易",
+        "资金在多个地址间快速流转后归集"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, address_degree"
+    }
+  ]
+}

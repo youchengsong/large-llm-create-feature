@@ -1,0 +1,77 @@
+{
+  "source": "01_洪湖抢红包虚拟币洗钱案",
+  "risk_factors": [
+    {
+      "pattern": "通过虚假贷款诱导受害人进入微信群，以微信红包形式接收赃款并秒抢",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "受害人向特定群内发送红包后立即被多个账户抢走",
+        "红包在极短时间内（如秒级）被抢光",
+        "群内红包发送与抢红包行为存在明显诱导模式"
+      ],
+      "data_hint": "transaction_type, timestamp, sender_address, receiver_address, amount, group_id"
+    },
+    {
+      "pattern": "将赃款化整为零，通过多个微信红包分散转移资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个红包金额较小但总金额较大",
+        "短时间内大量小额红包发送",
+        "红包金额分布呈现规律性（如固定金额）"
+      ],
+      "data_hint": "amount, transaction_count, time_window, sender_address"
+    },
+    {
+      "pattern": "使用30余个微信群批量控制账户，形成多层级分工体系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人关联多个微信群",
+        "群内账户存在招募、抢红包、归集、兑换等不同角色",
+        "账户间存在层级关系（如车队长-群主-抢手-归集-兑换）"
+      ],
+      "data_hint": "group_id, account_id, role_label, relationship_graph, parent_account"
+    },
+    {
+      "pattern": "资金归集后兑换为虚拟货币并转入冷钱包，实现跨境转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个红包账户汇总至少数归集账户",
+        "归集账户向虚拟货币兑换平台发起大额交易",
+        "兑换后虚拟货币转入冷钱包地址（长期未交易）"
+      ],
+      "data_hint": "transaction_flow, amount, exchange_address, wallet_type, last_active_time"
+    },
+    {
+      "pattern": "作案周期短（两个月），资金转移速度快",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内（如两个月）完成大量资金转移",
+        "交易频率在特定时间段内显著升高",
+        "夜间或非工作时间交易活跃"
+      ],
+      "data_hint": "timestamp, transaction_frequency, time_of_day, date_range"
+    },
+    {
+      "pattern": "通过虚假贷款诱导受害人进入微信群，形成诈骗-洗钱链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "受害人账户在进入群前有贷款申请行为",
+        "群内存在诱导性话术或链接",
+        "资金从受害人账户流向群内多个抢红包账户"
+      ],
+      "data_hint": "user_behavior_log, message_content, link_click, transaction_origin"
+    }
+  ]
+}

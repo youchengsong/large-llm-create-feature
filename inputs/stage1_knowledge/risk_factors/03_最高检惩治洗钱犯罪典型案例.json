@@ -1,0 +1,125 @@
+{
+  "source": "03_最高检惩治洗钱犯罪典型案例",
+  "risk_factors": [
+    {
+      "pattern": "利用公司账户接收、转账、取现方式转移受贿款，并通过签订虚假工程合同掩饰资金来源",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "公司账户接收大额资金后短期内频繁转账取现",
+        "资金流向与合同业务背景不符",
+        "合同金额与交易流水高度匹配但无实际业务活动"
+      ],
+      "data_hint": "transaction_type, amount, counterparty, contract_info, business_activity_flag"
+    },
+    {
+      "pattern": "大额取现后通过柜台先取后存方式隐匿资金流向",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔或累计取现金额超过阈值（如2404万元）",
+        "同一账户或关联账户在短时间内先取现后存款",
+        "取现与存款金额相近且时间间隔短"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, account_id, cash_flow_direction"
+    },
+    {
+      "pattern": "使用多个关联账户进行大额转账，隐匿资金流转关系",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间资金频繁互转",
+        "账户间转账金额较大且无合理商业理由",
+        "账户开户时间集中或共用联系方式/IP地址"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, account_metadata, network_relationships"
+    },
+    {
+      "pattern": "通过虚拟货币（比特币）将资金转移至境外，利用比特币矿工换取密钥",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转账给虚拟货币矿工或交易所",
+        "交易后短时间内获取比特币密钥",
+        "密钥发送至境外地址或IP",
+        "交易金额与比特币市场价格对应"
+      ],
+      "data_hint": "transaction_type, counterparty_type, amount, cryptocurrency_address, ip_address, timestamp"
+    },
+    {
+      "pattern": "开立多个银行账户供他人使用，提供网银U盾协助资金转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人开立多个银行账户（如6个）",
+        "账户实际控制人与开户人不一致",
+        "账户接收资金后快速通过本票或网银转出",
+        "提供U盾等控制工具给他人"
+      ],
+      "data_hint": "account_owner, account_opening_info, device_id, transaction_type, amount, counterparty"
+    },
+    {
+      "pattern": "使用毒资购买房产并代持、注册公司投资、购买理财产品进行洗钱",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "大额资金流入后用于购买房产但产权登记在他人名下",
+        "注册公司但无实际经营或经营异常",
+        "购买理财产品后短期内赎回或转让",
+        "资金来源与个人收入水平不匹配"
+      ],
+      "data_hint": "transaction_type, amount, asset_type, ownership_record, business_registration, investment_product"
+    },
+    {
+      "pattern": "提供银行账户接收贪污受贿款项后购买房产、车位、理财产品",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收大额资金后短期内用于购置不动产或理财产品",
+        "资金流入与流出金额高度匹配",
+        "账户交易模式与正常工资收入不符"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, asset_purchase_type, income_profile"
+    },
+    {
+      "pattern": "混用工资卡进行大额资金转移，模糊合法与非法资金来源",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "工资卡账户出现与工资收入不符的大额交易",
+        "工资卡与多个外部账户频繁转账",
+        "交易时间与正常工资发放周期不一致"
+      ],
+      "data_hint": "account_type, amount, transaction_frequency, timestamp, income_pattern"
+    },
+    {
+      "pattern": "柜台先取后存方式（取现后立即存入其他账户）切断资金追踪链条",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一人或关联人在柜台取现后短时间内（如数小时内）在其他网点或账户存款",
+        "取现金额与存款金额相近",
+        "取现和存款操作涉及不同银行或账户"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, branch_location, account_id, cash_flow_sequence"
+    }
+  ]
+}

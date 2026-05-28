@@ -1,0 +1,55 @@
+{
+  "source": "05_江苏检察院涉虚拟货币犯罪办案要点",
+  "risk_factors": [
+    {
+      "pattern": "通过拆分、打散虚拟货币掩饰资金来源",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔大额交易被拆分为多笔小额交易",
+        "同一地址在短时间内向多个地址发送等额或近似等额的虚拟货币",
+        "交易金额呈现整数倍或规律性拆分模式"
+      ],
+      "data_hint": "amount, from_address, to_address, timestamp, transaction_count"
+    },
+    {
+      "pattern": "利用虚拟货币匿名化特性切断链上身份与现实身份关联",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一现实身份控制多个链上地址",
+        "地址之间无直接交易关系但存在间接关联（如共享IP、设备指纹）",
+        "新创建地址接收资金后立即转移"
+      ],
+      "data_hint": "address, ip_address, device_id, transaction_graph, creation_time"
+    },
+    {
+      "pattern": "利用虚拟货币全球化特点进行跨境资金转移",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易涉及多个国家或地区的交易所地址",
+        "资金在短时间内跨越多个司法管辖区",
+        "交易时间与目标地区工作时间或监管薄弱时段吻合"
+      ],
+      "data_hint": "from_address, to_address, exchange_geolocation, timestamp, transaction_route"
+    },
+    {
+      "pattern": "利用去中心化特性增加资金追踪难度",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过多个中间地址（超过3层）",
+        "使用混币服务或隐私币进行交易",
+        "交易路径呈现复杂网状结构而非简单链式"
+      ],
+      "data_hint": "transaction_graph, address_hop_count, mixer_usage, privacy_coin_flag"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "source": "06_湖南衡阳特大虚拟币洗钱案",
+  "risk_factors": [
+    {
+      "pattern": "搭建多层级虚拟币交易网络进行洗钱",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "虚拟币交易经过3层以上地址",
+        "交易路径中存在明显的层级结构",
+        "资金从底层地址汇聚到高层地址"
+      ],
+      "data_hint": "from_address, to_address, transaction_chain_depth, value, token_type"
+    },
+    {
+      "pattern": "利用跑分模式为境外诈骗团伙洗钱",
+      "dimension": [
+        "金额频次",
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内大量小额交易频繁发生",
+        "交易时间集中在夜间或非正常时段",
+        "交易对手地址分散且数量众多",
+        "资金来源地址与境外诈骗团伙关联"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_count, time_of_day, jurisdiction"
+    },
+    {
+      "pattern": "组织化程度高，多人协同控制大量账户进行洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个地址由同一控制人操作",
+        "地址之间存在批量注册或关联特征",
+        "账户间交易模式高度相似",
+        "大量地址在短时间内被激活并参与交易"
+      ],
+      "data_hint": "address_cluster, registration_time, transaction_pattern_similarity, address_count_per_cluster"
+    },
+    {
+      "pattern": "涉案金额巨大，资金分散转移以规避监管",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额接近但不超过监管阈值",
+        "总交易金额巨大但单笔金额较小",
+        "资金在多个地址间快速分散转移"
+      ],
+      "data_hint": "amount, transaction_count, amount_distribution, threshold_proximity"
+    },
+    {
+      "pattern": "串并大量电信诈骗案件，资金流向具有跨案关联性",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一地址或地址集群关联多起电信诈骗案件",
+        "资金从不同诈骗案件汇聚到同一洗钱网络",
+        "交易链中存在与已知诈骗地址的交互"
+      ],
+      "data_hint": "case_id, address, transaction_chain, cross_case_address_overlap"
+    }
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "source": "11_广东区块链异常交易团体标准",
+  "risk_factors": [
+    {
+      "pattern": "短时间内高频次交易，可能用于制造虚假交易量或清洗资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单位时间内交易次数超过阈值",
+        "交易间隔极短"
+      ],
+      "data_hint": "timestamp, address, transaction_count_per_minute"
+    },
+    {
+      "pattern": "交易金额接近但不超过特定阈值，规避大额交易报告要求",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额接近阈值但未超过",
+        "多笔金额相近且略低于阈值"
+      ],
+      "data_hint": "amount, threshold_value"
+    },
+    {
+      "pattern": "交易金额分布异常，如整数金额或特定模式金额频繁出现",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "金额为整数或重复数字",
+        "金额分布不符合正常交易规律"
+      ],
+      "data_hint": "amount, amount_pattern"
+    },
+    {
+      "pattern": "在非正常时间段（如深夜）进行大量交易，规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在凌晨或非工作时间",
+        "交易时间与用户所在时区不符"
+      ],
+      "data_hint": "timestamp, timezone, hour_of_day"
+    },
+    {
+      "pattern": "交易时间呈现周期性规律，可能为自动化洗钱程序操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易间隔时间固定",
+        "交易时间点呈现周期性重复"
+      ],
+      "data_hint": "timestamp, interval_between_transactions"
+    },
+    {
+      "pattern": "与大量不同对手进行交易，形成分散资金流入或流出模式",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单一地址与大量不同地址发生交易",
+        "对手地址数量超过正常阈值"
+      ],
+      "data_hint": "from_address, to_address, counterparty_count"
+    },
+    {
+      "pattern": "资金经过多层地址转移，意图混淆资金来源和去向",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过3层以上地址",
+        "交易链长度超过正常值"
+      ],
+      "data_hint": "from_address, to_address, transaction_chain_depth"
+    },
+    {
+      "pattern": "账户行为异常，如休眠账户突然活跃或频繁更换地址",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "长期休眠账户突然发生大额交易",
+        "同一实体频繁创建新地址并转移资金"
+      ],
+      "data_hint": "address, first_active_time, last_active_time, address_creation_frequency"
+    },
+    {
+      "pattern": "交易金额呈现结构化拆分，将大额资金拆分为多笔小额交易",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "大额资金被拆分为多笔小额交易",
+        "拆分后金额总和接近原始大额资金"
+      ],
+      "data_hint": "amount, transaction_count, total_amount"
+    },
+    {
+      "pattern": "交易对手中存在已知高风险地址或黑名单地址",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "与制裁名单、暗网市场或混币器地址发生交易",
+        "交易对手地址被标记为高风险"
+      ],
+      "data_hint": "from_address, to_address, blacklist_flag, risk_score"
+    }
+  ]
+}

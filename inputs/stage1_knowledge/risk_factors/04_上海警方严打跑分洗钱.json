@@ -1,0 +1,102 @@
+{
+  "source": "04_上海警方严打跑分洗钱",
+  "risk_factors": [
+    {
+      "pattern": "网络平台抢红包方式：通过虚假兼职招募参与者，在群组内抢诈骗所得红包并转账给固定收款人，按比例分成",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一群组内多个账户同时抢红包并迅速转出",
+        "转账金额接近固定比例（如5%）",
+        "资金从多个分散账户集中流向固定收款人",
+        "参与账户存在虚假兼职招募关联"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, group_id, transaction_chain"
+    },
+    {
+      "pattern": "实物交易方式：使用诈骗资金购买黄金、贵金属等实物后转售套现，或要求受害人购买实物黄金邮寄到指定地点",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金大量用于购买黄金、贵金属等实物商品",
+        "购买后短时间内转售或变现",
+        "资金流向与实物交易平台关联",
+        "受害人账户出现异常大额实物购买并邮寄至陌生地址"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, merchant_category, shipping_address"
+    },
+    {
+      "pattern": "虚拟物品交易方式：在二手平台或短视频网站以低价代充幌子，使用涉诈资金完成游戏充值、话费充值等业务洗白资金",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户频繁进行游戏充值、话费充值等虚拟物品交易",
+        "充值金额与涉诈资金入账时间高度吻合",
+        "充值价格明显低于官方标准价格",
+        "多个充值账户关联同一卖家或平台账号"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, merchant_category, platform_id, user_id"
+    },
+    {
+      "pattern": "批量账户控制：犯罪分子控制大量账户用于跑分操作，实现资金分散转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备或IP地址登录多个账户",
+        "多个账户注册时间集中、信息相似",
+        "账户间存在资金循环或交叉转账",
+        "账户活跃时间短、交易模式一致"
+      ],
+      "data_hint": "address, device_id, ip_address, registration_time, transaction_graph"
+    },
+    {
+      "pattern": "高频小额交易：跑分人员通过大量小额交易规避监管阈值",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额接近但不超过监管阈值",
+        "短时间内交易频次显著高于正常用户",
+        "交易金额分布呈现规律性（如固定金额区间）",
+        "累计交易金额与账户余额不匹配"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, cumulative_amount"
+    },
+    {
+      "pattern": "夜间集中转账：跑分活动多在夜间进行以规避监测",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在深夜至凌晨时段",
+        "夜间交易量占全天交易量比例异常高",
+        "夜间交易金额显著高于白天",
+        "夜间交易模式与正常用户行为差异大"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_volume, amount"
+    },
+    {
+      "pattern": "跑分人员按比例提成：参与者按固定比例（约5%）获取报酬，形成稳定资金流",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "转账金额与接收金额存在固定比例关系（如5%）",
+        "资金流转路径中频繁出现固定比例扣减",
+        "账户收入与支出金额存在规律性差额",
+        "提成比例在不同交易中保持一致"
+      ],
+      "data_hint": "amount, from_address, to_address, transaction_fee, ratio"
+    }
+  ]
+}

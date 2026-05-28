@@ -1,0 +1,69 @@
+{
+  "source": "08_四川USDT黄金跨境洗钱案",
+  "risk_factors": [
+    {
+      "pattern": "虚拟币与实物黄金的跨介质转换洗钱模式",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短时间内同一地址或关联地址将大量USDT兑换为实物黄金",
+        "USDT交易后立即出现大额黄金购买记录",
+        "虚拟币交易与黄金交易在时间上高度关联"
+      ],
+      "data_hint": "交易类型（tx_type）、交易对手（counterparty）、金额（amount）、时间戳（timestamp）、地址（address）"
+    },
+    {
+      "pattern": "虚拟币-黄金-现金三阶段洗钱闭环",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金在虚拟币、黄金、现金三种资产形态间依次转移",
+        "同一主体或关联主体在虚拟币交易所、黄金交易平台、现金兑换点之间形成闭环路径",
+        "资金流向呈现虚拟币→黄金→现金的链式结构"
+      ],
+      "data_hint": "交易类型（tx_type）、交易对手（counterparty）、资产类型（asset_type）、地址（address）、关联账户（related_accounts）"
+    },
+    {
+      "pattern": "利用黄金高价值密度进行跨境资金转移",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "大额USDT交易后短时间内出现跨境黄金运输或交易记录",
+        "黄金交易金额与USDT交易金额高度匹配（如32万USDT对应4千克黄金）",
+        "交易涉及不同国家或地区的虚拟币交易所和黄金交易平台"
+      ],
+      "data_hint": "金额（amount）、时间戳（timestamp）、地理位置（geo_location）、交易对手（counterparty）、资产类型（asset_type）"
+    },
+    {
+      "pattern": "大额USDT与黄金交易金额的精确匹配",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "USDT交易金额与黄金交易金额在数值上高度一致或成比例",
+        "单笔或累计USDT交易金额达到黄金购买门槛（如32万USDT）",
+        "黄金交易数量与USDT金额的换算关系固定（如8万USDT/千克黄金）"
+      ],
+      "data_hint": "金额（amount）、交易数量（quantity）、资产类型（asset_type）、交易对（trading_pair）"
+    },
+    {
+      "pattern": "电信诈骗赃款通过虚拟币洗白",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从电信诈骗相关地址流入虚拟币交易所",
+        "虚拟币地址与已知诈骗地址存在交易关联",
+        "资金在虚拟币交易所内快速转换为USDT并转出"
+      ],
+      "data_hint": "地址（address）、交易对手（counterparty）、交易类型（tx_type）、风险标签（risk_label）、时间戳（timestamp）"
+    }
+  ]
+}

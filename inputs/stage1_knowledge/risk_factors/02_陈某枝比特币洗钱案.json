@@ -1,0 +1,81 @@
+{
+  "source": "02_陈某枝比特币洗钱案",
+  "risk_factors": [
+    {
+      "pattern": "将大额资金通过个人银行账户转移至上游犯罪人账户",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔大额转账金额接近300万元",
+        "资金从个人账户流向关联犯罪人账户"
+      ],
+      "data_hint": "amount, from_address, to_address, transaction_type"
+    },
+    {
+      "pattern": "出售资产（车辆）获取现金后通过虚拟货币渠道转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短期内出售高价值资产获得90余万元",
+        "卖车所得资金全部转入虚拟货币交易对手"
+      ],
+      "data_hint": "amount, transaction_type, asset_type, timestamp"
+    },
+    {
+      "pattern": "通过微信群等社交渠道联系比特币矿工进行场外交易",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "与矿工进行点对点转账",
+        "交易对手为虚拟货币矿工或场外交易商",
+        "使用社交平台联系交易"
+      ],
+      "data_hint": "from_address, to_address, counterparty_type, communication_channel"
+    },
+    {
+      "pattern": "将资金转账给矿工换取比特币密钥并发送至境外",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金流向矿工地址后立即生成比特币密钥",
+        "密钥被发送至境外IP或地址",
+        "交易涉及跨境资金转移"
+      ],
+      "data_hint": "amount, timestamp, ip_address, geographic_location, wallet_address"
+    },
+    {
+      "pattern": "利用比特币密钥实现跨境资金转移，规避传统银行监管",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转换为虚拟货币后密钥被发送至境外",
+        "无传统跨境汇款记录",
+        "使用匿名化虚拟货币钱包"
+      ],
+      "data_hint": "wallet_address, transaction_hash, ip_address, geographic_location"
+    },
+    {
+      "pattern": "洗钱资金来源于集资诈骗等金融犯罪所得",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金来源账户与集资诈骗案件关联",
+        "洗钱金额与上游犯罪金额存在比例关系",
+        "资金流转路径涉及多个中间账户"
+      ],
+      "data_hint": "from_address, to_address, amount, case_id, suspicious_flag"
+    }
+  ]
+}
