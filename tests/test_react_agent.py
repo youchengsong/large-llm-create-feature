@@ -224,7 +224,7 @@ class TestReactAgentTermination:
         mock_llm.chat.assert_called_once()
 
     def test_budget_exhaustion(self, agent, mock_llm, tool_ctx):
-        """生成的特征数达到预算时终止。"""
+        """验证次数达到预算时终止。"""
         generate_resp = _tool_response([
             ("generate_feature", {
                 "feature_name": "feat_1",
@@ -236,12 +236,26 @@ class TestReactAgentTermination:
                 "data_fields_used": ["amount"],
             }),
         ])
+        sandbox_resp = _tool_response([
+            ("execute_sandbox", {"feature_name": "feat_1"}),
+        ])
         done_resp = _text_response("完成。")
 
-        mock_llm.chat.side_effect = [generate_resp, done_resp]
-        tool_ctx.execute = MagicMock(
-            return_value=json.dumps({"status": "registered", "feature_name": "feat_1"})
-        )
+        mock_llm.chat.side_effect = [generate_resp, sandbox_resp, done_resp]
+
+        def mock_execute(name, args):
+            if name == "generate_feature":
+                return json.dumps({"status": "registered", "feature_name": "feat_1"})
+            if name == "execute_sandbox":
+                return json.dumps({
+                    "feature_name": "feat_1",
+                    "stage_reached": "L2",
+                    "accepted": False,
+                    "summary": "L2 失败: IV too low",
+                })
+            return json.dumps({"error": "unknown"})
+
+        tool_ctx.execute = MagicMock(side_effect=mock_execute)
 
         result = agent.run_round(round_num=1, dimension="金额频次", budget=1)
 
@@ -595,7 +609,7 @@ class TestReactAgentDynamicInjection:
 
 class TestReactAgentFullFlow:
     def test_explore_then_generate_then_execute(self, agent, mock_llm, tool_ctx):
-        """完整流程：探索 → 生成 → 验证 → 完成。"""
+        """完整流程：探索 → 生成(自动验证) → 完成。"""
         explore_resp = _tool_response([
             ("explore_data", {"code": "tx_df['amount'].describe()"})
         ])
@@ -606,10 +620,11 @@ class TestReactAgentFullFlow:
             "explanation": "t", "reasoning": "t",
             "knowledge_source": "t", "data_fields_used": ["amount"],
         })])
-        exec_resp = _tool_response([("execute_sandbox", {"feature_name": "feat_flow"})])
         done_resp = _text_response("本轮特征探索完成。")
 
-        mock_llm.chat.side_effect = [explore_resp, gen_resp, exec_resp, done_resp]
+        # generate_feature now auto-triggers execute_sandbox, so Agent
+        # no longer needs a separate execute_sandbox call
+        mock_llm.chat.side_effect = [explore_resp, gen_resp, done_resp]
 
         call_order = []
         def mock_execute(name, args):
@@ -631,14 +646,15 @@ class TestReactAgentFullFlow:
 
         result = agent.run_round(round_num=1, dimension="金额频次", budget=5)
 
+        # generate_feature triggers auto execute_sandbox
         assert call_order == ["explore_data", "generate_feature", "execute_sandbox"]
         assert result.n_generated == 1
         assert result.n_accepted == 1
         assert result.terminated_reason == "agent_completed"
-        assert result.steps == 4
+        assert result.steps == 3
 
     def test_multiple_features_in_round(self, agent, mock_llm, tool_ctx):
-        """单轮生成多个特征。"""
+        """单轮生成多个特征（generate_feature 自动触发验证）。"""
         responses = []
         for i in range(3):
             responses.append(_tool_response([("generate_feature", {
@@ -648,7 +664,6 @@ class TestReactAgentFullFlow:
                 "explanation": "t", "reasoning": "t",
                 "knowledge_source": "t", "data_fields_used": [],
             })]))
-            responses.append(_tool_response([("execute_sandbox", {"feature_name": f"feat_{i}"})]))
         responses.append(_text_response("完成。"))
 
         mock_llm.chat.side_effect = responses

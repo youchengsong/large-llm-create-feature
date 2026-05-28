@@ -208,10 +208,11 @@ Agent 在每一步先思考 → 调用工具 → 根据观测决定下一步。�
 
 ### 8.3 自动模型选择与训练
 
-特征生成完成后，系统根据数据特性从 ModelSet 的 11 个候选模型中自动选择最优模型：
+特征生成完成后，系统全量运行 ModelSet 的 11 个候选模型，基于数据特征与模型表现的关联分析自动推荐最优模型：
 - 候选：catboost, ga2m, scorecard, acxgb, wav_xgb, ensemble, lgbm, resample_boost, gbdt_fm, dnn_res, mlp
-- 选择依据：数据规模、特征类型、类别不平衡程度等
-- 使用 5-fold StratifiedKFold CV 评估各模型表现，自动选取最优模型进行训练和推理
+- 流程：全量 11 模型 5-fold StratifiedKFold CV → 汇总指标 → 分析数据特征（样本量、不平衡比、特征维度、特征类型分布）与各模型表现的关联 → 推荐最优模型
+- 选择标准：Recall 最高（Precision ≥ 90% 约束）
+- 输出：模型对比表 + 推荐理由（数据特征 → 模型适配分析）
 
 ## 9. 实验设计
 

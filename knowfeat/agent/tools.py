@@ -30,7 +30,7 @@ from knowfeat.verification.statistics import (
 
 logger = logging.getLogger(__name__)
 
-EXPLORE_TIMEOUT = 15
+EXPLORE_TIMEOUT = 30
 EXPLORE_OUTPUT_MAX_CHARS = 4000
 
 # ---------------------------------------------------------------------------
@@ -241,48 +241,12 @@ class ToolContext:
         if not code.strip():
             return json.dumps({"error": "代码不能为空"}, ensure_ascii=False)
 
-        namespace: dict[str, Any] = {
-            "pd": pd,
-            "open_df": self.data.open_df,
-            "tx_df": self.data.tx_df,
-            "close_df": self.data.close_df,
-            "baseline_features": self.data.baseline_features,
-        }
-        try:
-            import numpy as np
-            namespace["np"] = np
-        except ImportError:
-            pass
-
-        stdout_buf = io.StringIO()
-        stderr_buf = io.StringIO()
-        result_value = None
-
-        try:
-            compiled = compile(code, "<explore>", "exec")
-            with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
-                exec(compiled, namespace)
-            last_expr = _try_eval_last_line(code, namespace)
-            if last_expr is not None:
-                result_value = last_expr
-        except Exception as exc:
-            return json.dumps(
-                {"error": f"代码执行错误: {exc}"},
-                ensure_ascii=False,
-            )
-
-        output_parts = []
-        stdout_text = stdout_buf.getvalue().strip()
-        if stdout_text:
-            output_parts.append(stdout_text)
-        if result_value is not None:
-            output_parts.append(str(result_value))
-
-        output = "\n".join(output_parts) if output_parts else "(无输出)"
-        if len(output) > EXPLORE_OUTPUT_MAX_CHARS:
-            output = output[:EXPLORE_OUTPUT_MAX_CHARS] + "\n... [输出截断]"
-
-        return json.dumps({"output": output}, ensure_ascii=False)
+        result = _run_explore_in_process(
+            code, self.data.open_df, self.data.tx_df,
+            self.data.close_df, self.data.baseline_features,
+            timeout=EXPLORE_TIMEOUT,
+        )
+        return json.dumps(result, ensure_ascii=False)
 
     # ------------------------------------------------------------------
     # generate_feature
@@ -523,6 +487,64 @@ class ToolContext:
 # ---------------------------------------------------------------------------
 # 内部辅助函数
 # ---------------------------------------------------------------------------
+
+def _explore_worker(code, open_df, tx_df, close_df, baseline_features, result_queue):
+    """Worker function for explore_data, runs in a subprocess via multiprocessing."""
+    import numpy as np
+
+    namespace = {
+        "pd": pd,
+        "np": np,
+        "open_df": open_df,
+        "tx_df": tx_df,
+        "close_df": close_df,
+        "baseline_features": baseline_features,
+    }
+    stdout_buf = io.StringIO()
+    stderr_buf = io.StringIO()
+
+    try:
+        compiled = compile(code, "<explore>", "exec")
+        with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
+            exec(compiled, namespace)
+        last_expr = _try_eval_last_line(code, namespace)
+
+        output_parts = []
+        stdout_text = stdout_buf.getvalue().strip()
+        if stdout_text:
+            output_parts.append(stdout_text)
+        if last_expr is not None:
+            output_parts.append(str(last_expr))
+
+        output = "\n".join(output_parts) if output_parts else "(无输出)"
+        if len(output) > EXPLORE_OUTPUT_MAX_CHARS:
+            output = output[:EXPLORE_OUTPUT_MAX_CHARS] + "\n... [输出截断]"
+        result_queue.put({"output": output})
+    except Exception as exc:
+        result_queue.put({"error": f"代码执行错误: {exc}"})
+
+
+def _run_explore_in_process(code, open_df, tx_df, close_df, baseline_features, timeout=30):
+    """Run explore_data code in a child process with hard timeout."""
+    import multiprocessing
+    ctx = multiprocessing.get_context("fork")
+    result_queue = ctx.Queue()
+    proc = ctx.Process(
+        target=_explore_worker,
+        args=(code, open_df, tx_df, close_df, baseline_features, result_queue),
+    )
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.kill()
+        proc.join(timeout=5)
+        return {"error": f"explore_data 执行超时（>{timeout}s），请简化代码或减少数据量"}
+
+    if not result_queue.empty():
+        return result_queue.get_nowait()
+    return {"error": f"explore_data 执行异常（进程退出码={proc.exitcode}）"}
+
 
 def _try_eval_last_line(code: str, namespace: dict[str, Any]) -> Any:
     """尝试对代码最后一行求值，如果是表达式则返回其值。"""

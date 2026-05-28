@@ -521,10 +521,11 @@ class TestMisc:
 class TestRunPublic:
     def test_calls_stages(self):
         with patch("knowfeat.main.load_config", return_value=_cfg()):
-            with patch("knowfeat.main.load_stage2", return_value=_data()):
-                with patch("knowfeat.main.load_domain_knowledge", return_value=_dk()):
-                    with patch("knowfeat.main.run_stage", return_value=StageResult(stage="s2")):
-                        with patch("knowfeat.main.save_results"):
-                            from knowfeat.main import run
-                            r = run(stage="stage2")
-                            assert r.stage == "s2"
+            with patch("knowfeat.main._ensure_knowledge_extracted"):
+                with patch("knowfeat.main.load_stage2", return_value=_data()):
+                    with patch("knowfeat.main.load_domain_knowledge", return_value=_dk()):
+                        with patch("knowfeat.main.run_stage", return_value=StageResult(stage="s2")):
+                            with patch("knowfeat.main.save_results"):
+                                from knowfeat.main import run
+                                r = run(stage="stage2")
+                                assert r.stage == "s2"

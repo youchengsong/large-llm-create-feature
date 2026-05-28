@@ -25,7 +25,7 @@ from knowfeat.prompt.builder import (
 
 logger = logging.getLogger(__name__)
 
-MAX_STEPS_PER_ROUND = 30
+MAX_STEPS_PER_ROUND = 100
 MAX_L1_REPAIRS = 2
 
 
@@ -122,6 +122,7 @@ class ReactAgent:
 
         tool_specs = self.tool_ctx.get_tool_specs()
         l1_repair_counts: dict[str, int] = {}
+        n_validated = 0
 
         for step in range(1, MAX_STEPS_PER_ROUND + 1):
             result.steps = step
@@ -161,9 +162,54 @@ class ReactAgent:
                         result.features_generated.append(fname)
                         logger.info("特征已注册: %s", fname)
 
+                        # Auto-trigger execute_sandbox after registration.
+                        # Append the verification result to the existing
+                        # tool result so the LLM sees it without breaking
+                        # the message format (tool results must follow
+                        # a tool_calls message).
+                        logger.info("自动触发验证: %s", fname)
+                        sandbox_obs = self.tool_ctx.execute(
+                            "execute_sandbox", {"feature_name": fname},
+                        )
+                        # Replace the last tool-result message with a
+                        # combined registration + verification result.
+                        combined = (
+                            observation
+                            + "\n\n--- 自动验证结果 ---\n"
+                            + sandbox_obs
+                        )
+                        messages[-1] = LLMClient.make_tool_result_message(
+                            tc.id, combined,
+                        )
+
+                        obs = _parse_observation(sandbox_obs)
+                        n_validated += 1
+
+                        if obs.get("accepted"):
+                            result.n_accepted += 1
+                            result.features_accepted.append(fname)
+                        elif obs.get("stage_reached") == "L1" and not obs.get("accepted"):
+                            repair_count = l1_repair_counts.get(fname, 0)
+                            if repair_count < MAX_L1_REPAIRS:
+                                l1_repair_counts[fname] = repair_count + 1
+                                repair_msg = _build_repair_message(fname, obs)
+                                messages.append(
+                                    {"role": "user", "content": repair_msg}
+                                )
+                                logger.info(
+                                    "L1 失败 → 自动修复 (%d/%d): %s",
+                                    repair_count + 1, MAX_L1_REPAIRS, fname,
+                                )
+                        elif not obs.get("accepted") and obs.get("note"):
+                            result.n_candidates += 1
+
                 if tc.name == "execute_sandbox":
                     fname = tc.arguments.get("feature_name", "")
+                    if fname in result.features_generated:
+                        logger.info("跳过重复验证: %s (已自动验证)", fname)
+                        continue
                     obs = _parse_observation(observation)
+                    n_validated += 1
 
                     if obs.get("accepted"):
                         result.n_accepted += 1
@@ -183,11 +229,11 @@ class ReactAgent:
                     elif not obs.get("accepted") and obs.get("note"):
                         result.n_candidates += 1
 
-            if result.n_generated >= budget:
+            if n_validated >= budget:
                 result.terminated_reason = "budget_exhausted"
                 logger.info(
-                    "预算用完 (generated=%d, budget=%d)",
-                    result.n_generated, budget,
+                    "预算用完 (generated=%d, validated=%d, budget=%d)",
+                    result.n_generated, n_validated, budget,
                 )
                 break
         else:

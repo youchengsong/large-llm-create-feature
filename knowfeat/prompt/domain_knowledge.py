@@ -60,6 +60,9 @@ class DomainKnowledge:
     # Stage 1 风险因子（JSON 文件列表）
     stage1_risk_factors: list[dict] = field(default_factory=list)
 
+    # Stage 2 裁判文书提取的风险因子
+    court_doc_risk_factors: list[dict] = field(default_factory=list)
+
 
 # ── 1. 风险分类表 38 指标 ──────────────────────────────────────────────────
 
@@ -496,6 +499,34 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def format_court_doc_risk_factors(factors: list[dict]) -> str:
+    """将裁判文书提取的风险因子格式化为 Markdown 文本。"""
+    if not factors:
+        return "## 裁判文书风险因子: 未加载\n"
+
+    total_rf = sum(len(doc.get("risk_factors", [])) for doc in factors)
+    lines = [f"## 裁判文书洗钱风险因子（{len(factors)} 份文书, {total_rf} 个因子）\n"]
+    for doc in factors:
+        source = doc.get("source", "未知来源")
+        lines.append(f"### 来源: {source}\n")
+        for rf in doc.get("risk_factors", []):
+            pattern = rf.get("pattern", "")
+            dims = rf.get("dimension", [])
+            signals = rf.get("observable_signals", [])
+            hint = rf.get("data_hint", "")
+
+            lines.append(f"- **模式**: {pattern}")
+            if dims:
+                lines.append(f"  - 维度: {', '.join(dims)}")
+            if signals:
+                lines.append(f"  - 信号: {' | '.join(signals)}")
+            if hint:
+                lines.append(f"  - 数据提示: {hint}")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
 # ── 6. 顶层加载 ──────────────────────────────────────────────────────────
 
 def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
@@ -523,12 +554,15 @@ def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
     if cfg.stage == "stage1":
         dk.stage1_risk_factors = load_stage1_risk_factors(paths.stage1_risk_factors_dir)
 
+    if cfg.stage == "stage2":
+        dk.court_doc_risk_factors = load_stage1_risk_factors(paths.stage2_risk_factors_dir)
+
     logger.info(
         "Domain knowledge loaded: %d indicators, %d rules, %d patterns, "
-        "expert=%d chars, stage1_factors=%d files",
+        "expert=%d chars, stage1_factors=%d files, court_doc_factors=%d files",
         len(dk.risk_indicators), len(dk.detection_rules),
         len(dk.transaction_patterns), len(dk.expert_opinion),
-        len(dk.stage1_risk_factors),
+        len(dk.stage1_risk_factors), len(dk.court_doc_risk_factors),
     )
     return dk
 
@@ -555,6 +589,8 @@ def format_domain_knowledge(dk: DomainKnowledge, stage: str = "stage2") -> str:
         sections.append(format_detection_rules(dk.detection_rules))
         sections.append(format_transaction_patterns(dk.transaction_patterns))
         sections.append(format_expert_opinion(dk.expert_opinion))
+        if dk.court_doc_risk_factors:
+            sections.append(format_court_doc_risk_factors(dk.court_doc_risk_factors))
     elif stage == "stage1":
         sections.append(format_stage1_risk_factors(dk.stage1_risk_factors))
 

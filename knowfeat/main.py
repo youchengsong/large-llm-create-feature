@@ -25,6 +25,7 @@ from knowfeat.agent.tools import ToolContext
 from knowfeat.config import KnowFeatConfig, load_config
 from knowfeat.data.loader import Stage2Data, get_label_series, load_stage2
 from knowfeat.data.schema_stats import generate_all_schema_text
+from knowfeat.extractor.key_clue_extractor import run_extraction
 from knowfeat.llm.client import LLMClient
 from knowfeat.prompt.builder import (
     CrossDimExample,
@@ -413,6 +414,51 @@ def save_results(result: StageResult, output_dir: Path) -> dict[str, Path]:
 
 
 # ---------------------------------------------------------------------------
+# Key-clue Extraction (run once, cached)
+# ---------------------------------------------------------------------------
+
+def _has_cached_risk_factors(directory: Path) -> bool:
+    """Check if the directory already contains extracted JSON files."""
+    if not directory.exists():
+        return False
+    return any(directory.glob("*.json"))
+
+
+def _ensure_knowledge_extracted(cfg: KnowFeatConfig) -> None:
+    """Run Key-clue Extraction if structured risk factors are missing.
+
+    - Stage 1: extract from ``inputs/stage1_knowledge/`` docs
+    - Stage 2: extract from ``裁判文书docx/`` (309 court documents)
+
+    Results are cached as JSON files; subsequent runs skip extraction.
+    """
+    if cfg.stage == "stage1":
+        output_dir = cfg.paths.stage1_risk_factors_dir
+        input_dir = cfg.paths.stage1_knowledge_dir
+    else:
+        output_dir = cfg.paths.stage2_risk_factors_dir
+        input_dir = cfg.paths.court_docs_dir
+
+    if _has_cached_risk_factors(output_dir):
+        logger.info(
+            "Key-clue Extraction 缓存已存在 (%s)，跳过提取", output_dir,
+        )
+        return
+
+    if not input_dir.exists():
+        logger.warning(
+            "知识源目录不存在: %s，跳过 Key-clue Extraction", input_dir,
+        )
+        return
+
+    logger.info(
+        "Key-clue Extraction 开始: %s → %s", input_dir, output_dir,
+    )
+    run_extraction(cfg, input_dir=input_dir, output_dir=output_dir)
+    logger.info("Key-clue Extraction 完成")
+
+
+# ---------------------------------------------------------------------------
 # Public entry point
 # ---------------------------------------------------------------------------
 
@@ -436,6 +482,9 @@ def run(stage: str = "stage2", **config_overrides) -> StageResult:
         force=True,
     )
     logger.info("KnowFeat 启动 (stage=%s)", stage)
+
+    # -- Key-clue Extraction（首次运行时自动提取，有缓存则跳过）--------
+    _ensure_knowledge_extracted(cfg)
 
     data = load_stage2(cfg=cfg)
     domain_knowledge = load_domain_knowledge(cfg)

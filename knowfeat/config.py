@@ -47,6 +47,9 @@ class PathConfig:
     stage1_knowledge_dir: Path = PROJECT_ROOT / "inputs" / "stage1_knowledge"
     stage1_risk_factors_dir: Path = PROJECT_ROOT / "inputs" / "stage1_knowledge" / "risk_factors"
 
+    # Stage 2 裁判文书提取结果
+    stage2_risk_factors_dir: Path = PROJECT_ROOT / "inputs" / "stage2_knowledge" / "risk_factors"
+
     # 裁判文书
     court_docs_dir: Path = PROJECT_ROOT / "裁判文书docx"
 
@@ -96,7 +99,7 @@ class SearchConfig:
     dimensions: list[str] = field(default_factory=lambda: [
         "金额频次", "时间地域", "行为序列", "主体关联",
     ])
-    initial_budget_per_dim: int = 5
+    initial_budget_per_dim: int = 3
 
     # 失败记忆
     failure_memory_inject_n: int = 10

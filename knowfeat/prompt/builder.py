@@ -139,12 +139,15 @@ _ROLE_STAGE2 = """\
 2. **generate_feature**: 提交特征代码 + 名称 + 维度 + 溯源信息
 3. **execute_sandbox**: 在隔离沙盒中执行代码，触发 L1→L2→L3 三级验证
 
-## 工作流程
+## 工作流程（严格遵守）
 
 1. 阅读数据 Schema 和领域知识，理解哪些维度/信号可能有区分度
 2. 使用 explore_data 探索数据分布，验证假设
 3. 设计特征，使用 generate_feature 提交
-4. 根据 execute_sandbox 的验证结果迭代改进
+4. **立即**调用 execute_sandbox 验证该特征
+5. 根据验证结果迭代改进，然后设计下一个特征
+
+**重要：必须逐个生成和验证！每次 generate_feature 后必须立即调用 execute_sandbox，不要批量注册多个特征后再验证。只有通过验证的特征才计入预算。**
 """
 
 _ROLE_STAGE1 = """\
@@ -166,12 +169,15 @@ _ROLE_STAGE1 = """\
 2. **generate_feature**: 提交特征代码 + 名称 + 维度 + 溯源信息
 3. **execute_sandbox**: 在隔离沙盒中执行代码，触发三级验证
 
-## 工作流程
+## 工作流程（严格遵守）
 
 1. 阅读 BABD-13 Schema 和风险因子，理解可用字段和洗钱模式
 2. 使用 explore_data 探索数据分布，验证假设
 3. 设计特征，使用 generate_feature 提交
-4. 根据验证结果迭代改进
+4. **立即**调用 execute_sandbox 验证该特征
+5. 根据验证结果迭代改进，然后设计下一个特征
+
+**重要：必须逐个生成和验证！每次 generate_feature 后必须立即调用 execute_sandbox，不要批量注册多个特征后再验证。只有通过验证的特征才计入预算。**
 """
 
 
