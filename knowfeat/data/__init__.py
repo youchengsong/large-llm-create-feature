@@ -1,4 +1,5 @@
 from knowfeat.data.loader import (
+    BASELINE_EXCLUDE_FEATURES,
     Stage2Data,
     load_accounts,
     load_baseline_features,
@@ -17,6 +18,7 @@ from knowfeat.data.schema_stats import (
 )
 
 __all__ = [
+    "BASELINE_EXCLUDE_FEATURES",
     "Stage2Data",
     "load_accounts",
     "load_baseline_features",

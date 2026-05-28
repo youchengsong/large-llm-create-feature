@@ -69,7 +69,7 @@ def load_baseline_features(path: Path) -> pd.DataFrame:
     """加载 baseline_cache.parquet → baseline_features。
 
     该 parquet 是 feature_engineering.py 产出的已归一化特征矩阵，
-    每行对应一笔交易，含 106 列（含 is_laundering 标签列）。
+    每行对应一笔交易，含 106 列（含 is_laundering 标签列），实际使用 96 个特征列。
     """
     logger.info("Loading baseline features from %s", path)
     df = pd.read_parquet(path)
@@ -120,9 +120,25 @@ def get_label_series(data: Stage2Data) -> pd.Series:
     return data.tx_df[data.label_col].astype(int)
 
 
+BASELINE_EXCLUDE_FEATURES = {
+    # 标签 / ID 列
+    "is_laundering", "is_risk", "tx_id", "src", "dst",
+    # 以下 10 个特征因数据泄漏或过拟合风险从基线中排除（不删除 parquet 原数据）
+    "Min_Received",
+    "Min_Sent",
+    "S_src_counterparty_index",
+    "Timestamp_Hour",
+    "S_dst_counterparty_index",
+    "1H_frequency_From",
+    "1H_frequency_To",
+    "wallets_per_cert_From",
+    "min_inactive_period_From",
+    "Max_Sent",
+}
+
+
 def get_baseline_feature_names(data: Stage2Data) -> list[str]:
-    """返回基线特征列名（排除标签列）。"""
+    """返回基线特征列名（排除标签列和已排除特征）。"""
     if data.baseline_features is None:
         return []
-    exclude = {"is_laundering", "is_risk", "tx_id", "src", "dst"}
-    return [c for c in data.baseline_features.columns if c not in exclude]
+    return [c for c in data.baseline_features.columns if c not in BASELINE_EXCLUDE_FEATURES]

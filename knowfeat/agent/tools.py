@@ -17,7 +17,7 @@ from typing import Any, Optional
 import pandas as pd
 
 from knowfeat.config import KnowFeatConfig, VerificationConfig
-from knowfeat.data.loader import Stage2Data, get_label_series
+from knowfeat.data.loader import BASELINE_EXCLUDE_FEATURES, Stage2Data, get_label_series
 from knowfeat.llm.client import ToolSpec
 from knowfeat.search.forward_selection import CandidateFeature
 from knowfeat.verification.model_eval import ModelEvalResult, evaluate_feature
@@ -206,6 +206,10 @@ class ToolContext:
             self.baseline_X = data.baseline_features.copy()
         else:
             self.baseline_X = pd.DataFrame(index=self.label.index)
+
+        drop_cols = [c for c in BASELINE_EXCLUDE_FEATURES if c in self.baseline_X.columns]
+        if drop_cols:
+            self.baseline_X = self.baseline_X.drop(columns=drop_cols)
 
         self.registered: dict[str, RegisteredFeature] = {}
         self.accepted_features: dict[str, CandidateFeature] = {}

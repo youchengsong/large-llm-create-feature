@@ -500,28 +500,94 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
 
 
 def format_court_doc_risk_factors(factors: list[dict]) -> str:
-    """将裁判文书提取的风险因子格式化为 Markdown 文本。"""
+    """将裁判文书风险因子按维度聚合去重，生成压缩摘要。
+
+    309 份文书 × ~6 个因子 = ~1920 条，全部展开约 40 万字符。
+    按维度分组 → 信号去重 → 模式聚类，压缩至几千字。
+    """
     if not factors:
         return "## 裁判文书风险因子: 未加载\n"
 
     total_rf = sum(len(doc.get("risk_factors", [])) for doc in factors)
-    lines = [f"## 裁判文书洗钱风险因子（{len(factors)} 份文书, {total_rf} 个因子）\n"]
+
+    dim_patterns: dict[str, list[str]] = {}
+    dim_signals: dict[str, set[str]] = {}
+    dim_hints: dict[str, set[str]] = {}
+
     for doc in factors:
-        source = doc.get("source", "未知来源")
-        lines.append(f"### 来源: {source}\n")
         for rf in doc.get("risk_factors", []):
-            pattern = rf.get("pattern", "")
+            pattern = rf.get("pattern", "").strip()
             dims = rf.get("dimension", [])
             signals = rf.get("observable_signals", [])
-            hint = rf.get("data_hint", "")
+            hint = rf.get("data_hint", "").strip()
 
-            lines.append(f"- **模式**: {pattern}")
-            if dims:
-                lines.append(f"  - 维度: {', '.join(dims)}")
-            if signals:
-                lines.append(f"  - 信号: {' | '.join(signals)}")
-            if hint:
-                lines.append(f"  - 数据提示: {hint}")
+            if not dims:
+                dims = ["其他"]
+            for dim in dims:
+                dim_patterns.setdefault(dim, []).append(pattern)
+                dim_signals.setdefault(dim, set()).update(
+                    s.strip() for s in signals if s.strip()
+                )
+                if hint:
+                    for h in hint.split(","):
+                        h = h.strip()
+                        if h:
+                            dim_hints.setdefault(dim, set()).add(h)
+
+    def _cluster_patterns(patterns: list[str], max_clusters: int = 15) -> list[tuple[str, int]]:
+        """按前 20 字符粗聚类，每簇取最短的作为代表。"""
+        from collections import defaultdict
+        buckets: dict[str, list[str]] = defaultdict(list)
+        for p in patterns:
+            key = p[:20]
+            buckets[key].append(p)
+        clusters = []
+        for _key, members in buckets.items():
+            rep = min(members, key=len)
+            clusters.append((rep, len(members)))
+        clusters.sort(key=lambda x: -x[1])
+        return clusters[:max_clusters]
+
+    dim_order = ["金额频次", "时间地域", "行为序列", "主体关联"]
+    lines = [
+        f"## 裁判文书洗钱风险因子摘要"
+        f"（{len(factors)} 份文书, {total_rf} 个因子, 按维度聚合去重）\n"
+    ]
+
+    for dim in dim_order:
+        if dim not in dim_patterns:
+            continue
+        pats = dim_patterns[dim]
+        sigs = dim_signals.get(dim, set())
+        hints = dim_hints.get(dim, set())
+
+        lines.append(f"### {dim}（{len(pats)} 个因子）\n")
+
+        clusters = _cluster_patterns(pats)
+        lines.append("**典型模式**:")
+        for rep, cnt in clusters:
+            lines.append(f"- {rep}（{cnt} 案）")
+
+        if sigs:
+            sig_list = sorted(sigs)
+            lines.append(f"\n**可观测信号**（{len(sig_list)} 个去重）:")
+            for s in sig_list[:30]:
+                lines.append(f"- {s}")
+            if len(sig_list) > 30:
+                lines.append(f"- ...（另有 {len(sig_list) - 30} 个信号）")
+
+        if hints:
+            lines.append(f"\n**相关数据字段**: {', '.join(sorted(hints)[:20])}")
+
+        lines.append("")
+
+    remaining = set(dim_patterns.keys()) - set(dim_order)
+    for dim in sorted(remaining):
+        pats = dim_patterns[dim]
+        lines.append(f"### {dim}（{len(pats)} 个因子）\n")
+        clusters = _cluster_patterns(pats, max_clusters=5)
+        for rep, cnt in clusters:
+            lines.append(f"- {rep}（{cnt} 案）")
         lines.append("")
 
     return "\n".join(lines)
