@@ -1,0 +1,68 @@
+{
+  "source": "106余某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "明知资金来源不明仍提供数字钱包收款码接收上游资金并兑换USDT虚拟币",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字钱包收款码接收多笔上游资金",
+        "接收资金后立即向上线提供USDT虚拟币",
+        "交易对手为上线而非随机买家"
+      ],
+      "data_hint": "address, amount, timestamp, counterparty_address, transaction_type"
+    },
+    {
+      "pattern": "通过数字钱包进行虚拟货币场外交易以逃避监管",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用数字钱包而非交易所平台进行资金结算",
+        "通过微信群私下联系交易而非公开市场",
+        "交易价格偏离市场汇率（如美元下跌时仍低价买入高价卖出）"
+      ],
+      "data_hint": "wallet_type, platform, transaction_price, market_price, communication_channel"
+    },
+    {
+      "pattern": "短期内交易金额巨大且只赚不亏，呈现有目的倒卖特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短期累计交易金额巨大",
+        "所有交易均盈利无亏损",
+        "交易频率高（几百到几千笔）"
+      ],
+      "data_hint": "amount, profit_loss, transaction_count, time_window"
+    },
+    {
+      "pattern": "收到赃款后银行卡被冻结，仍继续从事虚拟货币场外交易",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡曾被反诈中心冻结",
+        "解冻后继续在微信群发布出售虚拟币广告",
+        "持续进行低价买入高价卖出操作"
+      ],
+      "data_hint": "account_freeze_history, transaction_continuity, behavior_after_freeze"
+    },
+    {
+      "pattern": "同一日内接收多笔资金，其中包含电信诈骗被害人资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一日接收多笔资金",
+        "部分资金来自电信诈骗被害人",
+        "资金接收时间与诈骗时间重叠"
+      ],
+      "data_hint": "amount, timestamp, victim_address, transaction_group"
+    }
+  ]
+}

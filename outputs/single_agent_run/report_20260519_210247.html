@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单Agent特征工程 - 运行报告</title>
+<style>
+:root {
+    --bg: #f0f4f8; --card: #fff; --border: #e2e8f0;
+    --text: #1a202c; --muted: #718096;
+    --blue: #4299e1; --green: #48bb78; --red: #fc8181;
+    --purple: #9f7aea; --orange: #ed8936;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+.container { max-width:1280px; margin:0 auto; padding:32px 24px; }
+header { margin-bottom:32px; }
+header h1 { font-size:26px; margin-bottom:4px; }
+header p { color:var(--muted); font-size:14px; }
+
+.grid { display:grid; gap:16px; margin-bottom:32px; }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+
+.card { background:var(--card); border-radius:12px; padding:20px; box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.card-sm { text-align:center; }
+.card-sm .num { font-size:36px; font-weight:800; line-height:1.2; }
+.card-sm .label { font-size:12px; color:var(--muted); margin-top:4px; }
+.num.blue { color:var(--blue); }
+.num.green { color:var(--green); }
+.num.red { color:var(--red); }
+.num.purple { color:var(--purple); }
+.num.orange { color:var(--orange); }
+
+section { margin-bottom:36px; }
+section h2 { font-size:18px; margin-bottom:14px; padding-bottom:8px; border-bottom:2px solid var(--blue); }
+
+/* Metric bars */
+.metric-row { display:flex; align-items:center; margin-bottom:12px; gap:12px; }
+.metric-label { width:80px; font-size:13px; font-weight:600; }
+.metric-bars { flex:1; }
+.bar-wrap { display:flex; align-items:center; margin-bottom:3px; gap:8px; }
+.bar-tag { font-size:11px; width:36px; color:var(--muted); }
+.bar { height:22px; border-radius:4px; display:flex; align-items:center; padding:0 8px; font-size:11px; color:#fff; font-weight:600; min-width:60px; transition:width .8s ease; }
+.bar-bl { background:var(--blue); }
+.bar-cb { background:var(--green); }
+.metric-delta { font-size:12px; font-weight:600; margin-left:8px; }
+.positive { color:#2f855a; }
+.negative { color:#c53030; }
+
+/* Table */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th,td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+th { background:#f7fafc; font-weight:600; position:sticky; top:0; }
+tr:hover { background:#f7fafc; }
+.error { color:var(--red); font-size:12px; }
+.mono { font-family:monospace; font-size:12px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; background:#ebf4ff; color:#2b6cb0; }
+.tool { display:inline-block; padding:1px 6px; border-radius:4px; font-size:10px; background:#ebf8ff; color:#2c5282; font-family:monospace; margin:1px; }
+
+/* Dimensions */
+.dim-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.dim-item { display:flex; align-items:center; gap:6px; padding:6px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border); }
+.dim-name { font-size:13px; }
+.dim-count { background:var(--blue); color:#fff; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
+
+/* Collapsible */
+details { margin-bottom:12px; }
+details summary { cursor:pointer; font-weight:600; font-size:14px; padding:8px 0; }
+details[open] summary { color:var(--blue); }
+
+.scroll-table { max-height:500px; overflow-y:auto; border-radius:8px; border:1px solid var(--border); }
+
+@media(max-width:768px) {
+    .grid-4 { grid-template-columns: 1fr 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .container { padding:16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+    <h1>单Agent特征工程 — 运行报告</h1>
+    <p>模型: deepseek-chat | 耗时: 16433秒 | 数据: 1,384,512条交易, 100,000个钱包 | 正样本率: 0.324%</p>
+</header>
+
+<!-- Summary Cards -->
+<div class="grid grid-4">
+    <div class="card card-sm"><div class="num blue">3</div><div class="label">接受特征</div></div>
+    <div class="card card-sm"><div class="num red">40</div><div class="label">失败特征</div></div>
+    <div class="card card-sm"><div class="num purple">393</div><div class="label">Agent步数</div></div>
+    <div class="card card-sm"><div class="num orange">8</div><div class="label">探索维度</div></div>
+    <div class="card card-sm"><div class="num green">3</div><div class="label">有效新特征</div></div>
+</div>
+
+<!-- Performance Comparison -->
+<section>
+<h2>性能对比 (5-Fold Stratified CV)</h2>
+<div class="card">
+    <div class="metric-row">
+        <div class="metric-label">F1</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:94.5%">0.9450</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:94.8%">0.9478</div><span class="metric-delta positive">(+0.00285)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">Recall</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:90.4%">0.9041</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:91.1%">0.9108</div><span class="metric-delta positive">(+0.00669)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">Precision</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:99.0%">0.9900</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:98.8%">0.9882</div><span class="metric-delta negative">(-0.00184)</span></div>
+        </div>
+    </div>
+    <div class="metric-row">
+        <div class="metric-label">PR-AUC</div>
+        <div class="metric-bars">
+            <div class="bar-wrap"><span class="bar-tag">基线</span><div class="bar bar-bl" style="width:0.0%">0.0000</div></div>
+            <div class="bar-wrap"><span class="bar-tag">组合</span><div class="bar bar-cb" style="width:0.0%">0.0000</div><span class="metric-delta positive">(+0.00000)</span></div>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- Dimensions -->
+<section>
+<h2>特征维度分布</h2>
+<div class="dim-grid"><div class="dim-item"><span class="dim-name">金额频次</span><span class="dim-count">1</span></div><div class="dim-item"><span class="dim-name">时间地域</span><span class="dim-count">1</span></div><div class="dim-item"><span class="dim-name">行为序列</span><span class="dim-count">1</span></div></div>
+</section>
+
+<!-- Accepted Features Table -->
+<section>
+<h2>接受的特征 (3)</h2>
+<div class="scroll-table">
+<table>
+    <thead><tr><th>#</th><th>名称</th><th>维度</th><th>说明</th><th>IV</th><th>KS</th><th>冗余</th><th>dF1</th><th>dRecall</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><strong>amount_concentration_pattern</strong></td>
+            <td><span class="badge">金额频次</span></td>
+            <td title="该特征检测钱包中交易金额是否集中在特定值附近。洗钱交易常因以下原因导致金额集中：(1)日累计额度控制——四类钱包洗钱中金额集中在限额附近；(2)佣金抽成——商户洗钱中转出金额=转入金额×(1-佣金率)；(3)拆分转出——大额拆分为多笔相同金额。通过分析金额在100/500/1000元整数倍上的集中度以及金额变异系数，综合评估金额集中模式。">该特征检测钱包中交易金额是否集中在特定值附近。洗钱交易常因以下原因导致金额集中：(1)日累计额度控制</td>
+            <td>0.0329</td>
+            <td>0.0815</td>
+            <td>0.079</td>
+            <td class="positive">0.000598</td>
+            <td class="positive">0.002901</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><strong>region_night_risk_score</strong></td>
+            <td><span class="badge">时间地域</span></td>
+            <td title="该特征结合钱包所在region的风险水平和夜间交易倾向。高风险region中异常交易的夜间占比11.78%（正常仅3.78%），夜间交易在特定高风险region中更具洗钱嫌疑。特征通过夜间交易占比乘以region风险加权系数，综合凌晨和深夜交易比例来计算风险分数。">该特征结合钱包所在region的风险水平和夜间交易倾向。高风险region中异常交易的夜间占比11.</td>
+            <td>0.0236</td>
+            <td>0.0641</td>
+            <td>0.558</td>
+            <td class="positive">0.000833</td>
+            <td class="positive">0.001783</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><strong>fan_in_without_single_pattern</strong></td>
+            <td><span class="badge">行为序列</span></td>
+            <td title="该特征检测钱包是否使用fan_in（资金汇聚）但从不使用single（单笔交易）。异常钱包"有fan_in但无single"的比例18.5%（正常0.6%），差异30倍！正常钱包通常有single模式，而洗钱钱包使用fan_in进行资金汇聚但从不使用single。特征综合有fan_in、无single、有fan_out等模式组合来量化风险。">该特征检测钱包是否使用fan_in（资金汇聚）但从不使用single（单笔交易）。异常钱包"有fan</td>
+            <td>0.0103</td>
+            <td>0.0380</td>
+            <td>0.415</td>
+            <td class="positive">0.001418</td>
+            <td class="positive">0.002006</td>
+        </tr></tbody>
+</table>
+</div>
+</section>
+
+<!-- Feature Code Details (collapsible) -->
+<section>
+<h2>特征代码详情</h2>
+<details>
+<summary>amount_concentration_pattern — 该特征检测钱包中交易金额是否集中在特定值附近。洗钱交易常因以下原因导致金额集中：</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">def feature_amount_concentration_pattern(open_df, tx_df, close_df):
+    """
+    金额集中度模式 — 检测钱包中金额是否集中在特定值附近
+    洗钱交易常因限额控制（如日累计额度）或佣金抽成导致金额集中在特定值附近，
+    而正常交易的金额分布更分散。
+    """
+    import pandas as pd
+    import numpy as np
+    from collections import Counter
+    
+    df = tx_df[['src', 'amount']].copy()
+    
+    # 对金额取整到不同粒度
+    df['amount_round_100'] = (df['amount'] / 100).round() * 100
+    df['amount_round_500'] = (df['amount'] / 500).round() * 500
+    df['amount_round_1000'] = (df['amount'] / 1000).round() * 1000
+    
+    def compute_concentration(group):
+        """计算金额集中度指标"""
+        n = len(group)
+        if n &lt; 3:
+            return 0.0
+        
+        # 1. 金额在百元整数倍上的集中度
+        top1_100 = group['amount_round_100'].value_counts().iloc[0] if len(group['amount_round_100']) &gt; 0 else 0
+        conc_100 = top1_100 / n
+        
+        # 2. 金额在500元整数倍上的集中度
+        top1_500 = group['amount_round_500'].value_counts().iloc[0] if len(group['amount_round_500']) &gt; 0 else 0
+        conc_500 = top1_500 / n
+        
+        # 3. 金额在1000元整数倍上的集中度
+        top1_1000 = group['amount_round_1000'].value_counts().iloc[0] if len(group['amount_round_1000']) &gt; 0 else 0
+        conc_1000 = top1_1000 / n
+        
+        # 4. 金额的变异系数（越小说明金额越集中）
+        cv = group['amount'].std() / (group['amount'].mean() + 0.01)
+        cv_score = 1 / (1 + cv)  # CV越小，分数越高
+        
+        # 综合集中度分数
+        score = 0.3 * conc_100 + 0.3 * conc_500 + 0.2 * conc_1000 + 0.2 * cv_score
+        return min(score, 1.0)
+    
+    # 按src分组计算
+    grp = df.groupby('src')
+    result = grp.apply(compute_concentration).reset_index()
+    result.columns = ['wallet_id', 'amount_concentration_pattern']
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 从分布差异发现：异常交易中regular_large_low_freq占比69.7%（正常59.9%），且异常交易金额中位数17410.54（正常10660.80）。领域知识提到"四类钱包洗钱：利用限额特征进行资金清洗，存在明显的日累计额度控制特征"以及"商户洗钱：伴随一定佣金抽成特征"。该特征通过分析钱包内金额的集中度模式——是否大量交易集中在某个特定金额附近（如日限额、佣金比例后的金额），来识别洗钱行为。</p>
+</details><details>
+<summary>region_night_risk_score — 该特征结合钱包所在region的风险水平和夜间交易倾向。高风险region中异常</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">def feature_region_night_risk_score(open_df, tx_df, close_df):
+    """
+    地域夜间风险分数 — 结合钱包所属region的风险水平和夜间交易倾向
+    高风险region中异常交易夜间占比11.78%（正常仅3.78%），
+    夜间交易+高风险region的组合显著提升洗钱概率。
+    """
+    import pandas as pd
+    import numpy as np
+    
+    # 1. 计算每个region的风险水平（基于异常交易占比）
+    src_region = open_df[['wallet_id', 'region_code']].copy()
+    src_region.columns = ['src', 'src_region']
+    tx_with_region = tx_df.merge(src_region, on='src', how='left')
+    
+    # 计算每个region的异常交易率
+    region_risk_rate = tx_with_region.groupby('src_region')['is_risk'].mean().reset_index()
+    region_risk_rate.columns = ['region_code', 'region_risk_rate']
+    
+    # 2. 计算每个钱包的夜间交易占比
+    df = tx_df[['src', 'hour']].copy()
+    df['is_night'] = ((df['hour'] &gt;= 22) | (df['hour'] &lt;= 5)).astype(int)
+    df['is_dawn'] = ((df['hour'] &gt;= 0) & (df['hour'] &lt;= 5)).astype(int)
+    df['is_late_night'] = ((df['hour'] &gt;= 23) | (df['hour'] &lt;= 3)).astype(int)
+    
+    wallet_night = df.groupby('src').agg(
+        night_ratio=('is_night', 'mean'),
+        dawn_ratio=('is_dawn', 'mean'),
+        late_night_ratio=('is_late_night', 'mean'),
+    ).reset_index()
+    wallet_night.columns = ['wallet_id', 'night_ratio', 'dawn_ratio', 'late_night_ratio']
+    
+    # 3. 关联钱包的region
+    wallet_region = open_df[['wallet_id', 'region_code']].copy()
+    wallet_region.columns = ['wallet_id', 'region_code']
+    
+    result = wallet_night.merge(wallet_region, on='wallet_id', how='left')
+    result = result.merge(region_risk_rate, on='region_code', how='left')
+    
+    # 4. 综合分数：夜间交易占比 * (1 + region风险率)
+    result['region_night_risk_score'] = (
+        result['night_ratio'] * (1 + result['region_risk_rate'] * 5) +
+        result['dawn_ratio'] * 0.5 +
+        result['late_night_ratio'] * 0.3
+    )
+    
+    result = result[['wallet_id', 'region_night_risk_score']]
+    
+    return result
+
+result = feature_region_night_risk_score(open_df, tx_df, close_df)</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 从分布差异发现：高风险region中异常交易夜间占比11.78%（正常仅3.78%），差异3倍。领域知识提到"高风险场景交易"和"交易地域与账户常用地严重不符"是重要风险指标。该特征计算每个钱包所在region的夜间交易倾向，结合region本身的风险水平——如果钱包在高风险region且在夜间大量交易，风险极高。</p>
+</details><details>
+<summary>fan_in_without_single_pattern — 该特征检测钱包是否使用fan_in（资金汇聚）但从不使用single（单笔交易）</summary>
+<pre style="background:#1a202c;color:#e2e8f0;padding:12px;border-radius:8px;overflow-x:auto;font-size:12px;margin-top:8px;">def feature_fan_in_without_single_pattern(open_df, tx_df, close_df):
+    """
+    有fan_in无single模式 — 检测钱包是否使用fan_in但从不使用single
+    异常钱包"有fan_in但无single"的比例18.5%（正常0.6%），差异30倍！
+    洗钱钱包使用fan_in（资金汇聚）但从不使用single（单笔交易）。
+    """
+    import pandas as pd
+    import numpy as np
+    
+    df = tx_df[['src', 'transaction_mode']].copy()
+    
+    # 每个钱包使用的模式集合
+    mode_sets = df.groupby('src')['transaction_mode'].apply(set).reset_index()
+    mode_sets.columns = ['wallet_id', 'mode_set']
+    
+    # 是否有fan_in
+    mode_sets['has_fan_in'] = mode_sets['mode_set'].apply(lambda s: 'fan_in' in s).astype(float)
+    
+    # 是否有single
+    mode_sets['has_single'] = mode_sets['mode_set'].apply(lambda s: 'single' in s).astype(float)
+    
+    # 是否有fan_out
+    mode_sets['has_fan_out'] = mode_sets['mode_set'].apply(lambda s: 'fan_out' in s).astype(float)
+    
+    # 是否有forward
+    mode_sets['has_forward'] = mode_sets['mode_set'].apply(lambda s: 'forward' in s).astype(float)
+    
+    # 是否有many_to_one
+    mode_sets['has_many_to_one'] = mode_sets['mode_set'].apply(lambda s: 'many_to_one' in s).astype(float)
+    
+    # 综合模式风险分数
+    # 高：有fan_in + 无single + 有fan_out
+    # 低：有single
+    score = (
+        0.4 * mode_sets['has_fan_in'] +
+        0.3 * (1 - mode_sets['has_single']) +
+        0.2 * mode_sets['has_fan_out'] +
+        0.1 * mode_sets['has_forward']
+    )
+    
+    result = pd.DataFrame({
+        'wallet_id': mode_sets['wallet_id'],
+        'fan_in_without_single_pattern': score.values
+    })
+    
+    return result
+</pre>
+<p style="margin-top:6px;font-size:12px;color:var(--muted);">推理: 从数据发现：异常钱包"有fan_in但无single"的比例18.5%（正常0.6%），差异30倍！领域知识提到"洗钱交易模式包含扇入、扇出等复杂资金流转模式"、"个人钱包收到大额转入后立即转出"。正常钱包通常有single模式（单笔交易），而洗钱钱包使用fan_in（资金汇聚）但从不使用single模式。该特征检测这种模式组合——有fan_in但无single是强洗钱信号。</p>
+</details>
+</section>
+
+<!-- Failed Features -->
+<section>
+<details>
+<summary>失败的特征 (40个，点击展开)</summary>
+<div class="scroll-table" style="margin-top:8px;">
+<table>
+    <thead><tr><th>名称</th><th>错误原因</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>micro_amount_burst_ratio</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.009149<0.020130</td>
+        </tr>
+        <tr>
+            <td>ip_geo_jump_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.004853<0.020130</td>
+        </tr>
+        <tr>
+            <td>burst_then_disappear_score</td>
+            <td class="error">L2未通过: redundancy=0.7997>=0.7</td>
+        </tr>
+        <tr>
+            <td>non_work_hour_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8948>=0.7</td>
+        </tr>
+        <tr>
+            <td>counterparty_in_out_imbalance</td>
+            <td class="error">L2未通过: KS=0.019776<0.020130</td>
+        </tr>
+        <tr>
+            <td>identity_anomaly_combo_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.002316<0.020130</td>
+        </tr>
+        <tr>
+            <td>level_down_transfer_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7120>=0.7</td>
+        </tr>
+        <tr>
+            <td>counterparty_repeat_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7576>=0.7</td>
+        </tr>
+        <tr>
+            <td>weekday_night_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8900>=0.7</td>
+        </tr>
+        <tr>
+            <td>weekend_dawn_trading_ratio</td>
+            <td class="error">L2未通过: IV=0.003167<0.003826</td>
+        </tr>
+        <tr>
+            <td>work_hour_small_tx_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8186>=0.7</td>
+        </tr>
+        <tr>
+            <td>weekday_late_night_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8786>=0.7</td>
+        </tr>
+        <tr>
+            <td>first_tx_testing_pattern</td>
+            <td class="error">L2未通过: IV=0.001080<0.003826; KS=0.002221<0.020130</td>
+        </tr>
+        <tr>
+            <td>mode_switch_per_tx_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7533>=0.7</td>
+        </tr>
+        <tr>
+            <td>bank_account_attachment_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; redundancy=0.7881>=0.7</td>
+        </tr>
+        <tr>
+            <td>holiday_night_trading_ratio</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.012068<0.020130</td>
+        </tr>
+        <tr>
+            <td>non_continuous_trading_pattern</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.015815<0.020130</td>
+        </tr>
+        <tr>
+            <td>deep_dawn_trading_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7866>=0.7</td>
+        </tr>
+        <tr>
+            <td>dawn_period_trading_ratio</td>
+            <td class="error">L2未通过: redundancy=0.9114>=0.7</td>
+        </tr>
+        <tr>
+            <td>mode_sequence_entropy_norm</td>
+            <td class="error">L2未通过: redundancy=0.7006>=0.7</td>
+        </tr>
+        <tr>
+            <td>last_tx_mode_risk_score</td>
+            <td class="error">L2未通过: IV=0.000065<0.003826; KS=0.001883<0.020130</td>
+        </tr>
+        <tr>
+            <td>normal_motif_absence_score</td>
+            <td class="error">L2未通过: IV=0.000000<0.003826; KS=0.003221<0.020130</td>
+        </tr>
+        <tr>
+            <td>fan_out_amount_consistency</td>
+            <td class="error">L2未通过: redundancy=0.7443>=0.7</td>
+        </tr>
+        <tr>
+            <td>mode_dispersion_score</td>
+            <td class="error">L2未通过: redundancy=0.8136>=0.7</td>
+        </tr>
+        <tr>
+            <td>small_amount_fan_out_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7251>=0.7</td>
+        </tr>
+        <tr>
+            <td>risk_motif_appearance_in_sequence</td>
+            <td class="error">L2未通过: IV=0.000099<0.003826; KS=0.001426<0.020130</td>
+        </tr>
+        <tr>
+            <td>abs_amount_mean_ratio</td>
+            <td class="error">L2未通过: redundancy=0.8852>=0.7</td>
+        </tr>
+        <tr>
+            <td>dead_night_hour_ratio</td>
+            <td class="error">L2未通过: redundancy=0.7830>=0.7</td>
+        </tr>
+        <tr>
+            <td>time_slot_entropy_inverse</td>
+            <td class="error">L2未通过: redundancy=0.8254>=0.7</td>
+        </tr>
+        <tr>
+            <td>normal_motif_diversity_score</td>
+            <td class="error">L2未通过: IV=0.001513<0.003826</td>
+        </tr></tbody>
+</table>
+</div>
+</details>
+</section>
+
+<!-- Agent Steps -->
+<section>
+<details>
+<summary>Agent执行轨迹 (前60步，点击展开)</summary>
+<div class="scroll-table" style="margin-top:8px;">
+<table>
+    <thead><tr><th>步骤</th><th>时间</th><th>思考</th><th>工具调用</th></tr></thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td class="mono">2026-05-19 21:05:18</td>
+            <td>我先深入探索一下数据分布，找出正常和异常之间在金额频次维度上的差异。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td class="mono">2026-05-19 21:05:42</td>
+            <td>非常有价值的发现！让我继续探索更多模式。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td class="mono">2026-05-19 21:06:08</td>
+            <td></td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td class="mono">2026-05-19 21:06:28</td>
+            <td></td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td class="mono">2026-05-19 21:06:41</td>
+            <td>这数据非常清晰！让我设计三个特征：
+
+1. **金额尾数异常度** - 异常交易金额mod100均值非常低(12.13)，而正常为49.43，说明异常交易金额多</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td class="mono">2026-05-19 21:06:42</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td class="mono">2026-05-19 21:08:48</td>
+            <td>第一个特征有区分力但增量不足。现在生成第二个特征：</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td class="mono">2026-05-19 21:08:50</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>9</td>
+            <td class="mono">2026-05-19 21:09:10</td>
+            <td>微量交易占比区分度不足，因为只有少量钱包有这种交易。换一个思路，关注金额的波动模式和间隔的交互特征。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>10</td>
+            <td class="mono">2026-05-19 21:09:29</td>
+            <td></td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>11</td>
+            <td class="mono">2026-05-19 21:09:37</td>
+            <td>异常钱包的金额标准差和均值都更小，但变异系数差异不大。让我看看金额与间隔的交互特征。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>12</td>
+            <td class="mono">2026-05-19 21:09:55</td>
+            <td>非常有趣！异常交易在极短间隔(<60s)下金额非常小(均值117.68)，而正常交易在极短间隔下金额很大(均值32365.36)。这说明：
+- 正常交易的极短间</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>13</td>
+            <td class="mono">2026-05-19 21:09:56</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>14</td>
+            <td class="mono">2026-05-19 21:12:06</td>
+            <td>好，第二个特征也有区分力但增量不足。现在生成第三个特征，这次换个角度，关注金额的离散度和交易motif的组合。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>15</td>
+            <td class="mono">2026-05-19 21:12:08</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>16</td>
+            <td class="mono">2026-05-19 21:15:02</td>
+            <td>好的，现在进入时间地域维度。让我先探索数据分布。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>17</td>
+            <td class="mono">2026-05-19 21:15:20</td>
+            <td>非常有趣！关键发现：
+1. **夜间交易**：异常=17.77%，正常=3.63%（差异巨大！）
+2. **工作时间**：异常=60.62%，正常=85.69%</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>18</td>
+            <td class="mono">2026-05-19 21:15:34</td>
+            <td>数据非常清晰！现在生成第一个时间地域特征：</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>19</td>
+            <td class="mono">2026-05-19 21:15:35</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>20</td>
+            <td class="mono">2026-05-19 21:17:50</td>
+            <td>第一个特征有区分力。现在生成第二个特征，关注IP跳跃和地域变化。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>21</td>
+            <td class="mono">2026-05-19 21:17:51</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>22</td>
+            <td class="mono">2026-05-19 21:18:28</td>
+            <td>IP跳跃特征区分度不足。换个角度，关注时间维度上的交易模式变化。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>23</td>
+            <td class="mono">2026-05-19 21:18:49</td>
+            <td></td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>24</td>
+            <td class="mono">2026-05-19 21:19:10</td>
+            <td>非常显著！异常钱包的小时众数占比0.77（正常0.50），说明异常交易高度集中在特定小时。异常交易的时间跨度仅3.22小时（正常7.23小时），说明交易时间窗口</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>25</td>
+            <td class="mono">2026-05-19 21:19:11</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>26</td>
+            <td class="mono">2026-05-19 21:21:24</td>
+            <td>好，这个特征也有区分力但增量不足。现在生成第三个时间地域特征，换个角度——关注交易时间和地域的交叉特征。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>27</td>
+            <td class="mono">2026-05-19 21:21:38</td>
+            <td>异常交易在高风险region的占比44.5%（正常仅13.7%），差异显著！但region信息本身可能过拟合。换个思路，关注夜间交易+地域的交叉特征。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>28</td>
+            <td class="mono">2026-05-19 21:21:39</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>29</td>
+            <td class="mono">2026-05-19 21:23:42</td>
+            <td>三个时间地域特征都已生成。现在等待下一个维度的指令。</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>30</td>
+            <td class="mono">2026-05-19 21:23:55</td>
+            <td>## 第 2 轮 — 维度: 行为序列(behavior_sequence)
+
+重点探索字段: timestamp, transaction_mode, zs_</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>31</td>
+            <td class="mono">2026-05-19 21:24:18</td>
+            <td>好的，系统要求继续为时间地域维度生成特征。让我重新探索数据，找更有区分度的角度。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>32</td>
+            <td class="mono">2026-05-19 21:24:34</td>
+            <td>非常有趣！异常钱包作为src的活跃天数仅1.3天（正常5天），但交易密度差不多。这说明异常钱包的活跃期很短但很密集。同时异常钱包的unique_src_ips也</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>33</td>
+            <td class="mono">2026-05-19 21:24:42</td>
+            <td></td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>34</td>
+            <td class="mono">2026-05-19 21:24:55</td>
+            <td>非常好！高风险region中，异常交易的夜间占比11.78%，正常仅3.78%。这说明夜间交易+高风险region的组合非常有区分度。现在生成第一个时间地域特征</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>35</td>
+            <td class="mono">2026-05-19 21:24:56</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>36</td>
+            <td class="mono">2026-05-19 21:27:15</td>
+            <td>第二个特征通过了！现在生成第二个时间地域特征，换个角度。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>37</td>
+            <td class="mono">2026-05-19 21:27:29</td>
+            <td>非常显著！异常钱包：
+- 日期跨度：54天（正常130天）— 更短
+- 每日交易密度：0.73笔/天（正常0.29）— 更高
+- 活跃天数：1.73天（正常5.</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>38</td>
+            <td class="mono">2026-05-19 21:27:31</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>39</td>
+            <td class="mono">2026-05-19 21:28:03</td>
+            <td>冗余度过高（与已有特征transaction_frequency_From等重复）。换个完全不同的角度。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>40</td>
+            <td class="mono">2026-05-19 21:28:12</td>
+            <td>IP段维度区分度不足。换个思路，关注交易时间的周模式。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>41</td>
+            <td class="mono">2026-05-19 21:28:24</td>
+            <td>周末差异不大，但非工作时间（周末+夜间）有差异（异常41.8% vs 正常31.1%）。现在生成第三个时间地域特征，用这个角度：</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>42</td>
+            <td class="mono">2026-05-19 21:28:25</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>43</td>
+            <td class="mono">2026-05-19 21:28:53</td>
+            <td>好的，进入行为序列维度。先探索数据。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>44</td>
+            <td class="mono">2026-05-19 21:29:21</td>
+            <td>非常显著！异常钱包：
+- **has_fan_in**：37%（正常13%）— 差异巨大！异常钱包更可能使用fan_in模式（资金汇聚）
+- **mode_sh</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>45</td>
+            <td class="mono">2026-05-19 21:29:41</td>
+            <td>好的，异常钱包：
+- 唯一交易对手：2.47（正常7.12）— 少很多
+- 最大对手占比：25.5%（正常21.8%）— 略高
+- 交易笔数：2.56（正常10</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>46</td>
+            <td class="mono">2026-05-19 21:29:49</td>
+            <td>销户数据样本太小（仅500条），但仍有发现。现在让我看看交易motif的行为序列。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>47</td>
+            <td class="mono">2026-05-19 21:30:03</td>
+            <td>非常有价值的发现！异常钱包：
+- **motif_shift_rate**：78.9%（正常54.2%）— 模式切换更频繁
+- **single_ratio**</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>48</td>
+            <td class="mono">2026-05-19 21:30:05</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>49</td>
+            <td class="mono">2026-05-19 21:32:35</td>
+            <td>有区分力但增量不足。生成第二个行为序列特征。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>50</td>
+            <td class="mono">2026-05-19 21:32:47</td>
+            <td>异常钱包的发送/接收比仅0.41（正常1.30），说明异常钱包更多是接收方而非发送方！这是重要发现。</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>51</td>
+            <td class="mono">2026-05-19 21:32:49</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>52</td>
+            <td class="mono">2026-05-19 21:34:54</td>
+            <td>有区分力但增量不足。现在生成第三个行为序列特征，换个角度——关注交易模式的组合模式。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>53</td>
+            <td class="mono">2026-05-19 21:35:08</td>
+            <td>非常显著的差异！
+- **has_fan_in**：异常20.5%（正常5.3%）— 异常钱包更多使用fan_in
+- **has_single**：异常5.4</td>
+            <td><span class="tool">generate_feature</span> </td>
+        </tr>
+        <tr>
+            <td>54</td>
+            <td class="mono">2026-05-19 21:35:09</td>
+            <td></td>
+            <td><span class="tool">execute_sandbox</span> </td>
+        </tr>
+        <tr>
+            <td>55</td>
+            <td class="mono">2026-05-19 21:37:13</td>
+            <td>三个行为序列特征都已生成。等待下一个维度的指令。</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>56</td>
+            <td class="mono">2026-05-19 21:37:29</td>
+            <td>## 第 3 轮 — 维度: 主体关联(entity_association)
+
+重点探索字段: wallet_open_cert, wallet_open_t</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>57</td>
+            <td class="mono">2026-05-19 21:37:48</td>
+            <td>有趣的发现！异常钱包使用的设备数更少(1.84 vs 4.16)，但每个交易的设备多样性更高(0.365 vs 0.222)。设备共享率低（没有共享设备）。让我</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>58</td>
+            <td class="mono">2026-05-19 21:38:10</td>
+            <td>好的，继续为主体关联维度生成特征。让我先更深入探索数据。</td>
+            <td><span class="tool">explore_data</span> <span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>59</td>
+            <td class="mono">2026-05-19 21:38:26</td>
+            <td>非常有价值的发现！
+- **wallets_per_cert**：异常1.44（正常1.15）— 异常钱包的身份证关联更多钱包
+- **wallets_per_</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr>
+        <tr>
+            <td>60</td>
+            <td class="mono">2026-05-19 21:38:36</td>
+            <td>设备几乎没有共享（每个设备只被一个钱包使用），所以设备共享这条路走不通。
+
+让我看看wallet_open_cert和wallet_open_tel的缺失模式。</td>
+            <td><span class="tool">explore_data</span> </td>
+        </tr></tbody>
+</table>
+</div>
+</details>
+</section>
+
+<!-- Run Info -->
+<section>
+<h2>运行配置</h2>
+<div class="card">
+<table>
+    <tr><td><strong>基线特征数</strong></td><td>95</td><td><strong>新增有效特征</strong></td><td>3</td></tr>
+    <tr><td><strong>Agent总步数</strong></td><td>393</td><td><strong>总尝试次数</strong></td><td>97</td></tr>
+    <tr><td><strong>结束原因</strong></td><td colspan="3">连续2轮无新特征，收敛终止</td></tr>
+</table>
+</div>
+</section>
+
+</div>
+
+<script>
+window.addEventListener('load',()=>{document.querySelectorAll('.bar').forEach(b=>{const w=b.style.width;b.style.width='0%';setTimeout(()=>b.style.width=w,200)})});
+</script>
+</body>
+</html>

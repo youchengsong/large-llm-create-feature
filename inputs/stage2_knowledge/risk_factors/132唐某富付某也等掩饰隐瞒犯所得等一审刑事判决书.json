@@ -1,0 +1,83 @@
+{
+  "source": "132唐某富付某也等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行卡及配套信息用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一银行卡短时间内被多个不同账户转入资金",
+        "银行卡与多个陌生账户存在资金往来",
+        "银行卡密码、身份证、手机、微信账号同时提供给他人使用"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, account_ownership, device_id, phone_number, wechat_id"
+    },
+    {
+      "pattern": "帮助他人从银行卡提取现金以转移犯罪所得",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡入账后短时间内有大额现金取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "取现行为发生在资金入账后立即执行"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, cash_withdrawal_flag, account_balance"
+    },
+    {
+      "pattern": "使用银行卡余额购买数字人民币以隐匿资金流向",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡资金转入数字人民币钱包",
+        "数字人民币购买金额与银行卡入账金额高度相关",
+        "购买行为发生在资金入账后短时间内"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, digital_currency_wallet_address, bank_account_id"
+    },
+    {
+      "pattern": "通过人脸识别辅助完成数字人民币交易以规避身份验证",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内多次触发人脸识别验证",
+        "人脸识别操作与数字人民币购买行为时间上紧密关联",
+        "人脸识别操作由非账户持有人完成"
+      ],
+      "data_hint": "biometric_authentication_event, timestamp, device_id, ip_address, user_id"
+    },
+    {
+      "pattern": "为获取好处费而主动提供银行卡用于他人违法犯罪活动",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡收到来自多个不同来源的转账后立即转出或取现",
+        "账户持有人获得固定比例或固定金额的好处费",
+        "好处费金额与资金流水金额成比例"
+      ],
+      "data_hint": "amount, fee_amount, fee_percentage, transaction_chain, account_relationship"
+    },
+    {
+      "pattern": "银行卡被用于电信诈骗案件的资金收转，单笔涉案金额较大",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡单日流水金额异常高（如10万元以上）",
+        "涉案资金在短时间内集中转入并快速分散转出",
+        "银行卡交易时间集中在电信诈骗高发时段"
+      ],
+      "data_hint": "amount, timestamp, daily_total_flow, number_of_transactions, fraud_case_id"
+    }
+  ]
+}

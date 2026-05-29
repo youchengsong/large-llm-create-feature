@@ -1,0 +1,93 @@
+{
+  "source": "237黄某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行账户接收并转移犯罪所得资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收资金后短时间内取现或转账",
+        "账户持有者与资金来源方无正常业务往来",
+        "多个账户由同一人介绍或控制"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_type, account_holder_relationship"
+    },
+    {
+      "pattern": "通过数字人民币账户和人脸识别认证协助资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用数字人民币账户接收资金后立即转移",
+        "同一设备或IP地址操作多个账户",
+        "人脸识别认证频繁用于非本人账户操作"
+      ],
+      "data_hint": "account_type, authentication_method, device_id, ip_address, transaction_sequence"
+    },
+    {
+      "pattern": "介绍他人提供银行账户给第三方使用以转移犯罪所得",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有者与第三方存在介绍关系",
+        "多个账户被同一介绍人推荐给同一第三方",
+        "账户持有者无正当理由将账户控制权交给他人"
+      ],
+      "data_hint": "account_owner, introducer_id, third_party_id, account_control_transfer"
+    },
+    {
+      "pattern": "小额多次转移资金以规避大额交易监测",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额低于大额交易报告阈值",
+        "短时间内多笔交易累计金额较大",
+        "取现金额分散且频繁"
+      ],
+      "data_hint": "amount, transaction_count, time_window, cumulative_amount"
+    },
+    {
+      "pattern": "资金快速进出账户，停留时间极短",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账后立即转出或取现",
+        "账户余额长期接近零",
+        "交易时间间隔极短"
+      ],
+      "data_hint": "timestamp, amount, balance_before, balance_after, transaction_interval"
+    },
+    {
+      "pattern": "利用他人身份开设银行账户用于接收犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户实际控制人与注册身份不一致",
+        "多个账户注册信息存在关联（如相同手机号、地址）",
+        "账户注册后短期内开始接收异常资金"
+      ],
+      "data_hint": "account_registration_info, actual_controller, linked_accounts"
+    },
+    {
+      "pattern": "犯罪分子通过介绍人联系账户提供者，形成多层委托关系",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转移涉及多个中间人",
+        "介绍人从中获利",
+        "账户提供者与最终资金接收方无直接联系"
+      ],
+      "data_hint": "transaction_chain, intermediary_id, profit_distribution"
+    }
+  ]
+}

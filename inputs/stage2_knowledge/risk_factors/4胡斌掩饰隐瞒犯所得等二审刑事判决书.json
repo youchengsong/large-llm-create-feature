@@ -1,0 +1,130 @@
+{
+  "source": "4胡斌掩饰隐瞒犯所得等二审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包接收不法资金并快速取现，通过ATM机分散提取现金以规避大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包短时间内接收多笔资金后立即提现至银行卡",
+        "同一银行卡在ATM机按2万元额度多次取现",
+        "多张银行卡在短时间内连续取现"
+      ],
+      "data_hint": "wallet_address, amount, timestamp, transaction_type, atm_withdrawal_amount, bank_card_number"
+    },
+    {
+      "pattern": "通过买卖USDT虚拟货币将非法资金转换为虚拟资产，再转移至上游犯罪分子指定账户，实现资金清洗",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入虚拟货币交易平台或场外交易",
+        "大量现金线下购买USDT",
+        "USDT转出至多个陌生地址"
+      ],
+      "data_hint": "transaction_hash, from_address, to_address, amount, token_type, exchange_platform, cash_amount"
+    },
+    {
+      "pattern": "组织团伙成员提供多张银行卡和数字人民币钱包，形成资金接收、分流、取现的层级化操作链条",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一团伙控制多张银行卡和数字人民币钱包",
+        "资金从多个钱包汇总至少数银行卡后取现",
+        "团伙成员分工明确：审核卡主、开立钱包、转账、取现、看管卡主"
+      ],
+      "data_hint": "card_holder_id, bank_card_number, wallet_address, transaction_chain, team_member_role"
+    },
+    {
+      "pattern": "利用老年人等社会群体作为卡主，提供银行卡和身份证件，团伙成员陪同取现并防止卡主私吞资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "卡主年龄偏大（老年人）",
+        "卡主银行卡被他人控制使用",
+        "团伙成员陪同卡主到银行柜台取现"
+      ],
+      "data_hint": "card_holder_age, card_holder_occupation, bank_visit_record, guardian_id"
+    },
+    {
+      "pattern": "使用加密聊天软件（如‘飞机’、‘思密达’）进行团伙内部沟通和指令下达，规避通信监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "聊天记录中使用加密软件",
+        "指令通过加密软件传递资金操作信息",
+        "团伙成员使用化名或昵称"
+      ],
+      "data_hint": "chat_platform, message_content, sender_id, receiver_id, timestamp"
+    },
+    {
+      "pattern": "团伙通过介绍卡主获取推荐奖励，以‘买卖U币赚差价’为名诱骗他人提供银行卡，扩大资金转移规模",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "卡主介绍新卡主并获取提成",
+        "新卡主银行卡短期内出现大量资金流入流出",
+        "团伙成员向卡主支付固定日薪或按流水比例提成"
+      ],
+      "data_hint": "referrer_id, referee_id, commission_amount, daily_wage, transaction_volume"
+    },
+    {
+      "pattern": "资金在短时间内经过多层地址（数字人民币钱包→银行卡→ATM取现→现金购买U币→U币转出），实现资金快速转移和匿名化",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包到银行卡再到取现时间间隔短",
+        "资金流向路径超过3层",
+        "取现后立即进行U币购买和转出"
+      ],
+      "data_hint": "transaction_timestamp, wallet_address, bank_card_number, cash_withdrawal_time, u_buy_time, u_transfer_time"
+    },
+    {
+      "pattern": "团伙成员对卡主银行卡进行开通数字人民币账户测试，确保银行卡可正常交易后再用于接收资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在接收大额资金前进行小额测试交易",
+        "测试交易金额较小（如1元）",
+        "测试成功后立即接收大额资金"
+      ],
+      "data_hint": "test_transaction_amount, test_transaction_timestamp, subsequent_transaction_amount"
+    },
+    {
+      "pattern": "团伙成员带卡主到银行柜台解封被止付的银行卡并取现，以规避银行卡冻结和监控",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡因交易异常被止付后，团伙成员陪同卡主到银行柜台解封",
+        "解封后立即取现",
+        "取现金额接近银行卡限额"
+      ],
+      "data_hint": "card_freeze_status, unfreeze_time, bank_visit_record, withdrawal_amount"
+    },
+    {
+      "pattern": "团伙主犯提供作案场所、工具（手机、POS机、点钞机等），并传授作案方法，形成固定犯罪窝点",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个团伙成员在同一地点集中操作",
+        "现场查获大量手机、POS机、点钞机等工具",
+        "主犯向成员传授操作流程"
+      ],
+      "data_hint": "location_address, device_list, device_usage_log, training_material"
+    }
+  ]
+}

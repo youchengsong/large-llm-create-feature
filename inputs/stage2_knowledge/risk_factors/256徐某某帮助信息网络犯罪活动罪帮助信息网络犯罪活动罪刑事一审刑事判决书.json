@@ -1,0 +1,81 @@
+{
+  "source": "256徐某某帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行账户接收不明资金后通过数字人民币APP转账及取现转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从多个被害人账户流入多个他人银行账户",
+        "资金在短时间内通过数字人民币APP进行转账或取现",
+        "资金流入后迅速被转移，无明显停留"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_type, app_type"
+    },
+    {
+      "pattern": "团伙协作，由介绍人提供多个银行卡账户用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个银行卡账户由不同人员提供并集中使用",
+        "账户之间资金流转存在关联性",
+        "账户开户时间、地点、行为模式相似"
+      ],
+      "data_hint": "account_id, owner_id, opening_time, opening_location, transaction_links"
+    },
+    {
+      "pattern": "同一团伙在短时间内多次使用不同银行卡账户进行资金转移操作",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内多笔资金流入不同账户",
+        "每笔金额较小但累计金额较大（如37420元、27852元、23247元、111851元）",
+        "资金流入时间集中（2022年12月、2023年1月）"
+      ],
+      "data_hint": "amount, timestamp, account_id, cumulative_amount, time_window"
+    },
+    {
+      "pattern": "资金来源于多个不同被害人，且被害人分布广泛，涉及多地网络诈骗",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金来自不同地域的多个被害人",
+        "被害人报案材料显示诈骗行为分散",
+        "资金流入账户后迅速被转移"
+      ],
+      "data_hint": "victim_location, transaction_origin, timestamp, account_id"
+    },
+    {
+      "pattern": "使用数字人民币APP作为资金转移工具，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易类型为数字人民币转账",
+        "转账后立即取现",
+        "资金流向难以通过传统银行系统追踪"
+      ],
+      "data_hint": "transaction_type, app_type, withdrawal_flag, timestamp"
+    },
+    {
+      "pattern": "涉案银行卡账户短期内流入不明资金后立即被清空，符合快进快出特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金流入后短时间内余额归零",
+        "流入金额与流出金额基本一致",
+        "无正常消费或理财行为"
+      ],
+      "data_hint": "account_balance, inflow_amount, outflow_amount, timestamp, balance_change_pattern"
+    }
+  ]
+}

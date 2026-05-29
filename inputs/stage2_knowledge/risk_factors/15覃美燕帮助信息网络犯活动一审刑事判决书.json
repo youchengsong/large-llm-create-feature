@@ -1,0 +1,108 @@
+{
+  "source": "15覃美燕帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出售个人银行卡用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的资金",
+        "账户在收到资金后迅速转出至其他账户",
+        "账户持有人与资金来源方无正常交易关系"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count, counterparty_count"
+    },
+    {
+      "pattern": "提供验卡服务测试银行卡是否可用",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在开卡后短时间内进行小额试卡交易",
+        "试卡交易后立即用于大额资金转移",
+        "试卡交易金额较小且无实际商业背景"
+      ],
+      "data_hint": "transaction_amount, transaction_type, account_age, transaction_sequence"
+    },
+    {
+      "pattern": "使用他人银行卡进行多笔资金倒转操作",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在多个账户间快速流转，形成多层转账链",
+        "转账金额接近但不超过特定阈值",
+        "资金最终流向多个不同账户"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain_length, number_of_hops"
+    },
+    {
+      "pattern": "犯罪团伙成员之间通过加密通讯工具协调操作",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户操作时间与加密通讯记录时间高度相关",
+        "多个账户在相近时间点进行类似操作",
+        "账户操作行为呈现团伙协作模式"
+      ],
+      "data_hint": "timestamp, communication_logs, ip_address, device_id, account_cluster"
+    },
+    {
+      "pattern": "账户持有人将银行卡及手机银行等信息提供给他人使用",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备登录多个不同账户",
+        "账户登录IP地址频繁变更且跨地域",
+        "账户绑定手机号与持有人常用手机号不一致"
+      ],
+      "data_hint": "device_id, ip_address, phone_number, login_frequency, account_binding_info"
+    },
+    {
+      "pattern": "犯罪资金通过多层账户转移以逃避追踪",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金经过3层以上账户转移",
+        "每层转账金额逐渐分散或整合",
+        "最终资金流向难以追踪的账户"
+      ],
+      "data_hint": "transaction_chain_depth, amount_split_ratio, final_destination_address"
+    },
+    {
+      "pattern": "短时间内集中接收多笔来自不同受害人的小额资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收超过5笔来自不同账户的资金",
+        "每笔资金金额较小但累计金额较大",
+        "资金接收时间集中在特定时段"
+      ],
+      "data_hint": "incoming_transaction_count, transaction_amount, timestamp, counterparty_diversity"
+    },
+    {
+      "pattern": "账户开立后立即用于接收和转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户开立时间与首次交易时间间隔极短",
+        "账户开立后无正常交易行为直接进行大额转账",
+        "账户生命周期短且交易量大"
+      ],
+      "data_hint": "account_creation_time, first_transaction_time, account_lifetime, transaction_volume"
+    }
+  ]
+}

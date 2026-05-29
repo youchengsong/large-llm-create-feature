@@ -1,0 +1,80 @@
+{
+  "source": "87曾超胡彬掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包进行跑分洗钱，通过注册大量钱包账户分散资金流水",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个主体注册使用多个数字人民币钱包（如9个、50个、34个等）",
+        "单个钱包账户流水金额巨大（如数万至数百万）",
+        "同一主体控制多个钱包账户进行资金流转"
+      ],
+      "data_hint": "wallet_count, transaction_amount, wallet_address, user_id"
+    },
+    {
+      "pattern": "通过发展下线形成层级跑分团队，扩大洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "存在明确的上下线关系（如赵文魁发展张羽、李纪伟、杨龙、赵通）",
+        "上线控制下线注册的数字人民币钱包（如赵文魁控制185个钱包）",
+        "下线钱包流水汇总至上线"
+      ],
+      "data_hint": "referrer_id, user_hierarchy, wallet_ownership"
+    },
+    {
+      "pattern": "短时间内通过大量数字人民币钱包进行高频资金转移，规避单账户监测",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个钱包账户在相近时间段内产生大量交易流水",
+        "资金从多个钱包快速聚合或分散",
+        "单个钱包交易频率异常高"
+      ],
+      "data_hint": "transaction_timestamp, transaction_frequency, wallet_address, amount"
+    },
+    {
+      "pattern": "利用数字人民币钱包作为资金中转层，实现资金快速流转和清洗",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在多个钱包之间快速转移，形成多层流转路径",
+        "资金从来源账户进入跑分团队钱包后迅速转出",
+        "交易链中涉及多个中间钱包地址"
+      ],
+      "data_hint": "transaction_chain, from_address, to_address, amount, timestamp"
+    },
+    {
+      "pattern": "跑分团队中成员注册大量数字人民币钱包用于接收和转移非法资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个成员注册钱包数量异常多（如张羽50个、李纪伟34个）",
+        "每个钱包流水与非法活动相关",
+        "成员间钱包存在共享或关联关系"
+      ],
+      "data_hint": "wallet_registration_count, user_id, wallet_address, transaction_volume"
+    },
+    {
+      "pattern": "通过数字人民币钱包进行资金结算，帮助信息网络犯罪活动",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "钱包流水总额巨大（如赵文魁流水1434万元）",
+        "单笔交易金额可能接近或低于阈值以规避监测",
+        "交易金额分布呈现特定模式"
+      ],
+      "data_hint": "total_flow_amount, transaction_amount, threshold_analysis"
+    }
+  ]
+}

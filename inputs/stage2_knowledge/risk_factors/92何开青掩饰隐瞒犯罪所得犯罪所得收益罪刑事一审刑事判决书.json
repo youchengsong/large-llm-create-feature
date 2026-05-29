@@ -1,0 +1,89 @@
+{
+  "source": "92何开青掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户、数字人民币账户及手机给他人用于接收和转移犯罪所得资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的资金",
+        "账户持有者将账户、手机、密码等提供给他人使用",
+        "账户登录设备或IP地址频繁变更"
+      ],
+      "data_hint": "address, account_holder, device_id, ip_address, counterparty_address"
+    },
+    {
+      "pattern": "通过人脸识别、转账密码等方式协助他人将转入资金快速转移出去",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转入后短时间内（如几分钟内）立即被转出",
+        "转账操作涉及人脸识别或密码验证的频繁使用",
+        "资金经过多个账户快速流转"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, authentication_method, from_address, to_address"
+    },
+    {
+      "pattern": "召集他人提供银行账户，形成多人参与的账户网络用于转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一人操作或控制",
+        "多个账户之间资金流转频繁",
+        "账户持有者之间存在社交或亲属关系"
+      ],
+      "data_hint": "address, account_holder, relationship_graph, transaction_graph"
+    },
+    {
+      "pattern": "账户接收资金后立即转出，资金停留时间极短",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转入与转出时间间隔小于1小时",
+        "账户余额在交易后接近零",
+        "单日交易次数异常增加"
+      ],
+      "data_hint": "timestamp, amount, balance_before, balance_after, transaction_count_per_day"
+    },
+    {
+      "pattern": "利用数字人民币账户作为新型洗钱通道",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户与银行账户之间存在频繁资金往来",
+        "数字人民币账户交易金额较小但频次高",
+        "数字人民币账户资金快速转出至其他账户"
+      ],
+      "data_hint": "account_type, transaction_amount, transaction_frequency, from_address, to_address"
+    },
+    {
+      "pattern": "账户接收来自多个不同受害人的小额资金，符合电信网络诈骗资金分散转入特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同来源的小额资金（如几千元）",
+        "资金来源账户为新开账户或异常账户",
+        "资金转入后立即被整合转出"
+      ],
+      "data_hint": "amount, sender_address, receiver_address, transaction_count, source_account_age"
+    },
+    {
+      "pattern": "操作者使用他人手机和账户进行转账，规避自身账户风险",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一设备登录多个不同账户",
+        "账户登录地点与账户持有者常住地不符",
+        "转账操作时间集中在夜间或非工作时间"
+      ],
+      "data_hint": "device_id, ip_address, login_location, timestamp, account_holder_location"
+    }
+  ]
+}

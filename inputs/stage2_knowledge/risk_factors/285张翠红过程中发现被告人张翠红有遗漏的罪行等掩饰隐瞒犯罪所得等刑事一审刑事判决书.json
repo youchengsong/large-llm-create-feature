@@ -1,0 +1,60 @@
+{
+  "source": "285张翠红过程中发现被告人张翠红有遗漏的罪行等掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行账户并配合支付密码、人脸识别转账及取现，协助接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔来自不同个人的转账",
+        "接收资金后立即通过人脸识别或密码进行转账或取现",
+        "账户交易流水呈现快进快出特征",
+        "账户资金来自电信诈骗被害人"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, auth_method, account_holder_id"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供账户用于资金接收和转移，形成资金洗钱通道",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短期内接收多笔小额资金后集中转移",
+        "账户交易金额接近但不超过特定阈值",
+        "资金从多个来源汇入后快速分散转出",
+        "账户交易模式与正常个人使用习惯明显不符"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, balance_after_transaction, account_age"
+    },
+    {
+      "pattern": "使用数字人民币账户进行资金转移，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字人民币账户出现大额或频繁交易",
+        "数字人民币交易与银行账户交易时间高度重合",
+        "数字人民币账户资金快速转入银行账户或取现"
+      ],
+      "data_hint": "digital_currency_amount, timestamp, wallet_address, linked_bank_account, transaction_type"
+    },
+    {
+      "pattern": "涉案账户资金来源于多个电信诈骗被害人，资金归集后通过单一账户转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同个人的资金",
+        "资金接收时间集中在电信诈骗案发后短时间内",
+        "账户资金归集后通过转账或取现一次性或分批转移",
+        "账户与多个被害人账户存在资金关联"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_chain, victim_account_flag"
+    }
+  ]
+}

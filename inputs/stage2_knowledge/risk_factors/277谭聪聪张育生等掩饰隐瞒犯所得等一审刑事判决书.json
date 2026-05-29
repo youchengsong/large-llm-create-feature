@@ -1,0 +1,69 @@
+{
+  "source": "277谭聪聪张育生等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡、手机及手机卡，配合刷脸验证，接收并转移上游诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收多笔来自不同个人的资金后迅速转出",
+        "账户登录或交易时伴随频繁的刷脸验证操作",
+        "手机设备短时间内切换多个银行APP或数字人民币APP操作"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, device_id, biometric_verification_flag, app_usage_log"
+    },
+    {
+      "pattern": "通过他人介绍，将银行卡和手机送至异地供操作，形成资金转移链条",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡开户地与交易发生地（IP/设备地理位置）不一致",
+        "资金在短时间内从多个上游账户汇入后立即转出至多个下游账户",
+        "交易时间集中在特定日期（如2022年10月21日、11月7日）"
+      ],
+      "data_hint": "account_open_location, transaction_location_ip, amount, timestamp, from_address, to_address"
+    },
+    {
+      "pattern": "使用名下多张银行卡分别接收不同上游诈骗资金，并获取现金报酬",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体名下多张银行卡在相近时间段内接收资金并转出",
+        "每笔接收金额与上游诈骗被害人损失金额高度吻合",
+        "资金转入后短时间内（如几分钟到几小时）全额转出，无正常消费或留存",
+        "账户接收资金后立即获得小额现金报酬（如1400元、2200元）"
+      ],
+      "data_hint": "account_id, amount, timestamp, balance_after_transaction, cash_withdrawal_amount, reward_amount"
+    },
+    {
+      "pattern": "利用数字人民币APP和云闪付等工具进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内下载或升级数字人民币APP并立即进行交易",
+        "交易过程中频繁使用云闪付等第三方支付工具进行资金划转",
+        "资金流向涉及数字人民币钱包地址与传统银行账户之间的快速转换"
+      ],
+      "data_hint": "app_download_time, app_upgrade_time, transaction_type, digital_currency_wallet_address, bank_account_id"
+    },
+    {
+      "pattern": "共同犯罪中，提供银行卡和手机的人员起次要作用，但协助完成多笔资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一控制人操作，且操作人并非账户持有人",
+        "账户持有人与操作人之间存在介绍或中介关系",
+        "资金转移过程中，账户持有人与操作人之间存在通信记录或社交关系"
+      ],
+      "data_hint": "account_holder_id, operator_id, communication_records, social_network_graph, transaction_authorization_log"
+    }
+  ]
+}

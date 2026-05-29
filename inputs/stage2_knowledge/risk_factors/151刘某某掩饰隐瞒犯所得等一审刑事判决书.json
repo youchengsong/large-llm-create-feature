@@ -1,0 +1,105 @@
+{
+  "source": "151刘某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用银行卡接收电信诈骗资金后通过数字人民币APP快速转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内通过数字人民币APP转出",
+        "到账与转出时间间隔极短（几十分钟内）",
+        "单笔转入金额与转出金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, app_type (数字人民币), from_address, to_address"
+    },
+    {
+      "pattern": "通过ATM或柜台分多次取现规避大额交易报告",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内分多次取现（如四次）",
+        "每次取现金额接近但不超过大额报告阈值",
+        "取现总额与入账资金基本一致"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (取现), branch_location, cash_withdrawal_count"
+    },
+    {
+      "pattern": "夜间或凌晨时段进行资金流转以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易发生在深夜至凌晨时段（如17日晚至18日凌晨）",
+        "夜间交易金额集中且快速流转",
+        "夜间交易后立即套现"
+      ],
+      "data_hint": "timestamp, transaction_time_hour, amount, transaction_type"
+    },
+    {
+      "pattern": "通过超市等商户POS机套现洗钱",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金入账后立即在超市等商户进行大额消费或套现",
+        "套现金额接近入账总额（如22006元入账，22005.99元套现）",
+        "套现交易与入账交易时间紧密相连"
+      ],
+      "data_hint": "amount, timestamp, merchant_type (超市), transaction_type (消费/套现), merchant_id"
+    },
+    {
+      "pattern": "使用他人银行卡和手机设备进行资金操作，切断资金与本人关联",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "卡主将手机及密码交给他人操作",
+        "卡主不直接操作转账或取现",
+        "多笔交易由不同人员操作"
+      ],
+      "data_hint": "device_id, ip_address, login_session, operator_change_flag, card_holder_action"
+    },
+    {
+      "pattern": "短期内多次提供不同银行卡用于接收和转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人在短时间内（如9月6日和9月17日）提供多张银行卡",
+        "每张卡均接收来自不同诈骗案件的资金",
+        "每张卡均用于转账、取现或套现"
+      ],
+      "data_hint": "card_number, account_open_date, transaction_date, multiple_card_flag, case_id"
+    },
+    {
+      "pattern": "通过社交软件（微信）招募卡农，形成洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "通过微信等社交软件联系并指示操作",
+        "介绍人（洪某）与操作人（哇系林某、侠）之间存在层级关系",
+        "卡农（胡某欣）与上线之间无直接线下接触"
+      ],
+      "data_hint": "communication_channel (微信), contact_frequency, relationship_graph, recruiter_id"
+    },
+    {
+      "pattern": "资金来源于多起电信诈骗案件，呈现分散入金、集中出金特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户接收来自不同受害人的多笔小额资金",
+        "多笔入金后短时间内一次性或分次转出/取现",
+        "入金来源分散，出金去向集中"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_count, inflow_outflow_ratio"
+    }
+  ]
+}

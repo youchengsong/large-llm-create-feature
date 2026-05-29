@@ -1,0 +1,142 @@
+{
+  "source": "127罗某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分车队模式：组织者收购他人银行账户，通过转账、取现、数字人民币等方式转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一账户资金快速转入后立即取现或转出",
+        "多个不同账户资金汇聚后集中取现",
+        "同一IP或设备操作多个账户进行转账、取现",
+        "账户资金流向呈现多层嵌套（如A账户→B账户→取现）"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, ip_address, device_id, bank_card_number"
+    },
+    {
+      "pattern": "卡商发展下线：中间人介绍他人提供银行卡并获取介绍费，形成层级式卡农网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户开户时间集中且开户行分散",
+        "多个账户之间存在共同联系人或担保人",
+        "账户资金流转路径存在共同中间账户",
+        "账户注册手机号、地址等关联信息重叠"
+      ],
+      "data_hint": "account_opening_time, bank_branch, phone_number, address, linked_accounts, referrer_id"
+    },
+    {
+      "pattern": "数字人民币快速转出：利用数字人民币账户进行资金转移，规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内通过数字人民币转出",
+        "数字人民币转出金额与入账金额高度匹配",
+        "数字人民币账户与银行账户频繁交互",
+        "同一数字人民币钱包接收多个不同银行账户资金"
+      ],
+      "data_hint": "digital_currency_wallet_id, transaction_type, amount, timestamp, linked_bank_account"
+    },
+    {
+      "pattern": "取现与转账结合：部分资金取现、部分资金通过数字人民币或第三方支付转出，分散资金流向",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户同时存在大额取现和数字人民币转出",
+        "取现金额与转账金额之和接近入账总额",
+        "取现时间与转账时间间隔极短",
+        "取现地点与账户开户地不一致"
+      ],
+      "data_hint": "withdrawal_amount, withdrawal_location, transfer_amount, transfer_method, timestamp"
+    },
+    {
+      "pattern": "小额分散入账后集中转移：多笔小额资金（如电信诈骗被害人转入）汇入后，短时间内集中转出或取现",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户短时间内收到多笔小额资金（如几千元）",
+        "入账后短时间内（如几分钟到几小时）集中转出或取现",
+        "单笔入账金额与电信诈骗典型金额相符",
+        "入账笔数多但总金额不大"
+      ],
+      "data_hint": "incoming_transactions_count, incoming_amounts, outgoing_transactions_count, outgoing_amounts, time_between_in_and_out"
+    },
+    {
+      "pattern": "提供银行卡并配合刷脸认证：卡主不仅提供账户，还主动配合人脸识别等验证操作，表明其明知资金非法",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录或交易时频繁触发人脸识别验证",
+        "人脸识别验证时间与交易时间高度吻合",
+        "同一设备或IP多次执行人脸识别操作",
+        "卡主在交易时段内手机信号与交易地点一致"
+      ],
+      "data_hint": "face_recognition_timestamp, device_id, ip_address, transaction_timestamp, location_data"
+    },
+    {
+      "pattern": "团伙分工明确：组织者、操作员、取现人、卡商、卡主各司其职，形成完整洗钱链条",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "不同角色账户间资金流转呈现固定模式（如卡主→操作员→取现人）",
+        "取现人账户频繁出现大额取现记录",
+        "组织者账户与多个卡商账户有资金往来",
+        "卡商账户与多个卡主账户有介绍费转账记录"
+      ],
+      "data_hint": "account_role_label, transaction_graph, fee_transactions, withdrawal_records"
+    },
+    {
+      "pattern": "利用他人银行卡进行资金归集：多个卡主账户资金转入少数几个归集账户后统一取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同卡主账户向同一归集账户转账",
+        "归集账户资金快速取现或转出",
+        "归集账户交易频率远高于正常账户",
+        "归集账户开户时间晚于卡主账户"
+      ],
+      "data_hint": "source_accounts, destination_account, transaction_amount, timestamp, account_opening_date"
+    },
+    {
+      "pattern": "帮助信息网络犯罪活动：提供本人多张银行卡用于支付结算，帮助上游犯罪转移资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人提供多张不同银行银行卡",
+        "银行卡交易流水与正常消费模式不符（如频繁大额进出）",
+        "银行卡开户时间集中",
+        "银行卡交易对手多为陌生账户"
+      ],
+      "data_hint": "number_of_cards_per_person, card_opening_dates, transaction_flow, counterparty_accounts"
+    },
+    {
+      "pattern": "取保候审期间再次犯罪：嫌疑人在取保候审期间继续提供银行卡转移资金，显示主观恶性",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人在取保候审期间仍有新账户交易记录",
+        "取保候审期间账户交易模式与之前相似",
+        "取保候审期间资金流向与之前案件关联账户重叠"
+      ],
+      "data_hint": "bail_period, transaction_timestamps, linked_case_ids, account_activity_during_bail"
+    }
+  ]
+}

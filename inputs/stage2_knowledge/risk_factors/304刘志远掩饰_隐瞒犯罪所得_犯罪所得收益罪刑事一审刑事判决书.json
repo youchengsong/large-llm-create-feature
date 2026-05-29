@@ -1,0 +1,65 @@
+{
+  "source": "304刘志远掩饰、隐瞒犯罪所得、犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字钱包接收上游犯罪资金，并通过二维码转账至指定账户，从中抽取佣金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字钱包在短时间内接收大量资金（约121万元）",
+        "接收资金后迅速通过二维码转出（约118万元），仅保留佣金（约2.4万元）",
+        "资金在钱包内停留时间短，呈现快进快出模式"
+      ],
+      "data_hint": "wallet_address, amount, timestamp, transaction_type, counterparty_address"
+    },
+    {
+      "pattern": "通过多个数字钱包（一类、二类、商户钱包）分散接收资金，规避单一账户监控",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下多个不同等级的数字钱包同时接收资金",
+        "不同钱包均用于接收上游犯罪资金并转出"
+      ],
+      "data_hint": "wallet_address, wallet_type, owner_id, transaction_count"
+    },
+    {
+      "pattern": "使用即时通讯工具（微信）与上游犯罪分子联系，通过二维码进行资金转移，隐匿交易链路",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "通过微信接收转账指令和收款二维码",
+        "资金从数字钱包转至二维码对应账户，形成多层资金流转"
+      ],
+      "data_hint": "communication_channel, transaction_hash, qr_code_identifier, counterparty_identifier"
+    },
+    {
+      "pattern": "上游犯罪分子以佣金为诱饵，招募他人提供数字钱包账户进行洗钱",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "承诺支付2%的佣金，吸引账户提供者",
+        "佣金金额与交易金额成比例（约2.4万元对应121万元交易）"
+      ],
+      "data_hint": "commission_rate, transaction_amount, profit_amount"
+    },
+    {
+      "pattern": "资金流入与上游诈骗案件直接关联，特定受害人的资金被转入涉案钱包",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "特定受害人的资金（16398.8元）于特定日期（2024年1月12日）转入商户钱包",
+        "资金来自不同来源，包括诈骗受害人的转账"
+      ],
+      "data_hint": "victim_address, transaction_amount, timestamp, wallet_address"
+    }
+  ]
+}

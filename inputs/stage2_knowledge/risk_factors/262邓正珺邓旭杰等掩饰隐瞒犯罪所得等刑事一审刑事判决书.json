@@ -1,0 +1,57 @@
+{
+  "source": "262邓正珺邓旭杰等掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并协助资金快速转移，通过ATM取现和多种渠道转出资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金流入后短时间内通过ATM多次取现",
+        "通过跨行消费、数字人民币APP、微信零钱充值等多种方式快速转出资金",
+        "单日多笔取现操作，金额接近ATM单笔限额"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, atm_location, channel_type, account_balance_change"
+    },
+    {
+      "pattern": "使用他人银行卡账户接收诈骗资金，并配合人脸识别、密码、指纹等验证操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收多笔来自不同受害人的资金",
+        "资金转入后立即由非账户持有人操作转出",
+        "操作过程中频繁使用人脸识别、密码、指纹等验证手段"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, authentication_method, device_id"
+    },
+    {
+      "pattern": "资金从银行卡通过数字人民币APP等新型支付渠道快速转移，规避传统监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金通过数字人民币APP兑出",
+        "跨行消费和微信零钱充值等渠道转移资金",
+        "短时间内资金从银行卡分散到多个支付平台"
+      ],
+      "data_hint": "transaction_channel, amount, timestamp, platform_type, cross_bank_indicator"
+    },
+    {
+      "pattern": "账户持有人提供银行卡及密码给他人，由他人操作取现和转账，形成资金快速过桥",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录IP或设备与账户持有人常用信息不符",
+        "资金转入后短时间内由不同设备或IP操作转出",
+        "账户密码、人脸识别等验证信息被非本人使用"
+      ],
+      "data_hint": "device_id, ip_address, login_timestamp, transaction_timestamp, authentication_method"
+    }
+  ]
+}

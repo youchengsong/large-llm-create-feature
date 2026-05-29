@@ -1,0 +1,55 @@
+{
+  "source": "174符某帮助信息网络犯罪活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡并配合刷脸验证用于转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内出现多笔大额转入后立即转出",
+        "账户交易过程中频繁出现刷脸验证操作",
+        "账户资金流入来源为多个不同受害人的小额汇款",
+        "账户交易后立即提取现金或转至其他账户"
+      ],
+      "data_hint": "transaction_amount, transaction_time, transaction_type, face_verification_flag, sender_address, receiver_address, account_id"
+    },
+    {
+      "pattern": "跨地域流动进行银行卡交易以规避本地监管",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人在短时间内从户籍地前往其他城市进行交易",
+        "交易IP地址或地理位置与账户持有人常住地不一致",
+        "多笔交易发生在不同城市"
+      ],
+      "data_hint": "transaction_location, ip_address, account_holder_location, transaction_time"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供账户用于资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔来自不同来源的小额资金后迅速转出",
+        "账户交易模式呈现明显的资金快进快出特征",
+        "账户交易金额与账户持有人正常收入水平不匹配"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, receiver_address, account_balance_history"
+    },
+    {
+      "pattern": "通过提供银行卡和刷脸服务帮助他人转移犯罪所得",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户关联多个不同身份验证操作",
+        "账户持有人与多个不同收款方存在交易关系",
+        "账户交易网络呈现星型结构，中心账户接收多方资金后集中转出"
+      ],
+      "data_hint": "account_id, transaction_graph, identity_verification_records, counterparty_addresses"
+    }
+  ]
+}

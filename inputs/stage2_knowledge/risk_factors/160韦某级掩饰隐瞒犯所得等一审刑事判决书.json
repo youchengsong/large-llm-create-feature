@@ -1,0 +1,94 @@
+{
+  "source": "160韦某级掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "卡农提供本人银行卡及数字人民币账户用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一自然人名下同时提供银行卡和多个数字人民币账户",
+        "账户被用于接收来自多个不同受害人的资金",
+        "账户资金快进快出，短期内流入大量小额资金后迅速转出"
+      ],
+      "data_hint": "account_id, account_type, counterparty_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "操作手使用他人银行卡和数字人民币账户为上游犯罪进行转账洗钱",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一操作人员控制多个不同卡主的账户进行转账",
+        "账户流水金额远大于涉案金额，存在大量非涉案交易",
+        "短时间内多笔转账操作，资金快速分散转移"
+      ],
+      "data_hint": "operator_id, account_id, transaction_amount, transaction_time, transaction_frequency"
+    },
+    {
+      "pattern": "组织者安排卡主与操作手汇合并提供交通帮助以协助洗钱",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个卡主与操作手在特定时间地点聚集",
+        "卡主与操作手之间存在非交易性资金往来或通信记录",
+        "卡主账户在汇合后短时间内出现异常交易"
+      ],
+      "data_hint": "ip_address, location_data, communication_records, transaction_timestamp, account_creation_time"
+    },
+    {
+      "pattern": "卡主为配合转账提供刷脸验证，协助完成资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录或交易时频繁出现生物特征验证（如人脸识别）",
+        "验证时间与异常交易时间高度重合",
+        "账户所有者与操作手在验证时间段内地理位置接近"
+      ],
+      "data_hint": "biometric_authentication_log, transaction_timestamp, device_id, location_data"
+    },
+    {
+      "pattern": "多个卡主账户被用于接收来自全国多地受害人的诈骗资金",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户接收来自不同省份、城市的受害人转账",
+        "受害人转账金额较小且分散",
+        "账户在短时间内集中收到多笔异地小额转账"
+      ],
+      "data_hint": "sender_location, receiver_account, amount, transaction_timestamp, transaction_count"
+    },
+    {
+      "pattern": "洗钱团伙通过多个银行卡账户分散资金流，规避单账户大额交易监测",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "每个卡主账户涉案金额相对较小（如牛柏森账户33116元，朱建伟账户20055元）",
+        "多个卡主账户总流水金额较大（659620.72元）",
+        "资金从多个受害人账户转入多个卡主账户，形成分散转入集中转出模式"
+      ],
+      "data_hint": "account_id, transaction_amount, transaction_network, counterparty_accounts"
+    },
+    {
+      "pattern": "卡主通过提供账户获取非法收益，收益与账户流水金额相关",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "卡主账户流水金额与违法所得呈正相关",
+        "卡主在提供账户后短时间内收到来自操作手或其他账户的小额转账（作为报酬）",
+        "卡主账户在提供账户前无异常交易，提供后出现大量快进快出交易"
+      ],
+      "data_hint": "account_balance, transaction_history, income_transactions, account_activity_pattern"
+    }
+  ]
+}

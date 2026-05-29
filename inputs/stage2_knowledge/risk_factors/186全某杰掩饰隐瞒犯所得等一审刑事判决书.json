@@ -1,0 +1,80 @@
+{
+  "source": "186全某杰掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多类型账户（银行卡、支付宝、数字人民币账户）及手机给他人用于电信诈骗支付结算",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体同时提供多个不同支付渠道账户",
+        "账户被用于接收来自多个不同受害人的资金",
+        "账户短时间内接收大量小额资金"
+      ],
+      "data_hint": "address, account_type, counterparty_address, amount, timestamp"
+    },
+    {
+      "pattern": "账户短时间内接收大量来自不同受害人的资金，形成资金归集",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单个账户在短时间内接收来自多个不同来源地址的资金",
+        "累计接收金额较大（如42万余元）",
+        "资金进入后迅速转出或提现"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "提供账户行为与电信网络诈骗关联，资金流经多个账户形成洗钱链条",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从受害人账户流入多个中间账户",
+        "中间账户资金快速转移至其他账户或提现",
+        "账户之间形成多层资金流转路径"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain_depth"
+    },
+    {
+      "pattern": "使用蝙蝠等加密聊天工具进行沟通，规避监管",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易前存在加密聊天工具（如蝙蝠）的通信记录",
+        "通信时间与交易时间高度关联",
+        "通信内容涉及账户信息或操作指令"
+      ],
+      "data_hint": "communication_tool, communication_timestamp, transaction_timestamp, message_content"
+    },
+    {
+      "pattern": "账户被用于支付结算，流水金额远超正常个人使用范围",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户流水金额（如64万余元）与个人正常收入明显不符",
+        "交易频率异常高",
+        "单笔交易金额接近但不超过监管阈值"
+      ],
+      "data_hint": "total_flow_amount, transaction_count, average_amount, amount_distribution"
+    },
+    {
+      "pattern": "提供账户者获得小额报酬（1080元），表明其作为洗钱链条中的‘卡农’角色",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人获得与流水金额不成比例的小额报酬",
+        "报酬支付方与资金接收方存在关联",
+        "账户持有人与多个可疑账户有资金往来"
+      ],
+      "data_hint": "reward_amount, reward_from_address, account_holder_relationship, transaction_with_suspicious_addresses"
+    }
+  ]
+}

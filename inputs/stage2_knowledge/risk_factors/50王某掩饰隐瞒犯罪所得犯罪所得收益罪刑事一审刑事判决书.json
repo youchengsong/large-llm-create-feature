@@ -1,0 +1,86 @@
+{
+  "source": "50王某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用本人实名数字人民币钱包账户为网络赌场提供资金转账帮助",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一自然人实名开立多个数字人民币钱包账户",
+        "数字人民币钱包账户绑定多个不同银行的银行卡",
+        "钱包账户与网络赌场客服频繁交互",
+        "钱包账户资金流水与赌博平台资金关联"
+      ],
+      "data_hint": "wallet_id, bank_card_number, bank_name, counterparty_address, transaction_amount, timestamp, platform_id"
+    },
+    {
+      "pattern": "通过多个银行账户与数字人民币钱包绑定实现资金分散转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个数字人民币钱包绑定超过3个不同银行的银行卡",
+        "资金从多个银行卡流入同一数字人民币钱包",
+        "资金从数字人民币钱包分散转出至多个账户",
+        "单日交易笔数异常增多"
+      ],
+      "data_hint": "wallet_id, bank_card_number, transaction_amount, transaction_count, timestamp, source_account, destination_account"
+    },
+    {
+      "pattern": "短时间内资金流水总额巨大，远超正常个人使用需求",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在数月内累计流水超过200万元",
+        "单笔交易金额频繁接近但不超过大额交易报告阈值",
+        "账户资金快进快出，余额接近零",
+        "交易频率与收入水平明显不符"
+      ],
+      "data_hint": "transaction_amount, cumulative_amount, account_balance, transaction_frequency, time_period"
+    },
+    {
+      "pattern": "为网络赌场提供支付结算服务，资金流向具有明显赌博特征",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从赌客账户快速转入中间账户",
+        "中间账户资金在短时间内分散转出至多个最终账户",
+        "交易时间集中在夜间或非工作时间",
+        "交易对手方账户存在大量类似赌博充值记录"
+      ],
+      "data_hint": "transaction_amount, timestamp, source_address, intermediate_address, destination_address, transaction_chain"
+    },
+    {
+      "pattern": "使用本人身份信息开立多个账户用于非法资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证件开立超过2个数字人民币钱包",
+        "同一身份证件绑定超过5张不同银行的银行卡",
+        "多个账户间存在资金互转",
+        "账户注册信息与交易行为模式不匹配"
+      ],
+      "data_hint": "identity_document, wallet_id, bank_card_number, registration_info, transaction_pattern"
+    },
+    {
+      "pattern": "非法获利与资金流水规模不成比例，表明为洗钱通道",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金流水总额与非法获利金额比值超过200:1",
+        "账户交易金额远高于账户持有人的正常收入水平",
+        "交易对手方多为高风险行业或地区",
+        "账户存在大量整数金额交易"
+      ],
+      "data_hint": "total_flow_amount, profit_amount, income_level, counterparty_risk_score, transaction_amount_pattern"
+    }
+  ]
+}

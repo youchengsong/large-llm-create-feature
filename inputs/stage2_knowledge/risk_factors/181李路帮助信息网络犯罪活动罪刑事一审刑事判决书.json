@@ -1,0 +1,103 @@
+{
+  "source": "181李路帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡及支付密码、手机银行密码、微信支付密码给他人用于洗钱转账",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内出现多笔来自不同来源的大额转入",
+        "账户密码被频繁修改或共享给多个设备",
+        "账户关联多个陌生设备登录"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, device_id, password_change_log"
+    },
+    {
+      "pattern": "使用他人手机下载金融类App（京东金融、数字人民币）并完成刷脸登录和身份验证",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内完成多个金融App的注册或登录",
+        "刷脸验证操作与转账行为高度同步",
+        "账户登录设备与历史设备不一致"
+      ],
+      "data_hint": "app_download_log, face_verification_timestamp, login_device_id, app_type"
+    },
+    {
+      "pattern": "资金经过多层级地址或账户流转，涉及多个银行卡和支付工具",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过3个以上不同账户或地址",
+        "转账金额接近但不超过大额报告阈值（如5万元）",
+        "资金从多个来源汇入后快速分散转出"
+      ],
+      "data_hint": "transaction_chain, amount, from_address, to_address, timestamp"
+    },
+    {
+      "pattern": "洗钱活动在夜间或非正常工作时间进行，且涉及跨省移动",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在夜间（如20时后）",
+        "账户登录或交易IP地址与开户地或常住地不一致",
+        "短时间内出现跨省移动后的交易行为"
+      ],
+      "data_hint": "transaction_timestamp, ip_address, geo_location, account_register_region"
+    },
+    {
+      "pattern": "账户收到好处费或车费后立即提现或转出，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户收到小额资金后立即转出或提现",
+        "账户余额长期接近零",
+        "资金在账户内停留时间极短（如几分钟内）"
+      ],
+      "data_hint": "amount, balance, in_time, out_time, transaction_type"
+    },
+    {
+      "pattern": "多人协作共同完成洗钱操作，包括提供银行卡、刷脸验证、操作转账等分工",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间内与同一地址或设备交互",
+        "账户之间存在资金往来或共同登录记录",
+        "多个账户的注册信息（如手机号、邮箱）存在关联"
+      ],
+      "data_hint": "address_network, shared_device_id, shared_ip, registration_info"
+    },
+    {
+      "pattern": "使用酒店、农村老房子等临时地点进行洗钱操作，避免固定场所监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置频繁变化且位于非商业区",
+        "交易地点与账户注册地或常用地相距较远",
+        "交易时间与住宿登记时间重合"
+      ],
+      "data_hint": "ip_address, geo_location, hotel_checkin_time, transaction_timestamp"
+    },
+    {
+      "pattern": "洗钱过程中要求账户持有人提供刷脸验证服务，以绕过生物识别风控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内多次触发刷脸验证",
+        "刷脸验证与高风险转账操作同时发生",
+        "刷脸验证时设备环境异常（如背景为陌生场所）"
+      ],
+      "data_hint": "face_verification_log, transaction_type, device_camera_info, timestamp"
+    }
+  ]
+}

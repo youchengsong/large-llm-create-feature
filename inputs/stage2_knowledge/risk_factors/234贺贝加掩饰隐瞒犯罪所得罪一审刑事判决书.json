@@ -1,0 +1,88 @@
+{
+  "source": "234贺贝加掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包和支付宝账户为他人转移诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用数字人民币钱包接收多笔来自不同被害人的资金",
+        "通过支付宝账户进行转账或提现操作",
+        "资金在短时间内经过多个账户（数字人民币钱包、支付宝）后流出"
+      ],
+      "data_hint": "wallet_id, account_id, transaction_type, amount, timestamp, source_address, destination_address"
+    },
+    {
+      "pattern": "介绍他人提供支付账户用于洗钱，形成多层级的资金转移链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人之间存在介绍或引荐关系",
+        "多个账户被同一上游人员控制或使用",
+        "资金从上游人员账户流向多个下游账户"
+      ],
+      "data_hint": "user_id, referral_relationship, account_ownership, transaction_chain"
+    },
+    {
+      "pattern": "同一账户关联多起诈骗案件，接收多笔小额被骗资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自不同受害人的多笔小额转账",
+        "账户累计接收金额与单笔金额相比显著偏高",
+        "账户交易频率异常增加"
+      ],
+      "data_hint": "account_id, transaction_count, total_amount, average_amount, timestamp"
+    },
+    {
+      "pattern": "使用第三方支付工具（数字人民币钱包、支付宝）进行资金转移和提现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包转入支付宝账户",
+        "支付宝账户进行提现操作",
+        "资金流转路径涉及多个支付平台"
+      ],
+      "data_hint": "transaction_type, platform, amount, timestamp, source_wallet, destination_account"
+    },
+    {
+      "pattern": "账户持有人为在校学生或低龄人员，被利用提供支付账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人年龄较小（如专科在读）",
+        "账户持有人无稳定收入来源",
+        "账户持有人与上游人员存在社交关系"
+      ],
+      "data_hint": "user_age, occupation, social_network, account_creation_date"
+    },
+    {
+      "pattern": "资金转移行为发生在2024年3月至5月期间，时间跨度较短",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转移活动集中在特定时间段（如2024年3月至5月）",
+        "交易时间分布不均匀，存在集中操作特征"
+      ],
+      "data_hint": "transaction_timestamp, date_range, transaction_frequency"
+    },
+    {
+      "pattern": "账户持有人从中获取小额非法收益（如1000元）",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人获得与转移资金总额相比极低的手续费或报酬",
+        "报酬金额固定或按比例计算"
+      ],
+      "data_hint": "profit_amount, total_transferred_amount, profit_ratio"
+    }
+  ]
+}

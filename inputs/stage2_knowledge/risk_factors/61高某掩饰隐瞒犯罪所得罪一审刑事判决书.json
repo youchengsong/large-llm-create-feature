@@ -1,0 +1,83 @@
+{
+  "source": "61高某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡给上线用于接收和转移犯罪资金，并协助取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证下多张银行卡在短时间内集中用于接收和转移资金",
+        "资金到账后迅速通过取现或转账方式转移，资金停留时间短",
+        "账户交易流水与个人正常收入明显不符"
+      ],
+      "data_hint": "address, bank_card_number, transaction_amount, transaction_time, transaction_type (deposit/withdrawal/transfer), account_holder_id"
+    },
+    {
+      "pattern": "通过介绍他人提供银行账户形成层级式资金转移网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户之间存在介绍关系，形成资金转移链条",
+        "上游账户将资金转入下游账户后，下游账户立即取现或转出",
+        "多个账户资金流向同一最终接收方或数字钱包"
+      ],
+      "data_hint": "address, bank_card_number, transaction_amount, transaction_time, transaction_type, counterparty_account, referral_relationship"
+    },
+    {
+      "pattern": "利用数字人民币钱包接收犯罪资金以规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入数字人民币钱包后快速转出或消费",
+        "数字人民币钱包交易金额与账户历史交易模式差异显著",
+        "单笔或累计转入数字人民币钱包金额接近但不超过监管阈值"
+      ],
+      "data_hint": "transaction_amount, transaction_time, wallet_type (digital_currency), wallet_address, transaction_type (transfer_in/out)"
+    },
+    {
+      "pattern": "短时间内多次小额取现以规避大额交易报告",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内多次取现，单笔金额低于大额报告标准",
+        "取现时间集中在几天内，与账户历史交易频率显著不同",
+        "取现金额累计接近或等于接收的犯罪资金总额"
+      ],
+      "data_hint": "transaction_amount, transaction_time, transaction_type (cash_withdrawal), account_balance, cumulative_withdrawal_amount"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供账户并协助转移，涉及多笔跨行转账",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从多个来源账户转入后，立即通过不同银行账户转出",
+        "转账操作时间间隔极短，呈现自动化或指令性特征",
+        "账户交易对手涉及多个不同银行，资金流向复杂"
+      ],
+      "data_hint": "transaction_amount, transaction_time, transaction_type, source_bank, destination_bank, counterparty_account, IP_address (if available)"
+    },
+    {
+      "pattern": "通过刷脸验证方式协助转移资金，表明账户控制权转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录或交易验证方式突然变更（如新增刷脸验证）",
+        "刷脸验证操作与账户持有人的历史行为模式不符",
+        "刷脸验证后立即发生大额或异常转账"
+      ],
+      "data_hint": "authentication_method, authentication_time, transaction_amount, transaction_time, device_id, biometric_data (if available)"
+    }
+  ]
+}

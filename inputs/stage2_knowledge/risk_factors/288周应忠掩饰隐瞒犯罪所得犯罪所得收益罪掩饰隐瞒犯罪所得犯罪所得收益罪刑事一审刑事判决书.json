@@ -1,0 +1,70 @@
+{
+  "source": "288周应忠掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户接收并转移网络犯罪资金，通过刷脸验证协助资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内接收来自多个不同来源的资金后立即转移",
+        "资金转入后通过刷脸验证快速转出",
+        "账户接收资金与转出资金时间间隔极短"
+      ],
+      "data_hint": "交易时间(timestamp), 交易金额(amount), 交易对手地址(counterparty_address), 交易类型(tx_type), 验证方式(verification_method)"
+    },
+    {
+      "pattern": "介绍他人提供银行账户给上游犯罪使用，形成多层账户链转移资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在介绍关系或关联关系",
+        "资金在不同账户间层层转移",
+        "账户提供者之间存在社交或介绍关系"
+      ],
+      "data_hint": "账户关系网络(account_relationship_network), 交易链长度(tx_chain_length), 介绍人信息(referrer_info)"
+    },
+    {
+      "pattern": "通过取现方式将犯罪所得资金转换为现金，切断资金追踪路径",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金转入后立即通过ATM或柜台取现",
+        "取现金额接近整数或与转入金额高度匹配",
+        "取现行为发生在资金转入后短时间内"
+      ],
+      "data_hint": "交易类型(tx_type, 如取现), 交易金额(amount), 交易时间(timestamp), 取现地点(withdrawal_location)"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供账户并获取非法收益，账户用于接收多笔小额资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短期内接收多笔来自不同人的小额资金",
+        "账户历史交易模式与当前交易模式显著不同",
+        "账户持有人无固定职业但账户有异常资金流入"
+      ],
+      "data_hint": "交易金额(amount), 交易对手数量(counterparty_count), 交易频率(tx_frequency), 账户持有人职业信息(account_holder_occupation)"
+    },
+    {
+      "pattern": "上游犯罪资金通过多个账户分散转移，每个账户承担部分资金转移任务",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单个账户接收资金总额与上游犯罪总损失金额匹配",
+        "多个账户在相近时间内接收来自同一犯罪源的资金",
+        "资金转移路径呈现分散-聚合模式"
+      ],
+      "data_hint": "交易金额(amount), 交易时间(timestamp), 交易对手地址(counterparty_address), 资金流向图(fund_flow_graph)"
+    }
+  ]
+}

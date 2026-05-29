@@ -1,0 +1,54 @@
+{
+  "source": "162向某掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡和手机给他人操作转账，并配合刷脸认证以转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内出现多笔来自不同来源的转入资金",
+        "账户登录设备或IP地址频繁变更",
+        "交易过程中出现刷脸认证请求与账户持有人行为模式不符"
+      ],
+      "data_hint": "transaction_hash, from_address, to_address, amount, timestamp, device_id, ip_address, biometric_authentication_flag"
+    },
+    {
+      "pattern": "通过网络联系陌生人，提供身份证照片和银行卡额度信息以获取利益",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册信息与交易行为不匹配",
+        "账户关联多个陌生联系人",
+        "账户持有人与资金接收方无历史关联"
+      ],
+      "data_hint": "user_id, registration_info, contact_list, transaction_graph"
+    },
+    {
+      "pattern": "短时间内集中转移多笔小额电信诈骗资金，总金额较小但获利比例高",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额较小但交易频率高",
+        "交易金额接近但不超过常见阈值",
+        "获利金额与交易金额比例异常高"
+      ],
+      "data_hint": "amount, transaction_count, profit_amount, profit_ratio"
+    },
+    {
+      "pattern": "通过线下见面方式交接银行卡和手机，规避线上监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户交易前有线下见面行为",
+        "交易时间与线下见面时间高度相关",
+        "交易地点与账户持有人常驻地不一致"
+      ],
+      "data_hint": "transaction_timestamp, geolocation, user_movement_pattern"
+    }
+  ]
+}

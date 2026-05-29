@@ -1,0 +1,101 @@
+{
+  "source": "49汪某某掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用他人银行账户接收并转移电信网络诈骗赃款",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同身份账户集中接收资金",
+        "账户持有人与资金实际控制人不一致",
+        "账户短时间内被多个来源转入资金"
+      ],
+      "data_hint": "sender_address, receiver_address, account_holder_id, transaction_amount, timestamp"
+    },
+    {
+      "pattern": "通过ATM机和银行柜台取现后存入上线指定账户完成资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内通过ATM或柜台取现",
+        "取现金额接近ATM单日限额",
+        "取现后立即向陌生账户汇款"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, atm_location, counterparty_address"
+    },
+    {
+      "pattern": "利用多层级卡商网络收集银行卡用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "卡主之间存在社交或亲属关系",
+        "卡主将银行卡及密码交给他人使用",
+        "卡主获得按转账金额比例计算的好处费"
+      ],
+      "data_hint": "account_holder_relationship, account_sharing_indicator, commission_rate, referral_chain"
+    },
+    {
+      "pattern": "使用匿名聊天软件（如蝙蝠、飞机）与上线联系并接收指令",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易前通过加密通讯软件沟通",
+        "通讯记录中提及银行卡信息、到账通知、取现指令",
+        "使用后删除联系人"
+      ],
+      "data_hint": "communication_platform, message_content_keywords, contact_deletion_flag"
+    },
+    {
+      "pattern": "资金在夜间或非工作时间快速到账并立即取现",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账时间在22点至次日凌晨",
+        "到账后30分钟内完成取现",
+        "多笔交易集中在深夜时段"
+      ],
+      "data_hint": "transaction_timestamp, time_of_day, time_to_cashout"
+    },
+    {
+      "pattern": "通过数字人民币或支付宝转账进一步分散资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包",
+        "通过支付宝扫码向多个账户转账",
+        "使用他人支付宝账户进行资金归集"
+      ],
+      "data_hint": "transaction_type, digital_currency_wallet_id, alipay_account, qr_code_scan"
+    },
+    {
+      "pattern": "使用多张银行卡轮流接收资金以规避单账户大额交易监测",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单张银行卡单日接收资金不超过5万元",
+        "多张银行卡在相近时间段内均有入账",
+        "单笔取现金额接近ATM限额（如2万元）"
+      ],
+      "data_hint": "daily_volume_per_account, transaction_amount, atm_withdrawal_limit, account_count"
+    },
+    {
+      "pattern": "资金经过多个中间账户后最终汇入上线指定账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入中间账户",
+        "中间账户取现或转账至多个过渡账户",
+        "最终流向一个或多个固定收款账户"
+      ],
+      "data_hint": "transaction_chain, intermediate_addresses, final_destination_address, hop_count"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "source": "259邹文俊掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过涉诈APP下载注册并提供个人银行卡给上线用于接收诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册来源为涉诈APP",
+        "账户在短时间内向多个不同主体提供银行卡信息"
+      ],
+      "data_hint": "app_source, account_register_channel, linked_accounts"
+    },
+    {
+      "pattern": "接收诈骗资金后按上线指示将大部分资金转至指定账户，仅保留少量好处费",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "接收资金后立即转出大部分金额（如12500/13000）",
+        "转出金额与接收金额比例异常（如96%）",
+        "保留固定比例作为手续费"
+      ],
+      "data_hint": "amount, transfer_amount, ratio, fee_amount"
+    },
+    {
+      "pattern": "接收诈骗资金后删除涉诈APP并分两次将资金转入个人数字人民币钱包",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "接收资金后短时间内删除相关APP",
+        "资金分多次转入同一钱包",
+        "转入钱包行为发生在接收资金后短时间窗口内"
+      ],
+      "data_hint": "app_deletion_timestamp, transfer_timestamps, wallet_address, amount"
+    },
+    {
+      "pattern": "使用多个不同银行的银行卡（中国银行、农商银行、中原银行）提供给上线用于接收资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下关联多个不同银行的账户",
+        "这些账户在短时间内被用于接收来自不同来源的资金"
+      ],
+      "data_hint": "account_bank, account_holder_id, account_opening_time"
+    },
+    {
+      "pattern": "资金从诈骗被害人账户经过多个中间人账户后最终流入被告人账户",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金流转路径涉及多个不同人名的银行卡",
+        "资金在多个账户间快速转移",
+        "最终收款账户与初始诈骗账户无直接关联"
+      ],
+      "data_hint": "transaction_chain, intermediate_accounts, final_account"
+    }
+  ]
+}

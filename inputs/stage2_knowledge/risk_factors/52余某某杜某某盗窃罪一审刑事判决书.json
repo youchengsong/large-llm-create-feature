@@ -1,0 +1,76 @@
+{
+  "source": "52余某某杜某某盗窃罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户接收电信诈骗资金，通过购买手机并转卖变现的洗钱模式",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币账户短时间内接收多笔来自不同个人的转账",
+        "账户资金在短时间内用于购买高价值商品（如手机）",
+        "购买商品后立即转卖，资金迅速转移至其他账户",
+        "多个数字人民币账户被用于同一洗钱链条"
+      ],
+      "data_hint": "数字人民币交易记录（amount, timestamp, sender_address, receiver_address）、商品购买记录（product_type, quantity, price）、转卖记录（resale_price, resale_time）、账户关联关系"
+    },
+    {
+      "pattern": "指使他人寻找支持数字人民币收款的商户，利用商户账户作为洗钱通道",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个商户的数字人民币账户在相近时间段内接收来自不同个人的资金",
+        "商户账户资金快速用于购买商品并转卖",
+        "不同商户账户的资金最终流向同一指定账户",
+        "商户账户交易模式与正常经营模式明显不符（如短时间内大量交易）"
+      ],
+      "data_hint": "商户数字人民币账户信息（merchant_id, account_balance, transaction_history）、商户经营数据（normal_trading_pattern）、资金流向图（source_address, intermediate_address, destination_address）"
+    },
+    {
+      "pattern": "通过多层资金转移（数字人民币账户→购买手机→转卖→指定账户）掩盖资金来源",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过至少3层地址或账户",
+        "每层资金转移金额与商品价格高度匹配",
+        "资金最终流向与初始来源无直接关联的账户",
+        "资金转移过程中涉及多种资产类型（数字人民币、实物商品、现金）"
+      ],
+      "data_hint": "交易链追踪（transaction_chain, hop_count）、金额匹配度（amount_match_ratio）、资产类型转换记录（asset_type, conversion_time）"
+    },
+    {
+      "pattern": "利用数字人民币的匿名性和商户收款便利性进行洗钱",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币账户注册信息不完整或使用虚假身份",
+        "商户数字人民币账户在非营业时间进行交易",
+        "同一商户账户在短时间内接收来自多个不同地区的资金",
+        "商户账户交易频率和金额远超正常经营水平"
+      ],
+      "data_hint": "账户注册信息（kyc_status, identity_verification）、交易时间戳（timestamp）、商户地理位置（merchant_location）、交易频率（transaction_frequency, daily_volume）"
+    },
+    {
+      "pattern": "团伙分工协作，有人负责联系上家、有人负责寻找商户、有人负责购买转卖",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在固定的资金流向关系",
+        "不同账户在交易链中扮演不同角色（如资金接收、商品购买、资金转移）",
+        "账户之间交易时间间隔短，呈现协同模式",
+        "团伙成员账户之间存在通信记录或关联关系"
+      ],
+      "data_hint": "账户关系网络（account_graph, communication_records）、角色标签（role_type）、交易时间序列（transaction_sequence, inter_account_interval）"
+    }
+  ]
+}

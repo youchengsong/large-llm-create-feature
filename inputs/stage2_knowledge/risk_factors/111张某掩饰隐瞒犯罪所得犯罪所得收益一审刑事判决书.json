@@ -1,0 +1,87 @@
+{
+  "source": "111张某掩饰隐瞒犯罪所得犯罪所得收益一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交群组发布出租银行卡信息，招募账户提供者用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内与多个陌生账户发生交易",
+        "账户持有人通过社交群组与不明身份人员建立联系"
+      ],
+      "data_hint": "address, transaction_graph, social_media_interaction"
+    },
+    {
+      "pattern": "短时间内银行卡接收大量资金后立即通过ATM取现、POS消费、数字人民币钱包、支付宝转账等多种方式快速转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日进项流水超过30万元",
+        "资金到账后数小时内通过ATM取现、POS消费、数字人民币钱包、支付宝转账等方式分散转出",
+        "交易金额接近但不超过ATM单日取现限额"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, atm_withdrawal, pos_transaction, digital_currency_wallet, alipay_transfer"
+    },
+    {
+      "pattern": "利用数字人民币电子钱包作为新型资金转移通道，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户注册数字人民币APP后立即用于大额资金转移",
+        "数字人民币钱包交易与银行卡交易在时间上高度关联"
+      ],
+      "data_hint": "digital_currency_wallet_registration, wallet_transaction, timestamp"
+    },
+    {
+      "pattern": "资金通过烟酒行等实体商户POS机套现，将电子资金转化为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在烟酒行等非金融类商户进行大额POS消费",
+        "POS消费金额与后续现金取现时间接近",
+        "POS交易金额与商户正常经营规模不符"
+      ],
+      "data_hint": "merchant_category_code, pos_transaction_amount, merchant_location, cash_withdrawal"
+    },
+    {
+      "pattern": "账户提供者与操作者非同一人，账户被他人控制用于资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录IP地址与账户持有人常住地不一致",
+        "账户交易操作设备指纹与账户持有人历史设备不同",
+        "账户持有人无法解释交易行为细节"
+      ],
+      "data_hint": "login_ip, device_fingerprint, account_holder_location, transaction_behavior_anomaly"
+    },
+    {
+      "pattern": "资金在短时间内经过银行卡、支付宝、现金等多个渠道快速转移，形成多层资金链路",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入支付宝后立即提现或消费",
+        "资金链路中涉及3个以上不同支付工具或账户",
+        "每层资金转移时间间隔小于1小时"
+      ],
+      "data_hint": "transaction_chain, amount, timestamp, payment_tool_type, account_id"
+    },
+    {
+      "pattern": "账户在夜间（晚20时后）进行大额资金操作，符合洗钱活动的时间偏好",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "大额交易发生在夜间20时至次日凌晨",
+        "夜间交易金额占当日总交易比例异常高"
+      ],
+      "data_hint": "timestamp, amount, hour_of_day"
+    }
+  ]
+}

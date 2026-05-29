@@ -1,0 +1,82 @@
+{
+  "source": "286张小平石磊帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户、手机及支付账户给陌生人用于接收和转移犯罪所得资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内被多个陌生IP或设备登录",
+        "账户绑定手机号或设备频繁更换",
+        "账户接收资金后立即通过数字钱包、微信、支付宝等渠道转出"
+      ],
+      "data_hint": "address, device_id, ip_address, login_timestamp, binding_history"
+    },
+    {
+      "pattern": "接收犯罪所得资金后，通过数字钱包、微信、支付宝等渠道快速转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在接收后短时间内（如几分钟内）被分拆转出至多个不同账户",
+        "转出金额接近但不超过大额交易报告阈值",
+        "转出交易频率异常高"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type"
+    },
+    {
+      "pattern": "协助刷脸验证以完成资金转移，表明账户控制权转移或共谋",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录或交易时频繁触发人脸验证",
+        "人脸验证时间与交易时间高度吻合",
+        "账户持有人与操作者IP地址或设备不一致"
+      ],
+      "data_hint": "biometric_verification_timestamp, device_id, ip_address, transaction_timestamp"
+    },
+    {
+      "pattern": "通过ATM机取现并将现金交给陌生人，实现资金物理转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内有多次ATM取现交易",
+        "取现金额接近但不超过ATM单日限额",
+        "取现时间集中在非正常营业时段（如深夜）",
+        "取现地点与账户持有人常住地或工作地不符"
+      ],
+      "data_hint": "amount, timestamp, atm_location, account_holder_address"
+    },
+    {
+      "pattern": "账户接收多笔来自不同上游诈骗受害人的资金，形成资金汇聚",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自多个不同来源地址的资金",
+        "资金来源地址与已知诈骗案件关联",
+        "资金流入后迅速被转出或取现，余额接近零"
+      ],
+      "data_hint": "amount, from_address, timestamp, balance_after_transaction"
+    },
+    {
+      "pattern": "使用数字人民币账户进行资金转移，利用新型支付渠道规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户在开立后短时间内有大量资金进出",
+        "数字人民币交易与银行卡交易高度关联",
+        "数字人民币交易对手方为多个不同账户"
+      ],
+      "data_hint": "digital_currency_account_id, transaction_type, counterparty_address, timestamp"
+    }
+  ]
+}

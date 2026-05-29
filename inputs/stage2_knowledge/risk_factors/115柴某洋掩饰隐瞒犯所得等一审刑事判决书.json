@@ -1,0 +1,105 @@
+{
+  "source": "115柴某洋掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体（如抖音、快手）招募银行卡提供者，用于接收和转移违法犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册时间短且与社交平台关联",
+        "账户间存在社交平台好友关系",
+        "账户被多个不同身份人员使用"
+      ],
+      "data_hint": "account_registration_time, social_media_id, account_relationship_graph"
+    },
+    {
+      "pattern": "使用个人银行卡接收违法犯罪资金后，通过ATM取现再存入指定账户的方式转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内频繁ATM取现",
+        "单日多次取现且金额接近ATM限额",
+        "取现后立即存入不同账户"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, atm_location, deposit_account"
+    },
+    {
+      "pattern": "利用数字人民币转账作为资金转移的中间环节，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入数字人民币钱包",
+        "数字人民币钱包资金快速转出至指定账户",
+        "数字人民币交易与银行取现交替使用"
+      ],
+      "data_hint": "transaction_type, digital_currency_wallet_id, amount, timestamp"
+    },
+    {
+      "pattern": "团伙分工明确，有人负责联系上线、有人提供银行卡、有人负责取款、有人负责存款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在同一时间段内协同操作",
+        "账户间资金流向呈星型或链式结构",
+        "不同账户操作地点集中或交替"
+      ],
+      "data_hint": "account_id, ip_address, device_id, transaction_sequence, location"
+    },
+    {
+      "pattern": "资金快速进出账户，进账后立即通过取现或转账转出，账户余额极低",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金在账户停留时间短（通常几分钟到几小时）",
+        "进账金额与出账金额高度匹配",
+        "账户余额长期接近零"
+      ],
+      "data_hint": "amount, timestamp, account_balance, transaction_interval"
+    },
+    {
+      "pattern": "使用他人银行卡（非本人名下）进行资金转移，形成多层级账户网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与操作人身份不一致",
+        "多个银行卡由同一人控制",
+        "账户间存在多跳转账路径"
+      ],
+      "data_hint": "account_holder_id, operator_id, account_ownership, transaction_graph"
+    },
+    {
+      "pattern": "通过ATM机多次小额取现规避大额交易报告制度",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单次取现金额低于大额交易报告阈值（如5万元）",
+        "短时间内多次取现累计金额较大",
+        "取现频率异常高"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, atm_transaction_log"
+    },
+    {
+      "pattern": "资金来源于多个不同受害人的诈骗资金，汇集到同一账户后分散转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收来自多个不同来源的小额资金",
+        "资金来源账户分散且无正常交易背景",
+        "资金汇集后快速分散转出"
+      ],
+      "data_hint": "sender_account, receiver_account, amount, timestamp, transaction_network"
+    }
+  ]
+}

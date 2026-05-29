@@ -1,0 +1,87 @@
+{
+  "source": "159王亚辉帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租出借银行卡、数字人民币钱包及密码，并提供刷脸、取现等协助，用于接收和转移电信诈骗等违法犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多笔来自不同个人的小额转账后立即取现或转出",
+        "账户关联多个数字人民币钱包且钱包密码共享",
+        "账户交易伴随频繁的刷脸验证操作",
+        "账户资金快进快出，不留余额"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_type, wallet_id, biometric_verification_flag, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "明知资金来源为违法犯罪所得，仍提供银行卡、手机及密码等给他人用于资金接收和转移，并从中获利",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔来自不同来源的小额资金（如电信诈骗单笔金额1-3万元）",
+        "账户资金在到账后短时间内被全部转出或取现",
+        "账户交易对手多为陌生个人账户",
+        "账户交易金额与账户历史交易模式显著偏离"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_balance, transaction_frequency, counterparty_count"
+    },
+    {
+      "pattern": "同一账户在短时间内多次接收不同电信诈骗受害人的资金，并迅速转移或取现，形成资金归集和分散转移的洗钱模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在数小时内接收来自多个不同来源的转账，每笔金额在1-4万元之间",
+        "资金到账后立即通过多笔转账或取现分散转出",
+        "账户交易呈现‘多笔进、多笔出’的网状结构",
+        "账户交易时间集中在白天或特定时段"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_chain, inflow_count, outflow_count"
+    },
+    {
+      "pattern": "出借银行卡给他人用于转移电信诈骗资金，且出借行为与后续资金转移存在时间间隔",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在出借后出现与历史交易模式不符的大额或频繁交易",
+        "账户在出借前后交易对手、交易金额、交易频率发生突变",
+        "账户出借后短时间内出现多笔来自不同来源的转账并迅速转出"
+      ],
+      "data_hint": "account_creation_date, account_activity_period, transaction_history, account_ownership_change_flag, transaction_anomaly_score"
+    },
+    {
+      "pattern": "通过提供刷脸、取现等物理操作协助资金转移，规避线上监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户交易伴随多次刷脸验证操作",
+        "账户在短时间内进行多次ATM取现或柜台取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "账户交易时间与取现时间高度重合"
+      ],
+      "data_hint": "transaction_id, biometric_verification_timestamp, cash_withdrawal_amount, cash_withdrawal_location, transaction_type, verification_method"
+    },
+    {
+      "pattern": "同一控制人通过多个数字人民币钱包接收和转移资金，分散风险",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一身份信息关联多个数字人民币钱包",
+        "多个钱包在相近时间内接收来自相同来源的资金",
+        "多个钱包的资金最终流向同一地址或账户",
+        "各钱包交易金额较小，但总和较大"
+      ],
+      "data_hint": "wallet_id, owner_identity, linked_accounts, transaction_amount, transaction_time, fund_flow_path"
+    }
+  ]
+}

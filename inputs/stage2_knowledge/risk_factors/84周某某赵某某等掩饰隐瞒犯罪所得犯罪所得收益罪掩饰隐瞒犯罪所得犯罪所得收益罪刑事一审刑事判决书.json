@@ -1,0 +1,80 @@
+{
+  "source": "84周某某赵某某等掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包进行跑分洗钱，通过注册大量钱包账户接收和转移非法资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个主体注册多个数字人民币钱包（如62个）",
+        "钱包账户交易流水总额巨大（如447万元）",
+        "同一主体控制大量钱包账户"
+      ],
+      "data_hint": "wallet_count, total_flow_amount, wallet_registration_count"
+    },
+    {
+      "pattern": "通过发展下线形成层级化跑分团队，扩大洗钱网络和资金规模",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "存在明确的上下线关系（如曹运祥发展孔祥森和姚生辉）",
+        "下线钱包数量和流水计入上线业绩",
+        "团队层级结构明显"
+      ],
+      "data_hint": "referrer_id, downline_count, hierarchical_level"
+    },
+    {
+      "pattern": "使用他人身份注册的数字人民币钱包进行洗钱，掩盖真实控制人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用非本人注册的钱包（如张广涛数字人民币钱包4个）",
+        "钱包注册人与实际使用人不一致"
+      ],
+      "data_hint": "wallet_registration_name, actual_controller, wallet_owner_relation"
+    },
+    {
+      "pattern": "跑分团队通过多个钱包账户分散资金流水，规避单账户大额交易监控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个主体控制多个钱包（如11-62个）",
+        "每个钱包流水相对较小但总流水巨大",
+        "资金分散在多个钱包中流转"
+      ],
+      "data_hint": "wallet_count, per_wallet_flow, total_flow"
+    },
+    {
+      "pattern": "洗钱活动持续数月，期间不断注册新钱包和扩展下线",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "洗钱活动持续超过1个月（2022年8月以来）",
+        "钱包注册时间分布密集",
+        "下线发展具有时间连续性"
+      ],
+      "data_hint": "activity_start_date, wallet_registration_timestamps, downline_development_time"
+    },
+    {
+      "pattern": "跑分团队内部存在佣金激励机制，上线从下线洗钱流水中获利",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "上线发展下线追求更高收益和佣金",
+        "下线流水计入上线业绩",
+        "非法获利金额与流水规模相关"
+      ],
+      "data_hint": "commission_rate, referral_income, downline_flow_amount"
+    }
+  ]
+}

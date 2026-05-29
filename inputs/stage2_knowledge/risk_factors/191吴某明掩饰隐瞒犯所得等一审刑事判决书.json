@@ -1,0 +1,74 @@
+{
+  "source": "191吴某明掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过他人介绍提供个人银行账户接收并转移来路不明资金，按指示转账或转入数字人民币APP后转账，按走账金额比例获利",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自多个不同来源（如电信诈骗被害人）的资金",
+        "资金在接收后迅速通过转账或转入数字人民币APP再转出，形成快速转移",
+        "账户资金流转模式与正常个人账户使用习惯不符，如频繁大额进出",
+        "账户开户后短期内出现异常活跃交易，且与上游犯罪资金流入时间高度吻合"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, account_creation_date, account_activity_pattern"
+    },
+    {
+      "pattern": "上游犯罪被害人资金直接转入被告人银行账户，被告人明知钱款来路不明仍协助转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收来自多个不同被害人的资金，金额与电信诈骗典型金额相符",
+        "资金在转入后短时间内被分多次转出至多个不同账户",
+        "账户交易频率在特定时间段内显著高于历史平均水平",
+        "账户余额在资金转入后迅速归零或接近归零"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_count, account_balance"
+    },
+    {
+      "pattern": "被告人通过介绍他人提供账户并参与分赃，形成共谋关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在资金流转关联，且开户人之间存在社交或介绍关系",
+        "多个账户在相近时间段内出现类似的异常交易模式",
+        "资金在多个账户之间循环或集中流向少数最终账户",
+        "账户之间交易金额与分赃比例（如6.9万元分赃）存在关联"
+      ],
+      "data_hint": "address_relationship_graph, transaction_links, shared_ip_address, social_network_data"
+    },
+    {
+      "pattern": "使用数字人民币APP作为资金转移通道，增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入数字人民币APP后立即转出至其他地址",
+        "数字人民币APP交易记录显示资金在短时间内完成转入转出",
+        "数字人民币APP交易时间与上游犯罪资金到账时间高度同步",
+        "数字人民币APP交易金额与银行账户接收金额一致或接近"
+      ],
+      "data_hint": "transaction_type (e.g., digital yuan), timestamp, amount, app_id, wallet_address"
+    },
+    {
+      "pattern": "被告人按上家指示操作，资金流转路径呈现层级化特征",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从上游犯罪被害人账户流向被告人账户，再转至其他账户，形成至少两层转移",
+        "被告人账户作为中间层，资金流入后迅速流出，停留时间极短",
+        "资金流向路径中涉及多个不同账户，且账户之间无正常商业或个人往来关系",
+        "资金流转路径末端账户与上游犯罪组织存在关联"
+      ],
+      "data_hint": "transaction_chain, hop_count, intermediate_addresses, flow_path"
+    }
+  ]
+}

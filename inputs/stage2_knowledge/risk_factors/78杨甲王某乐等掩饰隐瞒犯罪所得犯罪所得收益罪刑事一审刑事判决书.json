@@ -1,0 +1,82 @@
+{
+  "source": "78杨甲王某乐等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡和手机用于接收和转移诈骗资金，并协助刷脸验证和提取现金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的资金",
+        "账户资金在接收后迅速被提取现金或转移",
+        "交易过程中出现刷脸验证等身份认证操作",
+        "资金从多个被害人账户集中流入同一账户"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_type, authentication_method"
+    },
+    {
+      "pattern": "使用多张银行卡（农业、民生、建设）进行资金接收和转移，分散风险",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同银行的账户接收资金",
+        "每个账户接收的资金金额相对较小，但总金额较大",
+        "多个账户在相近时间段内出现类似交易模式"
+      ],
+      "data_hint": "bank_name, account_id, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "短时间内（2022年9月22日至26日）集中接收并转移大额诈骗资金",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在几天内集中流入并流出",
+        "单日交易金额显著高于历史正常水平",
+        "交易时间集中在特定时间段，缺乏正常消费或经营规律"
+      ],
+      "data_hint": "timestamp, amount, transaction_frequency, daily_total"
+    },
+    {
+      "pattern": "通过提取现金方式切断资金追踪链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在接收后立即被提取现金",
+        "提取现金的金额与接收金额高度匹配",
+        "提取现金行为发生在接收资金后的短时间内"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, withdrawal_location"
+    },
+    {
+      "pattern": "使用数字人民币账户作为资金中转或隐藏工具",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户中出现异常冻结资金",
+        "资金在传统银行账户和数字人民币账户之间转移",
+        "数字人民币账户交易金额与诈骗资金金额相关"
+      ],
+      "data_hint": "account_type, amount, timestamp, frozen_amount"
+    },
+    {
+      "pattern": "共同犯罪中起次要作用，协助他人进行资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在关联关系（如共用IP、设备、联系方式）",
+        "资金在多个账户之间快速流转，形成多层转移",
+        "账户控制人之间存在社交或通信联系"
+      ],
+      "data_hint": "ip_address, device_id, phone_number, social_connections, transaction_chain"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "source": "207方某吕某等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供名下多个银行及支付账户给他人用于转移非法资金，并配合操作转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多个来源资金并迅速转出",
+        "账户持有人与操作人分离，由他人操作转账",
+        "账户持有人负责输入密码，存在配合行为"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_holder, operator_id, password_input_flag"
+    },
+    {
+      "pattern": "短时间内多个账户同时被用于接收和转移非法资金，资金快速归集或分散",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个账户在连续数日内集中接收资金并转出",
+        "单账户流入资金总额较大（如236810元）且时间集中",
+        "资金从多个被害人账户流入同一中间账户"
+      ],
+      "data_hint": "account_id, transaction_time, amount, counterparty_account, inflow_total, outflow_total"
+    },
+    {
+      "pattern": "利用数字人民币、支付宝、微信等多种支付渠道进行资金转移，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体同时使用银行卡、数字人民币、支付宝、微信等支付工具",
+        "资金在不同支付渠道间快速流转",
+        "渠道切换频繁且无合理商业背景"
+      ],
+      "data_hint": "payment_channel, transaction_type, from_account, to_account, amount, timestamp"
+    },
+    {
+      "pattern": "账户持有人与在逃人员合作，共同操作转账，形成共犯关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在共同操作人（如蒋武）",
+        "账户持有人与操作人非同一人且无亲属或雇佣关系",
+        "操作人身份不明或为在逃人员"
+      ],
+      "data_hint": "account_holder, operator_id, relationship, shared_device_id, IP_address"
+    },
+    {
+      "pattern": "被害人资金直接流入中间账户，中间账户资金快速转出至其他账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从被害人账户直接转入中间账户",
+        "中间账户在收到资金后短时间内（如数小时内）转出至多个下游账户",
+        "中间账户余额接近零，资金不滞留"
+      ],
+      "data_hint": "source_account, intermediate_account, destination_account, amount, timestamp, balance_after_transaction"
+    },
+    {
+      "pattern": "账户持有人从中获利，但获利金额与转移资金规模不成比例",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "转移资金总额大（如295362元），但获利仅500元",
+        "获利比例极低（约0.17%），与正常金融服务收费不符",
+        "账户持有人无正当职业或收入来源"
+      ],
+      "data_hint": "total_transferred_amount, profit_amount, profit_ratio, account_holder_occupation"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "source": "180李春掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租出借银行卡给他人用于信息网络犯罪资金支付结算，收取固定日租金报酬",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收大量分散来源资金（如105万余元）",
+        "账户资金快进快出，无明显停留",
+        "账户与多个电信诈骗案件被害人资金相关联",
+        "账户持有人无正当职业，但账户出现大额资金流动"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, account_holder_profession, account_opening_location"
+    },
+    {
+      "pattern": "提供银行卡及手机并下载数字人民币软件供他人使用，可能用于拆分资金或规避监测",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户绑定数字人民币钱包并频繁使用",
+        "资金从银行卡转入数字人民币钱包后快速转出",
+        "数字人民币交易与银行卡交易时间高度重合",
+        "数字人民币交易金额呈现整数或小额分散特征"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, wallet_address, bank_card_number, app_usage_log"
+    },
+    {
+      "pattern": "账户在短时间内（如两天内）集中接收大量资金，且与电信诈骗被害人转账时间吻合",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在特定短时间段（如2021年11月9日至10日）内接收资金金额异常增大",
+        "接收资金时间与电信诈骗被害人转账时间高度重叠",
+        "账户在非正常交易时段（如夜间）有频繁交易",
+        "资金来源于多个不同地区（如深圳、浙江）的被害人"
+      ],
+      "data_hint": "amount, timestamp, sender_geolocation, receiver_geolocation, transaction_frequency"
+    },
+    {
+      "pattern": "账户持有人跨地域（从贵州到贵阳）主动提供银行卡，可能涉及团伙操控",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户开户地与交易发生地不一致",
+        "账户持有人户籍地与交易行为地相距较远",
+        "多个账户在同一时间段内由不同地区人员集中提供",
+        "账户持有人与介绍人、使用人之间存在间接关联"
+      ],
+      "data_hint": "account_opening_location, transaction_location, ip_address, device_id, account_holder_address"
+    },
+    {
+      "pattern": "明知他人可能利用信息网络实施犯罪，仍提供银行卡并获取固定日租金，具有主观故意",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与犯罪团伙存在事前联系（如通过介绍人）",
+        "账户持有人收取固定日租金（如500-600元/天），与正常收入不符",
+        "账户持有人无正当职业，但账户有异常资金流入",
+        "账户持有人提供银行卡后立即用于犯罪资金流转"
+      ],
+      "data_hint": "account_holder_income, employment_status, communication_records, transaction_pattern"
+    }
+  ]
+}

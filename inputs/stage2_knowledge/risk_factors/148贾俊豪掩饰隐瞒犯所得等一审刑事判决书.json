@@ -1,0 +1,92 @@
+{
+  "source": "148贾俊豪掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过QQ群等社交平台招募提供银行账户的人员，以支付报酬为诱饵，用于转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内与陌生社交账号建立联系",
+        "账户持有人与招募者无历史交易关系",
+        "账户被用于接收来自多个不同来源的小额资金"
+      ],
+      "data_hint": "address, transaction_graph, social_media_id, counterparty_address"
+    },
+    {
+      "pattern": "账户持有人跨地域流动（如从柳林到西安）进行线下交付银行卡和手机，配合他人操作转账",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录IP或交易地点与账户注册地或常用地不符",
+        "交易发生前账户持有人有跨城市移动记录",
+        "线下交付行为与线上交易时间紧密关联"
+      ],
+      "data_hint": "timestamp, ip_address, geo_location, transaction_location"
+    },
+    {
+      "pattern": "短时间内通过多个银行软钱包（数字人民币APP）进行资金归集和转移，利用多账户分散资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一设备或IP在短时间内开通多个银行软钱包",
+        "资金从多个软钱包快速归集到同一主账户",
+        "软钱包绑定后立即用于接收和转移资金"
+      ],
+      "data_hint": "wallet_address, device_id, ip_address, transaction_sequence, amount"
+    },
+    {
+      "pattern": "账户在短时间内出现大额资金快进快出，单向流水金额巨大（39.9万余元），且资金来自多个不同被害人",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户单日交易金额远超历史平均水平",
+        "资金在数小时内完成转入和转出",
+        "交易笔数密集且单笔金额较小但累计金额大",
+        "资金来源于多个不同地址"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, counterparty_address, cumulative_amount"
+    },
+    {
+      "pattern": "利用ATM取现方式将非法资金转换为现金，规避银行转账监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在转账操作后立即进行ATM取现",
+        "取现金额接近但不超过大额交易报告阈值（如2万元）",
+        "取现行为发生在非开户地"
+      ],
+      "data_hint": "transaction_type, amount, atm_location, timestamp, withdrawal_amount"
+    },
+    {
+      "pattern": "账户持有人提供银行卡、手机、身份证等全套信息，允许他人远程控制账户进行转账操作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录设备或IP与账户持有人常用设备不一致",
+        "账户在短时间内被多个不同IP或设备访问",
+        "账户绑定手机号或验证方式发生变更"
+      ],
+      "data_hint": "device_id, ip_address, login_history, account_binding_changes"
+    },
+    {
+      "pattern": "涉案资金来自全国多地25名被害人，资金分散流入后集中转移，呈现典型的资金归集模式",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个不同地域的地址向同一账户转入小额资金",
+        "资金在短时间内集中流入后快速转出",
+        "转入地址之间无直接关联"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, geographic_distribution"
+    }
+  ]
+}

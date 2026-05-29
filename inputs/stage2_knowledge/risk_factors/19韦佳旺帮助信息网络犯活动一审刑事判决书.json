@@ -1,0 +1,93 @@
+{
+  "source": "19韦佳旺帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包为网络犯罪提供USDT币交易支付结算，通过多个钱包分散收款规避冻结",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体控制多个数字人民币钱包（36个）",
+        "每个钱包流入流出金额基本持平",
+        "单个钱包交易金额在数千至数十万元不等"
+      ],
+      "data_hint": "wallet_address, wallet_owner, amount_in, amount_out, transaction_count"
+    },
+    {
+      "pattern": "通过高价转售USDT币赚取差价，利用场外交易平台进行资金流转",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "买入价低于卖出价约2%",
+        "交易平台为'博盈'平台",
+        "交易标的为USDT币"
+      ],
+      "data_hint": "buy_price, sell_price, platform_name, token_type, profit_margin"
+    },
+    {
+      "pattern": "使用他人身份信息注册数字人民币钱包，掩盖实际控制人身份",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用梁某、梁桂珍、梁幼娟、梁兴勇等多个他人名下的数字人民币钱包",
+        "每个他人名下绑定多个钱包（6-8个）"
+      ],
+      "data_hint": "wallet_owner_identity, wallet_registration_info, relationship_between_owners"
+    },
+    {
+      "pattern": "不明资金通过多个中间钱包层层流转，最终与诈骗案被害人资金关联",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "不明资金流入后立即流出，金额高度匹配",
+        "部分钱包中流入资金包含多个被害人被骗资金",
+        "资金流转时间集中在2024年1月至4月"
+      ],
+      "data_hint": "transaction_timestamp, amount_in, amount_out, counterparty_address, victim_funds_flag"
+    },
+    {
+      "pattern": "使用'纸飞机'聊天软件（Telegram）进行USDT币的场外购买，规避监管",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "通过加密聊天软件联系交易对手",
+        "交易时间无固定规律"
+      ],
+      "data_hint": "communication_channel, counterparty_identifier, transaction_timestamp"
+    },
+    {
+      "pattern": "单个数字人民币钱包短时间内高频交易，流入流出金额基本相等，呈现'快进快出'特征",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "每个钱包流入总额与流出总额几乎一致",
+        "交易周期短（数天至数月）",
+        "单笔交易金额多为整数或接近整数"
+      ],
+      "data_hint": "transaction_amount, transaction_timestamp, wallet_balance_change, net_flow"
+    },
+    {
+      "pattern": "利用多个数字人民币钱包分散接收诈骗资金，规避单账户大额交易监控",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "每个钱包接收的诈骗资金金额较小（几百至几千元）",
+        "同一被害人资金分散到不同钱包",
+        "钱包数量多（36个）"
+      ],
+      "data_hint": "wallet_address, victim_fund_amount, transaction_count_per_wallet, amount_threshold"
+    }
+  ]
+}

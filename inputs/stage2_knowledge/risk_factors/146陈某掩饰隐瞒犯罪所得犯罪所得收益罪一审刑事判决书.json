@@ -1,0 +1,56 @@
+{
+  "source": "146陈某掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡及数字人民币账户用于接收和转移网络诈骗资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一人控制多个不同银行账户和数字人民币账户",
+        "账户短期内接收大量来自不同被害人的资金",
+        "资金从银行卡转入数字人民币账户进行转移"
+      ],
+      "data_hint": "address, account_id, counterparty_address, amount, timestamp, transaction_type"
+    },
+    {
+      "pattern": "账户资金快速进出，进账总流水远大于涉案金额，存在洗钱通道特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户进账总流水远大于涉案诈骗资金金额（如农业银行卡进账49万余元，涉案29万余元）",
+        "资金在短时间内从多个来源汇入后迅速转出",
+        "账户作为资金中转站，资金停留时间短"
+      ],
+      "data_hint": "amount, timestamp, balance, transaction_count, inflow_total, outflow_total"
+    },
+    {
+      "pattern": "使用数字人民币账户作为资金转移的中间层，增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币账户后再转出",
+        "数字人民币账户交易频率和金额异常",
+        "资金流向涉及新型支付工具，可能规避传统监控"
+      ],
+      "data_hint": "transaction_type, address, amount, timestamp, chain_layer"
+    },
+    {
+      "pattern": "明知资金可能用于违法犯罪仍提供账户牟利，体现账户出借行为",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金来源方无正常交易背景",
+        "账户被多个无关联的被害人汇入资金",
+        "账户持有人获得异常报酬（如1000元）"
+      ],
+      "data_hint": "account_holder_info, counterparty_relationship, transaction_memo, fee_or_reward"
+    }
+  ]
+}

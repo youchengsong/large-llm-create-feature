@@ -1,0 +1,67 @@
+{
+  "source": "236黄某某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "明知是网络赌博平台，使用本人及家人数字人民币账户为其提供跑分刷流水服务",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用本人及亲属账户为同一平台提供代付服务",
+        "账户资金流水与网络赌博平台关联",
+        "多个账户协同为同一目标平台服务"
+      ],
+      "data_hint": "address, account_relation, transaction_counterparty, platform_tag"
+    },
+    {
+      "pattern": "使用多张银行卡为网络赌博平台刷流水，涉案流水金额巨大",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个账户短期内产生大量流水（如8张卡流水256万）",
+        "账户流水总额远超正常个人使用范围",
+        "资金快进快出，流水频繁"
+      ],
+      "data_hint": "amount, transaction_count, account_balance, timestamp"
+    },
+    {
+      "pattern": "为获取非法利益，提供数字人民币账户代付服务",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户频繁接收资金后立即转出或代付",
+        "交易模式呈现‘接收-转出’的快速循环",
+        "资金流向与正常消费模式不符"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address"
+    },
+    {
+      "pattern": "团伙成员共同为同一网络赌博平台提供跑分服务，分工协作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户具有相同的地理位置或IP地址",
+        "账户间存在资金互转或共同交易对手",
+        "账户注册信息关联（如亲属关系、相同地址）"
+      ],
+      "data_hint": "address, ip_address, account_registration_info, transaction_graph"
+    },
+    {
+      "pattern": "使用数字人民币账户进行洗钱，利用新型支付工具规避监管",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字人民币账户交易频率异常高",
+        "交易时间集中在特定时段（如夜间）",
+        "账户交易金额接近但不超过阈值"
+      ],
+      "data_hint": "payment_method, amount, timestamp, transaction_frequency"
+    }
+  ]
+}

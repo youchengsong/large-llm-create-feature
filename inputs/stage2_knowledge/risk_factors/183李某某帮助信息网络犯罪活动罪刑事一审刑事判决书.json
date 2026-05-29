@@ -1,0 +1,103 @@
+{
+  "source": "183李某某帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡、身份证及手机，配合多次刷脸认证转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内出现多次刷脸认证操作",
+        "账户登录设备与历史记录不一致",
+        "资金流入后立即通过多笔转账流出"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, auth_type, device_id"
+    },
+    {
+      "pattern": "短时间内通过多张银行卡集中转移大额资金，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单日累计流入金额超过100万元",
+        "资金在账户内停留时间极短（如数小时内转出）",
+        "多张银行卡在相近时间段内同时出现大额交易"
+      ],
+      "data_hint": "amount, timestamp, account_id, balance_before, balance_after"
+    },
+    {
+      "pattern": "使用数字人民币账户进行资金转移以规避银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户注册数字人民币功能后立即用于大额转账",
+        "数字人民币转账与银行卡转账交替使用"
+      ],
+      "data_hint": "transaction_type, digital_currency_flag, amount, timestamp"
+    },
+    {
+      "pattern": "通过中介介绍异地见面，提供银行卡用于所谓‘贷款’业务，实际用于洗钱",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人与交易对手方地理位置相距较远",
+        "账户在短时间内出现跨省或跨市交易",
+        "账户持有人与多个中介或陌生人存在关联"
+      ],
+      "data_hint": "ip_address, geo_location, counterparty_info, contact_network"
+    },
+    {
+      "pattern": "账户持有人主动提高银行卡日限额以方便大额资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短期内多次修改日限额设置",
+        "修改后立即出现大额交易",
+        "日限额被提高至50万至100万"
+      ],
+      "data_hint": "account_limit_change, timestamp, amount, limit_before, limit_after"
+    },
+    {
+      "pattern": "账户在夜间至凌晨时段进行大量交易以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在22:00至次日4:00",
+        "夜间交易金额占全天交易比例异常高"
+      ],
+      "data_hint": "timestamp, hour_of_day, amount"
+    },
+    {
+      "pattern": "账户资金流入后立即被转移至其他账户，形成资金快速流转路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在多个账户间快速流转，经过3层以上地址",
+        "交易对手方账户为新开或休眠账户",
+        "资金流向与账户持有人正常交易模式不符"
+      ],
+      "data_hint": "transaction_chain, from_address, to_address, amount, timestamp"
+    },
+    {
+      "pattern": "账户持有人为‘花户’（征信不良者），被利用作为洗钱工具",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人征信记录不良或存在多次查询记录",
+        "账户持有人无稳定收入来源或职业",
+        "账户被用于接收来自多个不同受害者的资金"
+      ],
+      "data_hint": "credit_score, employment_status, victim_count, transaction_counterparty"
+    }
+  ]
+}

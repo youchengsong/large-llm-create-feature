@@ -1,0 +1,80 @@
+{
+  "source": "74王某掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分团伙通过提供保证金、联系供卡人并操作资金流转，利用他人银行账户接收和转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在短时间内接收资金后立即转出",
+        "资金流转过程中涉及多个中间账户或数字钱包",
+        "账户持有者与资金操作者非同一人"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_holder_id, operator_id"
+    },
+    {
+      "pattern": "利用酒店、宾馆等临时场所进行跑分操作，通过线下见面方式控制供卡人账户",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易发起IP或设备位置频繁出现在酒店、宾馆等临时场所",
+        "同一设备或IP在短时间内操作多个不同账户",
+        "交易时间集中在夜间或非工作时间"
+      ],
+      "data_hint": "ip_address, device_id, location, timestamp, account_id"
+    },
+    {
+      "pattern": "通过数字人民币APP等新型支付工具转移非法资金，以规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户快速转入数字人民币账户并再次转出",
+        "数字人民币账户交易频率异常高",
+        "交易金额接近但不超过监管阈值"
+      ],
+      "data_hint": "from_account, to_account, amount, timestamp, transaction_type, digital_currency_flag"
+    },
+    {
+      "pattern": "跑分团伙成员分工明确，包括提供保证金、联系供卡人、具体操作和望风等角色",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在固定的资金流转路径",
+        "账户之间交易时间间隔极短",
+        "账户持有者之间存在社交或通信联系"
+      ],
+      "data_hint": "account_id, related_account_id, transaction_time, communication_records, role_label"
+    },
+    {
+      "pattern": "供卡人提供多张银行卡用于接收非法资金，资金到账后立即被转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一供卡人名下多张银行卡在短时间内接收多笔资金",
+        "资金到账后5分钟内即被转出",
+        "单笔交易金额较小但累计金额较大"
+      ],
+      "data_hint": "account_id, amount, timestamp, in_out_flag, cumulative_amount"
+    },
+    {
+      "pattern": "跑分资金涉及电信诈骗等上游犯罪，资金链路中包含涉诈资金标记",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金流转路径中涉及已知涉诈账户",
+        "交易对手方账户被标记为高风险",
+        "资金经过多层地址后最终流向不明"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, risk_score, fraud_flag"
+    }
+  ]
+}

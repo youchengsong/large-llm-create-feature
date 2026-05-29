@@ -1,0 +1,99 @@
+{
+  "source": "225张某某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人名下多个账户（含亲属账户）集中用于接收和转移网络犯罪资金，形成资金流转网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人名下账户数量超过3个",
+        "账户间资金频繁互转",
+        "账户关联亲属身份（配偶、兄弟等）",
+        "多个账户在同一时间段内集中接收和转出资金"
+      ],
+      "data_hint": "address, account_holder, account_type, transaction_time, counterparty_address, relationship_type"
+    },
+    {
+      "pattern": "利用数字人民币钱包和支付宝账户等非传统银行渠道进行资金流转，以规避银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易渠道包含数字人民币钱包",
+        "支付宝账户与银行卡账户交替使用",
+        "资金在数字钱包与银行账户间快速转移",
+        "交易渠道切换频率高于正常用户"
+      ],
+      "data_hint": "transaction_channel, wallet_type, account_type, transaction_time, amount"
+    },
+    {
+      "pattern": "短时间内通过多个账户流转大额资金，且资金来源于网络赌博、色情直播等非法活动",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单个账户月累计流入资金超过100万元",
+        "资金流入后短时间内（如24小时内）转出",
+        "资金来源方与网络赌博、色情平台相关",
+        "交易频率在特定时间段（如夜间）显著升高"
+      ],
+      "data_hint": "amount, timestamp, source_address, destination_address, transaction_frequency, time_of_day"
+    },
+    {
+      "pattern": "通过介绍他人提供账户形成层级式资金流转网络，上游犯罪人员控制多个中间账户",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户之间存在介绍关系（如A介绍B）",
+        "资金流转路径经过3层以上账户",
+        "中间账户资金归集后转出至同一最终地址",
+        "介绍人从被介绍人账户流转资金中按比例提成"
+      ],
+      "data_hint": "address, relationship_graph, transaction_path, commission_rate, counterparty_address"
+    },
+    {
+      "pattern": "利用亲属（配偶、兄弟）名下账户进行资金流转，以分散风险并增加追踪难度",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与主要嫌疑人存在亲属关系",
+        "亲属账户与嫌疑人账户资金互转频繁",
+        "亲属账户在嫌疑人控制下统一操作",
+        "亲属账户交易IP地址或设备指纹与嫌疑人一致"
+      ],
+      "data_hint": "account_holder, relationship, transaction_time, ip_address, device_id"
+    },
+    {
+      "pattern": "长期持续（超过1年）为网络犯罪提供支付结算服务，累计流转资金数百万元至近千万元",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户活跃期超过6个月",
+        "累计流转资金总额超过100万元",
+        "每月交易金额波动较小，呈现稳定模式",
+        "交易频率在长期内保持高位"
+      ],
+      "data_hint": "account_creation_date, transaction_history, monthly_volume, transaction_count"
+    },
+    {
+      "pattern": "非法获利与流转资金成比例（约0.5%-1%），体现按比例提成的商业模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "非法获利金额与流转资金总额的比例在0.5%-1%之间",
+        "同一介绍人下多个账户的提成比例一致",
+        "提成金额与单笔交易金额正相关",
+        "提成时间点与资金流转时间点紧密关联"
+      ],
+      "data_hint": "commission_amount, transaction_amount, commission_rate, transaction_time"
+    }
+  ]
+}

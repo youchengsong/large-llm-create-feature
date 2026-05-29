@@ -1,0 +1,62 @@
+{
+  "source": "228周某梅邓某珍掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用网约车、货拉拉等物流渠道寄递现金，实现物理化资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过网约车或货拉拉订单寄递现金",
+        "寄递地址与收款地址分离",
+        "寄递时间与诈骗得手时间接近"
+      ],
+      "data_hint": "transaction_type, delivery_order_id, pickup_address, dropoff_address, timestamp, amount"
+    },
+    {
+      "pattern": "多人合伙分工接收并转移现金赃款",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户或人员在同一时间段内接收来自同一寄递渠道的现金",
+        "收款人之间有关联关系或共同行动记录"
+      ],
+      "data_hint": "address, transaction_partner, group_id, communication_records"
+    },
+    {
+      "pattern": "短时间内集中接收多笔来自不同受害人的现金汇款",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一收款方在短时间内接收多笔大额现金",
+        "单笔金额接近但不超过特定阈值（如数万元）",
+        "资金来源为不同受害人"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "使用数字人民币转账记录和微信聊天记录进行资金指令沟通",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转移前存在微信等即时通讯工具沟通记录",
+        "数字人民币转账与聊天记录时间高度关联"
+      ],
+      "data_hint": "communication_timestamp, transaction_timestamp, digital_currency_transfer_log"
+    },
+    {
+      "pattern": "通过高德地图搜索等工具定位现金接收地点",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "收款人使用地图搜索工具查询特定地址",
+        "现金接收地点与搜索记录中的地址一致"
+      ],
+      "data_hint": "search_query, search_timestamp, location_coordinates, pickup_address"
+    }
+  ]
+}

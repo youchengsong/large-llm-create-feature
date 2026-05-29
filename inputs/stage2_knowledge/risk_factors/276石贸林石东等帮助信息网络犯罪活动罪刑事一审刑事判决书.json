@@ -1,0 +1,68 @@
+{
+  "source": "276石贸林石东等帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡给陌生人使用，并配合刷脸、密码验证以转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内被第三方操作，出现多次刷脸和密码输入行为",
+        "资金在短时间内（约1小时）快速进账并转出",
+        "账户被用于接收来自不同受害人的资金"
+      ],
+      "data_hint": "transaction_id, amount, timestamp, device_id, ip_address, login_attempts, face_auth_count, password_entry_count"
+    },
+    {
+      "pattern": "通过社交平台（微信）联系陌生人，约定提供银行卡并收取好处费",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与陌生账户通过社交平台建立联系",
+        "账户持有人与多个无关联账户存在异常转账或沟通记录",
+        "账户持有人收到小额好处费（1000-2000元）后立即提现"
+      ],
+      "data_hint": "social_media_contacts, communication_records, transfer_amount, transfer_frequency, withdrawal_amount"
+    },
+    {
+      "pattern": "短时间内集中进账多笔资金，且来源为不同受害人",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内（约1小时）多笔资金进账，总金额显著异常",
+        "进账资金来自多个不同账户，且与账户持有人无历史交易关系",
+        "资金进账后迅速被转移或取现"
+      ],
+      "data_hint": "incoming_transactions, amount, timestamp, counterparty_address, transaction_count_per_hour"
+    },
+    {
+      "pattern": "使用数字人民币APP进行实名认证和密码操作，增加资金转移隐蔽性",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内下载并注册数字人民币APP",
+        "数字人民币账户与银行卡账户之间存在频繁转账",
+        "数字人民币交易记录显示资金快速流转"
+      ],
+      "data_hint": "app_download_log, registration_time, digital_currency_transactions, transfer_path"
+    },
+    {
+      "pattern": "账户持有人全程在场但由他人操作银行卡和手机，属于典型的“卡农”行为",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录IP地址与账户持有人常用IP不一致",
+        "操作设备指纹与账户持有人历史设备不同",
+        "交易行为模式与账户持有人历史行为显著偏离"
+      ],
+      "data_hint": "login_ip, device_fingerprint, session_duration, transaction_behavior_pattern"
+    }
+  ]
+}

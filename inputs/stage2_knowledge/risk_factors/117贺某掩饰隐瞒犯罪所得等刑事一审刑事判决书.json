@@ -1,0 +1,80 @@
+{
+  "source": "117贺某掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机、身份证及密码给他人用于接收和转移电信诈骗等违法犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内被多个不同来源账户转入资金",
+        "账户密码、手机、身份证交由他人控制使用",
+        "账户资金转入后立即被多方式分散转移"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, device_id, ip_address, login_behavior"
+    },
+    {
+      "pattern": "配合刷脸等身份验证帮助犯罪分子转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易过程中频繁触发生物识别验证",
+        "验证时间点与异常交易时间高度重合"
+      ],
+      "data_hint": "auth_type, auth_timestamp, transaction_id"
+    },
+    {
+      "pattern": "资金快速通过多种渠道分散转移（银行卡、手机银行、支付宝、数字人民币、网银在线、杉德支付、取现）",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内通过多种支付渠道转出",
+        "单笔取现金额接近或低于大额交易报告阈值",
+        "资金流向多个不同平台或账户"
+      ],
+      "data_hint": "amount, transaction_type, channel, timestamp, to_address"
+    },
+    {
+      "pattern": "提供银行卡后短时间内接收多笔来自不同受害人的涉诈资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个不同来源账户在短时间内向同一账户转入资金",
+        "转入资金总额与账户历史交易模式显著不符",
+        "转入资金涉及多起电信诈骗案件"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, case_id"
+    },
+    {
+      "pattern": "按每万元300元比例收取报酬，属于典型的跑分洗钱模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户交易金额与固定比例报酬模式匹配",
+        "账户内资金快速进出，余额接近零",
+        "交易金额多为整数或接近整数"
+      ],
+      "data_hint": "amount, balance, fee_ratio"
+    },
+    {
+      "pattern": "在车内等非固定场所与上家接头并完成资金转移操作",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易发起地点频繁变化且位于非居民区",
+        "交易时间集中在短时间内连续操作",
+        "设备位置与账户注册地或常用地不一致"
+      ],
+      "data_hint": "gps_location, timestamp, device_id, ip_address"
+    }
+  ]
+}

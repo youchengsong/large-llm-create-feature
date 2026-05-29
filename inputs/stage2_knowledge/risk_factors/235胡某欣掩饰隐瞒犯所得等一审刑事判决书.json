@@ -1,0 +1,81 @@
+{
+  "source": "235胡某欣掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行卡开通数字人民币钱包，为网络犯罪资金提供支付结算通道",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体控制多张非本人名下的银行卡",
+        "银行卡开通数字人民币钱包业务",
+        "资金从多个受害人账户流入后迅速分散或转移"
+      ],
+      "data_hint": "address, bank_card_owner, digital_currency_wallet_flag, transaction_flow"
+    },
+    {
+      "pattern": "短期内通过多个账户集中流转大额电信诈骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内（如2个月内）账户累计流入资金超过400万元",
+        "单日或多日连续大额交易",
+        "交易金额与账户日常使用习惯明显不符"
+      ],
+      "data_hint": "amount, timestamp, transaction_frequency, account_balance_history"
+    },
+    {
+      "pattern": "团伙成员分工协作，共同操作多个账户进行资金转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在同一IP地址或物理位置操作",
+        "账户间资金流转路径呈现网状或星型结构",
+        "多个账户的注册信息、设备信息关联"
+      ],
+      "data_hint": "ip_address, device_id, account_registration_info, transaction_graph"
+    },
+    {
+      "pattern": "利用数字人民币钱包的匿名性或快速到账特性规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包后立即转出",
+        "数字人民币钱包交易记录中无明确对手方信息",
+        "钱包内资金停留时间极短"
+      ],
+      "data_hint": "wallet_type, transaction_delay, counterparty_anonymity"
+    },
+    {
+      "pattern": "账户资金流入来源为网络赌博、游戏充值等高风险领域",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金流入方涉及赌博平台、游戏充值平台等高风险商户",
+        "交易时间集中在夜间或非工作时间",
+        "单笔交易金额呈现特定模式（如接近整数或小额高频）"
+      ],
+      "data_hint": "counterparty_category, transaction_time, amount_pattern"
+    },
+    {
+      "pattern": "犯罪团伙使用多部手机和微型机作为作案工具，批量管理账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一地址或设备关联多个银行账户或数字钱包",
+        "设备数量与账户数量高度相关",
+        "设备型号集中或为特定品牌"
+      ],
+      "data_hint": "device_count, device_model, account_device_mapping"
+    }
+  ]
+}

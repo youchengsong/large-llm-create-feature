@@ -1,0 +1,67 @@
+{
+  "source": "222徐某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人将银行卡及数字钱包账户出借给他人，用于接收和转移违法犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证下银行卡与数字钱包账户关联多个外部账户",
+        "银行卡密码交由他人使用",
+        "账户被用于接收来自多个来源的资金"
+      ],
+      "data_hint": "address, account_id, linked_accounts, password_sharing_flag"
+    },
+    {
+      "pattern": "明知资金为违法犯罪所得，仍通过数字人民币账户接收资金并提现至个人银行卡",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户接收资金后短时间内提现至同名银行卡",
+        "提现金额接近整数（如19499元、9999元）",
+        "资金从数字人民币账户流向银行卡后用于个人消费或还款"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, from_account, to_account, digital_currency_flag"
+    },
+    {
+      "pattern": "通过将资金从数字人民币账户转移至银行卡再转出，形成多层资金流转路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在多个账户间快速流转（如数字人民币账户→银行卡→他人账户）",
+        "资金流转路径超过2层",
+        "每层转账时间间隔短"
+      ],
+      "data_hint": "transaction_chain, hop_count, timestamp_sequence, from_address, to_address"
+    },
+    {
+      "pattern": "利用他人银行卡和数字钱包账户进行资金中转，以隐藏资金来源和去向",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个银行卡和数字钱包账户由同一人控制但名义持有人不同",
+        "资金从多个来源账户汇入后集中转出",
+        "账户间转账无明确商业或个人用途"
+      ],
+      "data_hint": "account_owner, control_relationship, multi_account_cluster, transaction_purpose"
+    },
+    {
+      "pattern": "在明知账户资金为违法犯罪资金的情况下，截留部分资金占为己有",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收资金后未按指示全额转出",
+        "截留资金用于个人消费或偿还债务",
+        "截留金额与接收金额存在差异"
+      ],
+      "data_hint": "amount, expected_transfer_amount, actual_transfer_amount, discrepancy_flag, spending_category"
+    }
+  ]
+}

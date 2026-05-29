@@ -1,0 +1,74 @@
+{
+  "source": "170赵某毛某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行卡接收并转移电信诈骗资金，通过人脸识别验证开通数字人民币等支付工具，收取高额手续费",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内同一账户接收多笔来自不同被害人的大额资金",
+        "账户在接收资金后立即通过数字人民币等工具进行转移",
+        "交易对手方为陌生账户且资金流向复杂",
+        "账户持有人收取明显高于市场平均水平的交易手续费"
+      ],
+      "data_hint": "amount, from_address, to_address, timestamp, transaction_type, fee, app_usage"
+    },
+    {
+      "pattern": "为跑分洗钱提供银行卡和手机，在异地宾馆被控制人身自由，配合完成多轮认证和操作",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人短时间内从常住地前往异地并入住宾馆",
+        "账户在异地宾馆附近进行多次大额交易",
+        "账户开通多个支付类应用（云闪付、数字人民币、微医、裕农通）并完成人脸识别认证",
+        "交易时间集中在白天特定时段，且操作间隔较短"
+      ],
+      "data_hint": "location, timestamp, ip_address, device_id, app_install_list, biometric_authentication"
+    },
+    {
+      "pattern": "通过中间人介绍招募银行卡提供者，以高额报酬为诱饵，形成层级化洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在多层级关联关系，如介绍人、操作人、持卡人",
+        "多个账户在相近时间段内出现类似的大额交易模式",
+        "账户持有人与介绍人之间存在资金往来（如交通费、住宿费）",
+        "同一操作人控制多个不同持卡人的账户"
+      ],
+      "data_hint": "address_network, transaction_graph, referral_links, shared_device_id"
+    },
+    {
+      "pattern": "利用数字人民币等新兴支付工具进行资金转移，规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内下载并注册多个数字人民币等支付应用",
+        "资金从银行卡转入数字人民币钱包后迅速转出至其他地址",
+        "交易金额接近但不超过大额交易报告阈值",
+        "交易频率在短时间内急剧增加"
+      ],
+      "data_hint": "app_usage, wallet_address, transaction_amount, transaction_frequency, threshold_analysis"
+    },
+    {
+      "pattern": "洗钱过程中使用人脸识别等生物特征验证，表明操作人与账户持有人分离但配合",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户认证过程中多次出现人脸识别验证",
+        "交易发起IP地址与账户持有人常住地不一致",
+        "同一设备短时间内登录多个不同账户",
+        "账户持有人与操作人之间存在时间差或位置差"
+      ],
+      "data_hint": "biometric_authentication_log, ip_address, device_fingerprint, session_duration"
+    }
+  ]
+}

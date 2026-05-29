@@ -1,0 +1,104 @@
+{
+  "source": "56赵某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡、支付账户及手机给上家用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证下多张银行卡及支付账户（微信、翼支付、数字钱包）被他人控制使用",
+        "账户登录设备或IP地址与账户持有人历史行为不一致"
+      ],
+      "data_hint": "address, account_id, device_id, ip_address, login_timestamp"
+    },
+    {
+      "pattern": "资金到账后立即通过银行柜台或ATM取现，规避电子转账监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内（如数小时内）进行大额取现",
+        "取现金额接近但不超过单日限额（如2万元）",
+        "取现后账户余额迅速归零或接近零"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal/deposit), account_balance"
+    },
+    {
+      "pattern": "利用多个支付渠道（微信、翼支付、数字钱包）分散转出剩余资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内通过多个不同支付平台向外转账",
+        "转账金额分散且笔数较多",
+        "转账对手账户分散且无明确商业关联"
+      ],
+      "data_hint": "amount, timestamp, payment_channel, counterparty_address"
+    },
+    {
+      "pattern": "使用他人银行卡接收多笔来自不同受害人的小额诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一收款账户在短时间内收到多笔来自不同账户的小额转账（如1500元、1988元、1360元等）",
+        "入金金额呈现典型刷单诈骗特征（如520元、1988元、7998元等）",
+        "入金账户与出金账户无正常交易关系"
+      ],
+      "data_hint": "amount, timestamp, sender_account, receiver_account, transaction_count"
+    },
+    {
+      "pattern": "上家现场控制账户操作，持卡人本人不在场或仅提供密码",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡交易发生地与持卡人常住地或历史活动地不符",
+        "交易时间集中在夜间或非正常时段",
+        "多笔交易在短时间内连续发生，间隔极短"
+      ],
+      "data_hint": "timestamp, transaction_location, account_holder_location, device_id"
+    },
+    {
+      "pattern": "通过朋友介绍招募银行卡提供者，形成层级式洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人之间存在社交关系（如朋友、同事）",
+        "多个账户在同一时间段内被用于类似洗钱活动",
+        "账户持有人之间资金往来或共享设备"
+      ],
+      "data_hint": "account_holder_relationship, shared_device_id, shared_ip_address"
+    },
+    {
+      "pattern": "洗钱过程中使用多个数字钱包和支付工具，增加资金追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在银行卡、微信、翼支付、数字钱包等多个账户间快速流转",
+        "流转路径复杂，涉及多层跳转",
+        "最终资金流向难以追溯"
+      ],
+      "data_hint": "transaction_chain, payment_channel, timestamp, amount"
+    },
+    {
+      "pattern": "洗钱团伙提前测试银行卡每日限额，以规划取现和转账策略",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在正式洗钱前，账户有查询余额或小额测试交易",
+        "交易金额接近但不超过银行单日限额",
+        "取现和转账策略根据限额动态调整"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, account_limit"
+    }
+  ]
+}

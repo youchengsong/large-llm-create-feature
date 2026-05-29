@@ -1,0 +1,75 @@
+{
+  "source": "82郑某华掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包和银行卡进行多层级资金转移，以规避限额和监管",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金在多个数字人民币钱包与银行账户间流转",
+        "同一主体名下数字人民币钱包限额后启用关联人钱包",
+        "资金从上游账户经中间人钱包转入最终目标账户"
+      ],
+      "data_hint": "wallet_id, bank_account, transaction_chain, amount, timestamp, sender, receiver"
+    },
+    {
+      "pattern": "使用他人身份开通数字人民币钱包协助资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个数字人民币钱包由不同自然人注册但资金流向同一目标",
+        "新开通钱包后立即用于大额收款和转出"
+      ],
+      "data_hint": "wallet_registration_info, user_id, registration_date, first_transaction_time"
+    },
+    {
+      "pattern": "短时间内从多个不同被害人账户汇集资金至中间人账户，再转入下游钱包",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个来源账户在相近时间向同一中间账户转账",
+        "中间账户收到资金后迅速分散转出至多个数字人民币钱包"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "利用数字人民币钱包的匿名性或低门槛特性进行洗钱",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字人民币钱包交易频率异常高",
+        "单笔金额接近钱包限额"
+      ],
+      "data_hint": "wallet_type, transaction_amount, transaction_frequency, daily_limit"
+    },
+    {
+      "pattern": "通过虚假退款、虚假贷款等诈骗手法诱导被害人转账，资金经多层账户清洗",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从被害人账户经多个中间账户（如赵衡、吴成、张磊）后转入最终钱包",
+        "中间账户在短时间内接收并转出大额资金"
+      ],
+      "data_hint": "transaction_path, intermediate_accounts, amount, timestamp, fraud_type"
+    },
+    {
+      "pattern": "同一上家控制多个下家（赵思伟、李想、张东梅）提供账户进行资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个下家账户均与同一上家进行交易",
+        "下家账户间存在资金往来或共同目标账户"
+      ],
+      "data_hint": "account_relationship_graph, common_counterparties, transaction_patterns"
+    }
+  ]
+}

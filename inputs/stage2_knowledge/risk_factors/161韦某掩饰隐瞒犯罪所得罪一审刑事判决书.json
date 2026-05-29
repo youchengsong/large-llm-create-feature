@@ -1,0 +1,70 @@
+{
+  "source": "161韦某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人使用名下多个银行账户为他人接收和转移赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人使用多个不同银行账户接收资金",
+        "资金从多个账户快速转出",
+        "账户间资金流转无合理商业背景"
+      ],
+      "data_hint": "account_id, from_address, to_address, amount, timestamp, transaction_type"
+    },
+    {
+      "pattern": "使用数字人民币账户参与洗钱活动",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户接收资金后迅速转移",
+        "数字人民币交易金额与个人正常收入不匹配",
+        "数字人民币账户与银行账户之间频繁转账"
+      ],
+      "data_hint": "account_id, currency_type, amount, timestamp, from_address, to_address"
+    },
+    {
+      "pattern": "为他人提供银行账户接收赃款并获取非法收益",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收大额资金后立即提取或转移",
+        "账户交易金额与账户持有人的职业收入明显不符",
+        "账户持有人的交易对手多为陌生人或可疑账户"
+      ],
+      "data_hint": "account_id, amount, timestamp, counterparty_id, occupation, income_level"
+    },
+    {
+      "pattern": "短时间内接收多笔小额资金后集中转出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内接收多笔小额资金",
+        "资金在短时间内汇总后一次性转出",
+        "交易时间集中在非正常时段"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_count"
+    },
+    {
+      "pattern": "使用他人账户进行资金转移以规避监管",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与资金来源方无直接关联",
+        "资金经过多个中间账户后最终流向不明",
+        "账户间转账频率异常高"
+      ],
+      "data_hint": "account_id, from_address, to_address, amount, timestamp, relationship_graph"
+    }
+  ]
+}

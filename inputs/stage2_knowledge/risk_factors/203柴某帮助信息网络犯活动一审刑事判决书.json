@@ -1,0 +1,67 @@
+{
+  "source": "203柴某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租银行账户及关联数字人民币账户给上线用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一身份证下多个数字人民币账户与单一银行卡绑定",
+        "账户短期内接收来自多个不同来源的转账",
+        "资金在收到后立即通过数字人民币账户转出"
+      ],
+      "data_hint": "account_id, linked_accounts, digital_currency_accounts, transaction_counterparty, amount, timestamp"
+    },
+    {
+      "pattern": "通过介绍人（中间人）出租账户，形成多层级的账户控制关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册人与实际使用者不一致",
+        "存在中间人介绍或撮合的账户交易行为",
+        "多个账户由同一人或同一团伙控制"
+      ],
+      "data_hint": "account_owner, introducer, account_usage_relationship, network_graph"
+    },
+    {
+      "pattern": "短期内集中接收多笔来自不同受害人的转账，总金额较大",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日内接收多笔来自不同账户的转账",
+        "累计接收金额超过正常个人账户使用范围",
+        "单笔金额较小但笔数多"
+      ],
+      "data_hint": "transaction_count, total_amount, counterparty_count, timestamp"
+    },
+    {
+      "pattern": "资金快速进出，不留余额，通过数字人民币账户实现资金快速转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内即转出",
+        "账户余额长期接近零",
+        "资金经过多个数字人民币账户后转出"
+      ],
+      "data_hint": "inflow_time, outflow_time, account_balance, transaction_chain_length"
+    },
+    {
+      "pattern": "出租银行卡和数字人民币账户获取固定报酬，属于典型的跑分洗钱行为",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户收到固定比例或固定金额的报酬",
+        "报酬金额与交易流水金额成比例",
+        "账户交易模式与正常消费行为不符"
+      ],
+      "data_hint": "commission_amount, transaction_amount_ratio, reward_pattern"
+    }
+  ]
+}

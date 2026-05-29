@@ -1,0 +1,106 @@
+{
+  "source": "125刘某帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡及支付账户给他人用于接收和转移涉诈资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人提供5张以上银行卡及微信、支付宝账户",
+        "账户短时间内被用于接收多笔来自不同受害人的资金",
+        "资金到账后立即被取现或转出"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, account_count_per_user"
+    },
+    {
+      "pattern": "组织他人提供银行账户并安排取现，形成多人供卡、集中取现的洗钱链条",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一组织者控制多个供卡人的银行账户",
+        "多个账户在相近时间、同一ATM机取现",
+        "取现后立即通过无卡存款转存至指定账户"
+      ],
+      "data_hint": "address, amount, timestamp, atm_location, deposit_method, linked_accounts"
+    },
+    {
+      "pattern": "使用ATM机取现后立即无卡存款至上线账户，规避大额转账监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "取现金额接近ATM单笔限额（如5000元）",
+        "取现与存款操作时间间隔极短（分钟级）",
+        "频繁使用无卡存款功能"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, atm_id, deposit_method"
+    },
+    {
+      "pattern": "资金在夜间或非工作时间快速进出并取现",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账时间集中在晚间（如20时后）",
+        "取现操作在到账后立即发生",
+        "交易时间与正常经济活动时间不符"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, hour_of_day"
+    },
+    {
+      "pattern": "利用多个不同银行的账户分散接收资金，避免单账户触发风控",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人持有并使用多家银行（如中信、农信、农行、宁波、建行等）的账户",
+        "每个账户接收资金金额较小（如数千至数万元）",
+        "账户资金快进快出，余额极低"
+      ],
+      "data_hint": "address, bank_name, amount, balance, transaction_frequency"
+    },
+    {
+      "pattern": "供卡人明知资金违法仍提供账户并协助取现，形成稳定的洗钱团伙",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个供卡人之间存在社交关系（如朋友、同乡）",
+        "供卡人按取现金额比例（如10%）获取佣金",
+        "供卡人曾因类似行为被行政处罚或刑事处理"
+      ],
+      "data_hint": "user_relationship, commission_rate, historical_penalty_records"
+    },
+    {
+      "pattern": "资金经过多层账户转移后取现，形成资金分层流转",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个受害人账户转入不同供卡人账户",
+        "供卡人取现后现金存入上线账户",
+        "上线账户可能为他人或虚拟账户"
+      ],
+      "data_hint": "transaction_chain, amount, address, timestamp, cash_deposit"
+    },
+    {
+      "pattern": "使用微信、支付宝等第三方支付账户辅助接收和转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "微信/支付宝账户接收来自不同来源的小额资金",
+        "资金到账后快速转出或提现至银行卡",
+        "账户交易频率异常高"
+      ],
+      "data_hint": "payment_type, amount, timestamp, counterparty, transaction_frequency"
+    }
+  ]
+}

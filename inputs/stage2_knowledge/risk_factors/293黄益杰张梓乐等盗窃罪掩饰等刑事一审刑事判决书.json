@@ -1,0 +1,73 @@
+{
+  "source": "293黄益杰张梓乐等盗窃罪掩饰等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户和QQ账户接收违法犯罪资金，再提现至银行卡并取现转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内创建多个数字人民币账户",
+        "数字人民币账户接收资金后立即提现至绑定银行卡",
+        "银行卡取现后现金迅速转移给上线",
+        "多个账户由同一团伙控制并操作"
+      ],
+      "data_hint": "account_creation_time, account_type, deposit_amount, withdrawal_amount, cash_withdrawal_time, counterparty_address"
+    },
+    {
+      "pattern": "组织多人创建账户用于接收和转移犯罪资金，形成层级化资金转移链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一IP地址或设备创建多个账户",
+        "多个账户资金最终流向同一上线地址",
+        "账户间存在层级关系（操作人、取现人、上线）",
+        "团伙成员间资金分发记录"
+      ],
+      "data_hint": "ip_address, device_id, account_relationship, fund_flow_path, transaction_chain_depth"
+    },
+    {
+      "pattern": "通过取现方式将数字人民币资金转换为现金，规避电子追踪",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户充值后短时间内大额取现",
+        "取现金额接近但不超过银行取现限额",
+        "取现行为集中在特定时间段",
+        "取现后现金立即转移，无正常消费或存储行为"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, cash_withdrawal_location, account_balance_after_withdrawal"
+    },
+    {
+      "pattern": "利用酒店等临时场所创建账户，增加追踪难度",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户创建地点为酒店等非固定住所",
+        "账户创建时间集中在短期（如数天至数月）",
+        "账户使用后迅速废弃",
+        "多个账户在同一酒店创建"
+      ],
+      "data_hint": "account_creation_location, account_active_period, account_status, location_coordinates"
+    },
+    {
+      "pattern": "上线通过分发好处费激励下线人员参与资金转移",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金转移后上线向操作人支付固定比例好处费",
+        "好处费金额与转移资金量成正比",
+        "好处费支付时间与取现时间紧密相关",
+        "多个下线收到来自同一上线的类似金额好处费"
+      ],
+      "data_hint": "fee_amount, fee_percentage, fee_payment_time, sender_address, receiver_address"
+    }
+  ]
+}

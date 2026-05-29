@@ -1,0 +1,69 @@
+{
+  "source": "165杨某伟东莞市第一市区人民检察院掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借个人银行账户接收不明资金，并通过支付宝、数字人民币和ATM取现等方式转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔来自不同个人的小额资金（如2万余元）",
+        "资金入账后立即通过支付宝、数字人民币向指定账户转账",
+        "随后在ATM机上取现，取现金额接近但不超过大额交易报告阈值",
+        "账户持有人与资金提供者（如“小伟”）在酒吧等非正规场所结识"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, receiver_address, transaction_type (支付宝/数字人民币/ATM), counterparty_relationship"
+    },
+    {
+      "pattern": "利用数字人民币和支付宝等支付工具快速拆分转移资金，规避银行账户大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内使用多种支付工具（支付宝、数字人民币）进行转账",
+        "转账金额较小（如18900元），可能拆分多笔以规避监控",
+        "资金从银行账户到支付工具再到最终收款方，形成多层转移"
+      ],
+      "data_hint": "transaction_amount, transaction_timestamp, payment_method, transfer_chain_length, transaction_frequency"
+    },
+    {
+      "pattern": "通过ATM取现方式将犯罪所得转化为现金，切断电子资金追踪线索",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在资金入账后短时间内前往ATM机取现",
+        "取现金额（如6000元）低于大额交易报告标准",
+        "取现后立即将现金交给第三方（如“小伟”）"
+      ],
+      "data_hint": "withdrawal_amount, ATM_location, withdrawal_time, cash_handover_indicator"
+    },
+    {
+      "pattern": "以小额好处费（如100元）诱使他人出借账户并协助转移资金，形成松散型洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金提供者之间无长期或正当商业关系",
+        "账户持有人获得与转移资金规模不成比例的小额报酬（如100元）",
+        "资金提供者通过非正式场合（如酒吧）接触账户持有人"
+      ],
+      "data_hint": "account_relationship_graph, transaction_benefit_amount, counterparty_contact_method"
+    },
+    {
+      "pattern": "账户持有人发现资金异常后仍继续协助转账和取现，表明主观明知或放任",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "转账过程中出现异常提示或账户持有人意识到资金可能违法",
+        "账户持有人仍继续完成后续转账和取现操作",
+        "操作行为从主动转账转为被动配合（如接受香烟作为报酬）"
+      ],
+      "data_hint": "transaction_anomaly_flag, user_behavior_change, transaction_sequence_timestamps"
+    }
+  ]
+}

@@ -1,0 +1,124 @@
+{
+  "source": "105杨某伟帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过数字人民币、跨行转账、微信零钱通等多种方式快速转移上游犯罪资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内使用多种转账方式（数字人民币、跨行转账、微信零钱通）",
+        "资金从多个来源快速汇入后立即被分散转移"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address"
+    },
+    {
+      "pattern": "使用他人银行卡在ATM机上取现以规避线上转账限制",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一银行卡在短时间内多次ATM取现",
+        "取现金额接近ATM单日限额",
+        "取现行为发生在资金到账后立即进行"
+      ],
+      "data_hint": "amount, timestamp, atm_location, card_id, withdrawal_count"
+    },
+    {
+      "pattern": "通过社交平台发布虚假代购广告招募银行卡提供者",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在社交平台发布代购等吸引性广告",
+        "新注册账户之间快速建立联系",
+        "多个账户由同一控制人管理"
+      ],
+      "data_hint": "social_media_activity, account_creation_time, account_links, communication_records"
+    },
+    {
+      "pattern": "以好处费为诱饵收集他人银行卡用于资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个无关联账户向同一账户转账",
+        "账户之间存在异常的资金往来和报酬支付",
+        "银行卡提供者与操作者之间无正常业务关系"
+      ],
+      "data_hint": "transaction_amount, transaction_frequency, account_relationships, reward_payments"
+    },
+    {
+      "pattern": "使用飞机软件（Telegram）等加密通讯工具与上家联系并接收指令",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易前存在加密通讯工具上的指令传递",
+        "转账操作与通讯时间高度吻合",
+        "使用匿名或临时账号进行沟通"
+      ],
+      "data_hint": "communication_app_usage, message_timestamps, account_anonymity"
+    },
+    {
+      "pattern": "团伙分工明确，分别负责对接上家、验卡取现和开车运输",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在相同时间段内协同操作",
+        "不同账户承担不同角色（如操作、取现、运输）",
+        "资金在多个账户间快速流转"
+      ],
+      "data_hint": "account_roles, transaction_sequences, group_membership, location_data"
+    },
+    {
+      "pattern": "短时间内集中使用多张不同银行卡进行资金转移",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短时间内多张银行卡被用于接收和转移资金",
+        "每张银行卡的交易金额较大且频率高",
+        "银行卡持有者与操作者无直接关联"
+      ],
+      "data_hint": "card_id, transaction_amount, transaction_count, time_window, account_ownership"
+    },
+    {
+      "pattern": "通过云闪付、跨行转账和取现等多种方式将资金快速分散转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后立即通过多种渠道转出",
+        "转账路径复杂，涉及多个中间账户",
+        "取现行为与转账行为交替进行"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, withdrawal_amount"
+    },
+    {
+      "pattern": "使用他人手机和银行卡配合刷脸验证完成转账操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一设备登录多个不同账户",
+        "转账操作需要生物识别验证（如刷脸）",
+        "设备与账户持有者不匹配"
+      ],
+      "data_hint": "device_id, biometric_authentication_logs, account_switching, ip_address"
+    },
+    {
+      "pattern": "团伙成员使用个人手机作为作案工具进行联络和操作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个涉案手机之间存在频繁通讯",
+        "手机设备与多个涉案账户关联",
+        "手机IMEI号或MAC地址在多个案件中重复出现"
+      ],
+      "data_hint": "device_imei, phone_number, communication_logs, account_device_mapping"
+    }
+  ]
+}

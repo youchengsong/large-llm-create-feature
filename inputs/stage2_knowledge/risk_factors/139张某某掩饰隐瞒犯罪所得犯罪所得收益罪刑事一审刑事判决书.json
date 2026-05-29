@@ -1,0 +1,107 @@
+{
+  "source": "139张某某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体广告招募卡主，利用私人影院等隐蔽场所进行跑分转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "卡主通过微信兼职群等社交渠道被招募",
+        "交易发生在私人影院等非传统金融场所",
+        "卡主与操作人员非亲属关系，临时聚集"
+      ],
+      "data_hint": "地址类型、交易场所标签、社交关系图谱、IP地址"
+    },
+    {
+      "pattern": "卡主出借银行卡、手机、身份证并提供密码和刷脸认证协助转账",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内出现多笔大额转账",
+        "账户登录设备IP频繁变更",
+        "转账过程中需要刷脸认证等生物识别验证",
+        "账户绑定手机号与操作人身份不一致"
+      ],
+      "data_hint": "amount, timestamp, device_id, ip_address, biometric_authentication_flag, account_owner_id"
+    },
+    {
+      "pattern": "跑分团伙分工明确，上线负责对接和操作，下线看守卡主并学习操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户资金最终流向同一地址或少数地址",
+        "转账操作由不同人员分阶段完成",
+        "存在看守卡主的人员，表明卡主被控制"
+      ],
+      "data_hint": "from_address, to_address, transaction_graph, role_tag (e.g., operator, guard)"
+    },
+    {
+      "pattern": "短期内集中使用多张不同卡主的银行卡进行大额转账",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单日转账金额巨大（如100万元）",
+        "涉及诈骗资金占比高（36万元）",
+        "多张银行卡在相近时间段内频繁交易",
+        "交易时间集中在几天内"
+      ],
+      "data_hint": "amount, timestamp, account_id, transaction_count_per_day"
+    },
+    {
+      "pattern": "以高额日结报酬（3000-5000元）为诱饵招募卡主，报酬与劳务明显不匹配",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "卡主获得异常高额报酬（如日结数千元）",
+        "报酬金额与正常劳务市场水平严重偏离",
+        "报酬支付方式为现金或虚拟货币"
+      ],
+      "data_hint": "transaction_amount, fee_structure, payment_method (e.g., cash, USDT)"
+    },
+    {
+      "pattern": "跑分过程中使用私人影院等临时场所，频繁更换地点以规避侦查",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置频繁变更",
+        "交易地点为非住宅、非办公的临时场所",
+        "同一团伙在不同区域（如未央区、雁塔区）活动"
+      ],
+      "data_hint": "ip_address, geolocation, venue_type, timestamp"
+    },
+    {
+      "pattern": "团伙成员通过发展下线扩大跑分网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新账户与已有可疑账户存在关联（如共同IP、资金往来）",
+        "账户注册时间相近",
+        "账户间存在层级关系（如上线发展下线）"
+      ],
+      "data_hint": "account_creation_date, referral_chain, shared_ip_address, transaction_graph"
+    },
+    {
+      "pattern": "卡主在明知行为异常的情况下仍提供帮助，包括出借银行卡、手机、身份证",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内绑定多个手机号或设备",
+        "账户密码或认证方式频繁更改",
+        "账户出现异常登录或操作行为"
+      ],
+      "data_hint": "device_change_log, password_reset_frequency, login_anomaly_score"
+    }
+  ]
+}

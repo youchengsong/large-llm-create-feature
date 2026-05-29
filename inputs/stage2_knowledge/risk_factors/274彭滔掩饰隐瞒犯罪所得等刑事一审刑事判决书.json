@@ -1,0 +1,82 @@
+{
+  "source": "274彭滔掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用他人名下银行卡和数字人民币钱包接收并转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与实际控制人不一致",
+        "同一控制人使用多个不同银行的数字人民币钱包",
+        "数字人民币钱包资金集中转入同一银行卡后取现"
+      ],
+      "data_hint": "address, owner_name, bank_card_number, digital_wallet_id, transaction_type, counterparty_address"
+    },
+    {
+      "pattern": "通过ATM取现方式将非法资金转化为现金，切断资金追踪链条",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从数字钱包转入银行卡后短时间内通过ATM取现",
+        "取现金额接近或达到ATM单日取现限额",
+        "取现行为在多个不同ATM机具上发生"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, atm_id, location, withdrawal_limit"
+    },
+    {
+      "pattern": "短时间内利用多个数字人民币钱包进行资金归集和转移",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一控制人短时间内开通或使用多个数字人民币钱包",
+        "多个数字钱包资金在短时间内集中转入同一银行卡",
+        "资金流转时间跨度短（如数天至数周）"
+      ],
+      "data_hint": "wallet_creation_time, wallet_id, transaction_timestamp, amount, source_wallet, destination_account"
+    },
+    {
+      "pattern": "利用亲属或他人名义开立的账户进行洗钱，隐藏实际受益人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户名义持有人与实际使用人无直接业务或亲属关系以外的关联",
+        "账户开立后立即被用于接收可疑资金",
+        "账户资金流向与名义持有人正常交易模式不符"
+      ],
+      "data_hint": "account_holder_name, actual_controller, relationship, account_opening_date, first_transaction_timestamp"
+    },
+    {
+      "pattern": "电信诈骗资金快速进入数字钱包并转出，形成快进快出模式",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从诈骗受害人账户转入数字钱包后，在数小时内被转出或取现",
+        "资金在数字钱包内停留时间极短（如几分钟到几小时）",
+        "转入和转出交易时间间隔小于阈值（如1小时）"
+      ],
+      "data_hint": "inbound_timestamp, outbound_timestamp, wallet_id, amount, transaction_chain"
+    },
+    {
+      "pattern": "通过多层级账户结构转移资金，增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从数字钱包转入银行卡，再从银行卡取现，形成至少两层转移",
+        "涉及多个不同金融机构的账户（如数字钱包、银行卡）",
+        "资金流转路径中涉及多个不同名义持有人"
+      ],
+      "data_hint": "transaction_flow_graph, account_type, institution_name, hop_count"
+    }
+  ]
+}

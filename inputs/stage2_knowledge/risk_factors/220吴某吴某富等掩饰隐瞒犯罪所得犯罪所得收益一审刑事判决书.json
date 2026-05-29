@@ -1,0 +1,44 @@
+{
+  "source": "220吴某吴某富等掩饰隐瞒犯罪所得犯罪所得收益一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡给他人用于接收网络诈骗资金，并协助资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内被用于接收来自多个不同受害人的转账",
+        "银行卡收到资金后迅速转出或提现",
+        "银行卡交易流水呈现快进快出、余额接近零的模式"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, balance_after_transaction"
+    },
+    {
+      "pattern": "明知他人可能用于违法犯罪仍提供银行卡，并从中获利",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在无正常收入来源的情况下出现异常资金流入",
+        "账户持有人将不属于自己的资金转入个人钱包",
+        "账户交易金额与账户持有人身份、职业背景不符"
+      ],
+      "data_hint": "account_holder_profile, transaction_amount, transaction_frequency, wallet_address"
+    },
+    {
+      "pattern": "多张银行卡被用于同一犯罪链条，资金分散转入后集中转出",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一控制人下的多个银行卡账户在相近时间接收来自不同受害人的资金",
+        "多个账户的资金最终流向同一地址或同一账户",
+        "账户间转账时间间隔短，形成资金归集模式"
+      ],
+      "data_hint": "account_owner_id, linked_accounts, transaction_graph, cluster_id"
+    }
+  ]
+}

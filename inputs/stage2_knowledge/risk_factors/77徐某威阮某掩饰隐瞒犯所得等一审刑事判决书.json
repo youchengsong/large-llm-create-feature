@@ -1,0 +1,69 @@
+{
+  "source": "77徐某威阮某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人有偿提供银行卡给他人用于接收和转移电信诈骗赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡接收多笔来自不同账户的转入资金后迅速转出",
+        "账户短期内出现与历史交易模式不符的大额资金流入",
+        "资金转入后短时间内通过刷脸验证等方式快速转出至多个地址"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, authentication_method"
+    },
+    {
+      "pattern": "明知资金可能系犯罪所得仍协助他人进行资金结算和转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在接收资金后立即发起多笔转出交易",
+        "交易链中资金经过多个中间账户后最终流向不明地址",
+        "账户在短时间内完成资金接收和转出，无明显停留"
+      ],
+      "data_hint": "transaction_chain, amount, timestamp, address_sequence, transaction_frequency"
+    },
+    {
+      "pattern": "使用个人银行卡作为洗钱通道，接收电信诈骗赃款并协助转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户单日接收资金总额接近但不超过特定阈值",
+        "交易时间集中在非正常时段（如深夜）",
+        "账户在短期内出现异常高频交易"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, daily_total, threshold_analysis"
+    },
+    {
+      "pattern": "通过刷脸验证等生物识别方式协助他人转移资金，绕过常规风控",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在资金转入后立即发起转出交易并触发生物验证",
+        "同一设备或IP地址在短时间内为多个账户提供验证",
+        "账户登录和交易行为与历史模式显著不同"
+      ],
+      "data_hint": "authentication_method, device_id, ip_address, session_id, transaction_timestamp"
+    },
+    {
+      "pattern": "账户被用于接收电信网络诈骗赃款后，资金被快速转移至其他账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在接收后1小时内被转出至多个不同地址",
+        "转出交易金额与接收金额高度匹配，无留存",
+        "转出地址为新创建或低活跃度地址"
+      ],
+      "data_hint": "inflow_amount, outflow_amount, time_delta, address_age, transaction_volume"
+    }
+  ]
+}

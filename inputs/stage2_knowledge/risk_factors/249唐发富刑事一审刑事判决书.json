@@ -1,0 +1,119 @@
+{
+  "source": "249唐发富刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织多人使用数字人民币钱包、支付宝等第三方支付账户为违法犯罪资金提供转账、取现服务",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人组织多个不同身份人员的账户进行转账",
+        "资金从多个被害人账户转入多个中间人账户",
+        "中间人账户将资金快速转出或取现"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, account_type, account_owner_id"
+    },
+    {
+      "pattern": "利用数字人民币钱包作为资金转移通道，涉及多层级账户链",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过数字人民币钱包账户后快速转出",
+        "同一笔资金在短时间内经过多个不同账户",
+        "账户之间存在明显的层级关系（如组织者-中间人-被害人）"
+      ],
+      "data_hint": "transaction_hash, from_address, to_address, amount, timestamp, wallet_type"
+    },
+    {
+      "pattern": "使用他人名下账户（包括数字人民币钱包、网商银行、支付宝）进行资金转移，规避实名监控",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册人与实际使用人不一致",
+        "多个账户由同一人控制或操作",
+        "账户之间频繁转账且金额相近"
+      ],
+      "data_hint": "account_owner_id, device_id, ip_address, login_behavior, transaction_network"
+    },
+    {
+      "pattern": "资金来源于大量分散的被害人账户，集中汇入少数中间人账户后再分散转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大量小额资金从不同来源地址汇入少数中间地址",
+        "中间地址短时间内收到多笔资金后立即转出",
+        "资金流入和流出金额高度匹配"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count_per_address"
+    },
+    {
+      "pattern": "涉案资金通过多个账户快速流转，形成资金清洗链",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过3个以上账户",
+        "每笔转账金额接近但不超过阈值",
+        "转账时间间隔极短（如几分钟内）"
+      ],
+      "data_hint": "transaction_path, amount, timestamp, hop_count"
+    },
+    {
+      "pattern": "组织者与下线通过社交软件（如微信）沟通协调转账操作",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户操作时间与社交软件聊天记录时间高度相关",
+        "多个账户的转账操作具有同步性",
+        "聊天记录中出现转账指令或账户信息"
+      ],
+      "data_hint": "communication_logs, transaction_timestamp, account_activity_pattern"
+    },
+    {
+      "pattern": "使用数字人民币钱包、支付宝等第三方支付工具混合使用，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一笔资金在不同支付工具间转换",
+        "资金从数字人民币钱包转入支付宝再转出",
+        "使用多种支付工具进行资金归集和分散"
+      ],
+      "data_hint": "payment_method, transaction_type, from_account_type, to_account_type"
+    },
+    {
+      "pattern": "组织者使用自己的账户进行转账和取现，直接参与资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户既接收资金又进行取现",
+        "账户余额快速清零",
+        "取现金额与转入金额高度相关"
+      ],
+      "data_hint": "account_balance, withdrawal_amount, deposit_amount, transaction_type"
+    },
+    {
+      "pattern": "涉案账户涉及多起电信诈骗案件，资金来源于不同地域的被害人",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同地区被害人的资金",
+        "被害人报案时间集中",
+        "资金流入时间与诈骗案件发生时间吻合"
+      ],
+      "data_hint": "victim_location, transaction_timestamp, case_id, account_address"
+    }
+  ]
+}

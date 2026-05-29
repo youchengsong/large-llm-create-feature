@@ -1,0 +1,82 @@
+{
+  "source": "258赵某掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡和支付宝账户用于接收并转移诈骗资金，通过数字人民币兑换、ATM取现等方式快速转出资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单个账户绑定多张银行卡（如4张）用于资金流转",
+        "资金到账后立即通过数字人民币兑换或ATM取现转出",
+        "单张银行卡转账流水金额较大（如24万、19万等）"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, account_id, card_count, withdrawal_method"
+    },
+    {
+      "pattern": "发展下线形成层级化洗钱团伙，上线负责提供银行卡，下线负责具体转账操作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在明确的上下线层级关系",
+        "多个账户被同一上线控制或关联",
+        "下线账户集中向指定账户转账或取现"
+      ],
+      "data_hint": "account_id, parent_account_id, relationship_type, transaction_graph"
+    },
+    {
+      "pattern": "使用他人银行卡（卡主）进行跑分洗钱，资金经过多张银行卡流转后最终转出",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金在多个不同卡主的账户间快速流转",
+        "同一笔资金经过3张以上银行卡后转出",
+        "卡主账户短期内出现大量进出账"
+      ],
+      "data_hint": "sender_account, receiver_account, amount, timestamp, transaction_chain"
+    },
+    {
+      "pattern": "诈骗资金通过数字人民币兑换方式转移，规避传统银行监管",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后频繁进行数字人民币兑换操作",
+        "数字人民币兑换金额与诈骗资金金额高度匹配",
+        "兑换后资金迅速转出至其他账户"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, digital_currency_flag"
+    },
+    {
+      "pattern": "通过ATM机取现方式将诈骗资金变现，切断资金追踪链条",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "ATM取现操作频繁且金额较大",
+        "取现时间集中在资金到账后短时间内",
+        "取现地点可能分散在不同区域"
+      ],
+      "data_hint": "withdrawal_amount, timestamp, atm_location, account_id"
+    },
+    {
+      "pattern": "多个被害人资金集中转入同一账户，然后被快速分散转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的资金",
+        "资金到账后立即被分批转出至多个账户",
+        "转入转出金额高度匹配"
+      ],
+      "data_hint": "sender_account, receiver_account, amount, timestamp, transaction_count"
+    }
+  ]
+}

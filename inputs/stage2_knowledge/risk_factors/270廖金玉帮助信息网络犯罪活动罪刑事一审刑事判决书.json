@@ -1,0 +1,47 @@
+{
+  "source": "270廖金玉帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户为违法犯罪资金提供转移通道，并发展下线协助操作转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金快进快出，流入流出金额几乎相等",
+        "账户资金流入与流出时间间隔极短",
+        "账户涉及多笔交易且资金来源与诈骗案件关联",
+        "存在指导他人操作转账的行为",
+        "账户资金流入金额与获利金额比例异常（如获利明显低于流水）"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_hash, account_balance, profit_amount, referral_relationship"
+    },
+    {
+      "pattern": "明知资金为违法犯罪所得仍提供数字人民币账户用于资金转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内有大量资金流入和流出",
+        "账户资金流入金额与个人正常收入水平严重不符",
+        "账户与多个已知涉案账户存在交易关联",
+        "账户交易对手方涉及多个不同主体"
+      ],
+      "data_hint": "amount, timestamp, account_type, counterparty_address, transaction_frequency, income_level"
+    },
+    {
+      "pattern": "通过发展下线扩大资金转移网络，形成多层级资金转移链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在明确的上下线指导关系",
+        "多个账户共享相似的交易模式（如金额、频率、时间）",
+        "资金在多个账户间流转，形成层级结构",
+        "下线账户的资金来源与上线账户存在关联"
+      ],
+      "data_hint": "account_id, parent_account_id, transaction_graph, relationship_type, transaction_pattern_similarity"
+    }
+  ]
+}

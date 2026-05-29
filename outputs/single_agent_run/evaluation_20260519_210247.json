@@ -1,0 +1,72 @@
+{
+  "baseline": {
+    "f1": 0.9449992841793604,
+    "recall": 0.9041009714922759,
+    "precision": 0.9900172770015876,
+    "prauc": 0.9832851378007229
+  },
+  "all_features": {
+    "metrics": {
+      "f1": 0.9478484658686016,
+      "recall": 0.9107909300844084,
+      "precision": 0.9881753099098487,
+      "prauc": 0.9828372695101123
+    },
+    "delta": {
+      "f1": 0.002849181689241198,
+      "recall": 0.0066899585921325055,
+      "precision": -0.0018419670917388942,
+      "prauc": -0.00044786829061060907
+    },
+    "count": 3,
+    "names": [
+      "amount_concentration_pattern",
+      "region_night_risk_score",
+      "fan_in_without_single_pattern"
+    ]
+  },
+  "forward_selection": {
+    "metrics": {
+      "f1": 0.9478484658686016,
+      "recall": 0.9107909300844084,
+      "precision": 0.9881753099098487,
+      "prauc": 0.9828372695101123
+    },
+    "delta": {
+      "f1": 0.002849181689241198,
+      "recall": 0.0066899585921325055,
+      "precision": -0.0018419670917388942,
+      "prauc": -0.00044786829061060907
+    },
+    "count": 3,
+    "names": [
+      "amount_concentration_pattern",
+      "region_night_risk_score",
+      "fan_in_without_single_pattern"
+    ]
+  },
+  "execution_status": {
+    "amount_concentration_pattern": "OK",
+    "region_night_risk_score": "OK",
+    "fan_in_without_single_pattern": "OK"
+  },
+  "candidate_parquet": "/root/大模型提取特征/outputs/single_agent_run/candidate_features_20260519_210247.parquet",
+  "combined": {
+    "f1": 0.9478484658686016,
+    "recall": 0.9107909300844084,
+    "precision": 0.9881753099098487,
+    "prauc": 0.9828372695101123
+  },
+  "delta": {
+    "f1": 0.002849181689241198,
+    "recall": 0.0066899585921325055,
+    "precision": -0.0018419670917388942,
+    "prauc": -0.00044786829061060907
+  },
+  "new_features_count": 3,
+  "new_feature_names": [
+    "amount_concentration_pattern",
+    "region_night_risk_score",
+    "fan_in_without_single_pattern"
+  ]
+}

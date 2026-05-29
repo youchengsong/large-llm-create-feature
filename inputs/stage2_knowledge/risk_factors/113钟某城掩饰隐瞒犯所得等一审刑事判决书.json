@@ -1,0 +1,66 @@
+{
+  "source": "113钟某城掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡、数字人民币钱包及支付账户给他人用于接收和转移犯罪所得",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份下绑定多个银行卡和数字人民币钱包",
+        "账户短期内被多个不相关账户频繁转入资金",
+        "账户资金快速转出至其他账户或取现"
+      ],
+      "data_hint": "address, account_id, bank_card_number, digital_wallet_id, transaction_count, counterparty_address"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍代为转账和取现，帮助资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在账户内停留时间极短（如几分钟内转出）",
+        "资金经过多个账户后最终取现",
+        "转账行为与上游诈骗资金流入时间高度吻合"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, in_out_flag, sequence_of_transactions"
+    },
+    {
+      "pattern": "通过多个账户和支付工具分散接收资金以规避单账户大额交易监测",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个账户接收多笔小额资金，总额较大",
+        "多个账户在短时间内接收来自不同来源的资金",
+        "单笔交易金额接近但不超过大额报告阈值"
+      ],
+      "data_hint": "amount, transaction_count, account_id, time_window"
+    },
+    {
+      "pattern": "账户提供者从中获利，按比例收取手续费",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户内资金流入总额与流出总额存在差额（如手续费）",
+        "账户接收资金后立即转出部分金额，剩余部分作为报酬",
+        "交易金额与常见手续费比例（如2%-5%）相符"
+      ],
+      "data_hint": "amount, fee, net_amount, transaction_pattern"
+    },
+    {
+      "pattern": "账户提供者与上游犯罪人员之间形成快速资金转移链条",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从上游账户到中间账户再到取现账户的路径在短时间内完成",
+        "资金转移时间集中在白天或特定时段",
+        "资金流向呈现多层嵌套结构"
+      ],
+      "data_hint": "timestamp, transaction_path, hop_count, address_sequence"
+    }
+  ]
+}

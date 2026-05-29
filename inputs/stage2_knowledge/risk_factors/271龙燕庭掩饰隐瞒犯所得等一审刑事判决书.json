@@ -1,0 +1,104 @@
+{
+  "source": "271龙燕庭掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用对公数字钱包接收分散小额资金，再提现至个人银行卡后取现购买USDT完成洗钱",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔交易金额集中在998元至1999元之间",
+        "每日交易笔数较多且总金额与保证金数额相近",
+        "资金从数字钱包提现至个人银行卡后立即取现",
+        "取现后通过现金或转账向U商购买USDT"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, wallet_address, bank_account, cash_withdrawal_amount"
+    },
+    {
+      "pattern": "利用对公数字钱包账户的高日限额和月限额进行大额资金清洗",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "对公数字钱包日限额18万元、月限额80万元",
+        "账户在短时间内（2024年1月16日至3月3日）进账非法资金140万元",
+        "账户被封控后立即准备开设新银行账户继续操作"
+      ],
+      "data_hint": "wallet_daily_limit, wallet_monthly_limit, total_inflow_amount, account_creation_date, account_closure_date"
+    },
+    {
+      "pattern": "通过预先缴纳USDT保证金的方式获取洗钱额度，形成资金闭环",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "洗钱前先向指定USDT地址转入保证金",
+        "保证金金额与后续接收的非法资金总额相近",
+        "接收资金后提现、取现、购买USDT再转回指定地址"
+      ],
+      "data_hint": "usdt_transaction_hash, usdt_amount, fiat_amount, timestamp, wallet_address"
+    },
+    {
+      "pattern": "使用匿名通讯软件（飞机APP）和中间人进行洗钱指令传递，增加追踪难度",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "洗钱指令通过飞机APP群组发布",
+        "中间人（徐某威）在群组和洗钱执行人（阮某）之间传递信息",
+        "中间人转发USDT收币地址和收款二维码"
+      ],
+      "data_hint": "communication_platform, message_content, sender_id, receiver_id, timestamp"
+    },
+    {
+      "pattern": "洗钱资金来源于多起电信网络诈骗案件，资金分散转入同一对公账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一对公账户接收来自5起不同诈骗案件的资金",
+        "每笔资金来自不同受害人账户",
+        "受害人转账金额多为2999元、1999元、999元等接近限额的数额"
+      ],
+      "data_hint": "sender_account, receiver_account, amount, fraud_case_id, transaction_timestamp"
+    },
+    {
+      "pattern": "洗钱执行人通过线下现金交易向U商购买USDT，切断电子资金链路",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "从银行柜台或ATM取现后，在指定地点与U商进行现金交易",
+        "现金交易后U商将USDT打入指定地址",
+        "交易地点为廉江市本地"
+      ],
+      "data_hint": "cash_withdrawal_location, cash_amount, usdt_transaction_hash, counterparty_address, transaction_time"
+    },
+    {
+      "pattern": "洗钱执行人使用多个银行账户（建设银行、工商银行）的对公数字钱包交替接收资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体控制多个对公数字钱包账户",
+        "一个账户额度用完后启用另一个账户",
+        "账户昵称均为同一种植场名称"
+      ],
+      "data_hint": "wallet_id, bank_name, account_holder, wallet_nickname, transaction_volume"
+    },
+    {
+      "pattern": "洗钱执行人按转账金额的固定比例（5%）获取佣金，形成稳定的利益驱动",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "佣金比例为转账金额的5%",
+        "阮某获利7万元对应过账资金约140万元",
+        "佣金通过USDT转账或现金方式支付"
+      ],
+      "data_hint": "commission_rate, commission_amount, total_transfer_amount, payment_method"
+    }
+  ]
+}

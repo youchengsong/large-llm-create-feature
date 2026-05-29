@@ -1,0 +1,65 @@
+{
+  "source": "308卢某某掩饰隐瞒犯罪所得犯罪所得收益罪一审判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人通过兼职微信群与上线联系，提供名下多个银行及支付账户用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人短时间内加入多个兼职微信群",
+        "账户持有人与多个陌生上线联系",
+        "账户持有人名下多类账户（银行、支付宝、微信、数字人民币）同时被用于接收不明资金"
+      ],
+      "data_hint": "address, account_type, group_membership, contact_frequency"
+    },
+    {
+      "pattern": "短时间内在同一地点与上线见面，在车内完成账户提供和资金转移操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人在连续两天内于同一地点与上线会面",
+        "交易发生在车内等非固定场所",
+        "资金转移集中在短时间内完成"
+      ],
+      "data_hint": "timestamp, location, transaction_time_interval"
+    },
+    {
+      "pattern": "多个诈骗受害人的资金分别转入不同银行账户，随后通过支付宝、微信、数字人民币账户快速转出",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个来源地址转入后，在短时间内通过多个支付渠道转出",
+        "资金流入账户与流出账户不同，形成多层转移",
+        "资金在多个账户间快速流转，无停留"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain"
+    },
+    {
+      "pattern": "账户持有人提供多个支付结算账户（包括银行、支付宝、微信、数字人民币）用于转移不法资金，涉及多种支付工具",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个账户持有人同时绑定或使用超过3个不同支付工具",
+        "各账户资金流入总额与流出总额基本匹配",
+        "单笔资金金额较小（如4290元、7000元、10000元、6000元），但累计金额较大"
+      ],
+      "data_hint": "account_count, total_inflow, total_outflow, per_transaction_amount"
+    },
+    {
+      "pattern": "账户持有人被公安机关传讯后拒绝配合，逃避调查，随后在外地被抓获",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人在取保候审期间拒绝接收传讯",
+        "账户持有人离开原居住地前往外地",
+        "账户持有人在外地被抓获"
+      ],
+      "data_hint": "location_change, response_to_summons, arrest_location"
+    }
+  ]
+}

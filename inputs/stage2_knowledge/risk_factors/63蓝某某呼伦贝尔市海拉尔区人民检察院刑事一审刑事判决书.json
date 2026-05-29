@@ -1,0 +1,88 @@
+{
+  "source": "63蓝某某呼伦贝尔市海拉尔区人民检察院刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合刷脸验证协助转移犯罪所得资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内银行卡接收多笔来自不同账户的资金后立即转出",
+        "转账过程中频繁出现刷脸验证操作",
+        "资金快进快出，账户余额接近零"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, authentication_method, balance"
+    },
+    {
+      "pattern": "夜间集中操作银行卡进行资金转移",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易集中在22时至次日2时之间",
+        "夜间连续多笔转账操作"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_count_per_hour"
+    },
+    {
+      "pattern": "银行卡被用于接收电信诈骗资金并快速分散转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单卡单日接收多笔小额资金（如280元、95元、520元等）",
+        "接收资金后短时间内分多笔转出至不同账户",
+        "进账总金额与出账总金额高度匹配"
+      ],
+      "data_hint": "amount, transaction_count, in_out_ratio, counterparty_count"
+    },
+    {
+      "pattern": "利用ATM取现规避银行风控和转账限额",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡被风控后立即在ATM机取现",
+        "取现金额接近ATM单日限额（如20000元）"
+      ],
+      "data_hint": "transaction_type, amount, atm_location, account_risk_flag"
+    },
+    {
+      "pattern": "上线控制多个银行卡账户进行资金归集和分散",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同持卡人的银行卡在相近时间点接收来自同一上游账户的资金",
+        "资金从多个银行卡集中转入到少数几个账户"
+      ],
+      "data_hint": "from_address, to_address, transaction_graph, cluster_id"
+    },
+    {
+      "pattern": "小额多笔资金从不同被害人账户汇入同一银行卡",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同来源账户向同一目标账户转入金额不等的资金（如10000元、3000元、280元等）",
+        "资金转入时间分散但集中在数天内"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, unique_sender_count"
+    },
+    {
+      "pattern": "银行卡账户余额异常低，资金快速进出无留存",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户日均余额远低于交易流水规模",
+        "资金在账户停留时间极短（通常几分钟到几小时）"
+      ],
+      "data_hint": "balance, average_balance, turnover_rate, dwell_time"
+    }
+  ]
+}

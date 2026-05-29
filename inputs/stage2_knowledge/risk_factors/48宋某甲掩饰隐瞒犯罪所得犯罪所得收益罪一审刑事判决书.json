@@ -1,0 +1,130 @@
+{
+  "source": "48宋某甲掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙分工协作，利用他人银行账户接收并快速转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在短时间内集中接收资金后立即取现或转账",
+        "资金从多个不同来源账户汇入后迅速分散转移",
+        "团伙成员分工明确，包括联系上线、提供银行卡、操作转账、取现、开车接送"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_holder_relationship"
+    },
+    {
+      "pattern": "利用ATM机自助取现规避大额交易监控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "频繁使用ATM机进行小额或接近限额的取现操作",
+        "单日同一账户多次ATM取现",
+        "取现金额接近ATM单笔限额但不超过"
+      ],
+      "data_hint": "transaction_type, amount, atm_location, timestamp, account_id"
+    },
+    {
+      "pattern": "资金快速通过多层账户转移以掩盖资金来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过多个不同银行账户",
+        "资金从接收账户到取现或转账的间隔时间极短（通常数小时内）",
+        "资金流转路径涉及多个不同银行和账户持有人"
+      ],
+      "data_hint": "transaction_chain, from_account, to_account, amount, timestamp, bank_code"
+    },
+    {
+      "pattern": "使用数字人民币兑出和电子钱包取现作为新型洗钱通道",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金通过数字人民币兑出方式转移",
+        "电子钱包取现操作频繁",
+        "数字人民币交易金额与ATM取现金额相近"
+      ],
+      "data_hint": "transaction_type (digital_currency, e-wallet), amount, timestamp, wallet_id"
+    },
+    {
+      "pattern": "利用他人银行卡（卡农）进行资金接收和转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同身份人员的银行卡被同一团伙使用",
+        "银行卡持有人与操作者非同一人",
+        "银行卡在短时间内被用于接收来自多个不同来源的汇款"
+      ],
+      "data_hint": "account_holder_id, operator_id, account_open_date, transaction_counterparty"
+    },
+    {
+      "pattern": "团伙成员通过社交关系网络招募供卡人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "供卡人与团伙成员存在亲属、朋友或同乡关系",
+        "供卡人之间可能存在共同联系人",
+        "供卡行为呈现链条式传播（如A介绍B，B介绍C）"
+      ],
+      "data_hint": "user_relationship_graph, referral_chain, shared_contact_info"
+    },
+    {
+      "pattern": "资金接收后立即通过多种方式（取现、转账、消费）快速清空账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在收到资金后短时间内余额归零或接近归零",
+        "资金转移方式包括ATM取现、转账、二维码消费、充值等",
+        "资金转移速度极快，通常在当日完成"
+      ],
+      "data_hint": "account_balance_history, transaction_sequence, amount, timestamp"
+    },
+    {
+      "pattern": "同一银行卡在短时间内接收来自多个不同被害人的资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单张银行卡在数小时内接收多笔来自不同账户的汇款",
+        "汇款金额与典型电信诈骗金额相符",
+        "汇款时间集中在特定时段"
+      ],
+      "data_hint": "incoming_transactions, sender_accounts, amount, timestamp"
+    },
+    {
+      "pattern": "使用云闪付APP二维码消费进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过云闪付APP生成二维码进行消费支付",
+        "消费金额与接收资金金额相近",
+        "消费行为发生在资金到账后短时间内"
+      ],
+      "data_hint": "payment_method (QR_code), transaction_amount, merchant_category, timestamp"
+    },
+    {
+      "pattern": "团伙成员通过现金方式分配报酬以规避银行监控",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "团伙成员之间无银行转账记录但存在现金往来",
+        "报酬金额较小且为整数",
+        "现金分配时间与取现时间关联"
+      ],
+      "data_hint": "cash_transaction_logs, withdrawal_amounts, team_member_interactions"
+    }
+  ]
+}

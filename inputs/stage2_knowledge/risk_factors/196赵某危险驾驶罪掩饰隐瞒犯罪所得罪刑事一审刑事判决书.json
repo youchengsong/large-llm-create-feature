@@ -1,0 +1,105 @@
+{
+  "source": "196赵某危险驾驶罪掩饰隐瞒犯罪所得罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡为上游网络犯罪资金进行“跑分”转移，通过多层账户和数字人民币钱包快速转移资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内资金从银行卡转入数字人民币钱包再转出至指定账户",
+        "资金经过多个中间账户（银行卡→数字人民币钱包→二维码指定账户）",
+        "同一操作手控制多个卡主的银行卡进行资金转移"
+      ],
+      "data_hint": "transaction_type, from_address, to_address, amount, timestamp, wallet_type, app_id"
+    },
+    {
+      "pattern": "通过加密聊天软件（纸飞机APP）组建聊天群，接收指令并共享卡主信息，实现远程协作式洗钱",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用加密通讯工具（如纸飞机APP）进行资金转移指令传递",
+        "群内共享卡主姓名、银行卡号、开户行等信息",
+        "操作手根据群内指令实时操作资金转移"
+      ],
+      "data_hint": "communication_channel, group_id, message_content, participant_addresses"
+    },
+    {
+      "pattern": "洗钱团伙采用分层发展下线、抽成营利的金字塔结构，上线通过押金制度控制下线",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "上线向下线收取押金（如1万元）以获取更高提成",
+        "上线从下线提供账户的支付结算金额中抽成获利",
+        "多层级人员关系（如胡佳→谭浩→李南平→王宇康→向贞双）"
+      ],
+      "data_hint": "account_relationship_graph, referral_chain, commission_rate, deposit_amount"
+    },
+    {
+      "pattern": "短时间内多个账户集中进行大额资金转移，且单笔走账金额与账户正常使用模式不符",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单个账户在数天内累计走账金额达数万至数十万元（如18万、33万、36万）",
+        "资金转移活动集中在连续数日内（如2021年10月28日至11月7日）",
+        "账户在短时间内频繁发生大额转入转出交易"
+      ],
+      "data_hint": "amount, transaction_count, time_window, account_balance_history"
+    },
+    {
+      "pattern": "利用酒店、私人住宅等临时场所作为操作据点，规避固定场所监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "操作地点频繁变更（如胡佳家中、谭勇家中、鹭岛国际酒店、悦来酒店）",
+        "在酒店等非固定场所进行资金转移操作",
+        "操作时间集中在特定日期（如11月4日至7日）"
+      ],
+      "data_hint": "location, venue_type, operation_time, ip_address"
+    },
+    {
+      "pattern": "操作手同时控制多个卡主的银行卡，通过手机银行和数字人民币APP进行快速资金归集和转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一操作手（如向立渊）为多个卡主下载并操作手机银行和数字人民币APP",
+        "资金从多个银行卡快速转入数字人民币钱包再统一转出",
+        "操作手在短时间内处理多个账户的资金转移"
+      ],
+      "data_hint": "operator_id, controlled_accounts, app_usage_log, transaction_sequence"
+    },
+    {
+      "pattern": "洗钱资金最终通过扫描二维码汇入指定账户，实现资金快速归集和匿名化",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金最终通过扫描聊天群内二维码汇入指定账户",
+        "二维码指向的账户可能为虚拟资产或匿名账户",
+        "资金转移路径末端为难以追踪的收款方"
+      ],
+      "data_hint": "payment_method, qr_code_id, destination_account_type, transaction_hash"
+    },
+    {
+      "pattern": "参与洗钱的人员多为无固定职业或前科人员，通过熟人介绍加入洗钱团伙",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "参与者多为无业、务工或务农人员，部分有犯罪前科",
+        "通过朋友、熟人介绍加入洗钱活动",
+        "参与者之间形成多层级熟人网络"
+      ],
+      "data_hint": "user_profile, occupation, criminal_record, referral_source"
+    }
+  ]
+}

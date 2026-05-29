@@ -1,0 +1,106 @@
+{
+  "source": "39高锐填掩饰隐瞒犯罪所得犯罪所得收益二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "通过介绍他人提供银行卡并协助转账取现，形成多层资金转移链条",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过多张银行卡流转",
+        "同一账户在短时间内被多次用于接收和转出资金",
+        "资金最终被取现或通过数字人民币转出"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_chain"
+    },
+    {
+      "pattern": "利用他人银行卡接收电诈资金后快速取现或转出，规避账户冻结",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内（如数小时内）被取现或转出",
+        "单笔取现金额接近或超过银行柜台取现限额（如5万元）",
+        "取现行为发生在夜间或非工作时间"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal/transfer), location"
+    },
+    {
+      "pattern": "通过多张银行卡分散接收资金，单卡流入流出金额高度匹配，呈快进快出模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单张银行卡流入资金与流出资金金额高度接近（差额极小）",
+        "资金在卡内停留时间极短（如数小时内完成进出）",
+        "多张银行卡在同一时间段内出现类似快进快出模式"
+      ],
+      "data_hint": "account_id, inflow_amount, outflow_amount, balance, timestamp"
+    },
+    {
+      "pattern": "卡主提供银行卡、手机、密码后在场等候，配合刷脸验证，由他人操作转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备或IP地址短时间内操作多个不同账户",
+        "账户登录和交易行为存在地理跳跃（如不同城市登录）",
+        "交易过程中频繁出现人脸识别或短信验证等辅助验证"
+      ],
+      "data_hint": "device_id, ip_address, login_location, transaction_authentication_type"
+    },
+    {
+      "pattern": "通过微信群、熟人介绍等方式招募卡主，形成层级式洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在社交关系（如同学、同事、朋友）",
+        "账户开户时间相近或开户网点集中",
+        "账户间存在资金往来或共同交易对手"
+      ],
+      "data_hint": "account_holder_relationship, account_opening_time, account_opening_branch, transaction_counterparty"
+    },
+    {
+      "pattern": "卡主在银行卡被冻结后，使用话术（如‘办贷款刷流水’）应对银行或警方询问",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户被冻结后短时间内有异常查询或解冻尝试",
+        "账户持有人与可疑账户存在关联",
+        "账户交易备注中出现‘贷款’、‘刷流水’等关键词"
+      ],
+      "data_hint": "account_freeze_time, unfreeze_attempt, transaction_memo, customer_service_call_log"
+    },
+    {
+      "pattern": "使用酒店房间作为临时操作点，进行银行卡转账和取现活动",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一地点（如酒店）短时间内出现多笔取现或转账交易",
+        "交易地点与账户持有人常住地或工作地不符",
+        "交易时间集中在特定时段（如夜间）"
+      ],
+      "data_hint": "transaction_location, account_holder_address, timestamp"
+    },
+    {
+      "pattern": "卡主提供多张银行卡，其中部分卡作为一级卡接收资金，部分作为二级卡快速转出资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一卡主名下多张银行卡在短时间内被用于资金流转",
+        "资金从一级卡转入二级卡后迅速取现或转出",
+        "二级卡交易金额与一级卡流入金额高度匹配"
+      ],
+      "data_hint": "account_id, linked_accounts, transaction_chain, amount"
+    }
+  ]
+}

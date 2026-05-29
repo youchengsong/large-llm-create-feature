@@ -1,0 +1,95 @@
+{
+  "source": "250王某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人注册并控制多个数字人民币银行账户用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份注册多个数字人民币银行账户",
+        "账户数量超过正常个人使用需求"
+      ],
+      "data_hint": "address, account_id, identity_id"
+    },
+    {
+      "pattern": "明知账户被风控或冻结后仍继续使用，规避银行风控措施",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户被风控或冻结后仍继续接收资金",
+        "账户状态异常后仍有交易活动"
+      ],
+      "data_hint": "account_status, transaction_timestamp, freeze_flag"
+    },
+    {
+      "pattern": "资金快速从数字人民币账户转入银行账户，再取现存入指定账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过多个账户层级",
+        "从数字人民币账户到银行账户再到取现的完整资金链"
+      ],
+      "data_hint": "transaction_flow, amount, timestamp, from_address, to_address"
+    },
+    {
+      "pattern": "通过微信、支付宝等第三方支付平台转出资金，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入第三方支付平台",
+        "使用微信或支付宝进行资金转出"
+      ],
+      "data_hint": "transaction_type, platform, from_address, to_address"
+    },
+    {
+      "pattern": "账户资金进出金额完全相等，呈现快进快出特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户进账总额等于出账总额",
+        "资金在账户内停留时间极短"
+      ],
+      "data_hint": "amount_in, amount_out, transaction_timestamp, balance"
+    },
+    {
+      "pattern": "在短期内（2个月）接收并转移大量资金（51万余元），其中包含多笔被害人资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短期内大额资金流入流出",
+        "交易频率高",
+        "单笔金额与被害人损失金额匹配"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, victim_flag"
+    },
+    {
+      "pattern": "资金来源于多个不同被害人，资金混同后统一转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同来源地址向同一账户转账",
+        "资金混同后集中转出"
+      ],
+      "data_hint": "from_address, to_address, amount, transaction_graph"
+    },
+    {
+      "pattern": "使用他人授意注册的账户进行资金周转，形成多层控制关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户实际控制人与注册人不同",
+        "资金最终流向指定第三方账户"
+      ],
+      "data_hint": "account_owner, actual_controller, transaction_destination"
+    }
+  ]
+}

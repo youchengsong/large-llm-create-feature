@@ -1,0 +1,68 @@
+{
+  "source": "309卢某某掩饰隐瞒犯罪所得犯罪所得收益罪一审判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡及密码、手机给他人用于转账，并删除聊天记录以规避侦查",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内被他人控制并用于转账",
+        "聊天记录被删除",
+        "账户密码和手机被提供给第三方"
+      ],
+      "data_hint": "account_control_change, message_deletion_flag, device_sharing_indicator"
+    },
+    {
+      "pattern": "利用数字人民币钱包作为中间层进行资金归集和转移，形成多层资金流转路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包",
+        "再从数字人民币钱包转入其他银行卡",
+        "资金经过至少3层地址或账户"
+      ],
+      "data_hint": "transaction_flow_path, wallet_type, layer_count"
+    },
+    {
+      "pattern": "涉案资金为电信网络诈骗的一级收款账户，资金来自全国不同地区",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收到来自多个不同地区的资金",
+        "资金为诈骗案件的一级收款",
+        "单日转入金额较大（89万余元）"
+      ],
+      "data_hint": "sender_geography, fraud_case_flag, total_inflow_amount, daily_inflow_amount"
+    },
+    {
+      "pattern": "提供银行卡用于网上赌博转账，日报酬500-2000元，属于有偿出借账户",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户被用于赌博相关转账",
+        "出借账户获得固定日报酬",
+        "报酬金额与转账量可能相关"
+      ],
+      "data_hint": "transaction_purpose_label, reward_amount, account_rental_flag"
+    },
+    {
+      "pattern": "发现涉案资金未被转走时，立即提现至个人微信占为己有，体现异常资金处置行为",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户内涉案资金被提现到个人微信钱包",
+        "提现行为发生在转账操作之后",
+        "资金被个人占有而非继续转移"
+      ],
+      "data_hint": "withdrawal_to_wallet, fund_retention_flag, transaction_sequence"
+    }
+  ]
+}

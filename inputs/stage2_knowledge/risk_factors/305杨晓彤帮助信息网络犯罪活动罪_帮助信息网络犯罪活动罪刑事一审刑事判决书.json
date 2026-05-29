@@ -1,0 +1,71 @@
+{
+  "source": "305杨晓彤帮助信息网络犯罪活动罪、帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用聚合支付收款码和数字人民币钱包进行跑分洗钱，通过多级账户接收并转移非法资金",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "商户聚合支付收款码短时间内接收大量小额资金",
+        "收款码绑定银行卡资金快速转入其他账户或取现",
+        "资金经过多个账户层级转移（如从一级卡到二级卡）",
+        "多个商户账户由同一控制人操作"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, merchant_id, account_binding"
+    },
+    {
+      "pattern": "使用虚假或他人营业执照开设商户账户，用于接收和转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人控制多个不同商户名称的账户",
+        "商户账户注册信息与经营者身份不一致或存在虚假",
+        "商户账户无正常经营流水，仅用于接收和转出资金"
+      ],
+      "data_hint": "merchant_registration_info, business_license, account_holder_id, account_opening_time"
+    },
+    {
+      "pattern": "非法资金通过二级银行卡账户流入，形成资金混同和转移链条",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡作为二级账户接收来自上游账户的涉诈资金",
+        "资金在短时间内从多个来源汇入后集中转出",
+        "账户进账流水金额远大于正常经营规模"
+      ],
+      "data_hint": "account_level, transaction_chain, amount, timestamp, source_account, destination_account"
+    },
+    {
+      "pattern": "团伙成员分工协作，提供收款码、转账和取现服务，协助转移非法资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在固定资金流向和操作时间关联",
+        "资金最终汇总到同一控制人手中",
+        "取现行为与资金到账时间高度同步"
+      ],
+      "data_hint": "account_relationship_graph, transaction_timing, cash_withdrawal_records, group_member_links"
+    },
+    {
+      "pattern": "通过聚合支付收款码将非法资金伪装成正常商业交易流水",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "收款码交易金额多为整数或接近整数的小额",
+        "交易时间集中在非正常营业时段（如深夜）",
+        "交易频率异常高，缺乏真实消费场景特征"
+      ],
+      "data_hint": "transaction_amount, transaction_time, merchant_category_code, transaction_frequency"
+    }
+  ]
+}

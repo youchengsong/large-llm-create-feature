@@ -1,0 +1,69 @@
+{
+  "source": "291谭绘兵益安检刑掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人银行账户接收诈骗资金后通过刷脸验证快速转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自多个不同受害人的转账",
+        "资金入账后立即通过刷脸验证进行转出操作",
+        "单笔或累计接收金额接近但不超过5万元"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, authentication_method, sender_address_count"
+    },
+    {
+      "pattern": "利用他人银行账户作为资金中转站，配合上游犯罪转移赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户与多个无正常交易关系的上游账户发生资金往来",
+        "资金在账户内停留时间极短（如数分钟内）",
+        "账户持有人与上游账户持有人无社交或业务关联"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, account_holder_relationship"
+    },
+    {
+      "pattern": "同一账户同时接收来自不同受害人的资金，呈现集中收款特征",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的转账",
+        "各笔转账金额相近或呈整数倍",
+        "转账备注或用途字段为空或模糊"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, memo"
+    },
+    {
+      "pattern": "资金转移过程中使用刷脸等生物识别验证，规避传统密码验证监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易验证方式为生物识别（如刷脸）而非密码",
+        "生物识别验证操作集中在短时间内连续发生",
+        "账户登录设备或IP地址与历史行为不一致"
+      ],
+      "data_hint": "authentication_method, device_id, ip_address, timestamp"
+    },
+    {
+      "pattern": "账户持有人为外卖员等低收入职业，账户却出现大额异常资金流动",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户历史交易流水以小额为主，突然出现大额入账",
+        "入账金额远超账户持有人正常收入水平",
+        "账户持有人职业与交易对手方无合理关联"
+      ],
+      "data_hint": "account_holder_occupation, historical_transaction_amount, amount, counterparty_info"
+    }
+  ]
+}

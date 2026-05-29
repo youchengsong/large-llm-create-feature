@@ -1,0 +1,97 @@
+{
+  "source": "252王伊彬隐瞒掩饰犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分平台洗钱：利用跑分平台接单，通过多张银行卡注册多个数字人民币钱包接收上游犯罪资金，再提现取现",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份使用多张银行卡注册多个数字人民币钱包（如5张银行卡注册23个钱包）",
+        "资金从多个数字人民币钱包集中提现至银行卡并取现",
+        "提现金额累计较大（约80万元）",
+        "资金流入后短时间内提现取现"
+      ],
+      "data_hint": "wallet_id, bank_card_id, user_id, amount, timestamp, transaction_type, cash_out_flag"
+    },
+    {
+      "pattern": "U币交易洗钱：通过线下购买U币充值至跑分平台作为押金，为洗钱提供资金通道",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "线下现金或转账购买U币，资金流向与线上交易分离",
+        "U币充值至跑分平台账户作为押金",
+        "U币交易金额与后续洗钱流水存在关联",
+        "多个主体参与U币买卖（如段某阳、王某亮、朱某春、杜某飞）"
+      ],
+      "data_hint": "transaction_type, amount, sender_address, receiver_address, platform_account_id, timestamp"
+    },
+    {
+      "pattern": "多层级账户体系：使用本人及亲属的多张银行卡和数字人民币钱包构建多层资金接收和转移网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用本人及亲属（妻子、父亲、母亲）的银行卡注册数字人民币钱包",
+        "资金从上游账户流入多个数字人民币钱包，再提现至不同银行卡",
+        "账户间资金流转路径复杂，涉及多层跳转"
+      ],
+      "data_hint": "user_relationship, bank_card_owner, wallet_owner, transaction_chain, address_graph"
+    },
+    {
+      "pattern": "资金快速归集取现：将分散在多个钱包的资金快速提现至银行卡并取现，切断资金追踪",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个钱包资金在短时间内集中提现至同一或关联银行卡",
+        "提现后立即取现，现金流出系统",
+        "取现金额与上游诈骗资金金额存在对应关系（如1.9万元中596元最终取现）"
+      ],
+      "data_hint": "amount, timestamp, wallet_id, bank_card_id, cash_out_amount, cash_out_time"
+    },
+    {
+      "pattern": "跨地域资金流动：上游犯罪资金从异地（如崇阳）流入数字人民币钱包，最终在异地（如上蔡）取现",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金流入地址与取现地址跨省或跨市",
+        "资金流入时间与取现时间间隔短",
+        "取现地点与账户注册地不一致"
+      ],
+      "data_hint": "sender_location, receiver_location, cash_out_location, timestamp, transaction_region"
+    },
+    {
+      "pattern": "利用数字人民币钱包匿名性：通过数字人民币钱包接收资金，利用其匿名特性规避银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用数字人民币钱包接收资金，而非传统银行账户",
+        "数字人民币钱包交易记录难以直接关联到实名身份",
+        "多个钱包交替使用，分散交易"
+      ],
+      "data_hint": "wallet_type, wallet_anonymity_level, transaction_channel"
+    },
+    {
+      "pattern": "团伙协作洗钱：多人分工合作，包括介绍平台、购买U币、提供银行卡、操作跑分等环节",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个主体之间存在介绍、买卖U币、资金转移等关联交易",
+        "各主体非法获利金额相近（5000元）",
+        "共同为同一跑分平台服务"
+      ],
+      "data_hint": "user_id, relationship_type, transaction_between_users, profit_amount"
+    }
+  ]
+}

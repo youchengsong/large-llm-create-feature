@@ -1,0 +1,105 @@
+{
+  "source": "60高建民帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户和银行卡接收犯罪所得资金并协助转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体使用多个数字人民币账户和银行卡接收资金",
+        "资金在多个账户间频繁划转",
+        "资金从数字人民币账户提现到微信后通过扫码转出"
+      ],
+      "data_hint": "account_type, amount, transaction_type, from_account, to_account, timestamp"
+    },
+    {
+      "pattern": "通过虚拟币交易平台买卖USDT并以明显高于市场价的价格线下出售，利用多个账户收款",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易价格显著高于市场均价",
+        "资金流入多个不同账户后用于购买虚拟币",
+        "虚拟币钱包直接转账给买家"
+      ],
+      "data_hint": "transaction_price, market_price, amount, account_id, wallet_address, transaction_hash"
+    },
+    {
+      "pattern": "组织多人提供银行账户和数字人民币账户形成资金转移网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "一个上线控制多个下线提供账户",
+        "下线账户数量多且来自不同主体",
+        "资金从多个下线账户汇集或分散转出"
+      ],
+      "data_hint": "account_owner_relationship, account_count, transaction_flow_graph"
+    },
+    {
+      "pattern": "短时间内大量账户异常流入资金且涉及多起电信网络诈骗案件",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单个账户短时间内流入资金总额巨大",
+        "流入资金涉及多起刑事案件",
+        "账户资金流入与电信诈骗案发时间高度关联"
+      ],
+      "data_hint": "amount, timestamp, case_id, account_id, inflow_rate"
+    },
+    {
+      "pattern": "使用微信聊天和飞机软件（Telegram）等加密通讯工具协调转账指令",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过加密聊天软件接收转账指令",
+        "聊天记录中包含收款二维码和账户信息",
+        "转账操作与聊天指令时间一致"
+      ],
+      "data_hint": "communication_channel, message_content, timestamp, transaction_instruction"
+    },
+    {
+      "pattern": "通过提现到微信再扫码转出的方式切断资金追踪链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币账户提现到微信钱包",
+        "微信钱包资金通过扫码支付转出",
+        "提现和扫码转出时间间隔短"
+      ],
+      "data_hint": "transaction_type, from_account_type, to_account_type, amount, timestamp"
+    },
+    {
+      "pattern": "提供多个账户（包括本人、亲属、朋友）用于接收和转移资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体使用本人、妻子、朋友的账户",
+        "多个账户的注册信息存在关联（如亲属关系）",
+        "账户资金流向具有共同的上线或下线"
+      ],
+      "data_hint": "account_holder_relationship, account_registration_info, transaction_counterparty"
+    },
+    {
+      "pattern": "以每日固定报酬或按资金比例获利的方式招募他人提供账户",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "上线向下线承诺每日固定报酬",
+        "下线按资金流水比例获得佣金",
+        "报酬与资金转移量正相关"
+      ],
+      "data_hint": "commission_amount, profit_percentage, transaction_volume, account_owner"
+    }
+  ]
+}

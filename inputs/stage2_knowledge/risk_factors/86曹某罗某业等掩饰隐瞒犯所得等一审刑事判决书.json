@@ -1,0 +1,107 @@
+{
+  "source": "86曹某罗某业等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多账户协助转移犯罪所得",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人控制多个银行账户、数字人民币账户、支付账户",
+        "短时间内多个账户同时用于接收和转移资金",
+        "账户之间资金快速流转"
+      ],
+      "data_hint": "address, account_id, transaction_id, amount, timestamp, account_type"
+    },
+    {
+      "pattern": "使用数字人民币账户和传统银行账户混合转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体同时使用数字人民币账户和银行卡进行交易",
+        "资金从银行卡转入数字人民币账户后快速转出",
+        "交易金额分散在多个账户中规避单账户大额监控"
+      ],
+      "data_hint": "account_type, amount, timestamp, from_address, to_address"
+    },
+    {
+      "pattern": "通过ATM取现和柜台取现将资金转化为现金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内多次在ATM机取现",
+        "在银行柜台提取大额现金",
+        "取现金额接近但不超过大额报告阈值"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, location, atm_id"
+    },
+    {
+      "pattern": "通过购买高价值商品（金项链）转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "使用银行卡或数字人民币账户购买高价值商品",
+        "购买金额与账户内近期转入资金高度吻合",
+        "购买行为发生在资金到账后短时间内"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, merchant_category, item_description"
+    },
+    {
+      "pattern": "利用他人介绍和招募账户提供者进行资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户提供者之间存在介绍关系",
+        "多个账户提供者服务于同一资金转移网络",
+        "账户提供者获得固定比例或固定金额的报酬"
+      ],
+      "data_hint": "referral_relationship, account_owner_id, commission_amount, transaction_network"
+    },
+    {
+      "pattern": "使用刷脸等生物识别技术辅助转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户所有者在非本人操作环境下提供刷脸验证",
+        "刷脸验证与资金转移交易时间高度关联",
+        "账户所有者同时提供多个账户的刷脸验证"
+      ],
+      "data_hint": "biometric_authentication_event, timestamp, account_id, transaction_id"
+    },
+    {
+      "pattern": "资金快速通过多个支付渠道（云闪付、联通支付、网商银行）转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一笔资金在短时间内通过多个支付渠道流转",
+        "每个渠道内的交易金额较小但累计金额大",
+        "资金最终流向难以追踪的账户"
+      ],
+      "data_hint": "payment_channel, amount, timestamp, from_account, to_account"
+    },
+    {
+      "pattern": "账户提供者获得小额报酬但协助转移大额资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户提供者获得的报酬远低于转移资金金额",
+        "报酬与转移资金金额不成比例",
+        "报酬以转账形式支付给账户提供者"
+      ],
+      "data_hint": "commission_amount, total_transferred_amount, commission_ratio, payment_method"
+    }
+  ]
+}

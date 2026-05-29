@@ -1,0 +1,111 @@
+{
+  "source": "10刘某孙某掩饰隐瞒犯所得等二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "跑分团伙利用多个银行卡账户在短时间内通过ATM和柜台取现，将电信诈骗赃款快速转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一银行卡在短时间内多次ATM取现（如4笔每笔2500元）",
+        "柜台大额取现（如48000元）",
+        "资金进账后立即取现（如进账后数分钟内取款）",
+        "多笔取现总额接近但不超过大额交易报告阈值"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, atm_withdrawal_count, counter_withdrawal_amount"
+    },
+    {
+      "pattern": "跑分团伙使用数字人民币兑出方式转移资金，规避传统银行转账监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "通过数字人民币兑出多笔资金（如4笔5000元、4笔10000元等）",
+        "兑出金额分散但总额较大",
+        "兑出行为发生在资金进账后短时间内"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, digital_currency_flag, channel"
+    },
+    {
+      "pattern": "跑分团伙通过跨行自助取款分散取现，避免单点触发预警",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "跨行自助取款多笔（如6笔每笔3000元）",
+        "取款时间集中在资金进账后数小时内",
+        "取款地点分散在不同银行ATM"
+      ],
+      "data_hint": "amount, timestamp, atm_location, bank_code, transaction_type"
+    },
+    {
+      "pattern": "跑分团伙使用他人银行卡并控制手机操作，通过刷脸验证完成转账和取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡主在短时间内多次刷脸验证",
+        "手机银行APP被他人操作",
+        "银行卡、手机、身份证被他人控制",
+        "转账和取现操作由非卡主人员执行"
+      ],
+      "data_hint": "biometric_authentication_count, device_id, ip_address, session_duration, card_holder_location"
+    },
+    {
+      "pattern": "跑分团伙组织分工明确，包括驾车接送、看守、取现、存钱等角色，形成资金转移链条",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户资金最终汇总存入同一银行账户",
+        "取现后现金由专人存入指定账户",
+        "团伙成员使用多辆租赁车辆接送卡主",
+        "卡主与操作人员非同一人"
+      ],
+      "data_hint": "account_relationship_graph, transaction_chain, vehicle_rental_records, group_membership"
+    },
+    {
+      "pattern": "跑分团伙通过介绍人招募银行卡提供者，形成多层级的卡主网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一介绍人推荐多个卡主提供银行卡",
+        "介绍人从中获取好处费（如每张卡300元）",
+        "卡主之间存在社交或经济关联"
+      ],
+      "data_hint": "referral_chain, commission_amount, account_opening_ip, shared_contact_info"
+    },
+    {
+      "pattern": "银行卡进账后立即通过多种渠道（ATM、柜台、数字人民币、转账）快速转出，资金停留时间极短",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金进账后数分钟至数小时内全部转出",
+        "转出渠道多样化",
+        "账户余额在转出后接近零",
+        "进账金额与转出金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, balance_after_transaction, transaction_channel, time_to_exit"
+    },
+    {
+      "pattern": "跑分团伙使用虚假或他人身份信息开立银行卡，用于接收和转移赃款",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡开户信息与使用人身份不符",
+        "同一身份证下多张银行卡被用于可疑交易",
+        "银行卡开户时间集中且近期活跃"
+      ],
+      "data_hint": "account_holder_id, account_opening_date, identity_verification_result, linked_accounts"
+    }
+  ]
+}

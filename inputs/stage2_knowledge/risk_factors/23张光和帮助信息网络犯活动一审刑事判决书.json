@@ -1,0 +1,94 @@
+{
+  "source": "23张光和帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织多人提供银行账户和数字人民币账户进行跑分洗钱",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在同一时间段内接收资金并快速转出",
+        "账户之间存在层级关系，上游账户接收资金后分散至下游账户",
+        "同一设备或IP地址控制多个账户进行交易"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, device_id, ip_address"
+    },
+    {
+      "pattern": "使用数字人民币账户转移犯罪所得",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户短时间内接收多笔小额资金后立即转出",
+        "数字人民币账户交易频率异常高于正常用户",
+        "数字人民币账户与银行账户之间频繁互转"
+      ],
+      "data_hint": "account_type, amount, timestamp, transaction_count, counterparty"
+    },
+    {
+      "pattern": "卡主提供银行卡及密码后由他人操作转移资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡账户登录设备或IP地址与卡主历史行为不一致",
+        "银行卡资金在短时间内被多笔转出至多个不同账户",
+        "银行卡交易后立即有ATM取现行为"
+      ],
+      "data_hint": "login_device, ip_address, amount, timestamp, atm_location, transaction_type"
+    },
+    {
+      "pattern": "利用ATM取现方式将犯罪所得变现",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "ATM取现金额接近但不超过单日限额",
+        "ATM取现时间集中在夜间或非营业时间",
+        "同一ATM设备短时间内被多次使用"
+      ],
+      "data_hint": "atm_id, amount, timestamp, location, card_number"
+    },
+    {
+      "pattern": "跑分团队分工明确，包括招募卡主、接送看管、操作转账等角色",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在固定的资金流向模式",
+        "账户注册时间相近或关联同一手机号",
+        "账户交易时间与车辆行驶轨迹相关"
+      ],
+      "data_hint": "account_registration_date, phone_number, vehicle_gps, transaction_timestamp"
+    },
+    {
+      "pattern": "资金在多个账户间快速流转以混淆资金来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过多个中间账户",
+        "每笔资金流转时间间隔极短",
+        "资金最终流向多个不同最终账户"
+      ],
+      "data_hint": "transaction_chain, amount, timestamp, intermediate_addresses"
+    },
+    {
+      "pattern": "使用他人手机和银行卡进行资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一手机设备登录多个不同银行卡账户",
+        "手机设备IMEI与多个账户关联",
+        "账户登录地点与卡主常住地不符"
+      ],
+      "data_hint": "device_imei, login_location, account_id"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "source": "69潘某某掩饰隐瞒犯罪所得犯罪所得收益罪一审判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多个银行账户及数字人民币钱包给他人使用，资金到账后立即转出",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体提供多个不同银行账户及数字钱包",
+        "资金到账后短时间内被转出",
+        "账户被用于接收不同来源的资金"
+      ],
+      "data_hint": "account_id, amount, timestamp, transaction_type, counterparty_address"
+    },
+    {
+      "pattern": "账户接收多笔小额诈骗资金后快速转出，形成异常流水",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收多笔来自不同受害人的小额资金",
+        "资金到账后立即转出，无停留",
+        "账户流水总额与正常使用模式不符"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_count"
+    },
+    {
+      "pattern": "使用数字人民币钱包进行资金转移，增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同时使用传统银行账户和数字人民币钱包",
+        "数字钱包交易时间集中",
+        "资金通过数字钱包快速流转"
+      ],
+      "data_hint": "wallet_type, transaction_id, timestamp, amount, address"
+    }
+  ]
+}

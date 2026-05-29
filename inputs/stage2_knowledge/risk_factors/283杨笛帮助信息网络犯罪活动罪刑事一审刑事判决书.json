@@ -1,0 +1,82 @@
+{
+  "source": "283杨笛帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用数字人民币二维码购买黄金，将犯罪所得资金转换为高价值实物资产以转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短时间内使用数字人民币二维码进行大额黄金购买",
+        "购买黄金后立即交付给上家，资金快速转化为实物资产",
+        "交易金额接近但不超过特定阈值（如单笔5万元）以规避监测"
+      ],
+      "data_hint": "交易金额(amount)、交易时间(timestamp)、交易类型(transaction_type)、商品类别(commodity_type)、数字人民币地址(digital_currency_address)、收款方信息(recipient_info)"
+    },
+    {
+      "pattern": "多次分批使用数字人民币二维码购买黄金，分散大额资金以规避监测",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "在短时间内（如数天内）多次进行黄金购买交易",
+        "每次购买金额相对较小但累计金额较大（如12万余元）",
+        "交易时间集中在2024年2月下旬，频率较高"
+      ],
+      "data_hint": "交易金额(amount)、交易时间(timestamp)、交易次数(transaction_count)、累计金额(cumulative_amount)、时间窗口(time_window)"
+    },
+    {
+      "pattern": "使用数字人民币二维码进行线下实体消费，将电信诈骗资金通过购买黄金洗白",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金来源于多个电信诈骗被害人（如刘某乙、曹某等）",
+        "资金通过数字人民币二维码直接用于购买黄金",
+        "购买黄金后交付给上家，形成资金从被害人到上家的多层转移路径"
+      ],
+      "data_hint": "资金来源地址(source_address)、资金去向地址(destination_address)、交易链长度(chain_length)、数字人民币二维码标识(qr_code_id)、黄金购买记录(gold_purchase_record)"
+    },
+    {
+      "pattern": "使用数字人民币二维码进行大额黄金购买，涉及多个被害人资金混合，掩盖资金来源",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单次交易包含多个不同来源的资金（如2万余元来自5名被害人）",
+        "资金混合后统一用于购买黄金，难以追踪资金流向",
+        "交易金额较大（如68537元包含10余名被害人资金）"
+      ],
+      "data_hint": "交易金额(amount)、资金来源数量(source_count)、资金混合标识(fund_mixing_flag)、被害人地址列表(victim_address_list)"
+    },
+    {
+      "pattern": "在固定地点（重百商场）多次使用数字人民币二维码购买黄金，形成规律性交易模式",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易地点固定在同一商场（重百商场）",
+        "交易时间集中在2024年2月下旬，具有周期性",
+        "交易商品类型一致（黄金豆、金条）"
+      ],
+      "data_hint": "交易地点(location)、交易时间(timestamp)、商品类型(commodity_type)、交易频率(transaction_frequency)、商场名称(store_name)"
+    },
+    {
+      "pattern": "使用数字人民币二维码进行大额黄金购买，交易金额接近但不超过特定阈值以规避监测",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单次交易金额接近但不超过5万元或10万元等常见监测阈值",
+        "多次交易金额总和较大（如12万余元）",
+        "交易金额分布呈现离散化特征"
+      ],
+      "data_hint": "交易金额(amount)、阈值接近度(threshold_proximity)、交易金额分布(amount_distribution)、累计金额(cumulative_amount)"
+    }
+  ]
+}

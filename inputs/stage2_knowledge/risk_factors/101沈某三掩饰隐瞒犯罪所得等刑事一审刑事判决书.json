@@ -1,0 +1,81 @@
+{
+  "source": "101沈某三掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借个人银行账户用于接收和转移电信诈骗资金，并配合人脸认证和密码验证",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔来自不同受害人的资金",
+        "账户在移动车辆内进行转账操作",
+        "账户持有人提供密码并进行人脸认证",
+        "账户资金快速转出，无正常消费或留存"
+      ],
+      "data_hint": "amount, from_address, to_address, timestamp, ip_address, device_id, biometric_verification_flag"
+    },
+    {
+      "pattern": "通过网约车跨市流动进行跑分操作，规避地域追踪",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录或交易IP地址在短时间内跨城市变化",
+        "交易时间集中在特定日期（如2023年7月27日）",
+        "账户在非居住地城市进行大额交易"
+      ],
+      "data_hint": "timestamp, ip_address, geolocation, transaction_location"
+    },
+    {
+      "pattern": "跑分团伙通过验卡测试确认账户可用性后再进行大额转账",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在接收大额资金前有小额测试交易",
+        "测试交易后账户立即用于接收多笔大额资金",
+        "测试交易金额较小，后续交易金额显著增大"
+      ],
+      "data_hint": "amount, timestamp, transaction_sequence, account_status"
+    },
+    {
+      "pattern": "使用数字人民币和云闪付等新型支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户同时使用多种支付工具（如云闪付、数字人民币）",
+        "资金通过不同支付渠道快速转移",
+        "新安装支付应用后立即进行大额交易"
+      ],
+      "data_hint": "payment_method, app_installation_timestamp, transaction_channel"
+    },
+    {
+      "pattern": "多笔来自不同受害人的资金在短时间内汇入同一账户",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单日接收多笔来自不同账户的资金",
+        "每笔资金金额在2万至5万元之间",
+        "资金总额超过10万元（本案为168500元）",
+        "资金来源账户无历史交易关联"
+      ],
+      "data_hint": "amount, from_address, timestamp, transaction_count_per_day"
+    },
+    {
+      "pattern": "跑分团伙成员提供身份证、银行卡、手机卡等全套信息用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证绑定多个银行账户",
+        "账户注册信息与交易行为不匹配（如无业人员有大额资金流动）",
+        "账户预留手机号与常用设备不匹配"
+      ],
+      "data_hint": "identity_info, account_registration_data, device_id, phone_number"
+    }
+  ]
+}

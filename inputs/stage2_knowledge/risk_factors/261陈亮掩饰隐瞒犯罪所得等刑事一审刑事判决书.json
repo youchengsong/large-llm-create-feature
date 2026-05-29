@@ -1,0 +1,80 @@
+{
+  "source": "261陈亮掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过虚假招聘信息诱骗个人提供银行卡、手机等工具用于转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内被多个不同人员操作",
+        "账户绑定手机、支付工具被更换或由他人控制",
+        "账户在非本人常住地出现异常登录或交易"
+      ],
+      "data_hint": "device_id, ip_address, login_location, account_binding_change"
+    },
+    {
+      "pattern": "在车辆行驶等移动环境中完成银行卡、支付密码交出及刷脸验证操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易发生在车辆行驶等非固定地点",
+        "交易时间与正常生活作息不符",
+        "短时间内连续在多个不同银行网点操作"
+      ],
+      "data_hint": "transaction_location, timestamp, geolocation_data"
+    },
+    {
+      "pattern": "同一账户在短时间内多次大额取现，累计金额接近但未超过大额交易报告阈值",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日或数小时内多次取现，每笔金额接近5万元",
+        "累计取现金额超过10万元",
+        "取现后账户余额迅速归零"
+      ],
+      "data_hint": "amount, transaction_count, cumulative_amount, account_balance"
+    },
+    {
+      "pattern": "通过数字人民币账户转移资金，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币账户后快速转出",
+        "数字人民币账户交易频率异常高",
+        "数字人民币账户与多个不同银行卡关联"
+      ],
+      "data_hint": "transaction_type, digital_currency_account, transfer_chain"
+    },
+    {
+      "pattern": "使用他人银行卡、手机、支付工具进行资金转移，账户实际控制人与名义持有人不一致",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录设备与历史记录不一致",
+        "账户交易IP地址与持有人常住地不符",
+        "账户绑定手机号非持有人常用号码"
+      ],
+      "data_hint": "device_fingerprint, ip_address, phone_number_change"
+    },
+    {
+      "pattern": "通过线下见面、车辆接送等方式完成银行卡和密码的物理交接，规避线上监控",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内出现跨城市或跨省交易",
+        "交易地点与账户持有人常住地距离较远",
+        "交易时间集中在夜间或非工作时间"
+      ],
+      "data_hint": "transaction_location, travel_distance, timestamp"
+    }
+  ]
+}

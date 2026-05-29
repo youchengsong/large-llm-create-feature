@@ -1,0 +1,79 @@
+{
+  "source": "31陈某甲曹某甲陈某乙李某甲帮助信息网络犯罪活动罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡给他人用于资金过账，按过账金额比例获取报酬",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内收到多笔来自不同账户的转账，且金额接近整数",
+        "账户资金快进快出，余额接近零",
+        "账户收到资金后立即通过ATM取现或数字人民币转出"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, balance, transaction_type"
+    },
+    {
+      "pattern": "配合他人进行刷脸认证以完成转账操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内多次触发刷脸认证",
+        "刷脸认证后立即发生大额转账",
+        "刷脸认证行为与账户正常使用模式不符"
+      ],
+      "data_hint": "authentication_type, authentication_timestamp, transaction_timestamp, amount"
+    },
+    {
+      "pattern": "通过ATM机取现转移犯罪所得资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在收到资金后短时间内通过ATM取现",
+        "ATM取现金额接近整数或取款限额",
+        "ATM取现行为发生在非居住地或偏远地区"
+      ],
+      "data_hint": "amount, timestamp, location, transaction_type, atm_id"
+    },
+    {
+      "pattern": "使用数字人民币向外转账以规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在收到资金后通过数字人民币渠道快速转出",
+        "数字人民币转账金额与入账金额高度相关",
+        "数字人民币转账对手方为陌生账户"
+      ],
+      "data_hint": "amount, timestamp, transaction_channel, from_address, to_address"
+    },
+    {
+      "pattern": "账户过账资金中包含电信诈骗被害人直接转入的资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户收到来自多个不同主体的转账，且部分转账备注或来源与诈骗案件关联",
+        "账户资金流入方与已知诈骗案件被害人账户关联"
+      ],
+      "data_hint": "from_address, amount, timestamp, transaction_remarks, case_id"
+    },
+    {
+      "pattern": "通过朋友介绍参与跑分活动，形成多层级的介绍网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户开户人与其他账户存在社交关系或共同联系人",
+        "多个账户存在相似的开户时间、地点或行为模式",
+        "账户之间存在资金流转或介绍关系"
+      ],
+      "data_hint": "account_holder_info, relationship_network, account_opening_time, location"
+    }
+  ]
+}

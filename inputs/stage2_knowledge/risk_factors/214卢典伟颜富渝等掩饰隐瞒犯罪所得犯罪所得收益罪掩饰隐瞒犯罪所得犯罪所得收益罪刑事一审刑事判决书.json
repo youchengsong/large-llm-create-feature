@@ -1,0 +1,108 @@
+{
+  "source": "214卢典伟颜富渝等掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡及身份信息用于接收和转移电信诈骗资金",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收多笔来自不同来源的小额转账",
+        "资金在多个银行卡之间快速流转",
+        "使用非本人或非关联账户进行资金归集和分散"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "利用数字人民币钱包进行资金支付结算以规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "新注册的数字人民币钱包在短时间内接收大额资金",
+        "数字人民币钱包与银行卡之间存在频繁的资金互转",
+        "资金从数字人民币钱包快速转出至其他账户"
+      ],
+      "data_hint": "wallet_address, bank_account, amount, timestamp, wallet_registration_time"
+    },
+    {
+      "pattern": "犯罪分子在偏远地点（山脚下）进行银行卡、手机等物品的交接以逃避侦查",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易或账户操作发生在非城市中心或偏远地区IP地址",
+        "账户登录或交易时间与地理位置不匹配",
+        "短时间内账户在多个地理位置出现操作"
+      ],
+      "data_hint": "ip_address, geolocation, timestamp, device_id"
+    },
+    {
+      "pattern": "通过提供手机、手机号码和身份信息协助犯罪分子注册账户和进行交易",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一手机号码或身份信息关联多个银行账户或数字钱包",
+        "多个账户使用相同的设备指纹或IP地址",
+        "账户注册后立即用于大额交易"
+      ],
+      "data_hint": "phone_number, identity_id, device_id, ip_address, account_registration_time"
+    },
+    {
+      "pattern": "资金在一天内集中流入并快速转出，呈现快进快出模式",
+      "dimension": [
+        "金额频次",
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如数小时内）接收大量资金后立即转出",
+        "资金停留时间极短（如几分钟到几小时）",
+        "转入和转出金额高度匹配，余额接近零"
+      ],
+      "data_hint": "amount, timestamp, balance, transaction_count, inflow_amount, outflow_amount"
+    },
+    {
+      "pattern": "犯罪分子使用现金支付报酬以掩盖资金流向",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户收到现金存款后立即转出至多个账户",
+        "现金存款金额与后续转账金额存在关联",
+        "现金存款时间点与电信诈骗案发时间接近"
+      ],
+      "data_hint": "deposit_type, amount, timestamp, receiver_address, cash_deposit_flag"
+    },
+    {
+      "pattern": "账户资金来源于多个电信诈骗受害者，呈现多对一资金归集模式",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一收款账户在短时间内接收来自多个不同账户的小额转账",
+        "转账金额与常见电信诈骗金额（如几百到几千元）相符",
+        "转账时间集中在特定时段（如夜间）"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count_per_hour"
+    },
+    {
+      "pattern": "犯罪分子利用他人身份信息注册多个银行账户和数字钱包用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证号关联多个银行账户或数字钱包",
+        "账户注册时间集中且注册后立即用于交易",
+        "账户之间资金频繁互转形成闭环"
+      ],
+      "data_hint": "identity_id, account_list, registration_time, transaction_graph"
+    }
+  ]
+}

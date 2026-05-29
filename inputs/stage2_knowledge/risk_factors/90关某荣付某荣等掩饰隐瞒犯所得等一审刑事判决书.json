@@ -1,0 +1,70 @@
+{
+  "source": "90关某荣付某荣等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人携带多张银行卡前往异地，将银行卡交给洗钱分子用于接收电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户持有人名下多张银行卡在短时间内集中被用于接收来自不同受害人的资金",
+        "银行卡使用地点与账户持有人常住地不一致",
+        "资金在短时间内从多个来源进入后迅速转出"
+      ],
+      "data_hint": "address, bank_card_id, transaction_amount, transaction_time, sender_address, receiver_address, account_holder_location"
+    },
+    {
+      "pattern": "多张银行卡被用于接收电信网络诈骗资金，且每张卡关联多起诈骗案件",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单张银行卡接收来自多个不同受害人的资金",
+        "每张卡的单向流水金额较大（如交通银行617387.41元）",
+        "多张卡的资金来源账户之间无正常商业或个人关系"
+      ],
+      "data_hint": "bank_card_id, transaction_amount, sender_address, victim_id, transaction_count"
+    },
+    {
+      "pattern": "账户持有人明知银行卡可能被用于违法犯罪，仍主动前往异地提供银行卡",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人短时间内从常住地前往异地（如从河南南阳到福建福安）",
+        "账户持有人出行时间与银行卡开始接收异常资金的时间高度重合",
+        "账户持有人与洗钱分子有事先联系（如通过微信等）"
+      ],
+      "data_hint": "account_holder_location, travel_record, communication_record, bank_card_activation_time"
+    },
+    {
+      "pattern": "银行卡在短时间内集中接收大量资金，且资金来自多个不同受害人",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在几天内（如6月9日至13日）接收大量资金",
+        "单日交易笔数或金额远超正常个人账户水平",
+        "资金来自多个不同地区或不同受害人的账户"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, transaction_count_per_day"
+    },
+    {
+      "pattern": "洗钱分子使用他人银行卡进行跑分洗钱，资金通过多层账户转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从受害人账户流入后，短时间内被转移到多个其他账户",
+        "交易链中出现多个中间账户",
+        "账户之间无正常交易背景或关联"
+      ],
+      "data_hint": "transaction_chain, intermediate_address, transaction_amount, transaction_time"
+    }
+  ]
+}

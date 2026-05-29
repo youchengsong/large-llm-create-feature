@@ -1,0 +1,57 @@
+{
+  "source": "62黄＊＊南检刑掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行卡并配合刷脸验证、提供支付密码和手机帮助他人转账取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内转入转出金额接近（如转入51,260元，转出50,886元）",
+        "资金转入后立即转出或取现，无明显停留",
+        "账户持有人配合刷脸验证、提供支付密码等操作",
+        "账户持有人使用本人银行卡帮助他人取现"
+      ],
+      "data_hint": "transaction_amount, transaction_time, account_holder_action (如刷脸验证、密码输入), cash_withdrawal_flag, counterparty_address"
+    },
+    {
+      "pattern": "将转入资金充值至数字人民币账户后兑回至另一银行卡并ATM取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币账户",
+        "数字人民币账户资金兑回至另一银行卡",
+        "兑回后立即通过ATM取现",
+        "取现金额与转入金额高度相关（如10,000元）"
+      ],
+      "data_hint": "transaction_type (充值/兑回), digital_currency_account, target_bank_account, atm_withdrawal_amount, transaction_timestamp"
+    },
+    {
+      "pattern": "同一账户接收多起电信诈骗被害人的资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一银行账户在短时间内接收来自不同被害人的转账",
+        "转账金额与上游电信诈骗案件金额关联",
+        "资金来源涉及不同地区、不同案件"
+      ],
+      "data_hint": "sender_address, receiver_address, transaction_amount, case_id, victim_location"
+    },
+    {
+      "pattern": "账户持有人经电话通知到案后拒不到案，被上网追逃后抓获",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人有逃避侦查的行为（如传唤不到案）",
+        "被公安机关上网追逃",
+        "到案后如实供述但前期有隐匿行为"
+      ],
+      "data_hint": "suspect_behavior (如传唤记录、追逃状态), arrest_time, voluntary_surrender_flag"
+    }
+  ]
+}

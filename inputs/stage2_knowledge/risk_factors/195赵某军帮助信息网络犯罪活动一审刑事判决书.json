@@ -1,0 +1,79 @@
+{
+  "source": "195赵某军帮助信息网络犯罪活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行卡并开通数字钱包供他人操作，用于接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内从多个不同地区被害人处接收资金",
+        "账户资金在收到后迅速被转出，资金停留时间极短",
+        "账户持有人将手机、密码等交给第三方操作转账"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_hash, device_id, ip_address"
+    },
+    {
+      "pattern": "跨地域开户和交易，账户持有人前往异地开通数字人民币功能并完成洗钱操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户开户地与账户持有人常住地不一致",
+        "账户在短时间内从多个不同省份的被害人处接收资金",
+        "资金转入后立即被转出，无正常消费或理财行为"
+      ],
+      "data_hint": "account_open_location, transaction_location, timestamp, amount, sender_region, receiver_region"
+    },
+    {
+      "pattern": "同一账户在单日内接收大量来自不同被害人的小额资金，呈现分散转入集中转出模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日内接收多笔来自不同账户的小额资金（如数千至数万元）",
+        "资金在短时间内被集中转出至一个或多个账户",
+        "单日交易笔数远超正常个人账户使用频率"
+      ],
+      "data_hint": "amount, timestamp, transaction_count_per_day, sender_address, receiver_address"
+    },
+    {
+      "pattern": "账户持有人通过出借银行卡获利，每张银行卡固定报酬，呈现批量控制特征",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一持有人名下多张银行卡在同一时间段内被用于接收诈骗资金",
+        "多张银行卡的资金流向相似或相同",
+        "账户持有人与多个陌生账户存在关联"
+      ],
+      "data_hint": "account_id, holder_id, linked_accounts, transaction_graph"
+    },
+    {
+      "pattern": "电信诈骗资金通过多层账户转移，最终汇入出借的银行卡后迅速转出",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个不同来源账户汇入目标账户",
+        "目标账户在收到资金后短时间内将资金转出至其他账户",
+        "资金流转路径涉及多个中间账户，形成多层转移"
+      ],
+      "data_hint": "transaction_chain, amount, timestamp, sender_address, receiver_address, hop_count"
+    },
+    {
+      "pattern": "账户在短时间内被用于接收来自全国多个省份被害人的资金，地域分布异常广泛",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金来自多个不同省份的被害人",
+        "所有交易集中在同一天或极短时间窗口内",
+        "账户持有人所在地与被害人所在地无合理关联"
+      ],
+      "data_hint": "sender_region, receiver_region, timestamp, amount"
+    }
+  ]
+}

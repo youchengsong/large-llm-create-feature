@@ -1,0 +1,95 @@
+{
+  "source": "103王某某黄某甲掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用个人银行卡接收网络诈骗资金后通过银行柜面、ATM机取现及数字人民币转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短时间内接收多笔来自不同个人的资金后立即取现或转移",
+        "资金到账后通过柜面、ATM机取现或数字人民币方式快速转移",
+        "多笔小额资金汇入后集中取现或转移"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal/transfer), channel (counter/ATM/digital currency), sender_address"
+    },
+    {
+      "pattern": "按上线指示将接收的资金通过银行柜面、ATM机取现及数字人民币等方式转移至指定账户",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金接收后立即按照外部指令进行取现或转移",
+        "取现或转移操作与接收操作时间间隔极短",
+        "资金流向多个指定账户或地址"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, counterparty_address, instruction_source (external)"
+    },
+    {
+      "pattern": "为获取支付结算金额一定比例的好处费而提供银行卡用于接收和转移犯罪所得",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收资金后立即按比例提取手续费或转移",
+        "同一账户在短时间内接收多笔来自不同个人的资金",
+        "账户资金流入流出金额与固定比例（如4%）相关"
+      ],
+      "data_hint": "amount, fee_amount, fee_percentage, counterparty_address, transaction_sequence"
+    },
+    {
+      "pattern": "使用名下多张银行卡（工商银行、农业银行、建设银行、贵阳银行）接收和转移犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一控制人使用多张不同银行的银行卡接收资金",
+        "多张银行卡在相近时间段内出现类似的资金接收和转移模式",
+        "资金在不同银行卡之间流转"
+      ],
+      "data_hint": "account_id, bank_name, counterparty_address, timestamp, amount"
+    },
+    {
+      "pattern": "通过他人介绍加入洗钱网络，共同实施资金转移行为",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新账户与已有可疑账户之间存在介绍或关联关系",
+        "多个账户在相似时间段内出现类似的交易模式",
+        "账户之间存在资金流转或共同接收来自同一上线的指令"
+      ],
+      "data_hint": "account_relationship, introduction_chain, shared_instruction_source, transaction_pattern_similarity"
+    },
+    {
+      "pattern": "使用银行卡接收网络诈骗资金后立即取现，切断资金追踪链条",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内通过ATM机或柜面取现",
+        "取现金额接近但不超过银行取现限额",
+        "取现操作发生在非正常营业时间"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal), channel (ATM/counter), limit_avoidance_pattern"
+    },
+    {
+      "pattern": "利用数字人民币等新型支付方式转移犯罪所得，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "使用数字人民币钱包接收或转移资金",
+        "数字人民币交易与传统银行交易交替使用",
+        "数字人民币交易金额较小但频率较高"
+      ],
+      "data_hint": "transaction_type (digital_currency), amount, timestamp, wallet_address, frequency"
+    }
+  ]
+}

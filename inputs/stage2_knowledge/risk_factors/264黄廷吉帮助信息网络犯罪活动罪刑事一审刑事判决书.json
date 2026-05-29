@@ -1,0 +1,124 @@
+{
+  "source": "264黄廷吉帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包接收不明资金后提现至银行卡，再取现或转账至指定账户，形成资金快进快出、过渡性特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包收到资金后短时间内提现至绑定银行卡",
+        "银行卡收到资金后立即取现或转账至其他账户",
+        "资金在账户内停留时间极短（分钟级）"
+      ],
+      "data_hint": "timestamp, amount, wallet_address, bank_account, transaction_type (deposit/withdrawal/transfer)"
+    },
+    {
+      "pattern": "通过注册多个数字人民币钱包并绑定多张银行卡，分散资金流转路径，规避单一账户大额交易监控",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人注册多个数字人民币钱包",
+        "多个钱包绑定不同银行的银行卡",
+        "资金在多个钱包和银行卡之间循环流转"
+      ],
+      "data_hint": "wallet_address, bank_account, user_id, device_id, ip_address"
+    },
+    {
+      "pattern": "使用他人银行卡和数字钱包账户进行资金转移，形成多层账户链，切断资金溯源",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从A的数字钱包转入B的数字钱包",
+        "B将资金提现至自己的银行卡",
+        "B取现后汇款至C的账户",
+        "资金经过3个以上不同主体账户"
+      ],
+      "data_hint": "wallet_address, bank_account, transaction_hash, amount, timestamp, sender, receiver"
+    },
+    {
+      "pattern": "通过ATM机频繁取现，将电子资金转化为现金，规避转账追踪",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一银行卡在短时间内多次ATM取现",
+        "取现金额接近ATM单笔限额",
+        "取现时间集中在夜间或非工作时间"
+      ],
+      "data_hint": "bank_account, atm_location, timestamp, amount, transaction_type (cash_withdrawal)"
+    },
+    {
+      "pattern": "利用飞机聊天软件等加密通讯工具与上游犯罪人员联系，使用虚拟货币（泰达币）进行资金兑换，增加交易匿名性",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用加密聊天软件沟通交易指令",
+        "资金通过虚拟货币兑换平台流转",
+        "交易对手为匿名或虚假身份"
+      ],
+      "data_hint": "chat_app_id, virtual_currency_address, exchange_platform, transaction_log"
+    },
+    {
+      "pattern": "提供银行卡和数字钱包账户给他人使用，收取按过账金额比例计算的报酬（每万元100元），形成规模化洗钱通道",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金流入总额与报酬金额成固定比例",
+        "同一账户接收多笔来自不同来源的小额资金",
+        "账户被多个上游犯罪团伙使用"
+      ],
+      "data_hint": "bank_account, amount, fee, counterparty, transaction_count"
+    },
+    {
+      "pattern": "资金从电信诈骗被害人账户经多层数字钱包和银行卡流转后取现，最终流向不明，形成洗钱闭环",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入中间人数字钱包",
+        "中间人数字钱包向多个下级钱包分散转账",
+        "下级钱包提现至银行卡并取现",
+        "资金流向无法追踪的现金或虚拟货币"
+      ],
+      "data_hint": "victim_account, intermediary_wallet, downstream_wallet, bank_account, cash_withdrawal, virtual_currency"
+    },
+    {
+      "pattern": "在银行账户被冻结后，立即销毁作案手机和通讯工具，试图毁灭证据",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户冻结后短时间内销毁电子设备",
+        "删除聊天记录和交易记录",
+        "更换手机或SIM卡"
+      ],
+      "data_hint": "account_freeze_time, device_destruction_time, communication_log_deletion"
+    },
+    {
+      "pattern": "使用本金（4万元）进行虚拟货币交易，通过低买高卖泰达币赚取差价，同时掩盖资金真实来源",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用自有资金购买虚拟货币",
+        "虚拟货币交易价格偏离市场价",
+        "交易频率高、单笔金额小",
+        "资金在虚拟货币和法币之间频繁转换"
+      ],
+      "data_hint": "virtual_currency_trade_log, amount, price, timestamp, wallet_address"
+    }
+  ]
+}

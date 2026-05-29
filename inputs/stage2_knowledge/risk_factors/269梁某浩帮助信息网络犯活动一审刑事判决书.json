@@ -1,0 +1,102 @@
+{
+  "source": "269梁某浩帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多个数字人民币钱包和银行账户用于接收和转移网络犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个主体控制多个数字人民币钱包和银行账户",
+        "账户数量超过正常使用范围",
+        "账户用于接收不明来源资金"
+      ],
+      "data_hint": "address, account_id, wallet_type, linked_entity_id"
+    },
+    {
+      "pattern": "使用亲属名下账户接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金操作人存在亲属关系",
+        "多个账户由同一人实际控制"
+      ],
+      "data_hint": "account_holder_relationship, actual_controller, address"
+    },
+    {
+      "pattern": "通过操作转账和取现完成资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包转入银行账户后立即取现",
+        "转账与取现操作时间间隔短",
+        "取现金额与转入金额高度匹配"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, from_address, to_address, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "介绍他人提供支付账户用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人介绍多个账户提供者",
+        "账户提供者之间存在间接关联",
+        "资金最终流向同一上线"
+      ],
+      "data_hint": "referrer_id, account_provider_id, transaction_chain, address"
+    },
+    {
+      "pattern": "资金从多个被害人账户转入同一控制下的多个账户",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同来源的资金转入同一组账户",
+        "转入金额分散但总额较大",
+        "资金快速归集后取现"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, aggregation_pattern"
+    },
+    {
+      "pattern": "使用数字人民币钱包作为资金接收和转移工具",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包频繁用于接收不明来源资金",
+        "数字人民币钱包资金快速转入银行账户",
+        "数字人民币钱包交易记录与银行账户交易记录关联"
+      ],
+      "data_hint": "wallet_type, transaction_type, amount, timestamp, linked_bank_account"
+    },
+    {
+      "pattern": "资金转入后几乎全部取现，取现比例极高",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "转入资金与取现金额比例接近1:1",
+        "取现操作频繁且金额较大",
+        "账户余额长期接近零"
+      ],
+      "data_hint": "amount, cash_withdrawal_amount, balance, transaction_frequency"
+    },
+    {
+      "pattern": "资金转移涉及多个层级：提供者→操作人→上线",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从账户提供者流向操作人，再流向上线",
+        "资金流转路径清晰且重复",
+        "操作人作为中间节点连接多个账户提供者和上线"
+      ],
+      "data_hint": "from_address, to_address, transaction_chain, intermediary_address"
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "source": "129骆某通崇检刑掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过高薪日结广告招募银行卡提供者，用于接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如数小时内）集中流入多笔来自不同个人的资金",
+        "账户资金流入后迅速被转出或通过刷脸认证操作转移",
+        "账户持有者与招募者通过微信群等社交平台联系，并前往异地见面"
+      ],
+      "data_hint": "transaction_count, amount, timestamp, sender_address, receiver_address, social_media_chat_records, location_data"
+    },
+    {
+      "pattern": "银行卡在凌晨时段进行异常交易，配合刷脸认证操作",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易发生在凌晨2时至10时等非正常营业时间",
+        "账户持有者配合进行刷脸认证等身份验证操作",
+        "交易地点为偏远地区（如半山腰房间）"
+      ],
+      "data_hint": "timestamp, location, authentication_type, authentication_frequency"
+    },
+    {
+      "pattern": "银行卡账户短时间内流入大量来自不同被害人的资金，形成资金汇聚点",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单日或多小时内流入多笔资金（如19笔），总额超过60万元",
+        "资金来自多个不同个人账户，且均与电信诈骗案件相关",
+        "账户资金流入后无正常消费或取现行为，仅用于收转"
+      ],
+      "data_hint": "amount, transaction_count, sender_address_count, transaction_interval, account_balance_change"
+    },
+    {
+      "pattern": "账户持有者明知资金可能违法，仍提供银行卡及密码供他人使用",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有者事先通过广告了解高额报酬，并产生质疑后仍参与",
+        "账户持有者将银行卡、支付密码及手机交给他人操作",
+        "账户持有者配合进行刷脸认证，表明其知晓并参与资金转移"
+      ],
+      "data_hint": "communication_records, device_handover_logs, authentication_events"
+    },
+    {
+      "pattern": "资金通过多层账户转移，涉及多个被害人资金汇集后快速分散",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在单一账户内短暂停留后迅速转出至其他账户",
+        "转入资金笔数多、金额大，但账户余额几乎为零",
+        "资金流向呈现汇聚-分散模式"
+      ],
+      "data_hint": "transaction_graph, amount, timestamp, account_balance, transaction_chain_length"
+    }
+  ]
+}

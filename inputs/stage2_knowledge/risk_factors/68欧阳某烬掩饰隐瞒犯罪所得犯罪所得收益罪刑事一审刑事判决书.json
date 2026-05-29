@@ -1,0 +1,70 @@
+{
+  "source": "68欧阳某烬掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过微信联系上线，提供个人银行卡、手机及数字人民币APP账号密码，协助接收和转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收大额资金后立即通过数字人民币或ATM取现转出",
+        "同一账户同时绑定数字人民币APP并频繁使用刷脸转账功能",
+        "账户资金快进快出，余额极少"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, account_binding, digital_currency_app_usage, face_recognition_auth"
+    },
+    {
+      "pattern": "使用数字人民币APP绑定银行卡，通过刷脸方式将银行卡资金转入数字人民币账号并转给他人，实现资金快速转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户与银行卡绑定后短时间内发生多笔大额转账",
+        "资金从银行卡到数字人民币账户再到他人账户的链条在短时间内完成",
+        "转账金额接近但不超过大额交易报告阈值"
+      ],
+      "data_hint": "digital_currency_transaction, amount, timestamp, sender_address, receiver_address, binding_time"
+    },
+    {
+      "pattern": "通过ATM取现方式将部分资金从银行卡取出后交给上线，规避电子转账追踪",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在特定时间段内发生ATM取现行为，取现金额较大",
+        "ATM取现地点与账户开户地或常用地不一致",
+        "取现后账户余额极低或归零"
+      ],
+      "data_hint": "atm_withdrawal, amount, timestamp, location, account_balance"
+    },
+    {
+      "pattern": "提供个人银行卡用于接收电信诈骗资金，账户短期内关联多起诈骗案件",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的汇款",
+        "账户资金流入与电信诈骗案件报案时间高度关联",
+        "账户交易对手中包含多个已知涉案地址或账户"
+      ],
+      "data_hint": "incoming_transactions, counterparty_address, amount, timestamp, fraud_case_association"
+    },
+    {
+      "pattern": "通过微信与上线联系，线下见面提供银行卡和手机，形成线下线上结合的洗钱网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人通过社交软件与多个可疑账户频繁联系",
+        "账户持有人与上线存在线下见面记录",
+        "多个账户共享同一设备或IP地址"
+      ],
+      "data_hint": "social_media_contacts, meeting_records, device_id, ip_address"
+    }
+  ]
+}

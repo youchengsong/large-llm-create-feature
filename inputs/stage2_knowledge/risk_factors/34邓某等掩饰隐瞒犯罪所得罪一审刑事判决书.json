@@ -1,0 +1,72 @@
+{
+  "source": "34邓某等掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、密码及手机给陌生人用于非法资金转账，并协助刷脸认证",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一账户绑定多个银行APP和支付工具",
+        "账户在酒店等非居住场所被操作",
+        "同一设备登录多个账户或频繁更换SIM卡",
+        "交易过程中出现频繁的刷脸或密码认证请求"
+      ],
+      "data_hint": "device_id, ip_address, login_location, auth_type, auth_timestamp, bank_card_binding_time"
+    },
+    {
+      "pattern": "使用多张银行卡接收并转移非法资金，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多张银行卡在短时间内被转入大量资金",
+        "资金转入后迅速转出，停留时间短",
+        "单日累计交易金额接近但不超过特定阈值",
+        "交易频率在特定时间段内显著增加"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, sender_address, receiver_address, balance_before, balance_after"
+    },
+    {
+      "pattern": "通过数字人民币APP等新型支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内开通并频繁使用数字人民币等新型支付工具",
+        "资金通过数字人民币钱包快速流转",
+        "数字人民币交易与银行卡交易交替进行"
+      ],
+      "data_hint": "payment_method, wallet_address, transaction_chain, app_installation_time"
+    },
+    {
+      "pattern": "利用他人身份信息开设银行账户并控制使用",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户共享相同的联系方式、设备或IP地址",
+        "账户注册信息与使用者实际身份不符",
+        "账户开立后立即用于大额交易",
+        "同一人控制多个账户进行资金归集或分散"
+      ],
+      "data_hint": "kyc_info, device_fingerprint, ip_address, phone_number, email_address"
+    },
+    {
+      "pattern": "资金来源于多个不同受害人，呈现分散转入集中转出模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同来源的小额资金转入同一账户",
+        "资金在短时间内被汇总后一次性或分批转出",
+        "转入资金来源地址分散且无正常交易背景",
+        "转出地址指向高风险地区或匿名服务"
+      ],
+      "data_hint": "amount, sender_address, receiver_address, transaction_graph, cluster_id"
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "source": "278韦某甲汪某生等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用专用平台（如CX支付）组织多层级下线进行资金接收和取现转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户关联多个下线账户形成树状层级",
+        "多个账户共享同一平台账号或上传相同收款信息",
+        "资金从多个不同账户逐级向上汇总"
+      ],
+      "data_hint": "address, platform_id, account_hierarchy, parent_account_id"
+    },
+    {
+      "pattern": "将银行卡、数字人民币钱包、支付宝收款码等多种支付工具绑定至同一平台用于接收上游资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体名下关联多种支付工具（银行卡、数字人民币钱包、支付宝）",
+        "多个支付工具在同一时间段内接收资金并快速取现",
+        "支付工具之间资金流转路径复杂"
+      ],
+      "data_hint": "address, account_type, platform_id, transaction_id, amount"
+    },
+    {
+      "pattern": "通过银行柜台或ATM机频繁取现，将电子资金转化为现金以切断追踪链条",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内同一账户发生多笔大额取现交易",
+        "取现交易集中在银行柜台或ATM机",
+        "取现金额接近但不超过大额交易报告阈值"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, location, account_id"
+    },
+    {
+      "pattern": "账户每日不间断接收资金并立即通过取现转出，呈现高频快进快出模式",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户每日均有资金转入和取现转出",
+        "资金在账停留时间极短（通常数小时内）",
+        "转入与转出金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, account_id, balance, transaction_frequency"
+    },
+    {
+      "pattern": "利用他人名义的银行卡（如亲属卡）接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金实际控制人不一致",
+        "多个账户由同一人操作但注册在不同人名下",
+        "账户间存在亲属或关联关系"
+      ],
+      "data_hint": "account_holder, actual_controller, relationship, account_id"
+    },
+    {
+      "pattern": "资金经过多层账户转移后最终取现，形成资金洗钱链",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在多个账户间流转超过3层",
+        "每层账户资金流入后迅速转出或取现",
+        "资金流向呈现从分散到集中的模式"
+      ],
+      "data_hint": "transaction_chain, hop_count, amount, timestamp, address"
+    },
+    {
+      "pattern": "账户接收资金后部分未能及时转出即被冻结，显示资金转移存在时间窗口",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转入后长时间未转出（超过24小时）",
+        "账户余额突然增加且无后续转出动作",
+        "账户被冻结前有异常大额入账"
+      ],
+      "data_hint": "timestamp, balance, account_status, freeze_time"
+    },
+    {
+      "pattern": "同一上线控制多个下线账户，下线账户将资金取现后逐级或直接交付上线",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户资金最终流向同一上线账户或同一人",
+        "下线账户取现后现金交付上线",
+        "上线与下线之间存在固定回款路径"
+      ],
+      "data_hint": "account_id, parent_account_id, cash_delivery_record, transaction_path"
+    },
+    {
+      "pattern": "账户资金流水总额远大于查实的犯罪所得，表明存在大量不明资金混入",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户总流水金额与已确认犯罪金额存在巨大差异",
+        "账户接收多笔小额资金后汇总取现",
+        "资金来源分散且难以追溯"
+      ],
+      "data_hint": "total_flow, confirmed_criminal_amount, transaction_count, amount_distribution"
+    },
+    {
+      "pattern": "使用数字人民币钱包进行资金接收和转移，利用新型支付工具规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包账户频繁接收资金",
+        "数字人民币钱包资金快速转出至银行账户或取现",
+        "数字人民币交易与传统银行交易交替使用"
+      ],
+      "data_hint": "wallet_id, transaction_type, amount, timestamp, linked_bank_account"
+    }
+  ]
+}

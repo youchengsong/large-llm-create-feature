@@ -1,0 +1,143 @@
+{
+  "source": "299李明帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用多个不同银行账户接收赃款，并通过ATM取现和数字人民币APP转账快速转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多笔来自不同来源的小额资金",
+        "资金到账后立即通过ATM或柜台取现",
+        "取现后立即通过数字人民币APP转账",
+        "使用多个不同银行的账户进行资金归集"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, bank_name, account_id"
+    },
+    {
+      "pattern": "通过组织化‘车队’分工协作，包括卡主、取现手、望风人员等，进行多层级资金转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在频繁的资金流转关系",
+        "资金经过多层地址或账户转移",
+        "账户之间存在固定的上下级或协作关系",
+        "同一IP地址或设备登录多个账户"
+      ],
+      "data_hint": "from_address, to_address, timestamp, ip_address, device_id, account_relationship"
+    },
+    {
+      "pattern": "将赃款兑换为虚拟货币USDT，利用虚拟货币的匿名性完成资金清洗",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金最终流向虚拟货币兑换平台或地址",
+        "兑换行为发生在资金到账后短时间内",
+        "兑换金额与上游赃款金额高度匹配",
+        "兑换后资金分散至多个虚拟货币地址"
+      ],
+      "data_hint": "amount, from_address, to_address, transaction_type, exchange_platform, cryptocurrency_type"
+    },
+    {
+      "pattern": "利用‘飞机’软件等加密通讯工具进行群聊组织，招募卡主和安排取现任务",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户通过同一加密通讯群组关联",
+        "群组内存在任务分配和报酬支付记录",
+        "账户注册时间与群组活动时间高度相关",
+        "群组成员之间资金流动频繁"
+      ],
+      "data_hint": "communication_app, group_id, user_id, message_content, timestamp"
+    },
+    {
+      "pattern": "资金在短时间内通过多个不同银行账户快速流转，形成资金链",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一笔资金在数小时内经过多个银行账户",
+        "资金流转路径呈现链式结构",
+        "每个账户的停留时间极短",
+        "资金流转时间集中在夜间或非工作时间"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, bank_name, account_id, transaction_chain"
+    },
+    {
+      "pattern": "使用数字人民币APP作为新型资金转移工具，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金通过数字人民币APP进行转账",
+        "数字人民币转账金额与上游赃款金额一致",
+        "数字人民币账户与多个银行账户关联",
+        "数字人民币转账频率异常高"
+      ],
+      "data_hint": "amount, timestamp, app_type, digital_currency_account, linked_bank_account"
+    },
+    {
+      "pattern": "多个团队独立运作但共享兑换渠道，形成资金汇聚和分散的网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个团队的资金最终流向同一兑换人",
+        "兑换人账户接收来自多个不同来源的资金",
+        "资金汇聚后分散至多个虚拟货币地址",
+        "团队之间存在资金互助或垫付行为"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, network_graph, cluster_id"
+    },
+    {
+      "pattern": "利用‘卡主’的银行账户接收赃款，卡主与取现手分离，增加追踪难度",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与实际取现人不同",
+        "账户持有人与取现人之间无直接关联",
+        "取现行为发生在账户持有人所在地之外",
+        "多个卡主账户由同一取现手操作"
+      ],
+      "data_hint": "account_holder, operator_id, location, timestamp, transaction_type"
+    },
+    {
+      "pattern": "取现后立即将现金存入另一账户或兑换为虚拟币，资金快速离场",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "取现后短时间内有等额存款或兑换记录",
+        "存款账户与取现账户无直接关联",
+        "存款行为发生在不同银行或网点",
+        "资金在银行系统内停留时间极短"
+      ],
+      "data_hint": "amount, timestamp, withdrawal_location, deposit_location, bank_name, account_id"
+    },
+    {
+      "pattern": "通过ATM机分散取现，规避大额交易报告门槛",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔取现金额接近但不超过ATM限额",
+        "同一账户在短时间内多次取现",
+        "取现金额总和与上游赃款一致",
+        "取现时间间隔短"
+      ],
+      "data_hint": "amount, timestamp, atm_id, account_id, withdrawal_count"
+    }
+  ]
+}

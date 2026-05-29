@@ -1,0 +1,63 @@
+{
+  "source": "25张志远帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用多张银行卡接收非法资金后通过ATM取现、微信转账等方式转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户短时间内多笔ATM取现交易",
+        "资金从多个银行卡账户快速转出至微信或数字人民币APP",
+        "交易金额接近但不超过大额报告阈值"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, account_id, counterparty"
+    },
+    {
+      "pattern": "使用他人名下银行卡（如妻子账户）协助转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户间存在亲属或关联关系",
+        "资金从不同账户快速归集或分散"
+      ],
+      "data_hint": "account_holder_relationship, account_id, transaction_graph"
+    },
+    {
+      "pattern": "通过提供数字人民币APP转账验证码的方式协助资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户频繁收到验证码请求",
+        "短时间内数字人民币账户与银行卡账户间多笔转账"
+      ],
+      "data_hint": "transaction_type, verification_code_requests, timestamp, account_id"
+    },
+    {
+      "pattern": "短时间内集中使用多张银行卡进行资金流转",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一人在短期内（如8天内）使用4张以上银行卡",
+        "每张银行卡均有大额资金进出"
+      ],
+      "data_hint": "account_id, transaction_count, timestamp, amount"
+    },
+    {
+      "pattern": "明知资金违法仍提供银行卡用于过账并从中获利",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金快进快出，无正常消费或储蓄行为",
+        "账户余额在交易后迅速归零或接近归零"
+      ],
+      "data_hint": "balance_before, balance_after, transaction_type, amount"
+    }
+  ]
+}

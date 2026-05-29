@@ -1,0 +1,95 @@
+{
+  "source": "80张某祥掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织者招募卡主提供银行卡接收并转移犯罪资金，按比例抽取好处费",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同身份主体提供银行卡用于同一资金流转路径",
+        "资金接收后短时间内通过取现或转账转移至指定账户",
+        "组织者与卡主之间存在固定比例的好处费支付"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_fee, account_relationship_graph"
+    },
+    {
+      "pattern": "卡主提供本人银行卡接收资金后通过取现或转账方式将资金转移给上线",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡接收资金后短时间内进行大额取现或转账",
+        "取现金额接近或等于接收金额，无明显消费或保留",
+        "资金从多个来源汇入同一银行卡后集中转出"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal/transfer), balance_before, balance_after"
+    },
+    {
+      "pattern": "使用数字人民币及支付宝等电子支付工具转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包或支付宝账户",
+        "电子支付账户资金快速转出至其他账户或提现",
+        "交易时间集中在短时间内，无明显消费模式"
+      ],
+      "data_hint": "payment_method, sender_account, receiver_account, amount, timestamp, transaction_type"
+    },
+    {
+      "pattern": "组织者通过聊天软件（如飞信）招募卡主并指挥操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个卡主与同一组织者存在通讯记录",
+        "组织者与卡主之间在短时间内建立联系并开始交易",
+        "卡主之间无直接关联，均通过组织者连接"
+      ],
+      "data_hint": "communication_records, account_registration_time, contact_network"
+    },
+    {
+      "pattern": "卡主提供多张银行卡用于接收和转移犯罪资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一卡主名下多张银行卡在短时间内接收多笔资金",
+        "各银行卡接收资金后均快速转出至同一目标账户",
+        "银行卡交易频率和金额异常高于正常使用模式"
+      ],
+      "data_hint": "account_id, bank_card_number, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "犯罪资金涉及电信诈骗被害人，资金从多个被害人账户汇入同一卡主银行卡",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一银行卡接收来自多个不同来源的资金",
+        "资金来源账户与卡主无正常交易关系",
+        "资金汇入后短时间内被取现或转账"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_chain"
+    },
+    {
+      "pattern": "组织者协助公安机关规劝同案犯投案，表明其具有控制或影响其他卡主的能力",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "组织者与多个卡主存在层级关系或控制关系",
+        "卡主在组织者规劝后主动投案",
+        "组织者能够获取其他卡主的联系方式或行踪"
+      ],
+      "data_hint": "account_relationship_graph, communication_records, hierarchical_level"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "source": "2冯斯陈力荣等掩饰隐瞒犯所得等二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "组建固定洗钱团队，分工明确，通过租车、操作他人银行卡在ATM机存取违法犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户短时间内通过同一ATM机进行存取款操作",
+        "同一IP或设备登录多个不同银行卡账户",
+        "账户资金在短时间内被快速取现"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, atm_location, device_id, ip_address, account_id"
+    },
+    {
+      "pattern": "利用数字人民币APP转账方式转移违法犯罪资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户频繁接收小额资金后立即转出",
+        "数字人民币账户与银行卡账户之间资金快速流转",
+        "同一数字人民币APP设备登录多个账户"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, app_id, device_id, account_id"
+    },
+    {
+      "pattern": "发展下线，提供银行卡和数字人民币账户用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在层级关系，上线账户向下线账户转账",
+        "新开立的银行卡或数字人民币账户短时间内接收多笔来自不同来源的资金",
+        "账户持有人之间具有社交网络关联（如共同联系人、共同设备）"
+      ],
+      "data_hint": "account_id, parent_account_id, transaction_graph, device_id, contact_list"
+    },
+    {
+      "pattern": "短时间内通过多个不同银行卡账户收转多笔诈骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内（如几天内）接收多笔来自不同受害人的资金",
+        "资金到账后立即被取现或转出，余额接近零",
+        "交易频率远高于正常个人账户"
+      ],
+      "data_hint": "amount, timestamp, account_id, counterparty_id, balance_after_transaction"
+    },
+    {
+      "pattern": "洗钱团队使用租车方式移动，在不同地点ATM机取现以规避监控",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内于不同地理位置的ATM机取现",
+        "取现时间集中在夜间或非营业时间",
+        "取现金额接近ATM单笔限额"
+      ],
+      "data_hint": "atm_location, timestamp, amount, account_id, transaction_type"
+    },
+    {
+      "pattern": "通过介绍人发展下线，形成多层级的银行卡提供网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在介绍关系链（如A介绍B，B介绍C）",
+        "同一介绍人关联多个不同账户",
+        "账户注册时间与介绍时间高度相关"
+      ],
+      "data_hint": "account_id, introducer_id, registration_date, transaction_graph"
+    },
+    {
+      "pattern": "洗钱团队操作他人银行卡，实际控制多个账户进行资金转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户使用相同的登录设备或IP地址",
+        "多个账户的交易模式高度相似（如金额、时间、对手方）",
+        "账户实际控制人非账户持有人"
+      ],
+      "data_hint": "device_id, ip_address, account_id, transaction_pattern, kyc_data"
+    },
+    {
+      "pattern": "资金经过多个账户层层转移，最终取现或转出",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在多个账户之间快速流转，经过3层以上",
+        "每层账户的余额变化与上一层高度相关",
+        "最终账户将资金取现或转至不可追踪的地址"
+      ],
+      "data_hint": "transaction_graph, amount, timestamp, account_id, depth"
+    }
+  ]
+}

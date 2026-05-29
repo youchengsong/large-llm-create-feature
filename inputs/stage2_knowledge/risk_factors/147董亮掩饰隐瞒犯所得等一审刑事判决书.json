@@ -1,0 +1,69 @@
+{
+  "source": "147董亮掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户、手机和交易密码，协助他人转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内收到来自单一来源的转入资金后立即转出或取现",
+        "账户交易密码由他人使用，存在非本人操作特征",
+        "账户与已知涉案账户或人员存在关联"
+      ],
+      "data_hint": "transaction_hash, from_address, to_address, amount, timestamp, device_id, ip_address, account_owner"
+    },
+    {
+      "pattern": "通过数字人民币APP刷脸转出资金，利用新型支付渠道规避传统监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币APP转账金额与银行卡入账金额高度匹配",
+        "转账操作涉及人脸识别验证，且操作时间集中",
+        "资金从银行卡快速转移至数字人民币渠道"
+      ],
+      "data_hint": "transaction_type, channel_type, biometric_verification, amount, timestamp, app_id"
+    },
+    {
+      "pattern": "通过ATM机取现，将电子资金转化为现金，切断资金追踪链",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "ATM取现时间与银行卡入账时间间隔极短",
+        "取现金额接近但未超过ATM单笔限额（如9300元）",
+        "取现地点与账户开户地或常用地不一致"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, atm_location, account_location"
+    },
+    {
+      "pattern": "账户资金快速进出，呈现‘快进快出’的洗钱特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内（如数小时内）全额转出或取现",
+        "账户余额极低或为零，无正常交易沉淀",
+        "交易频率异常高，且单笔金额与正常使用模式不符"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_count"
+    },
+    {
+      "pattern": "提供银行卡和密码给他人使用，账户控制权转移，存在团伙协作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户被多个IP地址或设备登录",
+        "账户交易行为与账户持有人的历史行为模式显著不同",
+        "账户与多个已知涉案账户存在资金往来"
+      ],
+      "data_hint": "account_id, device_id, ip_address, login_timestamp, transaction_partner"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "source": "216罗某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供实名银行卡、手机及数字人民币钱包给他人用于转移电信诈骗赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一身份证下多张银行卡短时间内被用于大额资金转移",
+        "数字人民币钱包与银行卡关联使用",
+        "账户持有人将设备（手机）和银行卡交给第三方操作"
+      ],
+      "data_hint": "address, bank_card_number, digital_wallet_id, device_id, transaction_amount, transaction_timestamp"
+    },
+    {
+      "pattern": "短时间内通过多个银行账户和数字人民币钱包进行巨额资金结算，形成资金快速流转",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单个账户单日或数日内支付结算金额达数千万至数亿元",
+        "多账户资金流入流出频繁且总额巨大",
+        "资金在多个账户间快速转移，间隔时间短"
+      ],
+      "data_hint": "transaction_amount, transaction_timestamp, sender_address, receiver_address, account_balance"
+    },
+    {
+      "pattern": "使用数字人民币钱包作为新型洗钱通道，与传统银行卡并行使用",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币钱包交易金额异常高（如2.9亿余元）",
+        "数字人民币钱包与银行卡之间频繁互转",
+        "数字人民币钱包注册时间与洗钱活动时间高度重合"
+      ],
+      "data_hint": "wallet_type, wallet_registration_time, transaction_amount, transaction_type"
+    },
+    {
+      "pattern": "账户持有人明知资金为诈骗赃款，仍提供账户并配合刷脸等生物验证操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人主动配合生物识别（如刷脸）操作",
+        "账户持有人与操作人非同一人，但存在授权关系",
+        "账户持有人短期内收到大额现金或转账作为报酬"
+      ],
+      "data_hint": "biometric_authentication_log, device_id, ip_address, transaction_notes"
+    },
+    {
+      "pattern": "洗钱活动通过多个分散的银行卡账户进行，每张卡结算金额均数千万至上亿",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一持卡人名下多张银行卡均出现异常大额交易",
+        "各银行卡交易金额分布不均但均远超正常使用范围",
+        "银行卡交易对手多为陌生账户或新开账户"
+      ],
+      "data_hint": "bank_card_number, transaction_amount, counterparty_address, account_opening_time"
+    }
+  ]
+}

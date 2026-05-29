@@ -1,0 +1,81 @@
+{
+  "source": "157王某辉陈某华掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡和手机帮助他人转移电信诈骗资金，并通过ATM取现和数字人民币转账",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多笔来自不同被害人的转账",
+        "资金到账后立即通过ATM取现和数字人民币转账转出",
+        "取现和转账金额接近但低于大额交易报告阈值"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, sender_address, receiver_address, atm_withdrawal, digital_currency_transfer"
+    },
+    {
+      "pattern": "明知是犯罪所得仍提供银行卡配合他人转账取现，属于典型的跑分洗钱行为",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短期内出现多笔快进快出交易",
+        "交易对手方涉及多个陌生账户",
+        "账户使用人非本人操作，存在代理转账行为"
+      ],
+      "data_hint": "transaction_chain, counterparty_address, transaction_time, ip_address, device_id"
+    },
+    {
+      "pattern": "通过ATM机取现18800元，规避大额现金交易报告",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔取现金额接近但不超过2万元人民币",
+        "同一账户在短时间内多次进行ATM取现",
+        "取现时间集中在非正常营业时间"
+      ],
+      "data_hint": "amount, transaction_type, atm_location, timestamp"
+    },
+    {
+      "pattern": "使用数字人民币刷脸转账5000元，利用新型支付工具转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户同时使用传统银行转账和数字人民币转账",
+        "数字人民币转账金额较小，可能用于测试或规避监管",
+        "数字人民币转账后立即提现或转出"
+      ],
+      "data_hint": "transaction_type, amount, digital_currency_wallet, face_recognition_flag"
+    },
+    {
+      "pattern": "账户资金来源于电信诈骗被害人，资金流入后快速分散转移",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从多个被害人账户集中转入一个中间账户",
+        "中间账户在短时间内将资金分散转出至多个账户",
+        "资金流转路径呈现多层嵌套结构"
+      ],
+      "data_hint": "transaction_graph, amount, timestamp, sender_receiver_relationship"
+    },
+    {
+      "pattern": "账户开立地与交易发生地不一致，存在地域异常",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在嵩明县办理，但交易发生在昆明市海源路",
+        "账户交易IP地址或设备位置与开户地不一致",
+        "交易时间与正常生活作息不符"
+      ],
+      "data_hint": "account_opening_location, transaction_location, ip_address, device_location"
+    }
+  ]
+}

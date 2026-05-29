@@ -1,0 +1,74 @@
+{
+  "source": "100马某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包和多个银行账户为上游犯罪提供资金转移通道",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用数字人民币APP进行转账操作",
+        "使用多个银行数字钱包（农业银行、微众银行、交通银行、邮政储蓄银行、兴业银行、招商银行）进行资金中转",
+        "资金从对公账户转入个人账户后转出"
+      ],
+      "data_hint": "transaction_type, wallet_type, bank_account, amount, timestamp, source_account, destination_account"
+    },
+    {
+      "pattern": "通过多层账户转移资金以掩盖资金来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入对公账户，再转入被告人个人账户，再转出",
+        "资金经过至少3层账户（被害人→对公账户→被告人→最终去向）"
+      ],
+      "data_hint": "transaction_chain, hop_count, intermediate_accounts, amount, timestamp"
+    },
+    {
+      "pattern": "按转账金额比例收取手续费作为报酬",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "收取转账总金额0.5%至1%的好处费",
+        "总转账金额949,220元，获利7,000元，费率约0.74%"
+      ],
+      "data_hint": "fee_amount, fee_rate, total_transfer_amount, profit"
+    },
+    {
+      "pattern": "长期持续进行洗钱活动",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "活动时间跨度7个月（2022年9月至2023年4月）",
+        "期间内多次进行转账操作"
+      ],
+      "data_hint": "first_transaction_time, last_transaction_time, transaction_frequency, duration"
+    },
+    {
+      "pattern": "使用多张银行卡和数字钱包进行分散转账以规避监管",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "使用8个银行数字钱包和1个平安银行账户",
+        "每个账户转账金额可能较小以规避大额交易报告"
+      ],
+      "data_hint": "account_count, account_type, per_account_transaction_volume, transaction_amount_distribution"
+    },
+    {
+      "pattern": "资金来源于电信诈骗被害人，涉及跨地域资金流转",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "被害人位于四川渠县，资金转入广东公司对公账户，再转至深圳个人账户",
+        "资金从不同地域账户流转"
+      ],
+      "data_hint": "account_location, ip_address, geographic_distance, transaction_route"
+    }
+  ]
+}

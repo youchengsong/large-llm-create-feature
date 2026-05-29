@@ -1,0 +1,90 @@
+{
+  "source": "275施某等掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多个支付结算账户供他人转移不法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人提供多个不同银行或支付平台账户",
+        "账户数量超过正常个人使用范围（如3个以上）"
+      ],
+      "data_hint": "address, account_id, account_type, user_id"
+    },
+    {
+      "pattern": "配合他人进行刷脸转账及取现操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易过程中存在生物识别验证（如刷脸）",
+        "交易后立即取现",
+        "取现行为与转账行为在短时间内连续发生"
+      ],
+      "data_hint": "timestamp, transaction_type, biometric_verification_flag, cash_withdrawal_amount"
+    },
+    {
+      "pattern": "短期内集中使用多个账户进行资金转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个账户在1-2天内集中发生交易",
+        "交易金额累计较大（如超过2万元）",
+        "交易频率异常高于历史水平"
+      ],
+      "data_hint": "timestamp, amount, account_id, transaction_count"
+    },
+    {
+      "pattern": "使用数字人民币钱包等新兴支付工具转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易涉及数字人民币钱包",
+        "钱包ID与银行账户同时使用",
+        "资金从传统账户转入数字钱包后快速转出"
+      ],
+      "data_hint": "wallet_id, wallet_type, transaction_flow, amount"
+    },
+    {
+      "pattern": "通过线下见面方式交付账户控制权",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户控制权转移前有线下会面记录",
+        "会面地点在交通枢纽（如地铁站）",
+        "会面时间与账户启用时间接近"
+      ],
+      "data_hint": "location, timestamp, account_activation_time"
+    },
+    {
+      "pattern": "账户用于接收诈骗案件资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收资金来自多个不同来源",
+        "资金来源涉及已报案的诈骗案件",
+        "资金在账户内停留时间短"
+      ],
+      "data_hint": "source_address, destination_address, amount, timestamp, fraud_case_flag"
+    },
+    {
+      "pattern": "为非法获利而出租出借账户",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有者获得固定报酬（如1700元）",
+        "报酬金额与交易金额比例异常",
+        "账户持有者无正常职业或收入来源"
+      ],
+      "data_hint": "income_amount, transaction_amount_ratio, user_occupation"
+    }
+  ]
+}

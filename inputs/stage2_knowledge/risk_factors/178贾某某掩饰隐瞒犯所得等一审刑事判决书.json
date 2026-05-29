@@ -1,0 +1,117 @@
+{
+  "source": "178贾某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡给上线用于快速转移诈骗资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单个账户短时间内接收多笔来自不同受害人的资金",
+        "资金到账后立即被转出或通过扫码支付转移"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_type"
+    },
+    {
+      "pattern": "利用支付宝、微信、数字人民币钱包等第三方支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入支付宝/微信/数字人民币钱包后立即扫码支付转出",
+        "同一账户同时绑定多个支付工具并频繁切换使用"
+      ],
+      "data_hint": "transaction_type, payment_method, source_account, destination_account"
+    },
+    {
+      "pattern": "组织多人提供银行卡和支付账户形成资金转移网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间段内接收诈骗资金并转出",
+        "多个账户的IP地址或设备信息相同或相近"
+      ],
+      "data_hint": "account_id, ip_address, device_id, transaction_time"
+    },
+    {
+      "pattern": "资金在多个账户间快速流转以掩盖来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金经过至少两层账户转移（如从受害人账户到中间账户再到支付工具）",
+        "单笔资金在短时间内完成多次转账"
+      ],
+      "data_hint": "transaction_chain, hop_count, timestamp"
+    },
+    {
+      "pattern": "利用集中地点进行洗钱操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个账户在相同地点（如安化县城南区某室）进行交易",
+        "交易时间集中在特定时间段（如2021年10月至11月）"
+      ],
+      "data_hint": "location, ip_address, transaction_time_range"
+    },
+    {
+      "pattern": "通过数字人民币钱包进行资金转移以规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包后立即兑出或扫码支付",
+        "数字人民币钱包交易频率异常高"
+      ],
+      "data_hint": "wallet_type, transaction_type, amount"
+    },
+    {
+      "pattern": "同一账户同时接收多笔小额诈骗资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个账户在短时间内接收多笔小额资金（如1000-60000元）",
+        "资金总额较大但单笔金额较小"
+      ],
+      "data_hint": "amount, transaction_count, time_window"
+    },
+    {
+      "pattern": "利用他人身份开设银行卡和支付账户用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户的持有人之间存在亲属或朋友关系",
+        "账户持有人年龄、职业背景相似"
+      ],
+      "data_hint": "account_holder_info, relationship_graph"
+    },
+    {
+      "pattern": "资金到账后立即转出，无正常停留时间",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后几分钟内被转出",
+        "账户余额长期接近零"
+      ],
+      "data_hint": "timestamp, balance_before, balance_after"
+    },
+    {
+      "pattern": "通过扫码支付方式将资金分散转移至多个商户或个人",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内进行多笔扫码支付",
+        "扫码支付对象分散且金额不规则"
+      ],
+      "data_hint": "payment_method, merchant_id, amount"
+    }
+  ]
+}

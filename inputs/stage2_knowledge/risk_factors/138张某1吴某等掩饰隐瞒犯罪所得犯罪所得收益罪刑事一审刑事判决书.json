@@ -1,0 +1,72 @@
+{
+  "source": "138张某1吴某等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供本人名下银行卡并协助刷脸验证、提供密码，为网络赌博和诈骗资金进行转账、取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一银行卡被多次用于转账且伴随刷脸验证",
+        "银行卡绑定数字人民币和云闪付等支付工具后用于转账",
+        "资金到账后立即通过转账、消费、取现等方式快速转移",
+        "同一账户在多个不同地点被他人操作使用"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, authentication_method, device_id, ip_address, location, account_binding"
+    },
+    {
+      "pattern": "按洗钱金额比例（每万元200元）获取报酬，多次协助转账并获利",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "交易金额与报酬金额呈固定比例关系",
+        "多笔交易金额接近整数或阈值（如10000元）",
+        "账户内资金快速进出且余额接近零",
+        "小额测试交易后出现大额转账"
+      ],
+      "data_hint": "amount, fee, balance, transaction_count, transaction_amount_pattern"
+    },
+    {
+      "pattern": "跨地域流动，从深圳到江门再到凤凰、肇庆等地，在不同地点完成洗钱操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录或交易IP地址频繁跨省变动",
+        "短时间内交易地点跨越多个城市",
+        "在非居住地（如奶茶店、车内）进行大额交易",
+        "交易时间集中在短期（如12月14日至25日）内多次操作"
+      ],
+      "data_hint": "ip_address, location, timestamp, transaction_place, travel_pattern"
+    },
+    {
+      "pattern": "通过中间人介绍和层层联系（郑云、高启强、壹方天地）形成洗钱链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在间接关联或共同联系人",
+        "账户被多个不同身份人员操作使用",
+        "资金流向呈现多层传递结构",
+        "账户注册信息与操作者身份不一致"
+      ],
+      "data_hint": "address_relationship, transaction_graph, linked_accounts, user_identity, communication_records"
+    },
+    {
+      "pattern": "利用数字人民币和云闪付等新型支付工具进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户绑定多个支付工具后立即用于大额转账",
+        "通过数字人民币或云闪付进行快速资金划转",
+        "交易金额分散以避免触发大额交易报告",
+        "使用人脸识别验证替代传统密码验证"
+      ],
+      "data_hint": "payment_method, transaction_channel, authentication_type, amount, timestamp, device_info"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "source": "26张忠伟帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用多个数字人民币钱包接收不明资金，为网络犯罪提供支付结算通道",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体绑定并控制多个数字人民币钱包（17个）",
+        "多个钱包在短时间内流入大量不明资金（907075.39元）",
+        "资金流入后迅速转出或用于U币交易"
+      ],
+      "data_hint": "wallet_address, owner_id, binding_time, inflow_amount, outflow_amount, transaction_count"
+    },
+    {
+      "pattern": "通过U币交易平台进行虚拟货币买卖，为非法资金提供洗白渠道",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "在U币交易平台注册账号并频繁进行U币买卖",
+        "从其他渠道低价购买U币后在高价平台转售赚取差价",
+        "交易金额与正常用户相比异常（如小额高频或大额集中）"
+      ],
+      "data_hint": "platform_name, user_id, order_type, buy_price, sell_price, trade_amount, trade_time"
+    },
+    {
+      "pattern": "使用加密聊天软件（纸飞机）联系上游卖家，规避监管追踪",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用纸飞机等加密通讯工具与U币卖家沟通",
+        "交易对手身份信息不透明或频繁更换",
+        "聊天记录中涉及资金转移指令或账户信息"
+      ],
+      "data_hint": "chat_app, contact_id, message_content, timestamp, associated_wallet"
+    },
+    {
+      "pattern": "明知平台用于非法资金流转仍参与交易，主观故意明显",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "用户注册平台时已知晓平台性质（如平台名称暗示非法）",
+        "交易过程中采取反侦察措施（如使用他人钱包）",
+        "交易行为与正常用户模式显著偏离"
+      ],
+      "data_hint": "user_behavior_log, platform_terms_acknowledgment, transaction_pattern_deviation_score"
+    },
+    {
+      "pattern": "使用他人数字人民币钱包收款，分散资金流入以规避冻结",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体控制多个非本人名下的钱包",
+        "各钱包流入资金金额较小但总量大",
+        "钱包开户时间集中或开户地点分散"
+      ],
+      "data_hint": "wallet_owner_relationship, wallet_creation_time, wallet_geolocation, inflow_amount_per_wallet"
+    },
+    {
+      "pattern": "短期（2024年5-6月）内大量资金流入，时间集中且金额巨大",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金流入集中在2个月内",
+        "日均流入金额远超正常水平",
+        "资金流入时间与已知诈骗案件时间重叠"
+      ],
+      "data_hint": "transaction_timestamp, inflow_amount, daily_aggregate, correlation_with_fraud_cases"
+    }
+  ]
+}

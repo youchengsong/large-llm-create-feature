@@ -1,0 +1,79 @@
+{
+  "source": "231顾某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人身份信息注册多个数字人民币钱包用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同身份（亲属）注册数字钱包",
+        "每个钱包绑定多张银行卡",
+        "钱包数量与身份数量不匹配"
+      ],
+      "data_hint": "wallet_id, identity_id, relation_type, bank_card_count"
+    },
+    {
+      "pattern": "通过专用APP（跑跑APP）接收上游资金并快速转移至银行卡取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字钱包转入银行卡后短时间内取现",
+        "取现金额与钱包转入金额高度匹配",
+        "资金流转路径为：上游->数字钱包->银行卡->现金"
+      ],
+      "data_hint": "wallet_transaction, bank_transaction, cash_withdrawal, timestamp"
+    },
+    {
+      "pattern": "利用数字人民币钱包进行大额资金中转，规避传统银行账户监控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个数字钱包累计接收资金超过300万元",
+        "资金在钱包内停留时间极短",
+        "钱包交易频率高且单笔金额较大"
+      ],
+      "data_hint": "wallet_balance, transaction_amount, transaction_count, timestamp"
+    },
+    {
+      "pattern": "将诈骗资金混入正常交易流水中，通过多个账户分散转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多笔小额诈骗资金（如1998元、1175元、1994元）转入同一控制人钱包",
+        "同一控制人使用多个不同身份账户接收不同来源的诈骗资金",
+        "资金最终汇集至同一控制人手中"
+      ],
+      "data_hint": "source_address, target_address, amount, identity_id"
+    },
+    {
+      "pattern": "通过亲属身份信息注册账户，形成多层账户网络以掩盖实际控制人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用配偶、父母等亲属身份注册多个钱包",
+        "所有钱包均由同一人操作和管理",
+        "亲属账户之间无正常交易往来"
+      ],
+      "data_hint": "wallet_registration_info, identity_relation, operator_id"
+    },
+    {
+      "pattern": "利用数字人民币钱包的匿名性和便捷性进行洗钱",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字钱包转出后立即取现，无正常消费或投资行为",
+        "取现地点可能分散在不同银行网点",
+        "交易时间可能集中在非正常时段"
+      ],
+      "data_hint": "transaction_time, location, wallet_type, cash_withdrawal_location"
+    }
+  ]
+}

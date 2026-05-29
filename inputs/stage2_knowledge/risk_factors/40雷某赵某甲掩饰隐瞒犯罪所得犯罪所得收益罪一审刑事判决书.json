@@ -1,0 +1,107 @@
+{
+  "source": "40雷某赵某甲掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙组织线下跑分，利用他人银行卡为上游网络犯罪提供支付结算服务",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户短时间内集中转入资金后快速转出",
+        "账户间资金流转呈现多对一或一对多模式",
+        "同一IP地址或设备登录多个不同账户",
+        "账户交易对手高度集中且交易频繁"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, ip_address, device_id"
+    },
+    {
+      "pattern": "团伙内部分工明确，包括联系卡主、验卡测卡、望风等角色",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间点由不同设备登录并操作",
+        "账户操作行为存在固定顺序（如先验卡后转账）",
+        "账户间存在资金归集或分发关系"
+      ],
+      "data_hint": "account_id, login_time, device_id, ip_address, transaction_sequence"
+    },
+    {
+      "pattern": "卡主提供银行卡、手机、身份证及密码供他人使用，获取报酬",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内发生多笔大额交易",
+        "账户交易金额接近整数或阈值",
+        "账户交易后立即有等额或近似等额资金转出",
+        "账户收到小额测试交易后立即进行大额交易"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, balance_before, balance_after"
+    },
+    {
+      "pattern": "利用数字人民币APP进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户同时绑定数字人民币APP并频繁使用",
+        "资金在银行账户与数字人民币钱包间快速流转",
+        "数字人民币交易金额与银行交易金额存在关联"
+      ],
+      "data_hint": "app_type, wallet_id, transaction_type, amount, timestamp"
+    },
+    {
+      "pattern": "涉案资金来源于多起电信诈骗案件，资金混合后通过单一账户流转",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同来源的资金",
+        "资金来源方账户为新开或低活跃账户",
+        "资金流入后迅速被拆分转出至多个下游账户"
+      ],
+      "data_hint": "source_address, destination_address, amount, timestamp, account_age"
+    },
+    {
+      "pattern": "跑分团伙成员跨省作案，涉及多地公安机关抓获",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录IP地址与账户注册地或持卡人常住地不一致",
+        "交易时间集中在非正常工作时间（如深夜）",
+        "账户交易行为与持卡人历史行为模式显著不同"
+      ],
+      "data_hint": "ip_address, geo_location, timestamp, login_frequency"
+    },
+    {
+      "pattern": "卡主介绍他人提供银行卡，形成层级式卡商网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户存在共同联系人或推荐关系",
+        "账户间存在资金往来且金额与介绍费相关",
+        "账户注册信息存在关联（如相同手机号、地址）"
+      ],
+      "data_hint": "referrer_id, account_relation, phone_number, address"
+    },
+    {
+      "pattern": "团伙成员在取保候审期间脱逃，后又主动归案",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在司法程序期间出现异常操作（如突然停止交易）",
+        "账户在脱逃期间无交易或交易模式改变",
+        "账户在归案后交易行为恢复或改变"
+      ],
+      "data_hint": "account_status, transaction_history, legal_proceeding_flag"
+    }
+  ]
+}

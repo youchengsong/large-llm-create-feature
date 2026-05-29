@@ -1,0 +1,102 @@
+{
+  "source": "22余某掩饰隐瞒犯罪所得犯罪所得收益罪刑事二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "以办理贷款为名，将银行卡提供给陌生人用于非法资金流转",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔不明来源资金并快速转出",
+        "账户交易流水与用户声称的贷款用途不符",
+        "用户跨省市前往陌生地点提供银行卡"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, source_address, destination_address, user_location"
+    },
+    {
+      "pattern": "利用数字人民币账户转移资金，规避传统银行卡监控",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币账户后转出",
+        "数字人民币账户短时间内开立多个",
+        "资金流向特定商户或地址"
+      ],
+      "data_hint": "account_type, digital_currency_account_id, transaction_chain, merchant_id"
+    },
+    {
+      "pattern": "银行卡短时间内接收大量资金并快速转出，形成资金快进快出模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日或多日累计流入金额远超正常个人账户水平",
+        "资金在账户内停留时间极短（如数小时内转出）",
+        "交易笔数密集，单笔金额较大"
+      ],
+      "data_hint": "amount, timestamp, inflow_total, outflow_total, transaction_count"
+    },
+    {
+      "pattern": "银行卡涉及多起电信诈骗案件，资金来源于不同受害人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一银行卡关联多个电信诈骗案件",
+        "资金来自多个不同账户或受害人",
+        "账户被多个司法机构冻结或标记"
+      ],
+      "data_hint": "case_id, victim_account, freeze_status, suspicious_flag"
+    },
+    {
+      "pattern": "用户跨省市流动至特定地点提供银行卡，行为模式异常",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "用户短时间内跨省移动并停留于民宿等临时地点",
+        "银行卡交易时间与用户移动轨迹高度相关",
+        "交易发生在用户到达目的地后短时间内"
+      ],
+      "data_hint": "user_location, travel_log, timestamp, accommodation_record"
+    },
+    {
+      "pattern": "用户通过非正规渠道（如58同城）联系贷款中介，并遵循异常操作流程",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "用户搜索贷款链接并添加陌生微信",
+        "贷款中介要求用户提供银行卡并刷流水",
+        "用户未签署正规贷款合同或提供必要材料"
+      ],
+      "data_hint": "communication_channel, chat_log, loan_application_record, document_submission"
+    },
+    {
+      "pattern": "用户名下多张银行卡同时被用于非法转账，形成批量控制",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一用户提供多张银行卡给同一控制人",
+        "多张银行卡交易模式相似（如金额、时间）",
+        "多张银行卡同时被冻结或涉及案件"
+      ],
+      "data_hint": "user_id, account_count, transaction_pattern, freeze_status"
+    },
+    {
+      "pattern": "用户明知银行卡不得出租出借，仍将银行卡交由陌生人操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "用户签署开户须知后仍出借银行卡",
+        "用户将手机和银行卡交由他人操作数小时",
+        "用户事后无法说明资金来源"
+      ],
+      "data_hint": "user_agreement, device_handover_log, transaction_origin"
+    }
+  ]
+}

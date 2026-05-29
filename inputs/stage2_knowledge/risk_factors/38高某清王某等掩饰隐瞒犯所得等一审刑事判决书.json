@@ -1,0 +1,88 @@
+{
+  "source": "38高某清王某等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交软件（陌陌）结识陌生人，被引诱提供银行卡用于接收和转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内与陌生社交账号关联",
+        "账户持有人与多个无历史交易记录的账户发生资金往来"
+      ],
+      "data_hint": "address, account_creation_time, social_media_links, counterparty_address"
+    },
+    {
+      "pattern": "使用他人银行卡进行大额取现，并收取固定比例（2%）的好处费",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔取现金额接近整数（如45000元、95000元）",
+        "取现金额与账户历史交易模式明显不符",
+        "取现后账户余额快速归零或接近归零"
+      ],
+      "data_hint": "amount, transaction_type, account_balance_before, account_balance_after"
+    },
+    {
+      "pattern": "短时间内多笔大额资金转入后立即通过ATM取现或数字人民币兑换转移",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转入后1小时内发生取现或数字人民币兑换",
+        "多笔大额资金在短时间内（如1天内）集中转入同一账户",
+        "取现行为发生在多个不同ATM网点"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, atm_location, digital_currency_exchange"
+    },
+    {
+      "pattern": "利用数字人民币兑换和微信消费进一步清洗资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包",
+        "数字人民币兑换后转入微信钱包并用于消费",
+        "资金流向涉及多种支付渠道"
+      ],
+      "data_hint": "digital_currency_transaction, wallet_address, payment_channel, merchant_category"
+    },
+    {
+      "pattern": "跨区域操作：账户持有人在外地（杭州）被安排住宿并执行取现",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录IP或取现地点与账户注册地或常住地不一致",
+        "取现行为发生在宾馆或临时住所附近",
+        "取现时间集中在白天（10时左右）"
+      ],
+      "data_hint": "ip_address, geolocation, atm_location, account_registration_address, timestamp"
+    },
+    {
+      "pattern": "使用多张不同银行的银行卡接收和转移资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同银行的账户接收资金",
+        "多个账户在相近时间内发生类似交易模式"
+      ],
+      "data_hint": "account_id, bank_name, transaction_pattern, account_holder_id"
+    },
+    {
+      "pattern": "资金来源于多个不同案件的被害人，且到账时间集中",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内收到来自多个不同账户的大额转账",
+        "转账金额与典型诈骗案件金额（如26000元、45000元、95000元）吻合"
+      ],
+      "data_hint": "sender_address, amount, timestamp, fraud_case_id"
+    }
+  ]
+}

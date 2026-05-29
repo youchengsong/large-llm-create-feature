@@ -1,0 +1,70 @@
+{
+  "source": "71王某梅区检刑等掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户为犯罪所得提供结算和提现服务，并按比例收取手续费",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户接收多笔来自不同个人的转账后集中提现至银行卡",
+        "提现金额与接收金额高度匹配",
+        "按固定比例（如每10000元收取100元）收取手续费"
+      ],
+      "data_hint": "transaction_type, amount, fee, account_balance, withdrawal_record"
+    },
+    {
+      "pattern": "通过购买高价值商品（如香烟、槟榔）将犯罪所得转化为实物资产，再通过销售获利",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户资金用于频繁购买特定高价值商品",
+        "购买金额与犯罪所得金额关联",
+        "商品销售后产生额外非法获利"
+      ],
+      "data_hint": "transaction_type, amount, merchant_category, product_description, profit"
+    },
+    {
+      "pattern": "将犯罪所得资金通过多层银行卡转移，部分现金交付上线，部分用于自身消费",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从数字人民币账户提现至多个不同银行卡",
+        "资金经过至少两层账户转移",
+        "部分现金交付给上线（第三方）"
+      ],
+      "data_hint": "sender_address, receiver_address, transaction_chain, cash_withdrawal, counterparty"
+    },
+    {
+      "pattern": "明知资金来源为犯罪所得仍提供结算账户，并多次协助转移资金",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在较长时间段（如1-2个月）内持续接收可疑资金",
+        "账户与多个不同来源地址发生交易",
+        "账户持有者与犯罪团伙存在事先约定"
+      ],
+      "data_hint": "account_creation_date, transaction_timestamp, counterparty_address, transaction_frequency"
+    },
+    {
+      "pattern": "利用实体经营场所（如超市）作为掩护，进行虚拟货币或数字人民币的非法兑换",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "实体商户账户接收大量数字人民币转账",
+        "交易对手为陌生个人而非正常客户",
+        "交易金额与正常经营规模不符"
+      ],
+      "data_hint": "merchant_id, transaction_amount, customer_profile, business_type"
+    }
+  ]
+}

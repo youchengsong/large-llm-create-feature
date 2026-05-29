@@ -1,0 +1,80 @@
+{
+  "source": "164杨某金某等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租银行账户和数字人民币钱包用于接收和转移网络犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一自然人控制多个不同银行的账户和数字人民币钱包",
+        "账户被用于接收来自多个不同被害人的资金",
+        "账户间资金快速转移"
+      ],
+      "data_hint": "address, account_id, wallet_id, bank_name, counterparty_address"
+    },
+    {
+      "pattern": "通过提供支付密码和刷脸验证协助资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易过程中存在多次身份验证操作（如刷脸）",
+        "资金转入后短时间内被转出",
+        "交易序列中涉及多个不同账户的连续转账"
+      ],
+      "data_hint": "transaction_id, timestamp, authentication_method, amount, from_address, to_address"
+    },
+    {
+      "pattern": "利用数字人民币钱包进行资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用多个数字人民币钱包接收资金",
+        "数字人民币钱包交易金额与银行账户交易金额相关联",
+        "数字人民币钱包交易频率异常高"
+      ],
+      "data_hint": "wallet_id, transaction_type, amount, timestamp, linked_bank_account"
+    },
+    {
+      "pattern": "资金来源于多个不同被害人，集中转入少数账户后快速转出",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个不同来源的资金在短时间内转入同一账户",
+        "转入资金总额与转出资金总额接近",
+        "账户流水总额远大于涉案资金，存在大量小额交易"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, total_inflow, total_outflow"
+    },
+    {
+      "pattern": "通过第三方支付平台（抖音、支付宝）接收非法获利",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "非法获利通过抖音零钱和支付宝转入",
+        "获利金额与涉案资金比例异常（如约5%）",
+        "获利转入时间与资金转移完成时间相近"
+      ],
+      "data_hint": "payment_platform, transaction_id, amount, timestamp, platform_account_id"
+    },
+    {
+      "pattern": "短期内（2023年3-4月）集中发生多起诈骗案件资金流入同一账户",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "一个月内多个不同被害人的资金转入同一账户",
+        "资金转入时间集中在特定时间段",
+        "交易时间间隔短，频率高"
+      ],
+      "data_hint": "timestamp, victim_id, amount, transaction_count_per_period"
+    }
+  ]
+}

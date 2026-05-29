@@ -1,0 +1,69 @@
+{
+  "source": "18王某某诈骗罪刑事二审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用虚拟货币交易平台为网络犯罪提供支付结算通道",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "在虚拟货币交易平台注册账号并绑定多个数字人民币钱包用于收款",
+        "通过聊天软件从他人处购买虚拟货币后加价转售",
+        "交易平台专门用于信息网络违法犯罪资金流转"
+      ],
+      "data_hint": "platform_name, account_id, wallet_address, transaction_type, counterparty_chat_app_id"
+    },
+    {
+      "pattern": "使用多个数字人民币钱包接收不明资金以规避账户冻结风险",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体绑定5个以上数字人民币钱包用于收款",
+        "多个钱包在短期内接收大量不明来源资金",
+        "资金流入总额与正常交易模式不符"
+      ],
+      "data_hint": "wallet_address, owner_id, binding_time, inflow_amount, inflow_count, wallet_count_per_user"
+    },
+    {
+      "pattern": "通过虚拟货币买卖赚取差价获利，资金来源于诈骗等犯罪活动",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "虚拟货币买入价低于市场价，卖出价高于市场价",
+        "交易频率高且金额分散",
+        "部分资金可追溯至诈骗案件被害人"
+      ],
+      "data_hint": "buy_price, sell_price, market_price, transaction_amount, transaction_timestamp, victim_fund_flag"
+    },
+    {
+      "pattern": "使用境外聊天软件（纸飞机）进行虚拟货币交易沟通以隐匿身份",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易沟通使用加密或境外聊天软件",
+        "交易对手身份不透明",
+        "交易指令通过非正规渠道传递"
+      ],
+      "data_hint": "communication_channel, chat_app_type, message_content, counterparty_anonymity_flag"
+    },
+    {
+      "pattern": "明知平台用于违法犯罪仍持续参与虚拟货币交易",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "注册账号后长期活跃交易",
+        "交易行为与平台异常特征（如专门用于犯罪）关联",
+        "主动规避账户冻结措施"
+      ],
+      "data_hint": "account_creation_time, activity_duration, platform_risk_label, user_awareness_indicator"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "source": "208房某某黄某掩饰隐瞒犯罪所得犯罪所得收益罪掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡接收上游诈骗资金，并通过支付宝、微信扫码等方式快速转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多笔来自不同受害人的资金",
+        "资金到账后立即通过支付宝或微信扫码转出",
+        "账户交易流水与个人正常收入明显不符"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, account_balance"
+    },
+    {
+      "pattern": "团伙成员提供多张银行卡，形成资金归集和分散转移的网络",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "多个账户在同一时间段内接收来自同一上游账户的资金",
+        "多个账户资金最终流向同一目标或相互转账",
+        "账户间交易金额呈整数或接近整数"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, account_holder_id"
+    },
+    {
+      "pattern": "在车内等隐蔽场所进行资金转移操作，以逃避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置频繁变化且集中在特定区域",
+        "交易时间集中在夜间或非正常工作时间",
+        "交易地点与账户持有人常住地不一致"
+      ],
+      "data_hint": "ip_address, device_id, location, timestamp"
+    },
+    {
+      "pattern": "通过介绍他人提供银行卡并从中牟利，形成层级化的洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人之间存在介绍或推荐关系",
+        "不同账户持有人共享相同的设备或IP",
+        "账户持有人之间资金往来频繁"
+      ],
+      "data_hint": "account_holder_relationship, device_id, ip_address, transaction_graph"
+    },
+    {
+      "pattern": "利用数字人民币钱包、支付宝、微信等多种支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户同时绑定多个支付工具",
+        "资金在不同支付工具间快速流转",
+        "使用钱包付款等非传统银行转账方式"
+      ],
+      "data_hint": "payment_method, wallet_id, transaction_type, amount"
+    },
+    {
+      "pattern": "团伙成员在收到上游资金后，通过取现方式私分资金（黑吃黑）",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额资金到账后短时间内被取现",
+        "取现金额接近整数且被多人分取",
+        "取现行为与正常消费模式不符"
+      ],
+      "data_hint": "amount, timestamp, cash_withdrawal, account_balance, transaction_location"
+    },
+    {
+      "pattern": "使用他人银行卡接收诈骗资金，资金经过多层账户转移后最终取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从受害人账户转入中间账户，再转入多个下游账户",
+        "资金在多个账户间流转超过3层",
+        "最终取现账户与初始接收账户无直接关联"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain_depth"
+    },
+    {
+      "pattern": "账户交易流水短期内急剧增加，与账户持有人身份和职业不符",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户月交易流水远超个人正常收入水平",
+        "交易频率和金额在短时间内异常升高",
+        "账户余额长期保持较低水平，资金快进快出"
+      ],
+      "data_hint": "account_balance, transaction_volume, income_level, timestamp"
+    }
+  ]
+}

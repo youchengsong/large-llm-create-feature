@@ -1,0 +1,85 @@
+{
+  "source": "75吴某甲掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体兼职广告招募银行卡提供者，用于网络赌博或电信诈骗资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册后短时间内出现大量快进快出交易",
+        "账户持有人与招募者通过非正规社交渠道（如快手评论区、QQ）建立联系"
+      ],
+      "data_hint": "address, transaction_count, account_creation_time, social_media_interaction"
+    },
+    {
+      "pattern": "银行卡在短时间内集中接收大量资金，涉及多起上游电信诈骗案件",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个账户在数小时内累计进账超过数十万元",
+        "账户进账笔数密集，单笔金额与诈骗案件金额吻合"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, source_address"
+    },
+    {
+      "pattern": "账户持有人被安排前往异地（如福建省云霄县）进行线下操作，配合刷脸验证",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人乘坐飞机/火车从户籍地前往异地",
+        "交易操作地点与账户持有人常住地不一致",
+        "交易时间集中在到达异地后的数小时内"
+      ],
+      "data_hint": "timestamp, location, travel_record, device_location"
+    },
+    {
+      "pattern": "资金在短时间内经过多个账户或平台（如云闪付、数字人民币）快速转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从诈骗受害人账户转入后，立即通过多个第三方支付工具转出",
+        "交易链中涉及多个不同银行或支付平台账户",
+        "资金在数分钟内完成转入转出"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_chain"
+    },
+    {
+      "pattern": "账户持有人提供多张银行卡用于资金转移，且账户交易模式异常（如密码被修改、失联）",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一持有人名下多张银行卡在相近时间段内出现异常交易",
+        "账户密码被修改后交易继续",
+        "账户持有人与上游犯罪分子失联"
+      ],
+      "data_hint": "address, account_count, password_change_flag, transaction_continuity"
+    },
+    {
+      "pattern": "通过屏幕共享、远程控制等方式诱导受害人转账，资金最终流入多个银行卡账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "受害人被诱导下载远程控制软件（如Teams）并共享屏幕",
+        "资金从受害人账户转出后，通过多个中间账户分散转移"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, app_usage"
+    },
+    {
+      "pattern": "银行卡交易时间集中在深夜或非正常工作时间",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间在13:32至次日00:00之间，包含深夜时段",
+        "交易频率在夜间显著高于正常水平"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_frequency"
+    }
+  ]
+}

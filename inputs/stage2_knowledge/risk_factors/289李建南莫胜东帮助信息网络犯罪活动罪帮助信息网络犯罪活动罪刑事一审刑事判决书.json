@@ -1,0 +1,61 @@
+{
+  "source": "289李建南莫胜东帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "诈骗团伙利用社交平台寻找被害人，通过冒充执法人员诱导被害人将银行卡资金通过数字人民币兑出转走",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内从银行卡向数字人民币钱包转入资金并立即兑出",
+        "资金从数字人民币钱包转移至多个虚拟币交易平台地址",
+        "多个账户之间存在社交平台关联（如抖音、QQ）",
+        "资金最终流向赌博网站提现地址"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, platform_type, social_media_account, ip_address"
+    },
+    {
+      "pattern": "诈骗资金通过兑换虚拟币后经第三方在赌博网站提现，实现资金清洗",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包转入虚拟币兑换平台",
+        "虚拟币兑换后立即转至赌博网站地址",
+        "赌博网站地址将资金提现至多个不同账户",
+        "提现金额接近整数或小额多次"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, exchange_platform, gambling_site_address, withdrawal_amount"
+    },
+    {
+      "pattern": "诈骗团伙分工明确，一人负责寻找被害人并建立信任，另一人负责冒充执法人员实施转账操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "两个账户之间存在固定的协作模式（如一个账户负责引流，另一个负责转账）",
+        "多个账户使用同一IP地址或设备",
+        "账户之间资金分账比例固定（如平分）",
+        "账户注册时间相近或存在关联注册信息"
+      ],
+      "data_hint": "address, ip_address, device_id, registration_time, transaction_amount, counterparty_address"
+    },
+    {
+      "pattern": "诈骗资金通过数字人民币兑出后快速转移至虚拟币平台，规避银行监管",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币兑出后短时间内（如数分钟内）转入虚拟币平台",
+        "兑出金额与诈骗金额高度吻合",
+        "兑出时间集中在非工作时间（如深夜）",
+        "兑出交易频率异常（如单日多次兑出）"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, digital_currency_wallet, exchange_platform, time_of_day"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "source": "64李某甲掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行卡接收并转移电信诈骗等犯罪资金，通过ATM取现后存入上家指定账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从多个被害人账户转入同一银行卡",
+        "短时间内ATM取现后存入不同账户",
+        "取现金额与转入金额高度匹配"
+      ],
+      "data_hint": "transaction_from, transaction_to, amount, timestamp, transaction_type (deposit/withdrawal), atm_location"
+    },
+    {
+      "pattern": "团伙分工协作，操盘手、卡农、取款手、司机等角色配合完成资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户间存在资金闭环流转",
+        "同一IP或设备登录多个账户",
+        "账户间转账时间间隔极短"
+      ],
+      "data_hint": "address, ip_address, device_id, transaction_time, counterparty_address"
+    },
+    {
+      "pattern": "通过数字人民币APP进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "使用数字人民币APP转账",
+        "转账金额为整数或接近整数",
+        "资金从银行卡转入数字人民币钱包后快速转出"
+      ],
+      "data_hint": "wallet_type, transaction_type, amount, timestamp, wallet_address"
+    },
+    {
+      "pattern": "多次转移犯罪资金，单次金额从数千元到数万元不等，累计达五万元以上",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户短期内多次接收不同来源资金",
+        "单笔金额在2000-20000元之间",
+        "累计转入金额超过5万元"
+      ],
+      "data_hint": "amount, transaction_count, cumulative_amount, time_window"
+    },
+    {
+      "pattern": "使用微信转账将部分资金转给操盘手，剩余资金存入上家指定账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金先转入银行卡，再通过微信转出部分",
+        "剩余资金存入与初始来源无关的账户",
+        "转账路径呈现‘分散-集中-再分散’模式"
+      ],
+      "data_hint": "transaction_from, transaction_to, amount, platform (bank/wechat), timestamp"
+    },
+    {
+      "pattern": "团伙成员使用多张不同银行的银行卡（邮政储蓄、工商银行等）接收和转移资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一团伙控制多张不同银行账户",
+        "账户间资金快速流转",
+        "账户开户时间集中或近期"
+      ],
+      "data_hint": "bank_name, account_open_date, account_balance, transaction_frequency"
+    },
+    {
+      "pattern": "取现后通过ATM机存入上家指定账户，利用现金交易切断资金追踪链",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "ATM取现后短时间内ATM存款",
+        "取现和存款地点不同",
+        "取现金额接近ATM单日限额"
+      ],
+      "data_hint": "atm_location, transaction_type, amount, timestamp, atm_id"
+    }
+  ]
+}

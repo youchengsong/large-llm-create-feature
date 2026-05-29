@@ -1,0 +1,57 @@
+{
+  "source": "244刘永珍吴德朝等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出借银行账户、支付宝账户、数字人民币账户，配合提供密码、刷脸验证、接收短信验证码，协助转移犯罪所得资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内收到来自不同来源的大额资金后立即转出或取现",
+        "账户登录或交易时频繁出现密码输入、指纹验证、刷脸验证等操作",
+        "账户绑定手机号频繁接收短信验证码用于转账或取现操作",
+        "账户交易时间集中在特定时段（如夜间）且交易对手分散"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, auth_method (password/fingerprint/face), sms_verification_flag, device_id, ip_address"
+    },
+    {
+      "pattern": "账户收到诈骗案被害人资金后快速转移，资金流向单一且金额较大，获利比例较低",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户单笔入账金额较大（如61000元），且入账后短时间内（如几分钟内）被转出或取现",
+        "账户余额在入账后迅速归零或接近零",
+        "账户交易金额与账户历史交易模式显著偏离",
+        "账户获利金额与交易金额比例异常（如3575.4元/61000元≈5.86%）"
+      ],
+      "data_hint": "amount, balance_before, balance_after, transaction_time, account_history, profit_amount"
+    },
+    {
+      "pattern": "账户在停车场等非固定场所进行交易操作，配合他人完成转账和取现",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或GPS定位显示在非住宅或非办公区域（如停车场、宾馆附近）",
+        "交易时间集中在傍晚或夜间（如18时左右）",
+        "账户交易地点与账户注册地或常用地不一致"
+      ],
+      "data_hint": "timestamp, location_gps, ip_address, device_location, account_registration_address"
+    },
+    {
+      "pattern": "账户被用于接收诈骗资金后立即转移，且账户持有人配合解除转账风险提示，规避银行风控",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户交易触发风控提示后，持有人立即进行刷脸或指纹验证解除限制",
+        "账户交易过程中出现多次验证操作（如密码、指纹、刷脸、短信验证码）",
+        "账户交易对手为多个不同账户或地址，形成资金快速分散路径"
+      ],
+      "data_hint": "risk_alert_flag, auth_attempts, auth_success_time, transaction_chain, counterparty_addresses"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "source": "167张楠郭东旭掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙通过租借多张银行卡进行资金转移、取现和存款，形成多层资金流转路径",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内多张银行卡之间频繁转账和取现",
+        "资金从多个账户转入后迅速通过转账和取现流出",
+        "同一团伙成员控制多个银行卡账户"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_owner"
+    },
+    {
+      "pattern": "卡主提供银行卡并配合刷脸验证帮助他人转移资金，形成卡主与操作者的分工协作",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡所有者频繁提供刷脸验证操作",
+        "银行卡交易记录显示转账和取现行为与卡主身份验证时间高度关联",
+        "卡主与操作者之间存在介绍或邀约关系"
+      ],
+      "data_hint": "authentication_log, transaction_time, account_owner, referrer_info"
+    },
+    {
+      "pattern": "犯罪团伙通过介绍他人出租银行卡形成层级化卡主网络，扩大资金转移规模",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人介绍多名卡主参与出租银行卡",
+        "卡主之间存在介绍关系链",
+        "被介绍卡主的银行卡交易时间与介绍人活动时间重叠"
+      ],
+      "data_hint": "referrer_chain, account_owner, registration_time, transaction_time"
+    },
+    {
+      "pattern": "资金从多个被害人账户转入后，通过数字人民币转出和取现快速完成洗钱",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多笔小额诈骗资金汇入后立即通过数字人民币转出",
+        "转入资金在短时间内被取现",
+        "取现金额与转入金额高度匹配"
+      ],
+      "data_hint": "amount, transaction_type (transfer/cash), timestamp, digital_currency_flag"
+    },
+    {
+      "pattern": "犯罪团伙在多个地点（嵩明县、曲靖市等）分散操作，利用地域差异规避监管",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡交易IP地址或地理位置在不同城市间频繁切换",
+        "取现地点与卡主户籍地不一致",
+        "交易时间集中在短时间内跨地域操作"
+      ],
+      "data_hint": "location, IP_address, transaction_time, account_owner_region"
+    },
+    {
+      "pattern": "卡主在短时间内提供多张银行卡用于同一团伙操作，形成批量账户使用模式",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一卡主名下多张银行卡在相近时间段内被用于资金转移",
+        "多张银行卡的交易时间、金额模式相似",
+        "卡主在短时间内多次提供刷脸验证"
+      ],
+      "data_hint": "account_owner, multiple_account_ids, transaction_time, authentication_count"
+    }
+  ]
+}

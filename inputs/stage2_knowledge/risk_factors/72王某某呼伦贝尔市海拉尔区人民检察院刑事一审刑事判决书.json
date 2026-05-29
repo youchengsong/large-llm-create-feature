@@ -1,0 +1,74 @@
+{
+  "source": "72王某某呼伦贝尔市海拉尔区人民检察院刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人将名下银行卡提供给他人用于接收和转移非法资金，并协助取现，从中获利",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔小额资金后集中取现",
+        "账户资金流入后迅速通过柜台或ATM取现",
+        "账户持有人与资金来源方无正常业务往来或亲属关系",
+        "账户持有人收取明显异常的手续费或报酬"
+      ],
+      "data_hint": "transaction_amount, transaction_time, transaction_type (deposit/withdrawal), counterparty_address, fee_amount, account_holder_relationship"
+    },
+    {
+      "pattern": "明知他人从事‘跑分’违法犯罪活动，仍提供银行账户并协助转账、取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内出现大量快进快出交易",
+        "账户交易对手方涉及多个陌生账户或高风险账户",
+        "账户持有人与已知‘跑分’团伙成员有关联",
+        "账户交易模式与正常个人消费或经营行为明显不符"
+      ],
+      "data_hint": "transaction_amount, transaction_time, counterparty_address, account_holder_identity, transaction_frequency, risk_score_of_counterparty"
+    },
+    {
+      "pattern": "通过银行柜台和ATM机取现5万元，其中部分资金经核实为涉诈资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户单笔或累计取现金额接近或达到大额交易报告阈值（如5万元）",
+        "取现行为发生在账户收到资金后的短时间内",
+        "取现方式为柜台和ATM交替使用，可能规避监控",
+        "取现资金中部分被证实为诈骗所得"
+      ],
+      "data_hint": "withdrawal_amount, withdrawal_time, withdrawal_method (counter/ATM), transaction_chain, fund_source_type"
+    },
+    {
+      "pattern": "账户进项资金共95079元，其中3万元经核实为涉诈资金，资金混入正常交易",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户总流入资金中混有少量涉诈资金",
+        "涉诈资金与正常资金在时间上交错出现",
+        "账户交易金额分布呈现异常小额或整数特征",
+        "账户资金流向复杂，难以追踪最终用途"
+      ],
+      "data_hint": "total_inflow_amount, fraud_amount, transaction_amount_distribution, transaction_time_sequence, fund_flow_path"
+    },
+    {
+      "pattern": "被告人主动投案并退缴违法所得，但此前已协助转移犯罪资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在案发后出现异常沉默或关闭",
+        "账户持有人主动联系银行或执法机构",
+        "账户持有人退缴违法所得的时间点与案发时间相关",
+        "账户交易记录显示资金转移后账户余额归零"
+      ],
+      "data_hint": "account_activity_status, transaction_time, balance_after_transfer, law_enforcement_contact_record, refund_amount"
+    }
+  ]
+}

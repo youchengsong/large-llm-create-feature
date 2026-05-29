@@ -1,0 +1,90 @@
+{
+  "source": "33陈永健麦子青诈骗罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡及密码、手机给他人用于接收和转移不明资金，并协助人脸识别验证",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内收到多笔不明资金后立即通过多种方式转移",
+        "同一账户在短时间内发生二维码支付、数字人民币兑出、转账汇款、ATM取现等多种交易类型",
+        "账户持有人提供人脸识别验证协助资金转移"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, address, device_id, biometric_verification_flag"
+    },
+    {
+      "pattern": "资金快进快出，短时间内收到资金后立即转移，资金停留时间极短",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金入账后数小时内即被全部转移",
+        "入账与出账时间间隔小于数小时",
+        "账户余额在资金转移后接近零"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after"
+    },
+    {
+      "pattern": "使用他人银行卡进行资金归集和分散转移，涉及多笔不同来源的资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同账户的转入资金",
+        "转入资金金额与被害人被骗金额一致",
+        "资金转移路径涉及多个中间账户或钱包"
+      ],
+      "data_hint": "from_address, to_address, amount, transaction_hash"
+    },
+    {
+      "pattern": "账户在短时间内被冻结，表明触发银行风控系统",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在资金转移后短时间内被冻结",
+        "账户持有人通过手机银行查看流水时发现冻结"
+      ],
+      "data_hint": "account_status, freeze_time, transaction_timestamp"
+    },
+    {
+      "pattern": "跨地域移动进行交易操作，从东莞市到惠州市进行银行卡使用",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置与账户持有人常住地不一致",
+        "短时间内跨城市移动后立即进行交易"
+      ],
+      "data_hint": "ip_address, geo_location, device_location, transaction_timestamp"
+    },
+    {
+      "pattern": "使用数字人民币兑出作为资金转移手段，利用新兴支付方式规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易类型包含数字人民币兑出",
+        "大额资金通过数字人民币渠道转移"
+      ],
+      "data_hint": "transaction_type, amount, digital_currency_flag"
+    },
+    {
+      "pattern": "同一账户在两天内重复使用相同模式进行资金接收和转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在多个日期出现相似的入账和出账模式",
+        "每次操作均伴随人脸识别验证",
+        "每次操作后均获得小额现金好处费"
+      ],
+      "data_hint": "account_id, transaction_pattern, daily_summary, reward_amount"
+    }
+  ]
+}

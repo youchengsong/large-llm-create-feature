@@ -1,0 +1,91 @@
+{
+  "source": "137游某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多张银行卡接收来自不同账户的大额转账，并在短时间内全部取现，将现金交给上游犯罪人员，获取固定比例好处费。",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短期内（如数天至数周）收到多笔来自不同账户的大额转账（如每笔20万元）",
+        "每笔资金到账后立即或数小时内被全部取现",
+        "取现金额与入账金额高度一致（如20万元整）",
+        "取现后资金未再进入其他银行账户，而是直接交付现金",
+        "取现行为集中在同一人或少数几个关联人身上",
+        "取现行为涉及多个不同银行（如邮政、台州、浙商、农业、建设、中信、工商等）",
+        "取现者获取固定比例（如1%）的好处费"
+      ],
+      "data_hint": "amount, timestamp, sender_account, receiver_account, cash_withdrawal_flag, bank_name, fee_ratio"
+    },
+    {
+      "pattern": "上游犯罪资金通过多个中间账户（如王某甲、倪某）层层转移后，最终汇入取现账户，形成多层资金流转路径。",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入中间人账户（如王某甲、倪某）",
+        "中间人账户在短时间内将资金转至多个下游取现账户",
+        "资金流转层级超过2层（如被害人→中间人→取现人）",
+        "中间人账户与取现账户之间无正常商业或个人往来背景",
+        "中间人账户资金快进快出，余额极低"
+      ],
+      "data_hint": "transaction_chain, sender_account, receiver_account, amount, timestamp, account_balance, account_type"
+    },
+    {
+      "pattern": "取现行为发生在特定时间窗口（如上午9-10点），且取现者提前预约大额取款，表现出规避银行风控的行为。",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "取现时间集中在银行营业时间初期（如上午9-10点）",
+        "取现前有预约大额取款的行为记录",
+        "取现者多次在同一时间段前往不同银行取现",
+        "取现者使用导航软件搜索银行位置，规划取现路线"
+      ],
+      "data_hint": "transaction_timestamp, appointment_flag, bank_branch_location, gps_navigation_data"
+    },
+    {
+      "pattern": "取现者事先搜索反洗钱相关法律知识（如'反洗钱正式施行时间'、'中华人民共和国反洗钱法'、'你知道洗钱罪吗？'），表明其对资金性质有主观认知。",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "用户在搜索引擎或浏览器中查询反洗钱、洗钱罪等关键词",
+        "查询时间点早于或与取现行为同期",
+        "查询行为与后续取现行为在时间上关联"
+      ],
+      "data_hint": "search_history, search_timestamp, keyword_list, device_id"
+    },
+    {
+      "pattern": "取现者使用多张不同银行的银行卡（一类卡）接收资金，每张卡均接收约20万元并立即取现，规避单卡大额交易监控。",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一取现者名下多张银行卡（如8张）在短期内均收到约20万元整的转账",
+        "每张卡仅接收一笔大额资金后即被取现清空",
+        "取现金额接近或等于20万元，可能为规避大额交易报告阈值",
+        "取现者使用多张不同银行的卡，分散交易监控"
+      ],
+      "data_hint": "account_id, bank_name, amount, transaction_count, cash_withdrawal_amount, account_balance_after"
+    },
+    {
+      "pattern": "上游犯罪人员通过介绍人（叶某甲）招募取现人员，形成层级化的洗钱网络，取现人员与上游人员之间无正常社会关系。",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "取现人员与上游人员通过第三方介绍认识，无亲属或长期业务关系",
+        "介绍人从中抽取更高比例的好处费（如5%-10%）",
+        "取现人员与上游人员之间使用即时通讯工具（如QQ）联系",
+        "取现人员被要求提供一类卡且无需网银，便于现金提取"
+      ],
+      "data_hint": "relationship_graph, referral_chain, communication_channel, fee_structure"
+    }
+  ]
+}

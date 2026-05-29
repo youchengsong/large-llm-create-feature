@@ -1,0 +1,96 @@
+{
+  "source": "130戚某宇帮助信息网络犯一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人银行账户在短时间内接收多笔来自不同来源的资金后，立即通过ATM取现、数字人民币转账、支付宝转账等方式快速转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日入账后立即取现或转账，资金停留时间极短（如数小时内）",
+        "取现金额接近但不超过大额交易报告阈值（如2万元）",
+        "使用多种转移渠道（取现+数字人民币+支付宝）分散资金"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal/transfer), channel (ATM/DCEP/Alipay), account_balance"
+    },
+    {
+      "pattern": "明知是犯罪所得，仍使用本人名下多张银行卡（如三峡银行、交通银行）为犯罪团伙提供资金转移服务，且资金入账后迅速取现或数字人民币转账",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人控制多张银行卡，短期内均有大额资金入账并立即取现或转账",
+        "入账总金额与取现/转账金额高度匹配（如267641.3元入账后几乎全部转移）",
+        "资金来源涉及多起电信诈骗案件，资金混入同一账户"
+      ],
+      "data_hint": "account_id, amount, timestamp, transaction_type, counterparty_address, case_id"
+    },
+    {
+      "pattern": "通过介绍他人提供银行账户进行洗钱，形成多层级资金转移链条（介绍人-卡主-实际取现人）",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入第一层卡主账户，再通过取现或转账流向第二层或实际控制人",
+        "介绍人与卡主之间存在资金分润（如卢典伟获利200元，颜富渝获利1000元）",
+        "多个卡主账户在相近时间点接收同一被害人资金（如49800元和35000元同日转入不同卡主）"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, relationship_graph, profit_split_amount"
+    },
+    {
+      "pattern": "洗钱团伙使用数字人民币钱包进行资金转移，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "交易类型包含数字人民币转账",
+        "数字人民币转账金额与银行取现金额合计等于入账金额",
+        "数字人民币交易时间与取现交易时间相近"
+      ],
+      "data_hint": "transaction_type (DCEP), amount, timestamp, wallet_address, bank_transaction_id"
+    },
+    {
+      "pattern": "洗钱行为集中在特定日期（如2022年12月28日），资金从被害人账户快速转入多个卡主账户并同日完成取现或转账",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "多笔资金在同一个日历日从不同被害人账户转入不同卡主账户",
+        "卡主账户在资金入账后数小时内完成取现或转账",
+        "取现地点分散在不同城市（如重庆、西安）"
+      ],
+      "data_hint": "timestamp, amount, sender_address, receiver_address, withdrawal_location, transaction_type"
+    },
+    {
+      "pattern": "洗钱团伙成员通过网上追逃、跨省抓捕等特征，表明其具有跨地域、有组织的犯罪网络",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "涉案人员户籍地和作案地不一致（如重庆籍人员在新疆作案）",
+        "多人被网上追逃，且在不同省份被抓获",
+        "团伙成员之间存在介绍、分润等关联关系"
+      ],
+      "data_hint": "user_location, transaction_location, arrest_location, relationship_type, profit_split"
+    },
+    {
+      "pattern": "洗钱过程中使用ATM机转账小票作为证据，表明资金转移涉及线下物理网点操作",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "存在ATM转账记录",
+        "ATM转账金额通常为整数或接近整数（如20000元）",
+        "ATM操作时间与入账时间间隔短"
+      ],
+      "data_hint": "transaction_type (ATM), amount, timestamp, atm_location, receipt_id"
+    }
+  ]
+}

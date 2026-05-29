@@ -1,0 +1,99 @@
+{
+  "source": "6李仁宝帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组建固定洗钱团队，分工明确，包括对接上游、收购银行卡、操作转账和取现",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户由同一团伙控制，资金在短时间内经过多个中间账户",
+        "团伙成员之间存在固定联系和协作模式"
+      ],
+      "data_hint": "address, transaction_graph, account_relationship, ip_address"
+    },
+    {
+      "pattern": "利用他人银行卡和数字人民币账户进行资金收转和ATM取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内频繁接收多笔来自不同来源的资金",
+        "资金到账后立即通过ATM取现或数字人民币转账转出",
+        "单笔金额接近但不超过大额交易报告阈值"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, account_type, atm_withdrawal"
+    },
+    {
+      "pattern": "在车辆等移动环境中操作银行卡进行资金转移，以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置在短时间内频繁变化",
+        "交易时间集中在夜间或非正常工作时间"
+      ],
+      "data_hint": "ip_address, geolocation, timestamp, device_id"
+    },
+    {
+      "pattern": "通过多层账户链转移资金，资金经过多个中间人账户后最终取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从上游账户流入后，经过2个以上中间账户才到达最终取现账户",
+        "中间账户之间交易时间间隔极短（如几分钟内）"
+      ],
+      "data_hint": "transaction_graph, amount, timestamp, address_chain"
+    },
+    {
+      "pattern": "团伙成员介绍他人提供银行卡，形成伞状账户网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一介绍人关联，账户注册时间集中",
+        "这些账户在短时间内同时活跃并接收资金"
+      ],
+      "data_hint": "account_registration_date, referrer_id, account_relationship"
+    },
+    {
+      "pattern": "利用数字人民币APP进行资金转移，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易类型为数字人民币转账，且金额较大",
+        "数字人民币账户在短时间内频繁交易"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, digital_currency_wallet"
+    },
+    {
+      "pattern": "团伙成员在短时间内多次实施洗钱行为，形成周期性模式",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一团伙在数天内连续进行多笔资金转移",
+        "每笔资金转移的金额和频率呈现规律性"
+      ],
+      "data_hint": "timestamp, amount, account_id, transaction_frequency"
+    },
+    {
+      "pattern": "上游犯罪分子与洗钱团伙直接对接，资金来源于网络赌博等非法活动",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金流入账户与已知高风险地址或赌博平台地址有关联",
+        "资金在多个账户间快速流转，最终流向不明"
+      ],
+      "data_hint": "address, transaction_graph, risk_score, source_of_funds"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "source": "265黄臻掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借个人银行卡给他人用于接收和转移违法犯罪资金，并配合刷脸验证和取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收多笔来自不同来源的资金",
+        "资金入账后迅速取现或转账",
+        "账户持有人配合刷脸验证",
+        "账户持有人协助取现"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, verification_type, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "资金通过多层数字人民币账户转移以掩盖资金来源和去向",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入多个数字人民币账户",
+        "数字人民币账户之间发生多笔转账",
+        "资金最终转入异地银行数字人民币账户",
+        "交易流水信息缺失或部分可查"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_type, bank_branch, flow_integrity"
+    },
+    {
+      "pattern": "接收诈骗资金后立即进行小额多笔取现和转账以规避监测",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "大额资金入账后短时间内进行多笔取现（如4笔共20000元）",
+        "取现金额接近但不超过大额交易报告阈值",
+        "转账至多个不同账户分散资金"
+      ],
+      "data_hint": "amount, timestamp, cash_withdrawal_count, cash_withdrawal_amount, transfer_count, transfer_amount, threshold_breach_flag"
+    },
+    {
+      "pattern": "使用他人银行卡作为资金中转站，资金快进快出不留余额",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后余额迅速清零",
+        "入账金额与出账金额高度匹配（如260577元入账，260587元出账）",
+        "账户在短时间内完成资金归集和分散"
+      ],
+      "data_hint": "account_balance, inflow_amount, outflow_amount, net_balance_change, transaction_interval"
+    },
+    {
+      "pattern": "利用数字人民币账户的匿名性或信息缺失来隐藏资金流向",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币账户交易流水信息缺失",
+        "资金流向无法完整追踪",
+        "涉及多个数字人民币账户且开户行分散"
+      ],
+      "data_hint": "account_type, data_completeness_flag, missing_transaction_logs, bank_branch_diversity"
+    }
+  ]
+}

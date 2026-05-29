@@ -1,0 +1,128 @@
+{
+  "source": "133王某1掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户给他人用于接收和转移电信诈骗等违法犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同受害人的转账",
+        "账户被多个上游犯罪团伙控制使用",
+        "账户持有人与操作人分离"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, account_holder_id, operator_id"
+    },
+    {
+      "pattern": "资金快进快出，短时间内转入后立即取现或转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内（如数小时内）被取现或转出",
+        "单笔转入金额与取现金额高度匹配",
+        "账户余额长期接近零"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (deposit/withdrawal/transfer), balance_before, balance_after"
+    },
+    {
+      "pattern": "使用多个不同银行账户进行分散收款和集中转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人控制多个不同银行的账户",
+        "多个账户交替接收资金后统一转移至同一目标账户",
+        "账户间资金流转路径复杂"
+      ],
+      "data_hint": "account_id, bank_name, sender_address, receiver_address, amount, timestamp"
+    },
+    {
+      "pattern": "通过ATM机取现规避大额交易监控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "频繁在ATM机进行取现操作",
+        "单笔取现金额接近但不超过大额交易报告阈值",
+        "取现时间分散但累计金额较大"
+      ],
+      "data_hint": "transaction_type, amount, atm_location, timestamp, account_id"
+    },
+    {
+      "pattern": "使用数字人民币、支付宝、微信等第三方支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入数字人民币钱包后快速转出",
+        "通过支付宝、微信等渠道进行多笔小额转账",
+        "使用扫脸认证等生物识别方式授权交易"
+      ],
+      "data_hint": "transaction_channel (digital_currency/alipay/wechat), amount, timestamp, authentication_method"
+    },
+    {
+      "pattern": "账户因交易异常被银行冻结后仍继续提供其他账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户被银行标记为交易异常或冻结后，同一人仍使用其他账户进行类似交易",
+        "账户冻结后短期内启用新账户",
+        "银行发送风险提示短信后用户未回应"
+      ],
+      "data_hint": "account_status, freeze_flag, risk_alert_timestamp, new_account_activation_date"
+    },
+    {
+      "pattern": "夜间或非正常工作时间进行大额交易",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在深夜或凌晨",
+        "交易时间与正常商业活动时间不符",
+        "多笔大额交易在短时间内连续发生"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, account_id"
+    },
+    {
+      "pattern": "资金经过多层账户转移以掩盖来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金经过3层以上账户才到达最终目标",
+        "中间账户多为临时控制或非本人账户",
+        "每层转账金额相近或呈递减趋势"
+      ],
+      "data_hint": "transaction_chain, sender_address, receiver_address, amount, hop_count"
+    },
+    {
+      "pattern": "账户持有人与操作人分离，存在他人代为操作账户的情况",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录IP地址与持有人常住地不符",
+        "交易设备指纹与持有人常用设备不一致",
+        "账户操作时间模式与持有人日常行为模式不符"
+      ],
+      "data_hint": "login_ip, device_fingerprint, account_holder_location, operator_location, timestamp"
+    },
+    {
+      "pattern": "使用他人银行账户进行资金归集和分散",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同来源的资金汇入同一账户",
+        "该账户随后将资金分散转出至多个不同账户",
+        "资金归集和分散的时间间隔很短"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_graph"
+    }
+  ]
+}

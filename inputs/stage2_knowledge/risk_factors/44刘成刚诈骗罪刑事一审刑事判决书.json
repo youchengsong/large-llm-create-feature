@@ -1,0 +1,92 @@
+{
+  "source": "44刘成刚诈骗罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分人员提供银行卡并通过刷脸、取现等方式转移涉诈资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内银行卡进账后立即通过刷脸验证转出",
+        "银行卡到账后立即在柜台取现",
+        "同一账户在短时间内集中转入多笔不同来源资金",
+        "取现时有多人陪同监控"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, channel, account_id, ip_address, device_id"
+    },
+    {
+      "pattern": "跑分人员通过QQ等社交平台与上线联系，线下接头并入住宾馆进行资金转移操作",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "交易前在社交平台与不明身份人员联系",
+        "交易当天在宾馆开房",
+        "交易地点与账户开户地或常驻地不符"
+      ],
+      "data_hint": "timestamp, location, hotel_checkin_time, social_platform_id, ip_address"
+    },
+    {
+      "pattern": "跑分人员使用本人银行卡接收多笔来自不同受害人的涉诈资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收多笔来自不同账户的大额转账",
+        "单笔转账金额接近银行限额（如5万元）",
+        "账户进账总额与出账总额高度匹配"
+      ],
+      "data_hint": "amount, sender_account, receiver_account, timestamp, transaction_count"
+    },
+    {
+      "pattern": "跑分人员通过数字人民币钱包进行资金转移以规避银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用手机下载数字人民币钱包并绑定银行卡",
+        "通过扫脸验证完成数字人民币钱包的绑定和转账",
+        "资金从银行卡转入数字人民币钱包后立即转出"
+      ],
+      "data_hint": "wallet_type, binding_time, face_authentication_event, transfer_amount, timestamp"
+    },
+    {
+      "pattern": "跑分人员被上线控制，银行卡和手机被他人持有，失去账户控制权",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录设备或IP地址在短时间内发生变更",
+        "账户操作行为与历史行为模式显著不同",
+        "交易时有多人陪同或监控"
+      ],
+      "data_hint": "device_id, ip_address, login_location, transaction_behavior_pattern"
+    },
+    {
+      "pattern": "跑分人员通过贴吧等网络平台主动搜索并参与跑分活动",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "用户在贴吧等平台搜索'跑分'、'银行卡转账'等关键词",
+        "用户加入相关QQ群或联系广告发布者",
+        "用户账户在短时间内出现异常转账行为"
+      ],
+      "data_hint": "search_keywords, platform_activity_log, social_platform_id"
+    },
+    {
+      "pattern": "跑分人员明知资金为违法犯罪所得仍以固定报酬或比例分成方式参与转移",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收取固定比例或固定金额的报酬（如每10万元1000元）",
+        "报酬金额与转移资金总额成比例",
+        "报酬通过小额转账或现金方式支付"
+      ],
+      "data_hint": "amount, fee_ratio, transfer_pattern, cash_withdrawal"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "source": "119侯某魁刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体诱导提供银行卡、手机及密码，用于快速转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内（数小时内）大量资金转入后立即转出，账户余额接近零",
+        "资金流入和流出笔数相同，金额相等，呈快进快出模式",
+        "账户在短时间内被多个不同受害人转入资金"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, balance_after_tx, tx_count_per_hour"
+    },
+    {
+      "pattern": "利用他人银行卡进行资金归集和分散转移，形成多层资金流转",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日转入多笔资金后，分多笔转出至不同账户",
+        "资金在账户内停留时间极短（几分钟到几小时）",
+        "单笔转入金额与转出金额高度匹配，无明显沉淀"
+      ],
+      "data_hint": "amount, timestamp, tx_type, counterparty_address, time_diff_between_in_and_out"
+    },
+    {
+      "pattern": "资金来源于多个不同电信诈骗受害人，资金汇入同一账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同报案受害人的资金",
+        "受害人资金转入时间集中在同一时段（如数小时内）",
+        "受害人账户与涉案账户之间无历史交易记录"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, tx_history"
+    },
+    {
+      "pattern": "通过线下见面、酒店房间等隐蔽方式操作银行卡，规避线上监控",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户操作IP地址或设备信息与持卡人常住地不一致",
+        "交易时间集中在白天工作时间段（如9:00-17:30）",
+        "账户在短时间内出现大量交易，且交易地点与持卡人活动轨迹不符"
+      ],
+      "data_hint": "ip_address, device_id, location, timestamp, user_agent"
+    },
+    {
+      "pattern": "使用贷款包装流水为借口，诱导持卡人提供银行卡和密码",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "持卡人账户在短时间内被多个陌生账户转入资金",
+        "持卡人账户与贷款中介或包装公司账户无正常业务往来",
+        "持卡人账户交易模式与正常个人消费或工资收入模式显著不同"
+      ],
+      "data_hint": "account_relationship_graph, tx_pattern, account_type, user_profile"
+    },
+    {
+      "pattern": "账户资金快进快出，余额几乎为零，符合洗钱账户特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在交易结束后余额极低（如0.68元）",
+        "资金流入总额等于流出总额，无沉淀",
+        "交易笔数多且金额较大，远超个人正常使用范围"
+      ],
+      "data_hint": "balance, total_in_amount, total_out_amount, tx_count, amount_distribution"
+    }
+  ]
+}

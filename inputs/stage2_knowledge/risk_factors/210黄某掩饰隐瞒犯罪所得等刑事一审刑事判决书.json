@@ -1,0 +1,115 @@
+{
+  "source": "210黄某掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡及密码、手机给他人用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内被多个上游账户转入资金",
+        "账户持有者将银行卡、密码、手机交给他人操作"
+      ],
+      "data_hint": "account_holder, account_number, password_sharing_flag, device_id, ip_address"
+    },
+    {
+      "pattern": "通过数字钱包多层转账后兑出至银行卡再取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡兑入数字钱包，再兑出至另一银行卡",
+        "资金经过3层以上地址（银行卡→数字钱包→银行卡→取现）"
+      ],
+      "data_hint": "transaction_type, from_account, to_account, amount, timestamp, wallet_id"
+    },
+    {
+      "pattern": "大额资金被拆分为多笔小额（如5000元）进行转账或取现",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额接近但不超过阈值（如5000元）",
+        "短时间内连续多笔相同金额交易"
+      ],
+      "data_hint": "amount, transaction_count, time_window, threshold"
+    },
+    {
+      "pattern": "凌晨时段（深夜至凌晨）进行频繁转账和取现操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在凌晨0点至6点",
+        "短时间内（如几分钟内）完成多笔交易"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_frequency"
+    },
+    {
+      "pattern": "资金从多个不同银行账户汇入同一数字钱包后再分散转出",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个上游账户向同一数字钱包转账",
+        "数字钱包资金短时间内分散转出至多个下游账户"
+      ],
+      "data_hint": "from_account, to_account, wallet_id, amount, timestamp"
+    },
+    {
+      "pattern": "使用他人银行卡和手机在ATM机上取现",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "ATM取现操作与账户持有者地理位置不符",
+        "同一设备或IP操作多个不同账户"
+      ],
+      "data_hint": "atm_location, device_id, ip_address, account_holder"
+    },
+    {
+      "pattern": "通过财付通、零钱通等第三方支付工具转出资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入第三方支付账户",
+        "第三方支付账户资金快速转出或消费"
+      ],
+      "data_hint": "transaction_type, to_platform, amount, timestamp"
+    },
+    {
+      "pattern": "账户持有者介绍他人提供银行卡参与洗钱并从中获利",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一介绍人关联多个账户提供者",
+        "介绍人收取佣金后分发给账户提供者"
+      ],
+      "data_hint": "referrer_id, referred_accounts, commission_amount, payment_channel"
+    },
+    {
+      "pattern": "账户在短时间内收到多笔来自不同来源的资金后立即取现",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收到资金后短时间内（如几分钟）即被取现",
+        "取现金额接近入账金额"
+      ],
+      "data_hint": "deposit_time, withdrawal_time, amount, account_balance"
+    },
+    {
+      "pattern": "使用数字人民币钱包进行资金转移以规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从传统银行账户兑入数字人民币钱包",
+        "数字人民币钱包资金再兑出至其他银行账户"
+      ],
+      "data_hint": "wallet_type, transaction_type, from_account, to_account, amount"
+    }
+  ]
+}

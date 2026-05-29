@@ -1,0 +1,65 @@
+{
+  "source": "241李某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台添加陌生人办理非法贷款，提供个人身份信息和银行账户用于接收和转移资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内通过社交平台与多个陌生账户建立联系",
+        "账户提供身份证照片、银行卡交易明细等敏感信息给非正规渠道"
+      ],
+      "data_hint": "address, social_media_interaction, identity_document_submission"
+    },
+    {
+      "pattern": "将银行卡和手机卡邮寄至指定地址，协助他人远程控制账户转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户绑定手机号或银行卡被邮寄至异地",
+        "账户登录IP或设备频繁变更，且与账户注册地不一致"
+      ],
+      "data_hint": "address, device_id, ip_address, shipping_address"
+    },
+    {
+      "pattern": "注册数字人民币APP并将手机交给他人用于转移资金，资金快速进出账户",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内注册数字人民币APP并立即用于大额资金转移",
+        "资金从外部转入后迅速转出，停留时间极短",
+        "单笔或累计转入金额接近但不超过阈值（如54100元）"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, app_registration_time"
+    },
+    {
+      "pattern": "账户接收多笔资金，其中部分资金明确来自诈骗等上游犯罪",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收多笔资金，资金来源账户与已知黑名单或高风险账户关联",
+        "资金流入金额与流出金额高度匹配，呈快进快出模式"
+      ],
+      "data_hint": "amount, sender_address, receiver_address, transaction_hash"
+    },
+    {
+      "pattern": "通过抖音等社交平台多次咨询贷款事宜，并按照对方要求线下见面配合转账",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内多次通过社交平台与不同贷款中介互动",
+        "账户持有人线下前往异地（如长治市潞州区）与陌生人见面",
+        "见面后立即发生异常资金转移行为"
+      ],
+      "data_hint": "location, social_media_interaction, travel_history, transaction_timestamp"
+    }
+  ]
+}

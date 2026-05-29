@@ -1,0 +1,94 @@
+{
+  "source": "73王某某掩饰隐瞒犯罪所得犯罪所得收益罪一审判决书",
+  "risk_factors": [
+    {
+      "pattern": "出售个人银行卡给身份不明人员用于网络犯罪支付结算",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人名下多张银行卡出售给同一接收人",
+        "银行卡被用于接收诈骗资金",
+        "卡内资金流水金额远超正常个人使用范围"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, transaction_count, account_owner_id"
+    },
+    {
+      "pattern": "使用多个数字人民币账户通过提现、转账、买卖泰达币转移违法犯罪所得",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人控制多个数字人民币账户",
+        "账户间频繁进行提现、转账和虚拟货币交易",
+        "资金从诈骗受害人直接流入这些账户",
+        "账户总流水远大于正常收入"
+      ],
+      "data_hint": "from_address, to_address, amount, transaction_type, token_type, timestamp, account_id"
+    },
+    {
+      "pattern": "按上线指示使用他人数字人民币账户协助转移犯罪所得",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户由不同人控制但操作指令来自同一人",
+        "账户间资金流转路径呈现多层嵌套",
+        "资金最终流向不明上线"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, instruction_source, account_owner_relationship"
+    },
+    {
+      "pattern": "短时间内多个不同受害人的诈骗资金集中流入同一组账户",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个不同来源的诈骗资金在相近时间段内汇入同一账户或账户组",
+        "单笔金额较小但累计金额大",
+        "资金流入后迅速被转移或转换为虚拟货币"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, cumulative_amount"
+    },
+    {
+      "pattern": "银行卡出售后短期内产生大量资金流水，呈现异常活跃状态",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在出售后短时间内交易频率和金额急剧增加",
+        "流水总额远超账户历史平均水平",
+        "交易时间分布异常（如夜间频繁交易）"
+      ],
+      "data_hint": "account_id, transaction_count, amount, timestamp, historical_average"
+    },
+    {
+      "pattern": "使用数字人民币账户进行虚拟货币（泰达币）买卖作为洗钱中间环节",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户同时涉及法币提现、转账和虚拟货币交易",
+        "资金在法币和虚拟货币之间快速转换",
+        "虚拟货币交易对手方身份不明"
+      ],
+      "data_hint": "transaction_type, token_type, amount, from_address, to_address, timestamp, exchange_rate"
+    },
+    {
+      "pattern": "多个账户由同一人控制并用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一自然人注册或控制多个数字人民币账户",
+        "这些账户均用于接收来自不同受害人的资金",
+        "账户间存在资金划转行为"
+      ],
+      "data_hint": "account_owner_id, account_id, transaction_graph, address_cluster"
+    }
+  ]
+}

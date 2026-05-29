@@ -1,0 +1,77 @@
+{
+  "source": "243刘某龙掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用个人支付宝、淘宝账户接收上游犯罪资金，购买京东E卡后通过闲鱼出售变现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内完成接收资金、购买电子礼品卡、出售变现的完整链条",
+        "资金从支付宝/淘宝账户流向京东E卡购买，再通过闲鱼出售回流"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, platform (支付宝/淘宝/京东/闲鱼), order_id"
+    },
+    {
+      "pattern": "将出售京东E卡所得资金通过火币APP购买虚拟货币并转移至指定地址",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从法币账户转入虚拟货币交易平台",
+        "购买虚拟货币后立即提币至外部地址",
+        "提币地址与上游犯罪地址关联"
+      ],
+      "data_hint": "amount, timestamp, platform (火币APP), transaction_type (购买/提币), from_address, to_address"
+    },
+    {
+      "pattern": "按固定比例扣除个人收益后转移剩余资金，形成资金拆分与佣金模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "转移资金总额与个人获利比例固定（如本案获利2700元对应94111元，约2.87%）",
+        "资金在多个账户间按比例拆分"
+      ],
+      "data_hint": "amount, fee_ratio, from_account, to_account"
+    },
+    {
+      "pattern": "短时间内（2月13日至16日）高频转移多笔违法犯罪资金",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "连续多日进行资金转移操作",
+        "单日转移资金笔数或金额异常集中"
+      ],
+      "data_hint": "timestamp, amount, transaction_count_per_day"
+    },
+    {
+      "pattern": "使用本人实名账户（支付宝、淘宝、闲鱼、火币）为上游犯罪提供资金通道",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一自然人控制多个实名平台账户",
+        "账户间存在资金流转关系",
+        "账户注册信息与上游犯罪人员关联"
+      ],
+      "data_hint": "user_id, platform, account_registration_info, linked_accounts"
+    },
+    {
+      "pattern": "上游犯罪资金通过被害人数字人民币钱包绑定支付宝账户流入",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包与支付宝账户绑定",
+        "资金从被害人钱包直接转入被告人支付宝",
+        "资金流向呈现被害人->被告人->电商平台->虚拟货币的路径"
+      ],
+      "data_hint": "wallet_address, binding_info, transaction_flow (from victim to defendant)"
+    }
+  ]
+}

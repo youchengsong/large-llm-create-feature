@@ -1,0 +1,70 @@
+{
+  "source": "95黎某诈骗罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "介绍他人提供银行卡给犯罪分子用于接收和转移非法资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收多笔资金后立即通过数字人民币、现金支取等方式全部转出",
+        "账户资金快进快出，无正常消费或留存",
+        "多个账户由同一人介绍或控制"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_type, account_owner"
+    },
+    {
+      "pattern": "驾车运送卡主到异地提供银行卡用于洗钱",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "卡主在短时间内从居住地前往异地（如贵阳）进行大额交易",
+        "交易时间集中，资金到账后立即全部转出",
+        "多个卡主在同一时间段内由同一车辆运送"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, location, account_owner, vehicle_info"
+    },
+    {
+      "pattern": "主动联系犯罪分子提供银行卡进行洗钱并获取返利",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收资金后通过ATM取款、柜面卡取等方式全部转出",
+        "交易金额接近但不超过大额报告阈值",
+        "账户持有人与犯罪分子有直接联系或历史互动"
+      ],
+      "data_hint": "transaction_id, amount, timestamp, transaction_type, atm_location, account_owner, communication_records"
+    },
+    {
+      "pattern": "通过数字人民币、现金支取等方式快速转移资金以规避追踪",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后立即通过数字人民币或现金支取转出，无停留",
+        "交易金额分散，避免单笔触发预警",
+        "资金流向多个不同地址或账户"
+      ],
+      "data_hint": "transaction_id, amount, timestamp, transaction_type, to_address, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "多个卡主协同提供银行卡，资金集中转入后分散转出",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间内接收来自同一来源的资金",
+        "资金从多个账户快速转出至不同目标",
+        "账户间存在共同联系人或共同出行记录"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_owner, common_contact"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "source": "91韩某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人名下银行卡被用于接收电信网络诈骗等犯罪资金，进账总金额远超涉案金额，呈现资金快进快出特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡进账总金额（180余万元）远大于涉案诈骗金额（40余万元）",
+        "资金在短时间内集中流入并可能快速转出"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, inflow_total, outflow_total"
+    },
+    {
+      "pattern": "明知他人将银行卡用于违法犯罪，仍主动提供银行卡账户，为信息网络犯罪提供支付结算帮助",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户关联多个不同受害人的资金流入",
+        "账户与已知犯罪账户存在关联"
+      ],
+      "data_hint": "sender_address, receiver_address, address_relationship, blacklist_flag"
+    },
+    {
+      "pattern": "涉案银行卡被用于接收多个不同受害人的被诈骗资金，资金来源于多个独立受害人账户",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "多个不同来源地址向同一目标地址转账",
+        "转账金额分散且单笔金额较小"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, transaction_count"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "source": "200周某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合扫脸下载数字人民币软件帮助转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内出现大额资金流入后立即转出",
+        "账户持有者配合进行扫脸等生物识别验证操作",
+        "账户被用于下载数字人民币软件并授权他人使用"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, biometric_verification_flag, digital_currency_app_download, account_holder_id"
+    },
+    {
+      "pattern": "通过他人介绍提供银行卡和手机给犯罪分子使用并获取非法报酬",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户与多个已知涉案账户存在关联或介绍关系",
+        "账户持有者与账户实际控制者不一致",
+        "账户存在异常的资金流入和流出，且持有者从中获取小额报酬"
+      ],
+      "data_hint": "account_id, linked_accounts, referral_relationship, transaction_flow, reward_amount"
+    },
+    {
+      "pattern": "明知他人从事网络犯罪活动仍提供资金账户用于转账",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收大额资金（如279863元）",
+        "资金进账后迅速被转移至其他账户",
+        "账户持有者与犯罪团伙存在事先联系或知情证据"
+      ],
+      "data_hint": "amount, timestamp, transaction_chain, account_holder_communication_logs, criminal_intent_indicator"
+    }
+  ]
+}

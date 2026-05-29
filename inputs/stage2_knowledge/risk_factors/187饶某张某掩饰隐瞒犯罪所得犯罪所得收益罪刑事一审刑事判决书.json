@@ -1,0 +1,69 @@
+{
+  "source": "187饶某张某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合刷脸认证，利用数字人民币APP快速转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内频繁进行刷脸认证操作（如20余次）",
+        "银行卡收到资金后立即通过数字人民币APP转出至其他账户",
+        "同一账户绑定多个数字人民币钱包或频繁更换绑定",
+        "账户预留少量资金作为报酬，但资金因冻结无法取出"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, auth_type, auth_count, wallet_address, bank_card_number, app_usage_log"
+    },
+    {
+      "pattern": "通过线下社交接触（酒吧等场所）招募银行卡提供者，形成团伙作案",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与上游犯罪团伙存在线下社交关联（如酒吧结识）",
+        "多个账户在同一时间点或相近时间段内被用于接收和转移资金",
+        "账户持有人与多个未知身份人员共同出现在同一地点"
+      ],
+      "data_hint": "account_holder_profile, social_connections, ip_address, location_data, transaction_timestamp"
+    },
+    {
+      "pattern": "利用数字人民币APP的匿名性和快速流转特性进行资金清洗",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入后，通过数字人民币APP在短时间内分多次转出至不同账户",
+        "数字人民币交易记录中频繁出现小额测试交易后大额转账",
+        "交易金额接近但不超过监管阈值（如单笔接近5万元）"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, wallet_address, app_type, transaction_count, threshold_breach_flag"
+    },
+    {
+      "pattern": "银行卡接收电信诈骗资金后，通过数字人民币APP快速转出，形成资金快进快出模式",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内（如数小时内）收到多笔来自不同来源的资金",
+        "资金到账后立即被转出，账户余额几乎为零或仅留少量余额",
+        "交易时间集中在夜间或非正常工作时间"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, account_balance, transaction_frequency, time_of_day"
+    },
+    {
+      "pattern": "账户持有人明知资金来源非法仍提供支付结算帮助，并获取报酬",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在收到资金后，有固定比例的金额被保留作为报酬（如2083.45元）",
+        "账户持有人多次配合进行身份验证操作（如刷脸）",
+        "账户持有人与上游犯罪团伙之间存在明确的报酬约定"
+      ],
+      "data_hint": "amount, transaction_type, auth_count, reward_amount, communication_logs"
+    }
+  ]
+}

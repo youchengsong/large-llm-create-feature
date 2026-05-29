@@ -1,0 +1,82 @@
+{
+  "source": "59付某亮周某羽掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "成立跑分团队，分工协作转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在短时间内频繁向同一数字钱包充值",
+        "账户间存在明确的层级和分工（如司机、操作员、提现员）",
+        "资金从银行账户快速提现至数字钱包"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, from_address, to_address, wallet_id, role_tag"
+    },
+    {
+      "pattern": "使用手机和汽车等工具辅助跑分活动",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易行为发生在移动设备上，IP地址或设备ID频繁变化",
+        "交易时间点与车辆GPS轨迹存在关联",
+        "短时间内多笔交易从不同地理位置发起"
+      ],
+      "data_hint": "device_id, ip_address, gps_location, timestamp, transaction_id"
+    },
+    {
+      "pattern": "通过数字钱包和银行账户之间的快速资金转移进行洗钱",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行账户资金在短时间内被多次提现至数字钱包",
+        "单笔提现金额接近但不超过银行或平台限额",
+        "数字钱包充值后迅速转出至其他地址"
+      ],
+      "data_hint": "amount, transaction_time, bank_account_balance, wallet_balance, withdrawal_limit"
+    },
+    {
+      "pattern": "跑分团队使用多个卡主（即他人银行账户）进行资金中转",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个银行账户由不同个人持有但资金流向同一数字钱包",
+        "账户注册信息（如手机号、身份证）存在关联或批量注册特征",
+        "账户间交易网络呈现星型或链式结构"
+      ],
+      "data_hint": "account_holder_id, bank_account_number, wallet_address, transaction_graph, kyc_info"
+    },
+    {
+      "pattern": "跑分团队在跑分现场安排专人望风以规避侦查",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易集中在特定时间段（如夜间或非工作时间）",
+        "交易地点位于偏僻或监控盲区",
+        "交易前有异常的设备或账户登录尝试"
+      ],
+      "data_hint": "timestamp, location, ip_address, device_fingerprint, login_attempts"
+    },
+    {
+      "pattern": "跑分资金关联多起诈骗案件，资金流呈现分散转入集中转出特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个来源账户向同一目标账户转入小额资金",
+        "目标账户在短时间内将大额资金转出至多个下游地址",
+        "资金在多个层级地址间快速流转（如3层以上）"
+      ],
+      "data_hint": "amount, from_address, to_address, transaction_chain_depth, timestamp"
+    }
+  ]
+}

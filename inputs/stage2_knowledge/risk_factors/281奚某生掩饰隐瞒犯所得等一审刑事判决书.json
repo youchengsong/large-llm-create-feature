@@ -1,0 +1,69 @@
+{
+  "source": "281奚某生掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台（陌陌）接触招募，提供银行卡和手机并配合刷脸验证进行大额转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收多笔大额资金（50余万元）",
+        "资金接收后立即进行多次刷脸验证操作",
+        "涉及多个被害人资金（34.2万元为诈骗款）"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, authentication_type, counterparty_contact_channel"
+    },
+    {
+      "pattern": "出借银行卡并协助取现，将犯罪所得资金转化为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡接收资金后短时间内进行柜台取现（29000元）",
+        "取现金额接近ATM单次限额（2万元）",
+        "取现后资金立即转移给他人"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal), location, cash_amount"
+    },
+    {
+      "pattern": "通过中间人介绍（查某涛）出借银行卡给第三方（林某）用于取现",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡由中间人转交第三方使用",
+        "涉及多层人际关系（朋友-同学）",
+        "取现后资金流向不明"
+      ],
+      "data_hint": "address_relationship, intermediary_address, transaction_chain_depth"
+    },
+    {
+      "pattern": "使用数字人民币APP进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "下载并使用数字人民币APP进行转账",
+        "短时间内完成多笔转账操作（约1小时）",
+        "转账金额较大（50余万元）"
+      ],
+      "data_hint": "app_usage, transaction_method, amount, timestamp"
+    },
+    {
+      "pattern": "通过非正常渠道（陌陌签名“缺钱用找我”）招募银行卡提供者，并预付路费诱导参与",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过社交平台公开招募",
+        "提供预付路费（300元）作为诱饵",
+        "要求携带银行卡前往异地（玉山）"
+      ],
+      "data_hint": "contact_channel, upfront_payment, travel_pattern, location_change"
+    }
+  ]
+}

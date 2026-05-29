@@ -1,0 +1,65 @@
+{
+  "source": "169赵某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人为非法获利，在明知他人利用其银行卡洗钱的情况下，主动办理银行卡并提供给犯罪分子使用",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新开银行卡后短时间内提供给他人使用",
+        "银行卡在开户当天或短期内即有大量资金流入",
+        "账户持有人与账户实际使用人非同一人"
+      ],
+      "data_hint": "account_open_time, account_holder_id, transaction_counterparty, transaction_amount"
+    },
+    {
+      "pattern": "协助开通数字人民币账户并用于洗钱，利用新型支付工具转移赃款",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户同时关联传统银行卡和数字人民币账户",
+        "资金从银行卡转入数字人民币账户后快速转出",
+        "数字人民币账户交易频率异常高"
+      ],
+      "data_hint": "account_type, digital_currency_account_id, transaction_type, transaction_flow"
+    },
+    {
+      "pattern": "在洗钱过程中多次提供刷脸认证，协助犯罪分子转移赃款",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内多次生物特征认证（如刷脸）",
+        "认证操作与异常大额转账时间高度吻合",
+        "认证IP地址与账户常用地址不一致"
+      ],
+      "data_hint": "biometric_auth_timestamp, auth_type, transaction_timestamp, ip_address"
+    },
+    {
+      "pattern": "单张银行卡在一天内流入大量资金，其中包含电信诈骗被害人资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日累计流入资金超过20万元",
+        "账户交易金额与账户持有人正常收入水平严重不符",
+        "资金流入后短时间内被快速转出或取现"
+      ],
+      "data_hint": "transaction_amount, transaction_timestamp, account_balance, income_level"
+    },
+    {
+      "pattern": "账户持有人非法获利金额与流入资金总额的比例异常",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "非法获利金额占流入资金比例较高（如本例中约14%）",
+        "账户持有人收取固定比例或固定金额的报酬",
+        "报酬支付方式为现金或难以追踪的电子支付"
+      ],
+      "data_hint": "transaction_amount, profit_amount, profit_ratio, payment_method"
+    }
+  ]
+}

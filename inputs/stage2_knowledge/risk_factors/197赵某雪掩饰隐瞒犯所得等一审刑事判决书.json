@@ -1,0 +1,73 @@
+{
+  "source": "197赵某雪掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机及密码给陌生人用于资金转移，并配合刷脸验证，获取固定报酬",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内被多个不同来源账户转入资金",
+        "转入资金后立即通过数字人民币或POS机分散转出至多个不同银行账户",
+        "账户交易过程中频繁出现刷脸或短信验证码验证",
+        "账户交易流水呈现快进快出、不留余额特征"
+      ],
+      "data_hint": "transaction_log (from_address, to_address, amount, timestamp, method), authentication_log (type, timestamp), account_info (bank_card_number, phone_number)"
+    },
+    {
+      "pattern": "利用数字人民币和银联POS机快速分散转移资金，掩盖资金去向",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金转入后立即通过数字人民币渠道转出至多个不同银行账户",
+        "部分资金通过银联POS机刷卡方式转出",
+        "资金在短时间内经过多个账户层级，最终去向不明",
+        "单笔转入金额与转出金额高度匹配，无明显留存"
+      ],
+      "data_hint": "transaction_log (from_address, to_address, amount, timestamp, method, channel), digital_currency_log (wallet_address, amount, timestamp), POS_log (merchant_id, amount, timestamp)"
+    },
+    {
+      "pattern": "以固定价格（5500元/张）出租银行卡，形成批量控制账户的洗钱网络",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一控制人下多个银行卡账户出现类似的交易模式",
+        "账户出租价格固定，与交易金额无关",
+        "出租账户短期内被用于接收来自多个不同来源的资金",
+        "账户出租后，交易行为与账户历史行为模式显著不同"
+      ],
+      "data_hint": "account_info (bank_card_number, owner_id, open_date), transaction_log (from_address, to_address, amount, timestamp), network_analysis (account_cluster, common_controller)"
+    },
+    {
+      "pattern": "资金来源于电信网络诈骗（虚假网络赌博、刷单等），受害者分散多地",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收的资金来自多个不同地区的受害者",
+        "每笔受害者的转账金额较小（5000-60000元），符合诈骗特征",
+        "资金转入时间集中在较短时间内（如数小时内）",
+        "受害者转账描述中提及虚假网络赌博、刷单等关键词"
+      ],
+      "data_hint": "transaction_log (from_address, to_address, amount, timestamp, location), victim_report (victim_id, fraud_type, amount, timestamp)"
+    },
+    {
+      "pattern": "通过电话传唤到案，表明犯罪分子使用非实名或临时联系方式",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "犯罪分子使用临时或非本人实名手机号进行联系",
+        "犯罪分子身份信息与银行账户注册信息不一致",
+        "犯罪分子在案发后更换联系方式或失联"
+      ],
+      "data_hint": "account_info (phone_number, registration_info), communication_log (caller_id, callee_id, timestamp, duration)"
+    }
+  ]
+}

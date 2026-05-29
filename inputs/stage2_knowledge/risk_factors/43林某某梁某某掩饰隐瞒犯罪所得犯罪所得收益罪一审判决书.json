@@ -1,0 +1,79 @@
+{
+  "source": "43林某某梁某某掩饰隐瞒犯罪所得犯罪所得收益罪一审判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过虚假贷款广告诱导提供银行卡用于洗钱",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "用户通过微信群广告接触自称可办黑网贷的陌生人",
+        "用户被带到偏僻地点进行线下交易",
+        "用户主动交出银行卡、手机及密码给他人使用"
+      ],
+      "data_hint": "用户行为日志、通讯记录、地理位置信息"
+    },
+    {
+      "pattern": "短时间内集中进行收款、转账和取现操作",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "在22:44至0:27的约1.5小时内完成多次收款、转账和取现",
+        "累计取现40000元",
+        "单笔取现金额可能接近或规避阈值"
+      ],
+      "data_hint": "timestamp, amount, transaction_type, account_balance"
+    },
+    {
+      "pattern": "使用数字钱包和数字人民币进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "下载注册数字钱包APP",
+        "使用数字人民币收款和转账",
+        "结合银行APP和数字人民币进行多通道操作"
+      ],
+      "data_hint": "app_usage_log, digital_wallet_transactions, transaction_channel"
+    },
+    {
+      "pattern": "银行卡接收资金后快速取现并留下少量报酬",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡接收资金72100元",
+        "取现40000元",
+        "留下2100元作为报酬（约占接收资金的2.9%）",
+        "取现后银行卡很快被冻结"
+      ],
+      "data_hint": "amount, transaction_type, account_freeze_time, fee_or_reward_amount"
+    },
+    {
+      "pattern": "资金来源于电信网络诈骗被害人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡接收的资金中36680元被查实为电信诈骗被害人崔某转入",
+        "资金流向与上游犯罪关联"
+      ],
+      "data_hint": "source_account, victim_flag, case_id, fund_trace"
+    },
+    {
+      "pattern": "操作后删除联系人以规避追踪",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "操作完成后删除‘李某’的联系方式",
+        "试图掩盖与上家的联系"
+      ],
+      "data_hint": "contact_deletion_log, communication_records"
+    }
+  ]
+}

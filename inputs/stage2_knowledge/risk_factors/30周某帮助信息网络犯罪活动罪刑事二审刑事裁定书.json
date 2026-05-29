@@ -1,0 +1,73 @@
+{
+  "source": "30周某帮助信息网络犯罪活动罪刑事二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "利用代理账号为赌博网站发展会员并接受投注，通过微信转账结算赌资",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "代理账号下关联多个会员账号",
+        "会员账号数量超过20个",
+        "累计投注金额超过100万元",
+        "通过微信转账进行资金结算"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, account_relationship"
+    },
+    {
+      "pattern": "通过数字人民币银行账户接收并转移电信网络诈骗等犯罪所得资金",
+      "dimension": [
+        "金额频次",
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内多个不同来源账户向同一账户转账",
+        "资金到账后迅速转出",
+        "转账金额接近整数（如4900、10000、9970、18200）",
+        "使用多个不同银行和数字钱包账户"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, bank_type, digital_wallet_id"
+    },
+    {
+      "pattern": "在没有正当理由的情况下，协助他人将大额资金在不同银行账户之间频繁划转",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体控制多个银行账户",
+        "资金在多个账户间快速流转",
+        "单笔转账金额较大（万元级）",
+        "转账频率高（如2月13日多笔）"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "利用他人身份信息开设数字人民币钱包账户用于接收和转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个数字钱包账户注册信息与操作主体不一致",
+        "账户实际控制人非注册人",
+        "使用他人身份证件或银行账户"
+      ],
+      "data_hint": "wallet_registration_info, actual_controller, identity_verification_data"
+    },
+    {
+      "pattern": "通过聊天软件（如飞机）联系同伙，组织多人提供账户用于洗钱",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用加密聊天软件沟通",
+        "多人协作提供账户",
+        "资金流转涉及多个中间人"
+      ],
+      "data_hint": "communication_channel, participant_addresses, transaction_network_graph"
+    }
+  ]
+}

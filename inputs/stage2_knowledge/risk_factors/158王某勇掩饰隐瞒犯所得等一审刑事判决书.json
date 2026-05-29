@@ -1,0 +1,94 @@
+{
+  "source": "158王某勇掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用游戏APP交易平台进行资金清洗，通过绑定银行卡接收犯罪资金后取现，再通过游戏币买卖实现资金转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡取现后转入游戏平台账户",
+        "游戏币交易平台内频繁买卖游戏币",
+        "资金从游戏平台账户回流至银行账户"
+      ],
+      "data_hint": "amount, transaction_type, platform_id, wallet_address, bank_account"
+    },
+    {
+      "pattern": "短期内在多家银行开立多张银行卡用于接收异常资金并取现",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体在短时间内开立多家银行账户",
+        "多个银行账户同时接收大额资金并快速取现",
+        "账户资金流入与个人正常收入不匹配"
+      ],
+      "data_hint": "account_open_date, bank_name, account_count, total_deposit_amount, withdrawal_amount"
+    },
+    {
+      "pattern": "利用数字人民币钱包接收犯罪资金并取现，通过多个银行数字钱包分散资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一主体开通多个银行数字钱包",
+        "数字钱包接收资金后立即取现",
+        "数字钱包交易金额与正常消费模式不符"
+      ],
+      "data_hint": "digital_wallet_id, bank_name, deposit_amount, withdrawal_amount, transaction_timestamp"
+    },
+    {
+      "pattern": "通过取现后现金交付的方式切断资金追踪链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡资金到账后立即取现",
+        "取现金额与上游犯罪资金流入高度吻合",
+        "取现后无后续电子交易记录"
+      ],
+      "data_hint": "withdrawal_amount, withdrawal_timestamp, cash_transfer_indicator"
+    },
+    {
+      "pattern": "资金在短时间内通过多个银行账户和数字钱包快速流转",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡到数字钱包再到取现的时间间隔短",
+        "交易时间集中在特定时段（如夜间）",
+        "资金流转路径涉及多个金融机构"
+      ],
+      "data_hint": "transaction_timestamp, source_account, destination_account, transaction_chain_length"
+    },
+    {
+      "pattern": "通过游戏平台充值返利机制诱导他人参与洗钱，形成多层资金转移网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "游戏平台充值金额与返利比例异常",
+        "多个用户账户之间存在资金关联",
+        "资金从多个来源账户汇入同一游戏平台账户"
+      ],
+      "data_hint": "platform_user_id, recharge_amount, bonus_amount, related_accounts"
+    },
+    {
+      "pattern": "利用他人银行卡或数字钱包进行资金转移，规避实名制监管",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡或数字钱包的实际使用人与开户人不一致",
+        "多个账户由同一IP地址或设备操作",
+        "账户交易行为与开户人身份特征不符"
+      ],
+      "data_hint": "account_holder_id, device_id, IP_address, transaction_behavior_pattern"
+    }
+  ]
+}

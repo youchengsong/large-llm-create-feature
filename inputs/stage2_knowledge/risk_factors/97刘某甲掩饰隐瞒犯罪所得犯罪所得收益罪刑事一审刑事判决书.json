@@ -1,0 +1,77 @@
+{
+  "source": "97刘某甲掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "多人合谋使用他人银行卡进行取现、转存、数字人民币转账等支付结算活动",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内多张银行卡集中用于取现和转存",
+        "资金通过数字人民币快速转移",
+        "多张银行卡在同一地点或相近时间被使用"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, digital_currency_flag"
+    },
+    {
+      "pattern": "使用他人银行卡（供卡人）进行资金转移，涉及多张银行卡",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多张不同户主的银行卡",
+        "银行卡户主与资金实际控制人不一致"
+      ],
+      "data_hint": "account_holder_id, controller_id, card_count, account_relationship"
+    },
+    {
+      "pattern": "为获取经济利益，明知他人利用信息网络实施犯罪仍提供支付结算帮助",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "支付结算总金额较大（795679.74元）",
+        "涉及多起诈骗案件资金（156909元）",
+        "资金流入与流出频率异常"
+      ],
+      "data_hint": "total_amount, fraud_related_amount, transaction_frequency, amount_threshold"
+    },
+    {
+      "pattern": "驾车跨区域（从成都到格尔木）租用银行卡进行资金转移",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易地点与账户注册地或居住地不一致",
+        "短时间内跨城市移动后出现大量交易"
+      ],
+      "data_hint": "transaction_location, account_registration_location, travel_distance, timestamp"
+    },
+    {
+      "pattern": "使用租用的银行卡进行取现和转存，形成资金快速流转路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过取现和转存操作",
+        "资金流向多个不同账户",
+        "交易链中无合理商业背景"
+      ],
+      "data_hint": "transaction_sequence, cash_withdrawal_flag, transfer_flag, transaction_chain_length"
+    },
+    {
+      "pattern": "涉及16起诈骗案件资金，资金来源于多个不同被害人",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同来源的资金",
+        "资金分散转入后集中转出",
+        "资金来源与被害人关联"
+      ],
+      "data_hint": "sender_id, receiver_id, victim_count, fund_source_diversity"
+    }
+  ]
+}

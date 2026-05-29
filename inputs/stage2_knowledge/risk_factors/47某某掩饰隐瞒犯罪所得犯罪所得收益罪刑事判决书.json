@@ -1,0 +1,62 @@
+{
+  "source": "47某某掩饰隐瞒犯罪所得犯罪所得收益罪刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡用于接收犯罪所得资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户被用于接收来自多个受害人的资金",
+        "账户与已知犯罪账户存在关联"
+      ],
+      "data_hint": "from_address, to_address, amount, transaction_time, account_relation_graph"
+    },
+    {
+      "pattern": "通过数字人民币、转账、取现等多种方式快速转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在短时间内通过多种渠道（数字人民币、转账、取现）转移",
+        "资金转移路径复杂，涉及多个中间账户"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, from_address, to_address, transaction_chain"
+    },
+    {
+      "pattern": "为他人取现、转账提供密码及刷脸验证等辅助操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内出现多次取现操作",
+        "账户操作涉及密码输入和生物识别验证的异常频繁"
+      ],
+      "data_hint": "operation_type, timestamp, ip_address, device_id, biometric_verification_flag"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供银行卡并协助转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户与已知犯罪人员或案件关联",
+        "账户行为模式与正常用户显著不同"
+      ],
+      "data_hint": "account_relation_graph, risk_score, blacklist_flag"
+    },
+    {
+      "pattern": "利用他人银行卡接收诈骗资金后迅速转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内被转移",
+        "转移金额与诈骗金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, transaction_frequency, time_delta_between_transactions"
+    }
+  ]
+}

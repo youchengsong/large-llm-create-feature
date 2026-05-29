@@ -1,0 +1,89 @@
+{
+  "source": "116邓义洋陈志康掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过租借银行卡并配合刷脸、数字人民币交易等方式转移违法犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内收到多笔来自不同账户的大额资金后迅速转出",
+        "账户同时使用数字人民币交易、ATM取现、支付宝转账等多种方式转移资金",
+        "账户交易过程中频繁出现人脸识别验证操作",
+        "账户资金进出流水几乎相等，余额接近零"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, channel (digital_currency, ATM, Alipay), biometric_verification_flag, balance_after_transaction"
+    },
+    {
+      "pattern": "利用办信用卡等借口诱导个人出租银行卡，形成资金接收和转移通道",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内从多个不同来源接收资金",
+        "账户资金快速通过取现、转账、数字人民币等方式分散转移",
+        "账户交易对手方多为个人或非正规商户",
+        "账户交易模式与正常消费或工资收入模式明显不符"
+      ],
+      "data_hint": "counterparty_address, transaction_amount, transaction_frequency, transaction_purpose_description, account_opening_channel"
+    },
+    {
+      "pattern": "同一账户在短时间内接收多笔来自不同受害人的被骗资金并迅速转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在几天内收到多笔金额不等的资金，总额较大",
+        "每笔资金转入后短时间内（如几分钟到几小时）即被转出或取现",
+        "资金转入和转出时间集中在特定时间段（如工作日白天）",
+        "账户交易频率在短期内显著高于历史平均水平"
+      ],
+      "data_hint": "amount, timestamp, transaction_count_per_day, time_of_day, historical_transaction_profile"
+    },
+    {
+      "pattern": "通过ATM取现和支付宝转账相结合的方式规避大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "ATM取现金额接近但不超过单日取现限额",
+        "同一账户同时使用ATM取现和支付宝转账两种方式转移资金",
+        "支付宝转账对象为多个不同个人或商户",
+        "ATM取现和支付宝转账交替进行，时间间隔短"
+      ],
+      "data_hint": "amount, transaction_type, ATM_withdrawal_limit, Alipay_transfer_recipient, timestamp_sequence"
+    },
+    {
+      "pattern": "账户资金在短时间内经过多层地址或渠道转移，形成资金清洗链条",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从接收账户通过数字人民币、ATM、支付宝等多渠道转出",
+        "资金流转路径涉及多个中间账户或平台",
+        "每笔资金流转时间间隔极短（如几分钟内）",
+        "资金最终流向与初始资金来源无关的账户或地址"
+      ],
+      "data_hint": "transaction_chain_length, intermediary_accounts, transaction_timestamps, final_destination_address"
+    },
+    {
+      "pattern": "个人主动联系犯罪团伙继续出租银行卡，形成持续性的资金转移通道",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在首次交易后主动联系对方继续提供银行卡",
+        "账户在后续时间段内再次接收并转移多笔资金",
+        "账户交易模式与首次交易高度相似",
+        "账户交易对手方与首次交易相同或关联"
+      ],
+      "data_hint": "account_activity_history, repeat_transactions_with_same_counterparty, transaction_pattern_similarity"
+    }
+  ]
+}

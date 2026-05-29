@@ -1,0 +1,76 @@
+{
+  "source": "29赵某浩帮助信息网络犯罪活动二审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用多个数字人民币钱包分散收款以规避账户冻结和监管",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个用户绑定超过3个数字人民币钱包用于收款",
+        "同一主体控制多个数字人民币钱包地址"
+      ],
+      "data_hint": "wallet_address, user_id, binding_count"
+    },
+    {
+      "pattern": "通过虚拟货币（USDT）交易为信息网络犯罪提供支付结算通道",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易涉及USDT等稳定币",
+        "交易平台专门用于虚拟货币与法币兑换",
+        "资金流向与已知犯罪平台关联"
+      ],
+      "data_hint": "token_type, platform_name, transaction_hash, amount_usd"
+    },
+    {
+      "pattern": "利用场外交易（OTC）平台低价买入高价卖出USDT赚取差价，掩盖资金来源",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一地址短时间内频繁买卖USDT",
+        "买入价与卖出价存在显著价差（如高于市场价）",
+        "交易对手方为多个不同地址"
+      ],
+      "data_hint": "trade_price, market_price, trade_frequency, counterparty_address"
+    },
+    {
+      "pattern": "使用加密通讯工具（如纸飞机）联系上游犯罪人员购买虚拟货币",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "用户关联加密通讯软件账号",
+        "交易前存在非公开渠道沟通记录"
+      ],
+      "data_hint": "communication_app, chat_log, contact_list"
+    },
+    {
+      "pattern": "不明资金通过多个数字人民币钱包流入，涉及多起诈骗案被害人资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "钱包接收资金来自多个不同来源地址",
+        "资金来源与已知诈骗案件关联",
+        "单笔金额较小但总金额较大"
+      ],
+      "data_hint": "incoming_transaction, source_address, victim_id, total_amount"
+    },
+    {
+      "pattern": "使用本人及他人身份注册多个数字人民币钱包用于收款，涉嫌账户出借或冒用",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备或IP关联多个不同身份的数字钱包",
+        "钱包注册信息与使用者身份不一致"
+      ],
+      "data_hint": "identity_document, device_id, ip_address, wallet_registration_info"
+    }
+  ]
+}

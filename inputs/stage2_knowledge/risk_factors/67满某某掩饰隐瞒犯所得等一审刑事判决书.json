@@ -1,0 +1,83 @@
+{
+  "source": "67满某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡及手机给他人用于接收和转移犯罪资金，并协助刷脸验证",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收多笔来自不同来源的资金并快速转出",
+        "账户交易中存在刷脸验证等辅助操作",
+        "账户资金流入与流出时间间隔极短"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, authentication_method"
+    },
+    {
+      "pattern": "使用多张银行卡（建设银行、招商银行）同时参与资金转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体控制多张银行卡在同一时间段内接收和转移资金",
+        "多张银行卡的资金流水高度关联",
+        "资金在多张银行卡之间快速流转"
+      ],
+      "data_hint": "account_id, bank_name, transaction_amount, transaction_time, linked_accounts"
+    },
+    {
+      "pattern": "明知他人利用信息网络实施犯罪，仍提供银行卡和手机用于接收和转移资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金来源于多个不同被害人",
+        "资金接收后立即被转移至其他账户",
+        "账户交易模式与正常用户明显不同"
+      ],
+      "data_hint": "transaction_source, transaction_destination, amount, timestamp, account_behavior_pattern"
+    },
+    {
+      "pattern": "通过提供银行卡、刷脸验证等方式帮助转移犯罪所得，并从中获利",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收大量资金并快速转出",
+        "账户交易金额与正常收入不符",
+        "账户存在小额获利（如手续费）记录"
+      ],
+      "data_hint": "transaction_amount, transaction_frequency, profit_amount, account_balance"
+    },
+    {
+      "pattern": "使用个人名下银行卡接收多笔不同来源的诈骗资金，金额从数千到数万元不等",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔来自不同账户的资金",
+        "单笔金额在几千到几万元之间",
+        "资金接收时间集中"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_account, receiver_account"
+    },
+    {
+      "pattern": "通过陌陌、QQ等社交软件与上线联系，接收转账指令",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户交易前存在社交软件聊天记录",
+        "聊天内容涉及转账指令",
+        "社交账号与银行账户关联"
+      ],
+      "data_hint": "communication_channel, chat_content, account_id, transaction_instruction"
+    }
+  ]
+}

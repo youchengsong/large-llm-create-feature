@@ -1,0 +1,40 @@
+{
+  "source": "229朱运涛帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "诈骗所得资金通过购买虚拟币进行清洗和消费",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行账户转入数字人民币账户",
+        "数字人民币账户用于购买虚拟币",
+        "虚拟币随后用于消费或变现"
+      ],
+      "data_hint": "transaction_type, currency_type, exchange_platform, wallet_address"
+    },
+    {
+      "pattern": "诈骗资金短期内分散用于多种消费和转账用途",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金在短时间内被分割用于日常消费、购买高价值商品、转账至数字人民币账户",
+        "单笔金额与日常消费不符"
+      ],
+      "data_hint": "amount, timestamp, transaction_category, counterparty"
+    },
+    {
+      "pattern": "利用数字人民币账户作为资金中转站进行洗钱",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从传统银行账户转入数字人民币账户",
+        "数字人民币账户资金快速转出用于购买虚拟币或消费"
+      ],
+      "data_hint": "account_type, source_account, destination_account, transaction_chain"
+    }
+  ]
+}

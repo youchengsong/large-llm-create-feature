@@ -1,0 +1,43 @@
+{
+  "source": "255徐东掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供本人银行卡供他人使用，并通过云闪付、数字人民币协助转移赃款",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自不同来源的资金后迅速转出",
+        "使用云闪付、数字人民币等非传统支付工具进行资金转移",
+        "账户资金流转路径呈现快进快出特征"
+      ],
+      "data_hint": "transaction_hash, from_address, to_address, amount, timestamp, payment_method, currency_type"
+    },
+    {
+      "pattern": "明知钱款可能系犯罪所得仍提供银行卡并协助转移赃款",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户与已知涉案地址或高风险地址存在交易关联",
+        "账户在短时间内被多个无关账户频繁转入资金",
+        "账户持有人与上游犯罪人员存在间接关联"
+      ],
+      "data_hint": "address, counterparty_address, transaction_graph, risk_score, blacklist_flag"
+    },
+    {
+      "pattern": "上游犯罪被害人资金经被告人银行账户流转后流出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收单笔大额资金后立即分散转出至多个账户",
+        "资金在账户内停留时间极短（如几分钟内）",
+        "转入金额与转出金额高度匹配，无明显余额留存"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_count, velocity"
+    }
+  ]
+}

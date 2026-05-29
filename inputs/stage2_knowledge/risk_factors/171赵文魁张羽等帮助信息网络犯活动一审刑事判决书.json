@@ -1,0 +1,83 @@
+{
+  "source": "171赵文魁张羽等帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡给他人用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一人名下多张银行卡（如12张）被用于接收转账",
+        "单向进账流水总额较大（如523714元）",
+        "资金来源于多个不同案件（如涉及107起案件）"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, transaction_count, account_owner_id"
+    },
+    {
+      "pattern": "通过ATM机和柜台多次提取大额现金，规避线上监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "在多家银行ATM机和柜台提取现金（如503000元）",
+        "提取行为分散在多个日期（如8天）",
+        "提取地点集中在同一地区（如山东省聊城市）"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, location, atm_id, branch_id"
+    },
+    {
+      "pattern": "使用数字人民币软件进行刷脸转账，快速转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "通过数字人民币软件进行刷脸转账（如20000元）",
+        "转账操作快速完成，无需传统银行渠道",
+        "资金直接转给他人（上线提供的账户）"
+      ],
+      "data_hint": "transaction_method, face_recognition_flag, amount, receiver_address, timestamp"
+    },
+    {
+      "pattern": "团伙协作提取现金并汇款给上线，形成资金转移链条",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多人（如徐东、刘志强、杨新春）共同参与取现和汇款",
+        "取现后汇款给上线提供的银行卡号",
+        "团伙成员按比例分配获利（如徐东获利15000余元）"
+      ],
+      "data_hint": "participant_ids, transaction_chain, amount, receiver_address, profit_distribution"
+    },
+    {
+      "pattern": "短期内多次进行取现和转账操作，时间间隔短",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "在8个不同日期（如2022年10月26日至11月22日）进行操作",
+        "每次操作间隔几天，频率较高",
+        "每次操作涉及金额较大"
+      ],
+      "data_hint": "timestamp, transaction_date, amount, interval_between_transactions"
+    },
+    {
+      "pattern": "使用个人名下多张银行卡分散接收资金，规避单卡监控",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人使用12张银行卡接收转账",
+        "每张卡接收资金可能来自不同案件",
+        "资金分散后集中提取"
+      ],
+      "data_hint": "account_id, sender_address, amount, transaction_count_per_account"
+    }
+  ]
+}

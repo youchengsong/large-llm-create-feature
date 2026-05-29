@@ -1,0 +1,106 @@
+{
+  "source": "232郭某甲帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "指使他人提供数字钱包收款码，用于接收和转移上游违法犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间通过指使关系形成资金接收链",
+        "数字钱包收款码被提供给上游人员使用",
+        "资金从上游账户快速转入数字钱包后立即取现或转账"
+      ],
+      "data_hint": "address, transaction_type, relationship_graph, instruction_chain"
+    },
+    {
+      "pattern": "短时间内通过数字钱包接收多笔资金并快速取现或转账，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字钱包在3月16日至20日密集接收多笔资金",
+        "接收资金后短时间内进行取现或转账操作",
+        "单日接收金额累计达数万元"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, cash_out_flag, transfer_time_interval"
+    },
+    {
+      "pattern": "使用他人身份开通数字钱包并交由上游控制，形成账户控制权分离",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字钱包开户人与实际控制人不一致",
+        "开户人未自行使用钱包，而是由他人指导操作",
+        "多个数字钱包可能被同一上游控制"
+      ],
+      "data_hint": "wallet_owner, controller_address, authorization_log, device_id"
+    },
+    {
+      "pattern": "上游资金通过数字钱包层层转移，最终取现或转至其他账户，切断资金追踪路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从上游账户转入数字钱包后，再转出至多个其他账户或取现",
+        "资金流转路径超过两层",
+        "取现行为发生在资金入账后短时间内"
+      ],
+      "data_hint": "transaction_flow, hop_count, cash_out_address, intermediate_addresses"
+    },
+    {
+      "pattern": "非法获利按比例分配，参与者按角色获取报酬，体现分工明确的洗钱团伙特征",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "不同参与者获得不同金额的非法报酬",
+        "报酬金额与参与程度或资金流转量相关",
+        "存在明确的利益分配记录"
+      ],
+      "data_hint": "profit_amount, participant_role, profit_distribution, transaction_amount"
+    },
+    {
+      "pattern": "使用数字人民币钱包作为洗钱工具，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用数字人民币钱包接收资金",
+        "数字钱包交易未触发传统银行风控",
+        "资金通过数字钱包快速转移或取现"
+      ],
+      "data_hint": "wallet_type, transaction_channel, risk_control_flag, digital_currency_flag"
+    },
+    {
+      "pattern": "洗钱活动集中在特定时间段（3月16日至20日），呈现短期集中作案特征",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "所有涉案交易集中在5天内",
+        "交易时间分布密集，无长期规律",
+        "作案时间与上游犯罪活动时间高度相关"
+      ],
+      "data_hint": "timestamp, transaction_date, time_cluster, event_duration"
+    },
+    {
+      "pattern": "上游资金中混入电信诈骗被害人资金，洗钱资金来源于多种犯罪类型",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字钱包接收资金中包含电信诈骗被害人转账",
+        "不同来源资金混合后统一转移",
+        "资金流向难以区分原始来源"
+      ],
+      "data_hint": "source_type, victim_flag, fund_mixing, transaction_origin"
+    }
+  ]
+}

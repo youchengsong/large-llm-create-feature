@@ -1,0 +1,122 @@
+{
+  "source": "194张某刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织者招募多人提供银行卡，在宾馆、茶楼等场所集中进行资金转移（跑分）",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内多个账户在相同IP或地理位置进行交易",
+        "多个账户资金流入后迅速分散转出至多个收款码或取现",
+        "账户交易前有小额测试交易"
+      ],
+      "data_hint": "transaction_amount, transaction_time, ip_address, location, account_id, counterparty_account"
+    },
+    {
+      "pattern": "卡主提供银行卡、手机及支付密码，并在转账过程中提供刷脸验证等帮助",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易过程中频繁出现人脸验证或银行电话验证",
+        "交易时间集中在短时间内连续操作"
+      ],
+      "data_hint": "transaction_time, authentication_method, device_id"
+    },
+    {
+      "pattern": "组织者通过加密通讯软件（如纸飞机）与上线联系，接收转账指令",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易指令通过非公开通讯渠道传递",
+        "交易模式与常规社交软件使用时间不一致"
+      ],
+      "data_hint": "communication_channel, message_timestamp, transaction_instruction"
+    },
+    {
+      "pattern": "组织者雇佣看守和司机，看护供卡人员防止逃跑或转走卡内资金，并负责接送和取现",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户交易时间高度集中",
+        "账户资金转出后短时间内有取现行为",
+        "多个账户由同一人操作或陪同"
+      ],
+      "data_hint": "transaction_time, cash_withdrawal_amount, account_operator, location"
+    },
+    {
+      "pattern": "通过熟人介绍或网吧搭讪等方式招募卡主，承诺给予转账金额一定比例的好处费",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新账户与已有可疑账户存在社交网络关联",
+        "账户注册后短时间内开始大额交易"
+      ],
+      "data_hint": "account_creation_time, social_network_links, referral_pattern"
+    },
+    {
+      "pattern": "卡主明知资金为犯罪所得（如电信诈骗、网络赌博），仍提供账户用于转移资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收资金来自多个不同受害人",
+        "资金转入后立即分散转出或取现",
+        "交易金额与卡主正常收入不匹配"
+      ],
+      "data_hint": "transaction_amount, counterparty_account, transaction_frequency, account_balance_history"
+    },
+    {
+      "pattern": "跑分过程中使用云闪付、微信或支付宝收款码进行资金转移，部分资金直接取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入后立即转至第三方支付收款码",
+        "交易记录中出现多笔小额支付至不同收款码",
+        "有取现行为且取现金额与转入金额相近"
+      ],
+      "data_hint": "transaction_type, payment_method, cash_withdrawal_amount, transaction_chain"
+    },
+    {
+      "pattern": "组织者从上线获得4.5%-8%佣金，再给卡主约4%好处费，从中赚取差价",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户资金流转中存在固定比例的佣金扣除",
+        "多个账户的佣金比例相似"
+      ],
+      "data_hint": "transaction_amount, commission_rate, fee_deduction"
+    },
+    {
+      "pattern": "卡主从外地（如江苏宜兴）自驾到九江集中参与跑分",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户交易地点与账户注册地或常住地不一致",
+        "交易时间集中在特定时间段",
+        "多个账户来自同一外地"
+      ],
+      "data_hint": "account_registration_location, transaction_location, travel_pattern, timestamp"
+    },
+    {
+      "pattern": "组织者通过小额测试交易验证银行卡是否正常后再进行大额转账",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额交易前有小额测试交易",
+        "测试交易金额较小且时间接近"
+      ],
+      "data_hint": "transaction_amount, transaction_time, test_transaction_flag"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "source": "126刘某燃帮助信息网络犯罪活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人通过出租、出借银行卡及手机卡给他人用于接收和转移非法资金，并利用数字人民币钱包和刷脸认证协助资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同地区诈骗案件的资金",
+        "账户持有人登录数字人民币钱包并进行刷脸认证以转移资金",
+        "资金转入后立即通过数字人民币钱包转出，无正常消费或沉淀"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, device_id, biometric_authentication_flag, wallet_type"
+    },
+    {
+      "pattern": "银行卡账户在单日内集中流入多笔来自不同诈骗案件的资金，总额接近整数阈值",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日流入资金总额为247000元，接近整数250000元",
+        "流入资金由3笔不同来源组成，金额分别为48000元、69000元、20000元",
+        "账户历史交易记录显示异常的大额集中转入"
+      ],
+      "data_hint": "amount, timestamp, sender_account, receiver_account, transaction_count_per_day, total_inflow_per_day"
+    },
+    {
+      "pattern": "资金来源于多个不同地域的诈骗案件，涉及跨省资金流转",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转入账户的被害人分别来自广东普宁、江苏太仓、福建厦门",
+        "所有资金在2022年10月14日同一天内转入",
+        "资金转入后迅速通过数字人民币钱包转出，无地域停留"
+      ],
+      "data_hint": "sender_location, receiver_location, transaction_timestamp, geographic_distance, cross_province_flag"
+    },
+    {
+      "pattern": "账户持有人通过介绍人（同案人）与多个不明身份人员协作，形成多层级的资金转移网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人通过同案人‘董咚咚’介绍参与",
+        "资金转移过程中涉及‘老板’及三名男子等多个角色",
+        "账户持有人仅提供银行卡和手机卡，不直接操作资金，由他人主导"
+      ],
+      "data_hint": "account_holder_id, introducer_id, collaborator_ids, role_description, network_degree"
+    },
+    {
+      "pattern": "账户持有人明知资金违法仍提供账户并协助转移，从中牟取固定比例报酬",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人获得报酬8000元，约占转移资金总额246996.82元的3.24%",
+        "报酬金额与转移资金量呈正相关",
+        "账户持有人通过刷脸认证主动配合资金转移"
+      ],
+      "data_hint": "fee_amount, transfer_amount, fee_ratio, consent_flag, authentication_events"
+    }
+  ]
+}

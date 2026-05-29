@@ -1,0 +1,80 @@
+{
+  "source": "94康某尊掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用聊天软件（如“飞机”）招募人员提供银行卡和数字人民币钱包账户用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户与已知诈骗聊天软件好友关联",
+        "账户在短时间内被用于接收和转移多笔资金",
+        "账户持有人与资金接收方无正常交易背景"
+      ],
+      "data_hint": "address, counterparty_address, chat_app_identifier, transaction_notes"
+    },
+    {
+      "pattern": "同一账户在短时间内频繁接收和转出资金，且进出金额高度匹配，呈现快进快出特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日或多日内进账金额与出账金额几乎相等",
+        "资金在账户内停留时间极短（如几分钟到几小时）",
+        "交易笔数密集，间隔时间短"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (in/out), balance_after_tx"
+    },
+    {
+      "pattern": "使用数字人民币钱包账户进行资金接收和转移，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体同时使用银行卡和数字人民币钱包接收资金",
+        "数字人民币钱包交易金额与银行卡交易金额存在关联",
+        "数字人民币钱包交易时间与银行卡交易时间重叠或连续"
+      ],
+      "data_hint": "wallet_type, wallet_address, bank_account_number, transaction_amount, timestamp"
+    },
+    {
+      "pattern": "提供账户并协助取现，将电子资金转化为现金，切断资金追踪链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金在短时间内被全部或大部分提现",
+        "提现金额与之前接收的诈骗资金金额高度匹配",
+        "提现行为发生在资金接收后不久"
+      ],
+      "data_hint": "transaction_type (withdrawal), amount, timestamp, atm_location"
+    },
+    {
+      "pattern": "账户持有者明知资金来源于诈骗犯罪，仍提供账户并获取非法利益（如固定报酬）",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有者与资金提供方存在非正常关系（如通过聊天软件结识）",
+        "账户持有者获得与交易金额不成比例的小额报酬",
+        "账户持有者无法合理解释资金来源和交易目的"
+      ],
+      "data_hint": "account_holder_profile, relationship_with_counterparty, profit_amount, transaction_purpose"
+    },
+    {
+      "pattern": "诈骗资金通过多层账户转移，最终汇集到少数账户或提现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过多个中间账户后进入目标账户",
+        "中间账户交易模式相似（如快进快出）",
+        "最终账户与初始诈骗账户无直接关联"
+      ],
+      "data_hint": "transaction_graph, hop_count, intermediate_addresses, final_address"
+    }
+  ]
+}

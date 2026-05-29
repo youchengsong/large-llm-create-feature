@@ -1,0 +1,80 @@
+{
+  "source": "136印云杰掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡接收诈骗资金并快速取现，通过现金和数字人民币转移剩余资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收大额资金后立即取现",
+        "取现金额接近但不超过接收金额（如接收8万取现6.1万）",
+        "取现后通过数字人民币转账和现金无卡存款转移剩余资金"
+      ],
+      "data_hint": "amount, transaction_type (取现/转账), timestamp, account_balance, digital_currency_transaction"
+    },
+    {
+      "pattern": "使用他人银行卡进行资金转移，并承诺给予好处费",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在非亲属关系但频繁的资金往来",
+        "账户间转账伴随固定比例的好处费支付（如6000元好处费对应8万元转账）",
+        "账户实际控制人与开户人不一致"
+      ],
+      "data_hint": "sender_address, receiver_address, transaction_amount, relationship_label, account_owner"
+    },
+    {
+      "pattern": "通过多层资金转移路径（银行卡取现、数字人民币、无卡存款）掩盖资金来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过至少3种不同转移方式（取现、数字人民币、无卡存款）",
+        "资金流向最终指向同一最终控制人（阿某）",
+        "取现与数字人民币转账时间间隔极短"
+      ],
+      "data_hint": "transaction_chain, transaction_type_sequence, timestamp, intermediate_addresses"
+    },
+    {
+      "pattern": "利用数字人民币进行资金转移以规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字人民币转账金额为整数（如19000元）",
+        "数字人民币转账发生在取现后短时间内",
+        "传统银行账户与数字人民币账户之间存在关联交易"
+      ],
+      "data_hint": "digital_currency_amount, transaction_time, bank_account_to_digital_currency_link"
+    },
+    {
+      "pattern": "使用无卡存款方式将现金存入他人账户，避免留下取款人身份信息",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "无卡存款金额为整数（如53000元）",
+        "存款账户与取现账户不同",
+        "存款行为发生在取现后短时间内"
+      ],
+      "data_hint": "deposit_method (无卡存款), deposit_amount, deposit_timestamp, deposit_account, withdrawal_account"
+    },
+    {
+      "pattern": "招募他人提供银行卡并承诺高额好处费，形成资金转移团伙",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在层级关系（如吴某招募吴某富，吴某富再招募张某）",
+        "账户间转账伴随固定比例的好处费支付",
+        "账户持有人之间无正常商业或个人往来关系"
+      ],
+      "data_hint": "account_hierarchy, referral_chain, transaction_fee_pattern, relationship_graph"
+    }
+  ]
+}

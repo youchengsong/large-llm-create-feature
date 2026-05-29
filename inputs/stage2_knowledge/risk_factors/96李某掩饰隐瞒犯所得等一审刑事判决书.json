@@ -1,0 +1,79 @@
+{
+  "source": "96李某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "开设多个数字钱包用于接收和转移不明资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下开设多个数字钱包",
+        "多个数字钱包绑定同一银行卡",
+        "数字钱包数量超过正常使用需求"
+      ],
+      "data_hint": "wallet_count, wallet_bind_card, user_id"
+    },
+    {
+      "pattern": "通过数字钱包和银行卡多层转移不明资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字钱包转入银行卡",
+        "资金从银行卡转出至其他账户",
+        "资金转移路径涉及多个账户"
+      ],
+      "data_hint": "transaction_flow, from_address, to_address, amount"
+    },
+    {
+      "pattern": "账户被冻结后注销并取出资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户被银行冻结",
+        "冻结后立即注销账户",
+        "注销后取出余额并转移至其他账户"
+      ],
+      "data_hint": "account_status, freeze_event, account_close, withdrawal_amount"
+    },
+    {
+      "pattern": "将资金分多次转给同伙",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金分多次小额转出",
+        "转出对象为同一账户",
+        "转出时间间隔短"
+      ],
+      "data_hint": "transaction_count, to_address, amount, timestamp"
+    },
+    {
+      "pattern": "明知资金来源不明仍协助转移并获利",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "接收资金与被害人被诈骗金额关联",
+        "非法获利金额固定",
+        "资金流入与流出金额不匹配"
+      ],
+      "data_hint": "incoming_amount, outgoing_amount, profit_amount, victim_related_flag"
+    },
+    {
+      "pattern": "使用多个银行账户和数字钱包分散接收不明资金",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "多个银行账户接收小额资金",
+        "资金来源分散",
+        "资金总额超过正常收入"
+      ],
+      "data_hint": "account_count, incoming_transactions, total_amount, source_diversity"
+    }
+  ]
+}

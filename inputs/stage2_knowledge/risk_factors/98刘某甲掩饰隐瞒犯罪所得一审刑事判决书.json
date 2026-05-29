@@ -1,0 +1,67 @@
+{
+  "source": "98刘某甲掩饰隐瞒犯罪所得一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过网吧厕所小广告等非正规渠道招募账户出借人，以高额提成（3%）为诱饵获取银行卡、手机及密码",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内与多个新联系人建立微信等社交关系",
+        "账户关联的社交账号存在异常广告或招募信息"
+      ],
+      "data_hint": "address, social_media_contacts, registration_channel"
+    },
+    {
+      "pattern": "出借人将手机、银行卡、取款密码、支付密码等全部交给他人，并配合人脸识别完成资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备短时间内出现多次人脸识别验证",
+        "账户登录设备频繁变更",
+        "密码修改或重置行为异常"
+      ],
+      "data_hint": "device_id, biometric_verification_log, password_change_timestamp"
+    },
+    {
+      "pattern": "涉案资金一次性接收后，通过支付宝和数字人民币两个不同渠道快速拆分转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔大额入账后立即被拆分为多笔小额转出",
+        "资金在短时间内通过两个以上不同支付渠道流出",
+        "转入和转出时间间隔极短"
+      ],
+      "data_hint": "amount, timestamp, transaction_channel, counterparty_address"
+    },
+    {
+      "pattern": "账户出借人获得固定比例提成（3%）和额外路费，属于典型的跑分或洗钱兼职模式",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户收到来自多个不同来源的固定比例佣金",
+        "佣金金额与交易金额存在线性比例关系",
+        "账户存在小额路费或补贴类收入"
+      ],
+      "data_hint": "amount, fee_percentage, transaction_memo"
+    },
+    {
+      "pattern": "出借人明知是犯罪所得仍配合转移，且使用自己的真实身份信息开立账户用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户开立后长期闲置，突然出现异常活跃交易",
+        "账户实名信息与交易行为特征不匹配",
+        "账户被用于接收来自已知诈骗地址的资金"
+      ],
+      "data_hint": "account_age, transaction_volume_change, kyc_info, blacklist_address"
+    }
+  ]
+}

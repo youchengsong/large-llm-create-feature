@@ -1,0 +1,73 @@
+{
+  "source": "267李广银刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台（如陌陌）发布兼职信息，招募人员出借银行卡用于接收和转移不明资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内绑定多个支付软件（如数字人民币、天翼支付）",
+        "账户被多个陌生设备操作"
+      ],
+      "data_hint": "device_id, app_binding_event, social_platform_interaction"
+    },
+    {
+      "pattern": "出借银行卡后，由他人操作手机在夜间时段（20时至次日凌晨1时40分）进行收款和转账",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易集中在夜间（20:00-02:00）",
+        "交易持续时间超过5小时"
+      ],
+      "data_hint": "timestamp, transaction_time, time_of_day"
+    },
+    {
+      "pattern": "接收多笔来自不同受害人的小额资金（如8499元、3000元、11820元等），总额约25万元，并迅速通过刷脸验证转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔金额多在1万元左右，总额较大",
+        "资金到账后立即通过刷脸验证转出",
+        "资金来源于多个不同账户"
+      ],
+      "data_hint": "amount, sender_address, receiver_address, face_verification_event, transaction_sequence"
+    },
+    {
+      "pattern": "使用本人银行卡绑定多个支付工具（数字人民币、天翼支付）作为资金中转通道",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一银行卡绑定超过2个支付应用",
+        "资金从银行卡流入支付工具后快速转出"
+      ],
+      "data_hint": "bank_card_id, payment_app_bindings, transaction_flow_path"
+    },
+    {
+      "pattern": "操作人员将账户持有人带至偏僻地点（巷子）进行资金操作，以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易地点为偏僻区域（如巷子）",
+        "操作地点与账户注册地不一致"
+      ],
+      "data_hint": "geo_location, ip_address, transaction_location"
+    },
+    {
+      "pattern": "账户持有人收取固定好处费（2000元现金），为他人提供银行卡和刷脸验证服务",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人收到现金或等值报酬",
+        "账户持有人与资金实际控制人无亲属或业务关系"
+      ],
+      "data_hint": "account_holder_relationship, reward_transaction, cash_withdrawal"
+    }
+  ]
+}

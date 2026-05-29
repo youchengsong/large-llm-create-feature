@@ -1,0 +1,133 @@
+{
+  "source": "104肖某通全某坡诈骗一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过租用或购买他人银行卡进行资金支付结算和取现，转移违法犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同账户的小额资金后立即取现",
+        "银行卡资金快进快出，到账后立即在ATM或柜台取现",
+        "多个银行卡由同一人控制并用于取现和转账",
+        "银行卡交易流水与持卡人身份及正常收入不匹配"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, bank_card_number, atm_withdrawal_flag, cash_amount"
+    },
+    {
+      "pattern": "通过飞机软件（Telegram）等加密通讯工具与上游犯罪分子联系，组织银行卡收购和资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用加密通讯软件（如Telegram）进行指令沟通",
+        "资金转移指令通过境外群组发布",
+        "多个账户的登录设备IP地址集中或异常"
+      ],
+      "data_hint": "communication_platform, device_ip, login_timestamp, group_chat_id"
+    },
+    {
+      "pattern": "利用他人银行卡进行‘跑分’洗钱，资金经过多层账户后取现或转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过多个不同持卡人的银行账户",
+        "每笔资金金额接近但不超过2万元（规避大额交易报告）",
+        "资金从多个来源账户汇入后迅速集中取现或转账"
+      ],
+      "data_hint": "amount, transaction_chain_depth, number_of_intermediate_accounts, cumulative_amount_per_account"
+    },
+    {
+      "pattern": "通过收购大量银行卡（‘卡农’）集中用于洗钱，每张卡支付固定报酬",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一收购人短时间内控制大量不同持卡人的银行卡",
+        "每张银行卡的报酬固定（如1300元/张）",
+        "银行卡交易流水巨大但持卡人无正常经营活动"
+      ],
+      "data_hint": "card_holder_count, card_acquisition_price, total_transaction_volume_per_card"
+    },
+    {
+      "pattern": "资金到账后立即通过ATM或柜台取现，切断资金追踪链条",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内（如几分钟内）被取现",
+        "取现地点与持卡人常住地或开户行不一致",
+        "取现金额接近但不超过2万元（规避大额交易报告）"
+      ],
+      "data_hint": "deposit_timestamp, withdrawal_timestamp, atm_location, withdrawal_amount, account_holder_location"
+    },
+    {
+      "pattern": "使用虚拟货币（如欧易APP）将取现资金转换为虚拟货币转移给上游",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "取现后资金通过虚拟货币交易平台转换为虚拟货币",
+        "虚拟货币交易记录与银行取现记录时间关联",
+        "虚拟货币流向境外地址"
+      ],
+      "data_hint": "virtual_currency_exchange_platform, exchange_timestamp, wallet_address, fiat_amount, crypto_amount"
+    },
+    {
+      "pattern": "通过社交软件（如QQ）结识上游，租用银行卡进行短期高频资金转移",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "通过QQ等社交软件与上游建立联系",
+        "银行卡租用时间短（几天至几周）",
+        "租用期间资金交易频率和金额显著高于正常水平"
+      ],
+      "data_hint": "social_media_contact, card_rental_period, transaction_frequency, transaction_volume"
+    },
+    {
+      "pattern": "利用多个银行卡进行‘分散转入、集中转出’的资金归集模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同来源的账户向同一账户转入小额资金",
+        "资金归集后短时间内集中转出或取现",
+        "转入账户数量多但单笔金额小"
+      ],
+      "data_hint": "incoming_transactions_count, incoming_amounts, outgoing_transactions_count, outgoing_amounts, aggregation_account"
+    },
+    {
+      "pattern": "使用‘小企鹅’（XSms）软件自动上传短信验证码，实现远程控制银行卡",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一设备登录多个不同持卡人的银行账户",
+        "设备上安装有短信转发或自动上传软件",
+        "银行账户登录IP地址异常集中"
+      ],
+      "data_hint": "device_id, installed_apps, sms_forwarding_log, login_ip, account_count_per_device"
+    },
+    {
+      "pattern": "通过中介（‘卡头’）层层发展下线收购银行卡，形成层级分明的收购网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡收购存在多级中介（如高某、张某6等）",
+        "每级中介抽取固定介绍费",
+        "下线人员与上线无直接联系"
+      ],
+      "data_hint": "referral_chain, intermediary_fee, card_holder_relationship_graph"
+    }
+  ]
+}

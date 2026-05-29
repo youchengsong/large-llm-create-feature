@@ -1,0 +1,57 @@
+{
+  "source": "36董某甲丁某甲等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币二维码接收诈骗资金并套现转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币账户在短时间内收到来自不同来源的汇款后立即套现",
+        "资金从数字人民币账户流向实体商户二维码，再通过套现转移给上家",
+        "账户资金流入后迅速全额或接近全额套现，无正常消费行为"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, from_address, to_address, digital_currency_type, cash_out_flag"
+    },
+    {
+      "pattern": "利用实体商户二维码作为洗钱通道",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "商户二维码接收大额或异常频次的数字人民币转账",
+        "商户账户资金流入后立即套现，与正常经营流水不符",
+        "商户与上家存在非正常商业关系的关联"
+      ],
+      "data_hint": "merchant_id, transaction_amount, transaction_frequency, counterparty_address, business_type"
+    },
+    {
+      "pattern": "上家指使下家提供账户并操作套现的层级式洗钱",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在明确的指令传递链（上家-下家）",
+        "下家账户在收到资金后短时间内将资金转移或套现给上家",
+        "下家账户与上家账户之间存在频繁的小额测试交易或大额转账"
+      ],
+      "data_hint": "account_hierarchy, instruction_channel, transaction_chain, counterparty_relationship"
+    },
+    {
+      "pattern": "电信诈骗资金通过数字人民币账户快速转移",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户在诈骗发生后的短时间内收到资金",
+        "资金从多个被害人账户集中汇入同一数字人民币账户",
+        "资金流入后立即被套现或转移，停留时间极短"
+      ],
+      "data_hint": "timestamp, amount, source_address, destination_address, transaction_delay"
+    }
+  ]
+}

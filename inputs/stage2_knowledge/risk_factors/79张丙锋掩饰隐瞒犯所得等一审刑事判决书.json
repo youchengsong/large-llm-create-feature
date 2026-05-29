@@ -1,0 +1,81 @@
+{
+  "source": "79张丙锋掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡、手机及密码给上线用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔来自不同来源的资金",
+        "资金入账后立即通过取现或数字人民币转移",
+        "账户登录设备或IP地址与历史行为不一致",
+        "账户绑定手机号或设备频繁更换"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, device_id, ip_address, account_binding_history"
+    },
+    {
+      "pattern": "通过数字人民币APP注册和设置密码进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内注册数字人民币APP并立即进行大额转账",
+        "数字人民币转账与银行卡取现操作时间接近",
+        "转账金额接近但不超过常见阈值"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, app_registration_time, transfer_method"
+    },
+    {
+      "pattern": "银行卡进账后立即取现，且取现金额接近进账总额",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内（如数小时内）被取现",
+        "取现金额占入账金额比例高（如超过80%）",
+        "取现操作发生在非营业时间或偏远地区ATM"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (deposit/withdrawal), location, atm_id"
+    },
+    {
+      "pattern": "小额资金通过数字人民币转移，规避大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币转账金额较小（如低于5000元）",
+        "多笔小额数字人民币转账在短时间内完成",
+        "数字人民币转账与银行卡取现交替进行"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, transfer_method, count_of_transactions"
+    },
+    {
+      "pattern": "提供刷脸认证协助他人操作账户，表明账户被他人控制",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录或交易时出现异常生物识别认证请求",
+        "账户操作IP地址与账户持有人常住地不符",
+        "账户持有人年龄或职业与交易模式不匹配"
+      ],
+      "data_hint": "biometric_authentication_log, ip_address, account_holder_profile, device_id"
+    },
+    {
+      "pattern": "非法获利金额远低于转移资金总额，表明为洗钱工具人",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收资金总额与账户持有人收入水平严重不符",
+        "账户持有人从交易中获得的收益极低（如低于转移金额的1%）",
+        "账户交易模式与账户持有人历史行为差异巨大"
+      ],
+      "data_hint": "amount, account_holder_income, profit_amount, transaction_history"
+    }
+  ]
+}

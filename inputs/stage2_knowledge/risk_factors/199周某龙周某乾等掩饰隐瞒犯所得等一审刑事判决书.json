@@ -1,0 +1,117 @@
+{
+  "source": "199周某龙周某乾等掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过加密聊天软件招募人员出租银行账户用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用非主流加密聊天软件（如蝙蝠APP）进行联系",
+        "账户出租方与使用方无直接关联关系",
+        "多个账户被同一控制方使用"
+      ],
+      "data_hint": "聊天记录、账户关联关系、设备指纹"
+    },
+    {
+      "pattern": "短时间内跨地域转移并集中使用多个账户进行资金接收和转移",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户从一地转移到另一地后立即被使用",
+        "多个账户在同一时间段内被激活使用",
+        "资金在短时间内通过多个账户流转"
+      ],
+      "data_hint": "timestamp, location, account_activation_time, transaction_time"
+    },
+    {
+      "pattern": "使用数字人民币等新型支付账户与传统银行账户组合进行资金接收和转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同时使用数字人民币账户和传统银行账户",
+        "账户类型多样化（微信、数字人民币、多家银行）",
+        "资金在新型支付账户和传统账户之间快速转移"
+      ],
+      "data_hint": "account_type, transaction_amount, transaction_channel"
+    },
+    {
+      "pattern": "通过刷脸认证方式开通数字人民币账户用于接收非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户开通时使用人脸识别认证",
+        "账户实际控制人与认证人非同一人",
+        "多个账户使用同一人脸认证信息"
+      ],
+      "data_hint": "authentication_method, biometric_data, account_owner"
+    },
+    {
+      "pattern": "以帮助网络赌博刷流水为名义，实际用于接收和转移诈骗资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户交易流水与声称的业务类型不匹配",
+        "资金来源于多个不同地区的受害人",
+        "资金流入后迅速被转移或取现"
+      ],
+      "data_hint": "transaction_purpose, counterparty_info, fund_source"
+    },
+    {
+      "pattern": "账户出租方获得入账总额1%的报酬，属于典型的洗钱佣金模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "报酬与入账金额成比例",
+        "报酬比例固定（如1%）",
+        "报酬金额与账户交易量正相关"
+      ],
+      "data_hint": "commission_rate, total_inflow, reward_amount"
+    },
+    {
+      "pattern": "夜间进行账户交付和使用，规避正常交易时间监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户交付发生在深夜（如23时）",
+        "交易活动集中在非工作时间",
+        "交易时间与正常商业活动时间不符"
+      ],
+      "data_hint": "transaction_timestamp, delivery_time"
+    },
+    {
+      "pattern": "同一账户接收来自多个不同地区受害人的资金，资金流向分散",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户收到来自多个不同地区的小额资金",
+        "资金来源地分散（如广西、佛山、杭州等）",
+        "单笔金额较小但累计金额较大"
+      ],
+      "data_hint": "sender_location, transaction_amount, sender_account"
+    },
+    {
+      "pattern": "账户出租方主动投案但账户已被用于大量非法交易，表明账户控制权已转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户控制权从出租方转移到使用方",
+        "出租方无法控制账户后续交易",
+        "账户交易模式在控制权转移后发生显著变化"
+      ],
+      "data_hint": "account_control_change, transaction_pattern_change"
+    }
+  ]
+}

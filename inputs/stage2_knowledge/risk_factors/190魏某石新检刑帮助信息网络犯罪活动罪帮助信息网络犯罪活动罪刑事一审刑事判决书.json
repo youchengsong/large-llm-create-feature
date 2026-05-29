@@ -1,0 +1,84 @@
+{
+  "source": "190魏某石新检刑帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡用于接收和转移非法资金，并配合人脸识别验证",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收资金后立即转出，资金停留时间极短",
+        "同一账户在短期内出现多笔快进快出交易，且转入转出金额高度匹配",
+        "交易过程中伴随数字人民币APP绑定、人脸识别等额外验证操作",
+        "账户持有人与上线陌生人见面，提供银行卡并配合转账"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, authentication_method, device_info, ip_address"
+    },
+    {
+      "pattern": "利用数字人民币钱包作为资金中转层，增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币个人钱包后再转出至上线指定账户",
+        "数字人民币钱包的创建时间与涉案交易时间高度关联",
+        "钱包内资金流转路径呈现银行卡->钱包->外部地址的典型洗钱模式"
+      ],
+      "data_hint": "wallet_creation_time, wallet_balance, transaction_chain, asset_type, amount, timestamp"
+    },
+    {
+      "pattern": "通过社交平台（微信朋友圈）招募银行卡提供者，形成多人参与的洗钱网络",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "通过微信朋友圈发布兼职信息招募银行卡提供者",
+        "多个银行卡提供者可能在同一时间段内为同一上线服务",
+        "上线与提供者线下见面交接银行卡和操作指令"
+      ],
+      "data_hint": "social_media_interaction, recruitment_channel, meeting_location, account_creation_time, ip_address"
+    },
+    {
+      "pattern": "短期内银行卡接收大额资金后迅速转出，资金快进快出特征明显",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在数天内接收多笔资金，总金额达数万元",
+        "资金到账后立即转出，转出金额与入账金额几乎一致",
+        "单日入账金额与转出金额高度匹配，资金留存率极低"
+      ],
+      "data_hint": "amount, timestamp, transaction_frequency, balance_before, balance_after, cumulative_amount"
+    },
+    {
+      "pattern": "账户持有人与上线陌生人线下见面，提供银行卡并配合操作",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与上线陌生人约定地点见面",
+        "见面后立即进行银行卡绑定、数字人民币APP下载等操作",
+        "操作过程中上线在场指导或直接控制账户"
+      ],
+      "data_hint": "location, device_id, ip_address, account_activity_log, meeting_time"
+    },
+    {
+      "pattern": "同一银行卡被多次用于接收和转移非法资金，且每次操作模式一致",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一银行卡在相隔数天后再次被用于接收和转出资金",
+        "两次操作均涉及人脸识别验证和密码输入",
+        "两次操作中资金均来自不同来源但最终流向相似地址"
+      ],
+      "data_hint": "transaction_history, authentication_log, counterparty_address, amount, timestamp"
+    }
+  ]
+}

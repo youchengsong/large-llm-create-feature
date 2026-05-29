@@ -1,0 +1,74 @@
+{
+  "source": "128罗某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自多个不同受害人的转账",
+        "账户资金流入后迅速通过转账或取现方式流出"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, transaction_count"
+    },
+    {
+      "pattern": "通过ATM机取现方式将犯罪所得资金转换为现金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在收到资金后短时间内进行ATM取现操作",
+        "取现金额接近但不超过大额交易报告阈值（如1万元）",
+        "取现行为发生在资金入账后数小时内"
+      ],
+      "data_hint": "transaction_type (ATM withdrawal), amount, timestamp"
+    },
+    {
+      "pattern": "配合使用数字人民币刷脸转账，规避传统转账监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用数字人民币刷脸认证方式进行转账",
+        "转账操作由账户持有人本人配合完成"
+      ],
+      "data_hint": "authentication_method (face recognition), transaction_type (digital yuan transfer), amount"
+    },
+    {
+      "pattern": "账户短时间内资金快进快出，呈现洗钱特征",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金在入账后数小时内被转移或取现",
+        "账户余额在交易后迅速归零或接近零"
+      ],
+      "data_hint": "inflow_time, outflow_time, balance_after_transaction"
+    },
+    {
+      "pattern": "同一账户同时使用多张银行卡和手机设备协助资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个银行账户接收和转移资金",
+        "多个账户关联同一手机号码或设备ID"
+      ],
+      "data_hint": "account_id, device_id, phone_number"
+    },
+    {
+      "pattern": "账户持有人明知资金来源非法仍提供账户协助转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与多个已知涉案账户存在交易",
+        "账户持有人有异常行为记录（如被公安机关调查）"
+      ],
+      "data_hint": "account_holder_risk_score, related_case_ids"
+    }
+  ]
+}

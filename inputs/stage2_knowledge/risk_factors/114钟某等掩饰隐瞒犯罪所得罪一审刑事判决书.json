@@ -1,0 +1,69 @@
+{
+  "source": "114钟某等掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包接收诈骗资金并快速转移至银行账户取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "接收数字人民币钱包转账后立即转移至银行账户",
+        "单笔转账金额为5000元（规避大额交易报告门槛）",
+        "资金在短时间内完成接收、转移和取现"
+      ],
+      "data_hint": "wallet_transaction (amount, from_address, to_address, timestamp), bank_account_transaction (amount, timestamp), cash_withdrawal (amount, timestamp, location)"
+    },
+    {
+      "pattern": "通过ATM机无折现金取款方式提取犯罪所得",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "取现方式为无折现金取款或ATM取现",
+        "取现金额与接收金额一致（5000元）",
+        "取现地点为银行网点或ATM机"
+      ],
+      "data_hint": "cash_withdrawal (amount, method, timestamp, location), bank_account_transaction (amount, timestamp)"
+    },
+    {
+      "pattern": "提供本人银行账户作为资金中转站接收并转移犯罪所得",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内接收来自多个不同来源的转账",
+        "资金进入后立即转出或取现",
+        "账户被用于接收不同诈骗案件的资金"
+      ],
+      "data_hint": "bank_account_transaction (from_address, to_address, amount, timestamp), account_relationship_graph"
+    },
+    {
+      "pattern": "利用多个数字人民币钱包进行资金归集和分散转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个数字人民币钱包向同一目标钱包转账",
+        "转账金额均为5000元",
+        "不同钱包的转账时间接近"
+      ],
+      "data_hint": "wallet_transaction (from_address, to_address, amount, timestamp), wallet_cluster_analysis"
+    },
+    {
+      "pattern": "诈骗资金通过数字人民币钱包和银行账户多层转移后取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金路径：数字人民币钱包A→数字人民币钱包B→银行账户→现金",
+        "资金经过至少3个层级",
+        "每层转移时间间隔短"
+      ],
+      "data_hint": "transaction_chain (addresses, amounts, timestamps), flow_path_analysis"
+    }
+  ]
+}

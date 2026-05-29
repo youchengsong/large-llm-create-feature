@@ -1,0 +1,120 @@
+{
+  "source": "12某某彭某某等掩饰隐瞒犯罪所得犯罪所得收益罪帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事二审刑事...",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡接收网络犯罪资金，并通过取现、转账等方式转移资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收多笔来自不同来源的资金后立即取现或转账",
+        "单张银行卡单日或多日连续接收资金后迅速通过ATM取现或微信/支付宝转出",
+        "资金到账后短时间内（如几分钟内）被取现或转出至其他账户"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, from_address, to_address, bank_card_id, atm_withdrawal_flag"
+    },
+    {
+      "pattern": "通过多层银行卡转账和取现，分散资金流向以规避监管",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从上游账户转入后，经过多个中间人银行卡转账后再取现或转存",
+        "同一笔资金在多个不同银行账户间快速流转，最终通过ATM取现或无卡转存至指定账户",
+        "多个银行卡账户由不同人员控制，但资金流向具有共同终点"
+      ],
+      "data_hint": "transaction_chain, intermediate_addresses, final_destination, bank_card_owner_ids, transaction_timestamps"
+    },
+    {
+      "pattern": "利用他人银行卡进行跑分操作，通过介绍多人提供账户扩大资金转移规模",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人介绍多个不同人员提供银行卡，且这些银行卡均用于接收和转移类似来源的资金",
+        "多个银行卡账户的登录IP、设备信息或操作时间存在重叠或关联",
+        "多个账户的资金最终流向同一控制人或同一目标账户"
+      ],
+      "data_hint": "introducer_id, account_owner_ids, login_ip, device_id, shared_target_address"
+    },
+    {
+      "pattern": "资金到账后立即通过ATM取现，规避电子转账追踪",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内（如1小时内）在ATM机上取现",
+        "取现金额接近ATM单次限额或整数金额（如5000元、10000元、20000元）",
+        "取现行为发生在非正常营业时间或偏远地点"
+      ],
+      "data_hint": "amount, timestamp, atm_location, withdrawal_time, deposit_time_diff"
+    },
+    {
+      "pattern": "通过微信、支付宝等第三方支付平台转账，将银行卡资金快速转移至上游控制人",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡收到资金后，通过微信或支付宝转账至特定账户，金额与入账金额高度匹配",
+        "微信/支付宝转账记录显示频繁向同一收款方转账，且转账金额较大",
+        "转账行为与银行卡入账时间紧密关联，间隔极短"
+      ],
+      "data_hint": "payment_platform, transfer_amount, receiver_account, transaction_time, bank_deposit_time"
+    },
+    {
+      "pattern": "使用数字人民币等新型支付工具转移资金，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入后，通过数字人民币钱包转出至其他账户",
+        "数字人民币交易记录显示资金快速流转，且与上游犯罪资金入账时间吻合",
+        "数字人民币钱包的注册信息与银行卡持有人信息一致或存在关联"
+      ],
+      "data_hint": "digital_currency_wallet_id, transaction_type, amount, timestamp, linked_bank_account"
+    },
+    {
+      "pattern": "多人协作完成资金转移，包括开车陪同取现、刷脸转账等分工",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一笔资金转移过程中，涉及多人同时操作（如一人取现、一人转账）",
+        "取现或转账操作需要生物识别（如刷脸），且操作人与账户持有人非同一人",
+        "多个账户在相近时间、相近地点发生取现或转账行为"
+      ],
+      "data_hint": "operation_type, biometric_authentication, operator_id, account_holder_id, location, timestamp"
+    },
+    {
+      "pattern": "资金接收后通过多账户内部转账再取现，形成资金混同",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从外部账户转入后，先在同一人名下不同银行账户间转账，再取现或转出",
+        "内部转账金额与外部入账金额存在部分匹配，且取现金额接近内部转账金额",
+        "多个账户间转账时间间隔极短，形成快速资金循环"
+      ],
+      "data_hint": "from_account, to_account, same_owner_flag, internal_transfer_amount, withdrawal_amount, timestamps"
+    },
+    {
+      "pattern": "利用他人银行卡接收资金后，通过微信转账和ATM取现组合方式转移，规避大额交易报告",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔入账资金被拆分为微信转账和ATM取现两部分，金额均低于大额交易报告阈值",
+        "微信转账金额和ATM取现金额之和等于入账金额，且拆分比例随机",
+        "同一账户在短时间内多次进行此类拆分操作"
+      ],
+      "data_hint": "incoming_amount, wechat_transfer_amount, atm_withdrawal_amount, transaction_time, split_flag"
+    }
+  ]
+}

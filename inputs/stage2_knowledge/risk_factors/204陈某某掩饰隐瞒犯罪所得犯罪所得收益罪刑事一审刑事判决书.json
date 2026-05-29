@@ -1,0 +1,56 @@
+{
+  "source": "204陈某某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡接收并转移网络犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内接收多笔来自不同受害人的资金",
+        "资金在接收后立即通过数字人民币APP转移",
+        "使用人脸识别认证进行资金转移操作"
+      ],
+      "data_hint": "amount, from_address, to_address, timestamp, transaction_type, authentication_method"
+    },
+    {
+      "pattern": "利用数字人民币APP进行资金转移以规避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包后快速转出",
+        "数字人民币交易频率异常高",
+        "交易金额与受害人被骗金额匹配"
+      ],
+      "data_hint": "amount, timestamp, wallet_address, transaction_type, app_usage_log"
+    },
+    {
+      "pattern": "短时间内集中接收多笔来自不同受害人的诈骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "在2天内接收5笔以上来自不同账户的资金",
+        "单笔金额较小但累计金额较大",
+        "资金到账时间间隔短"
+      ],
+      "data_hint": "amount, from_address, timestamp, transaction_count, cumulative_amount"
+    },
+    {
+      "pattern": "使用他人银行卡或账户接收犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与交易对手无历史关联",
+        "账户被用于接收不明来源资金",
+        "多个账户由同一人控制"
+      ],
+      "data_hint": "account_holder_id, counterparty_id, transaction_history, device_id"
+    }
+  ]
+}

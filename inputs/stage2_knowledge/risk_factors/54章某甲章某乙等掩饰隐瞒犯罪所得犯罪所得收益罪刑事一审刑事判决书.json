@@ -1,0 +1,154 @@
+{
+  "source": "54章某甲章某乙等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行卡接收犯罪资金并立即取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内收到大额资金后立即通过ATM或柜台取现",
+        "取现金额接近或等于入账金额",
+        "取现后账户余额接近零"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, balance_after, account_id"
+    },
+    {
+      "pattern": "使用他人银行卡（包括亲属）进行资金转移和取现",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一IP或设备登录多个不同账户",
+        "多个账户之间存在亲属或社交关系",
+        "账户间资金快速流转后取现"
+      ],
+      "data_hint": "account_id, device_id, ip_address, relationship_graph, transaction_log"
+    },
+    {
+      "pattern": "通过数字人民币和微信零钱通等渠道快速转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后立即通过数字人民币兑出",
+        "通过微信零钱通多次提现至其他账户或二维码",
+        "资金在多个电子钱包间快速流转"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, wallet_address, qr_code_target"
+    },
+    {
+      "pattern": "利用国外聊天软件（如飞机、英文字母聊天软件）联系上家并指挥取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用加密或境外通讯软件协调交易",
+        "取现指令与入账时间高度同步",
+        "取现人员与上家无直接物理接触"
+      ],
+      "data_hint": "communication_channel, message_timestamp, transaction_timestamp, device_id"
+    },
+    {
+      "pattern": "银行卡在接收诈骗资金后短时间内被冻结",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在接收资金后数小时内或次日被冻结",
+        "冻结前有完整的接收-取现操作链",
+        "多个关联账户同时或先后被冻结"
+      ],
+      "data_hint": "account_status, freeze_timestamp, transaction_timestamp, account_id"
+    },
+    {
+      "pattern": "通过试卡操作（小额转账提现）验证银行卡可用性后再进行大额交易",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在大额交易前先进行小额转账或提现测试",
+        "测试金额通常为1-5元",
+        "测试成功后立即进行大额资金操作"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, account_id, test_transaction_flag"
+    },
+    {
+      "pattern": "资金经过多层账户（一级卡、二级卡）后最终取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从一级卡（如被害人账户）转入中间账户，再转入取现账户",
+        "资金流转路径涉及多个不同持有人账户",
+        "最终取现账户与上游账户无直接关联"
+      ],
+      "data_hint": "transaction_chain, account_holder, amount, timestamp, hop_count"
+    },
+    {
+      "pattern": "取现行为多发生在夜间或非工作时间",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在深夜（如00:44、23:49）",
+        "取现时间与正常营业时间不符",
+        "多次取现发生在凌晨时段"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_type, account_id"
+    },
+    {
+      "pattern": "同一账户在短时间内接收多笔来自不同被害人的资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在数小时内接收多笔来自不同账户的转账",
+        "每笔金额不等但总和较大",
+        "资金来源账户涉及不同地区或不同案件"
+      ],
+      "data_hint": "sender_account, receiver_account, amount, timestamp, case_id"
+    },
+    {
+      "pattern": "取现时采用分笔操作以规避单笔限额或监控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "大额资金被拆分为多笔接近限额的取现（如每次5000元）",
+        "取现时间间隔极短",
+        "取现方式包括ATM和柜台混合使用"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, atm_location, withdrawal_count"
+    },
+    {
+      "pattern": "使用非本人名下银行卡进行资金转移，且提供者明知资金为犯罪所得",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与操作人非同一人",
+        "操作人使用他人银行卡进行取现",
+        "账户持有人与操作人之间存在利益分成关系"
+      ],
+      "data_hint": "account_holder, operator_id, relationship, profit_sharing_ratio"
+    },
+    {
+      "pattern": "取现后现金立即交接给上家，不留存于取现人手中",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "取现后短时间内现金被转移给第三方",
+        "取现人与上家约定地点交接现金",
+        "交接后取现人账户无大额现金存入"
+      ],
+      "data_hint": "withdrawal_location, handover_location, timestamp, cash_flow"
+    }
+  ]
+}

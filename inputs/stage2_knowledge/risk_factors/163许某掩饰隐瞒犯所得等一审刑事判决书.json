@@ -1,0 +1,69 @@
+{
+  "source": "163许某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机、数字人民币APP及密码给他人用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的转账",
+        "资金从多个来源账户快速转入后立即转出至其他账户",
+        "账户绑定数字人民币APP并共享密码给第三方使用"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, app_type, password_sharing_indicator"
+    },
+    {
+      "pattern": "多层级资金转移：从黄某银行卡转入郭某银行卡，再转移至其他账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金经过至少2层以上账户转移",
+        "每层转账金额接近或等于上一笔入账金额",
+        "资金在短时间内（如数小时内）完成多层转移"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain_depth"
+    },
+    {
+      "pattern": "使用多个不同银行的银行卡进行资金转移",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人持有并同时使用6张以上不同银行的银行卡",
+        "各银行卡之间频繁互转资金",
+        "每张银行卡交易金额较小但总金额较大"
+      ],
+      "data_hint": "bank_name, account_id, owner_id, transaction_amount, transaction_frequency"
+    },
+    {
+      "pattern": "团伙成员分工协作：时某组织，郭某介绍并参与，黄某提供银行卡",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在介绍、组织等社交关系",
+        "不同账户的IP地址或设备指纹相同或相近",
+        "账户之间资金流转路径呈现星型或链式结构"
+      ],
+      "data_hint": "account_relationship_graph, ip_address, device_id, social_network_edges"
+    },
+    {
+      "pattern": "资金来源于多个电信诈骗受害人，快速汇集后转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "短时间内（如数天）从多个不同来源地址接收资金",
+        "资金来源地址数量远多于正常个人账户",
+        "资金入账后立即转出，账户余额保持极低"
+      ],
+      "data_hint": "incoming_transaction_count, unique_sender_count, amount, timestamp, account_balance_after_transaction"
+    }
+  ]
+}

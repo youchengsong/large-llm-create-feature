@@ -1,0 +1,68 @@
+{
+  "source": "266黎上廷邹潇风掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户和手机给上线，配合刷脸协助转移犯罪所得资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如1小时内）收到一笔大额资金后立即分批转出",
+        "账户在收到资金前后余额接近零（如0.95元），仅保留少量余额（如1073.95元）",
+        "账户在单日内有大量转入转出交易，且交易时间集中在短时间内",
+        "账户持有人配合上线进行刷脸认证操作，涉及数字人民币APP的下载和使用"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_count, app_usage_log, biometric_authentication_log"
+    },
+    {
+      "pattern": "通过兼职微信群等渠道招募账户提供者，形成资金转移链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人通过社交群组（如微信兼职群）与上线联系",
+        "多个账户可能由同一上线控制，形成资金归集或分散网络",
+        "账户持有人与上线之间无正常业务或社交关系"
+      ],
+      "data_hint": "address_relation_graph, social_media_contacts, group_membership"
+    },
+    {
+      "pattern": "账户在短时间内（如1小时内）接收大额资金后迅速分散转出，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单笔入账金额较大（如10万元），且入账后短时间内（如43分钟内）分多笔转出",
+        "账户在入账前余额极低（如0.95元），入账后立即转出大部分资金",
+        "交易时间集中在特定时段（如13:48至14:31）"
+      ],
+      "data_hint": "amount, timestamp, transaction_interval, balance_before, balance_after"
+    },
+    {
+      "pattern": "账户持有人明知资金为犯罪所得仍提供账户并协助转移，属于典型的“跑分”洗钱模式",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人通过刷脸等身份验证方式协助转账",
+        "账户交易模式异常：入账后立即转出，且转出金额与入账金额高度匹配（如10万转入后转出近10万）",
+        "账户持有人非法获利比例较低（如1073元/10万元≈1.07%）"
+      ],
+      "data_hint": "transaction_sequence, authentication_method, profit_amount, profit_ratio"
+    },
+    {
+      "pattern": "账户在短时间内（如1小时内）交易频次激增，且交易对手分散",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如43分钟内）发生多笔转出交易（如5笔以上）",
+        "转出交易对手地址可能为多个不同账户",
+        "单笔转出金额可能为整数或接近整数（如2万元）"
+      ],
+      "data_hint": "transaction_count_per_hour, counterparty_count, amount_roundness"
+    }
+  ]
+}

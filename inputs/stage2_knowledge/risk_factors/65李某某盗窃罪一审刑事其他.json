@@ -1,0 +1,69 @@
+{
+  "source": "65李某某盗窃罪一审刑事其他",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合刷脸转账，帮助转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收多笔来自不同来源的资金",
+        "资金到账后立即通过数字人民币、手机银行、云闪付、微信转账及ATM取现等多种方式转出",
+        "账户持有人配合刷脸验证完成转账操作",
+        "账户持有人收取按转账流水比例计算的报酬"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, counterparty_address, authentication_method, fee_amount"
+    },
+    {
+      "pattern": "明知资金来源于网络赌场仍参与资金转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金在短时间内集中转入（如14.8万元在一天内转入）",
+        "转入资金来自不同地域的诈骗案件受害人",
+        "资金转入后迅速分散转出至多个渠道"
+      ],
+      "data_hint": "amount, timestamp, sender_region, receiver_region, transaction_channel"
+    },
+    {
+      "pattern": "使用个人银行卡作为洗钱通道，资金快速进出不留余额",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡余额在资金转入后迅速归零",
+        "单日累计转入金额较大（14.8万元）",
+        "资金转入与转出时间间隔极短"
+      ],
+      "data_hint": "amount, balance_after_transaction, timestamp, transaction_interval"
+    },
+    {
+      "pattern": "通过多种转账渠道分散资金，规避单一渠道监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户同时使用数字人民币、手机银行、云闪付、微信转账和ATM取现",
+        "资金被拆分为多笔小额交易转出",
+        "转账目标地址分散且数量多"
+      ],
+      "data_hint": "transaction_type, amount, counterparty_address, transaction_count"
+    },
+    {
+      "pattern": "账户持有人主动提供银行卡和密码，并配合操作，形成人卡分离的洗钱模式",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡、手机、身份证同时交由他人控制",
+        "账户登录IP或设备与持有人日常使用不一致",
+        "转账操作由他人进行，持有人仅配合刷脸"
+      ],
+      "data_hint": "device_id, ip_address, login_location, authentication_event"
+    }
+  ]
+}

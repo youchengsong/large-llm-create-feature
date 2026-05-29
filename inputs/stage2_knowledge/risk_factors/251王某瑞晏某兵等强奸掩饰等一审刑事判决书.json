@@ -1,0 +1,66 @@
+{
+  "source": "251王某瑞晏某兵等强奸掩饰等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用个人数字人民币钱包和支付宝账户为他人转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短期内为多个不同来源的受害人资金提供转账",
+        "账户同时使用数字人民币钱包和支付宝两种支付工具进行资金转移",
+        "账户与已知犯罪人员（赵某甲）存在资金往来"
+      ],
+      "data_hint": "address, wallet_id, account_id, counterparty_address, transaction_count, victim_count"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍提供转账服务，形成资金清洗链条",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个受害人账户流入同一中间账户",
+        "中间账户在短时间内将资金转出至其他账户",
+        "资金流转路径呈现‘多对一’再‘一对多’的分散聚合模式"
+      ],
+      "data_hint": "transaction_flow, amount, timestamp, sender_address, receiver_address, hop_count"
+    },
+    {
+      "pattern": "利用第三方支付结算账户进行小额多笔资金转移以规避监管",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔转账金额较小，但总金额较大（63827元）",
+        "交易频次高，涉及34起案件",
+        "资金分散转入后集中转出"
+      ],
+      "data_hint": "amount, transaction_count, total_amount, frequency, time_window"
+    },
+    {
+      "pattern": "犯罪资金来源于不同地域的受害人，呈现跨地域资金汇集特征",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "受害人来自多个不同地区（王某乙、邓某、王某丙等34人）",
+        "资金从不同地域账户汇入同一中间账户",
+        "资金转移时间集中在2024年4月至5月"
+      ],
+      "data_hint": "victim_location, sender_region, timestamp, transaction_date"
+    },
+    {
+      "pattern": "被告人使用本人实名账户为他人转移犯罪资金，构成账户出借/出租行为",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户实名注册人与实际使用人不一致",
+        "账户在短时间内出现异常大额或高频交易",
+        "账户与多个无正常业务往来的账户发生交易"
+      ],
+      "data_hint": "account_owner, actual_user, transaction_behavior_change, counterparty_relationship"
+    }
+  ]
+}

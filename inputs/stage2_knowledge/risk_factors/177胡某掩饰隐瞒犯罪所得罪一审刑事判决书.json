@@ -1,0 +1,119 @@
+{
+  "source": "177胡某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分洗钱团伙通过发展下线介绍卡主提供银行卡进行资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一团伙成员控制多个银行卡账户",
+        "卡主之间存在介绍关系链",
+        "多个账户在同一时间段内被同一操作手使用"
+      ],
+      "data_hint": "address, account_holder, transaction_time, counterparty_address"
+    },
+    {
+      "pattern": "卡主在操作手陪同下前往银行柜台取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内收到多笔转入后立即进行大额取现",
+        "取现行为发生在操作手陪同场景下"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, location, account_holder"
+    },
+    {
+      "pattern": "操作手在卡主手机上安装多种支付和银行APP用于资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一设备上安装多个支付类APP（如数字人民币、京东金融、云闪付）",
+        "设备与多个银行卡账户关联"
+      ],
+      "data_hint": "device_id, installed_apps, account_holder"
+    },
+    {
+      "pattern": "团伙成员在转账操作时进行望风和看管卡主",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一地点出现多个无关人员同时操作",
+        "转账期间卡主手机被他人控制"
+      ],
+      "data_hint": "location, device_id, transaction_time, ip_address"
+    },
+    {
+      "pattern": "卡主在短时间内收到多笔小额测试交易后出现大额资金流入",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内收到多笔小额转账（如几元到几十元）",
+        "随后出现多笔大额资金流入（数万元）",
+        "资金快进快出，停留时间短"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, balance"
+    },
+    {
+      "pattern": "多个卡主账户在相近时间段内收到来自不同来源的资金并集中转出",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个账户在数天内集中发生大额资金流入和转出",
+        "资金流入时间集中在同一日期",
+        "资金转出至多个不同账户"
+      ],
+      "data_hint": "timestamp, amount, from_address, to_address, account_holder"
+    },
+    {
+      "pattern": "团伙通过介绍人层层发展下线卡主形成金字塔式资金网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "卡主之间形成多层介绍关系（如徐某介绍汪某，汪某介绍刘某3）",
+        "介绍人获得报酬",
+        "资金通过多个层级账户流转"
+      ],
+      "data_hint": "account_holder, relationship_graph, referral_chain, transaction_path"
+    },
+    {
+      "pattern": "卡主账户中混入电信诈骗赃款与正常资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户中部分资金被标记为电信诈骗赃款",
+        "赃款占比不一（如汪某账户50000元赃款占总结算113416.83元的44%）"
+      ],
+      "data_hint": "amount, fraud_flag, transaction_type, counterparty"
+    },
+    {
+      "pattern": "团伙跨地域活动（合肥、寿县两地）进行跑分洗钱",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "团伙成员在不同城市之间移动",
+        "交易IP地址或取现地点跨市变化"
+      ],
+      "data_hint": "location, ip_address, timestamp, account_holder"
+    },
+    {
+      "pattern": "团伙成员分工明确，包括操作手、介绍人、望风者、取款人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一团伙中不同人员担任不同角色",
+        "角色之间资金往来频繁"
+      ],
+      "data_hint": "account_holder, role, transaction_pattern, communication_records"
+    }
+  ]
+}

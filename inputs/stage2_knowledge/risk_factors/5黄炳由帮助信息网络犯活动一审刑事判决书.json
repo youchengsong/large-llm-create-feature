@@ -1,0 +1,109 @@
+{
+  "source": "5黄炳由帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡给他人用于接收和转移犯罪资金，并协助取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同来源的转账",
+        "资金到账后立即通过ATM或柜台取现",
+        "取现金额接近但不超过大额交易报告阈值（如5万元）",
+        "多张银行卡在同一时间段内被用于接收和取现"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, transaction_type (deposit/withdrawal), bank_card_number"
+    },
+    {
+      "pattern": "利用他人银行卡进行资金归集和分散取现，以规避监管",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个不同来源汇入同一账户后，被快速分多次小额取现",
+        "取现操作在多个不同银行网点进行",
+        "取现金额呈现整数或接近整数特征（如3000、5000、10000元）"
+      ],
+      "data_hint": "amount, timestamp, location (bank_branch), transaction_type, from_address, to_address"
+    },
+    {
+      "pattern": "使用数字人民币进行资金转移，以规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户同时涉及传统银行转账和数字人民币支出",
+        "数字人民币支出金额为整数（如5000、4900元）",
+        "数字人民币支出与ATM取现交替进行"
+      ],
+      "data_hint": "transaction_type (digital_currency/ATM/transfer), amount, timestamp"
+    },
+    {
+      "pattern": "短时间内通过多张银行卡进行频繁的存取款操作",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在数小时内发生多次存取款交易",
+        "交易时间集中在白天或特定时段",
+        "交易频率显著高于正常个人账户"
+      ],
+      "data_hint": "timestamp, transaction_count_per_hour, bank_card_number, amount"
+    },
+    {
+      "pattern": "通过网约车接送和陌生人接头，进行线下资金交接",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人在非居住地或非工作地点的银行网点进行取现",
+        "取现后现金被立即交给第三方",
+        "账户持有人与多个不同人员（如司机、操作员）在短时间内接触"
+      ],
+      "data_hint": "location (bank_branch), timestamp, transaction_type, associated_entities (e.g., driver, operator)"
+    },
+    {
+      "pattern": "账户被用于接收电信诈骗资金，资金快速转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收到来自陌生人的大额转账（如38500元）后，立即被取现",
+        "取现金额与入账金额高度匹配",
+        "账户在收到资金前有测试性小额转账（如小额转账测试账户可用性）"
+      ],
+      "data_hint": "amount, timestamp, from_address (unknown), transaction_type, test_transaction_flag"
+    },
+    {
+      "pattern": "同一控制人使用多张银行卡进行洗钱，形成银行卡集群",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证下多张银行卡在同一时间段内活跃",
+        "多张银行卡的收付款模式相似（如均接收来自不同人的资金后取现）",
+        "多张银行卡的开户行分布在不同城市"
+      ],
+      "data_hint": "identity_document_number, bank_card_number, account_opening_location, transaction_pattern"
+    },
+    {
+      "pattern": "利用信用卡代还业务进行资金清洗",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "信用卡账户收到一笔还款后，立即被大额消费或取现",
+        "还款金额与消费金额接近，且消费后账户余额接近零",
+        "代还操作涉及第三方支付工具"
+      ],
+      "data_hint": "transaction_type (credit_card_repayment/purchase/withdrawal), amount, timestamp, merchant_category"
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "source": "217苏某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用本人及他人名下银行卡接收赃款，再通过数字人民币平台、吉林亿联银行等支付工具进行资金分流转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金在短时间内从银行卡转入数字人民币平台或特定银行账户",
+        "资金经过至少两层账户转移（如银行卡→数字人民币/银行→其他账户）",
+        "多笔小额资金汇入后快速转出"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_type, platform_type"
+    },
+    {
+      "pattern": "按转账金额比例提成（每转1万元提成300元或150元），吸引人员参与跑分转账",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户交易金额与提成比例匹配，如频繁出现接近10000元倍数的转账",
+        "同一账户接收多笔小额资金后集中转出，金额呈整数倍关系"
+      ],
+      "data_hint": "amount, transaction_count, fee_ratio, account_balance_changes"
+    },
+    {
+      "pattern": "通过蝙蝠等匿名社交软件联系上线，安排跑分活动，形成层级式洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一人操作或关联同一上线",
+        "账户之间存在介绍关系（如丁泽宇介绍胡晨晨）",
+        "上线与跑分人员之间使用匿名通讯工具联系"
+      ],
+      "data_hint": "account_relation_graph, communication_channel, referral_chain, ip_address"
+    },
+    {
+      "pattern": "跑分人员携带银行卡前往异地（如从外地到洛阳伊川县）进行转账操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录或交易IP地址与开户地不一致",
+        "短时间内账户在异地出现大额交易",
+        "多个账户在同一地理位置（如伊川县）集中操作"
+      ],
+      "data_hint": "ip_address, geolocation, transaction_timestamp, account_registration_location"
+    },
+    {
+      "pattern": "租借多张银行卡给他人用于跑分转账，按转账金额获利（每转1万获利150元）",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一自然人名下多张银行卡被同一设备或IP操作",
+        "银行卡出借人与操作人之间无正常交易往来",
+        "出借账户在短时间内接收大量不同来源资金"
+      ],
+      "data_hint": "account_owner, device_id, ip_address, transaction_counterparty"
+    },
+    {
+      "pattern": "利用数字人民币平台进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包",
+        "数字人民币钱包资金快速转出至其他账户",
+        "数字人民币交易频率和金额异常"
+      ],
+      "data_hint": "transaction_type, platform_type, wallet_address, amount, timestamp"
+    },
+    {
+      "pattern": "跑分活动中，上线安排专人操作他人银行卡，并支付固定日薪（如每天1000元）",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "操作人账户收到固定金额的日薪转账",
+        "操作人同时控制多个银行卡账户",
+        "操作人账户交易时间集中在特定时段"
+      ],
+      "data_hint": "salary_transaction, account_control_count, transaction_time_pattern"
+    },
+    {
+      "pattern": "介绍他人参与跑分，并按转账金额抽取提成（每转1万元提成130元），形成多层代理结构",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "介绍人账户与跑分人员账户之间存在资金往来（提成）",
+        "介绍人账户接收多个下线账户的提成转账",
+        "提成金额与下线转账总额成比例"
+      ],
+      "data_hint": "referral_commission, account_relation, amount, transaction_frequency"
+    }
+  ]
+}

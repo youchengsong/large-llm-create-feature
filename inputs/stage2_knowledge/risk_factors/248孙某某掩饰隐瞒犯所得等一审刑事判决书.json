@@ -1,0 +1,93 @@
+{
+  "source": "248孙某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙共同出资提供多张银行卡接收赃款，并购买USDT虚拟货币返还上线，从中赚取差价",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一团伙控制多张银行卡接收资金",
+        "资金流入后迅速用于购买USDT虚拟货币",
+        "购买USDT后转出至上线地址",
+        "低买高卖赚取差价"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, token_type, timestamp, bank_card_number, exchange_platform"
+    },
+    {
+      "pattern": "团伙成员分工明确，有人对接上线、有人操作买卖U币、有人负责取现，并按固定比例分成",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户间存在固定比例的资金流转",
+        "不同账户执行不同操作（接收、取现、购币）",
+        "资金在多个账户间快速转移"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, role_tag, profit_ratio"
+    },
+    {
+      "pattern": "使用本人及介绍他人提供银行卡接收上游诈骗资金，形成多层级银行卡网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人控制多张银行卡",
+        "介绍他人提供银行卡形成层级关系",
+        "多张银行卡接收来自不同被害人的资金"
+      ],
+      "data_hint": "bank_card_number, account_holder, introducer_id, victim_id, transaction_amount"
+    },
+    {
+      "pattern": "接收资金后立即取现或转账，加速资金转移以逃避追踪",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内被取现或转账",
+        "取现金额接近但不超过大额报告阈值",
+        "频繁的小额取现操作"
+      ],
+      "data_hint": "transaction_id, amount, timestamp, cash_withdrawal_flag, bank_card_number"
+    },
+    {
+      "pattern": "涉案银行卡流水与查实诈骗资金比例悬殊，存在大量不明资金流转",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡总流水远大于查实的诈骗资金",
+        "存在大量小额分散的转入转出交易",
+        "资金在多个账户间循环流转"
+      ],
+      "data_hint": "total_flow_amount, verified_fraud_amount, transaction_count, average_transaction_amount"
+    },
+    {
+      "pattern": "团伙成员使用数字人民币钱包接收和转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包接收资金后迅速转出",
+        "数字人民币钱包与银行卡账户之间存在资金往来"
+      ],
+      "data_hint": "wallet_address, transaction_id, amount, timestamp, wallet_type"
+    },
+    {
+      "pattern": "团伙成员在短时间内集中开立或使用多张银行卡用于接收赃款",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人在短时间内开立多张银行卡",
+        "多张银行卡在相近时间段内开始接收资金",
+        "银行卡开户地集中"
+      ],
+      "data_hint": "bank_card_number, account_open_date, first_transaction_date, account_holder, location"
+    }
+  ]
+}

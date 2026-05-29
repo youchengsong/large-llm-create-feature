@@ -1,0 +1,80 @@
+{
+  "source": "211江某冯某等帮助信息网络犯活动掩饰等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙利用银行卡进行‘跑分’洗钱，通过‘纸飞机’软件与上线联系，将非法资金快速转入转出",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内多笔小额资金从不同账户汇入同一银行卡后迅速通过支付宝扫码或数字人民币转出",
+        "资金在多个账户间快速流转，形成多层转移路径",
+        "使用加密通讯软件（如纸飞机）进行指令传递"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, communication_channel"
+    },
+    {
+      "pattern": "主犯组织‘卡民’提供银行卡，并支付固定工资和按流水比例提成，形成层级分明的洗钱团伙",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一组织者控制，账户间存在资金往来和层级关系",
+        "账户持有人之间存在社交或地域关联（如来自同一地区）",
+        "部分账户持有人仅提供银行卡不参与操作，获利方式为固定工资加提成"
+      ],
+      "data_hint": "account_holder_info, account_relationship, transaction_pattern, referral_chain"
+    },
+    {
+      "pattern": "洗钱活动集中在特定时间段（2021年11月至12月上旬），且多发生在长沙大学与月湖大市场等周边地区",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在特定月份和时段",
+        "交易IP地址或地理位置集中在特定区域（如长沙大学周边）",
+        "交易频率在短时间内显著增加"
+      ],
+      "data_hint": "timestamp, ip_address, geo_location, transaction_frequency"
+    },
+    {
+      "pattern": "利用‘卡民’提供的银行卡接收来自全国多地被害人的被骗资金，资金来源分散且跨地域",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一银行卡接收来自多个不同地区被害人的转账",
+        "单笔转账金额从数千元到数万元不等，呈现分散特征",
+        "资金入账后迅速被转出，停留时间极短"
+      ],
+      "data_hint": "sender_location, receiver_account, amount, transaction_time, inflow_outflow_interval"
+    },
+    {
+      "pattern": "洗钱团伙通过‘跑分’方式，按银行卡流水金额约4%的比例获取提成，获利与流水规模正相关",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户流水金额与获利金额成比例关系",
+        "账户流水在短时间内快速增长",
+        "账户余额通常接近零，资金快速进出"
+      ],
+      "data_hint": "account_balance, total_flow_amount, profit_amount, transaction_volume"
+    },
+    {
+      "pattern": "团伙成员分工明确，包括组织者、操作者、接送‘卡民’者、望风者，形成结构化犯罪网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在相同时间段内出现相似交易模式",
+        "部分账户仅用于接收资金，部分仅用于转出资金",
+        "账户间存在固定的资金流向路径"
+      ],
+      "data_hint": "account_role, transaction_sequence, fund_flow_path, team_membership"
+    }
+  ]
+}

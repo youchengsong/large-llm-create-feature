@@ -1,0 +1,68 @@
+{
+  "source": "221夏某甲掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机及数字人民币账户协助转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的资金",
+        "账户在收到资金后立即通过数字人民币或转账方式转出",
+        "账户持有者提供手机、密码、人脸识别等辅助操作"
+      ],
+      "data_hint": "transaction_from_address, transaction_to_address, amount, timestamp, device_id, biometric_authentication_flag"
+    },
+    {
+      "pattern": "使用数字人民币软件进行资金转移以规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内下载并首次使用数字人民币应用",
+        "通过数字人民币进行大额或频繁转账",
+        "转账金额接近但不超过常见监控阈值"
+      ],
+      "data_hint": "app_usage_log, transaction_type, amount, timestamp, app_first_use_date"
+    },
+    {
+      "pattern": "在宾馆等临时场所进行资金转移操作以隐藏行踪",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或设备位置位于宾馆、酒店等临时住所",
+        "交易时间集中在非正常工作时间段",
+        "同一设备在短时间内切换多个地理位置"
+      ],
+      "data_hint": "ip_address, geo_location, timestamp, device_id"
+    },
+    {
+      "pattern": "账户持有者提供多张银行卡供他人使用以分散资金流向",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一身份证下多个银行卡账户同时活跃",
+        "多个账户之间资金快速流转",
+        "账户之间转账金额呈整数或规律分布"
+      ],
+      "data_hint": "account_id, owner_id, transaction_from_account, transaction_to_account, amount"
+    },
+    {
+      "pattern": "通过电话通知后主动投案，但犯罪事实已通过银行流水等证据确认",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户交易流水显示资金从多个受害人账户汇入后立即转出",
+        "账户交易时间与电信诈骗报案时间高度吻合",
+        "账户交易金额与诈骗金额匹配"
+      ],
+      "data_hint": "transaction_log, victim_report_time, transaction_time, amount"
+    }
+  ]
+}

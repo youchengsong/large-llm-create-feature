@@ -1,0 +1,54 @@
+{
+  "source": "218孙某掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户接收并转移电信诈骗赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收来自多个不同受害人的小额转账",
+        "资金在短时间内通过数字人民币APP和支付宝账户转移至其他账户",
+        "账户持有人与上游犯罪人员存在直接联系"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_type, account_holder_relation"
+    },
+    {
+      "pattern": "使用数字人民币APP和支付宝账户作为资金转移通道",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币APP或支付宝账户",
+        "资金从数字人民币APP或支付宝账户快速转出至指定账户",
+        "资金流转路径涉及多个支付平台"
+      ],
+      "data_hint": "transaction_type, platform_type, from_address, to_address, amount, timestamp"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍协助转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与已知犯罪人员存在关联",
+        "账户持有人无正当理由协助他人转移资金",
+        "资金接收方与上游犯罪人员账户存在关联"
+      ],
+      "data_hint": "account_holder_relation, transaction_counterparty, risk_flag"
+    },
+    {
+      "pattern": "短时间内接收多笔小额电信诈骗资金",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔金额相近的小额转账",
+        "转账金额与典型电信诈骗金额相符（如2000元、3000元、3417元）",
+        "资金接收后迅速转移，账户余额保持低位"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, account_balance"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "source": "149李波掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行账户并协助转账以获取报酬",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短期内收到来自多个不同来源的转账",
+        "资金到账后立即通过数字人民币或消费转出",
+        "账户持有人协助输入密码或刷脸验证"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_type, authentication_method"
+    },
+    {
+      "pattern": "使用数字人民币账户快速转移犯罪所得",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转入后短时间内通过数字人民币转出",
+        "数字人民币账户注册时间与交易时间接近",
+        "交易金额与诈骗金额高度吻合"
+      ],
+      "data_hint": "timestamp, amount, account_type, registration_time, transaction_chain"
+    },
+    {
+      "pattern": "线下接头并转移控制权以规避监控",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与不明身份人员线下见面",
+        "见面后手机和账户被他人控制操作",
+        "交易发生在非正常营业时间或地点"
+      ],
+      "data_hint": "location, timestamp, device_id, ip_address, session_handover"
+    },
+    {
+      "pattern": "账户被用于接收多笔不同来源的诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内收到来自多个不同受害人的转账",
+        "转账金额与典型诈骗金额相符",
+        "账户此前无类似交易模式"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_frequency"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "source": "124林某某王某某等帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪脱逃罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台（微信朋友圈）发布贷款广告，诱导提供银行卡、密码、手机及身份证用于转移违法犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内被多个不同IP或设备登录",
+        "账户绑定手机号频繁更换",
+        "账户关联多个社交平台广告联系人"
+      ],
+      "data_hint": "address, device_id, ip_address, social_media_contact"
+    },
+    {
+      "pattern": "提供银行卡、密码、手机及身份证给他人，配合下载和认证数字人民币APP，并频繁提供验证码进行转账操作",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内出现大量小额转账或频繁验证码请求",
+        "数字人民币APP注册后立即进行大额转账",
+        "账户登录设备与历史记录不符"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, verification_code_request, app_registration_time"
+    },
+    {
+      "pattern": "按转账流水的固定比例（5%）支付报酬，并承诺介绍他人提供银行卡可获得额外佣金（3%）",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户收到与转账流水成固定比例的小额报酬",
+        "多个账户之间存在介绍关系或佣金支付记录",
+        "报酬金额与转账金额呈线性关系"
+      ],
+      "data_hint": "amount, transaction_fee, commission_rate, referral_links"
+    },
+    {
+      "pattern": "介绍他人（女友）参与跑分，形成多人协作的洗钱网络",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间、地点被同一设备或IP操作",
+        "账户间存在亲属或社交关系",
+        "多个账户资金流向同一最终地址"
+      ],
+      "data_hint": "address, device_id, ip_address, relationship_graph, transaction_graph"
+    },
+    {
+      "pattern": "使用数字人民币APP进行资金转移，利用其匿名性或快速到账特性规避监测",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户在注册后短时间内进行大额或频繁交易",
+        "交易时间集中在深夜或非工作时间",
+        "交易金额接近但不超过常见阈值"
+      ],
+      "data_hint": "amount, timestamp, app_type, transaction_interval"
+    },
+    {
+      "pattern": "上线开车接送参与者到指定地点进行转账操作，线下物理接触以规避线上追踪",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录地点与参与者居住地或常在地不符",
+        "交易时间与车辆移动轨迹相关",
+        "多个账户在同一地理位置附近被操作"
+      ],
+      "data_hint": "location, timestamp, gps_coordinates, device_movement"
+    },
+    {
+      "pattern": "通过现金支付部分报酬，减少银行流水痕迹",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收到现金存款后立即进行转账",
+        "现金存款金额与转账流水比例相符",
+        "现金存款时间与转账操作时间紧密关联"
+      ],
+      "data_hint": "amount, deposit_type, timestamp, cash_transaction_flag"
+    },
+    {
+      "pattern": "使用他人银行卡接收诈骗资金，资金快速分散转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔来自不同受害人的资金",
+        "资金到账后立即被拆分转出至多个账户",
+        "转账金额与常见诈骗金额模式匹配"
+      ],
+      "data_hint": "amount, sender_address, receiver_address, transaction_time, transaction_chain"
+    }
+  ]
+}

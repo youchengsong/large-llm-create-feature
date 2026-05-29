@@ -1,0 +1,72 @@
+{
+  "source": "135王某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供本人名下多个银行及支付账户供他人用于非法资金流转",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下多个账户（银行卡、数字人民币、云闪付）同时被用于接收不明资金",
+        "账户被用于接收来自多个不同来源的汇款"
+      ],
+      "data_hint": "account_id, account_type, counterparty_address, transaction_count"
+    },
+    {
+      "pattern": "配合刷脸验证等生物识别认证协助他人完成支付结算",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内频繁出现刷脸验证请求",
+        "刷脸验证与大量资金流入行为在时间上高度关联"
+      ],
+      "data_hint": "authentication_event, timestamp, transaction_id, amount"
+    },
+    {
+      "pattern": "账户短期内单向流入大额资金，且资金来源于多个被害人",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如1天内）累计流入金额超过50万元",
+        "流入资金来自多个不同账户且金额分散"
+      ],
+      "data_hint": "amount, timestamp, sender_address, cumulative_inflow"
+    },
+    {
+      "pattern": "账户资金流入后迅速被转移或提现，形成资金快进快出模式",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金流入后短时间内（如数小时内）被转出或提现",
+        "账户余额长期接近零"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, balance_after"
+    },
+    {
+      "pattern": "账户开立地与资金交易发生地不一致，存在地域异常",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户开立地在黑龙江省，但交易行为发生在吉林省",
+        "交易IP地址或设备位置与账户注册地不匹配"
+      ],
+      "data_hint": "account_region, transaction_location, ip_address, device_id"
+    },
+    {
+      "pattern": "账户用于接收电信网络诈骗等犯罪所得，资金流向具有多层分散特征",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从多个被害人账户流入后，再分散转出至多个不同账户",
+        "资金流转层级超过2层"
+      ],
+      "data_hint": "transaction_graph, sender_address, receiver_address, amount, chain_depth"
+    }
+  ]
+}

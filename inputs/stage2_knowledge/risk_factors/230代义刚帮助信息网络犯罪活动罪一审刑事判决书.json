@@ -1,0 +1,68 @@
+{
+  "source": "230代义刚帮助信息网络犯罪活动罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "多人合谋利用数字人民币账户接收电信诈骗资金，通过购买手机变现转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在短时间内向不同手机店数字人民币账户转入接近整数金额（如19999、20000元）",
+        "资金到账后立即用于购买手机等易变现商品",
+        "多个账户在多地（宿迁、苏州、常州、江阴）手机店进行类似交易",
+        "资金流转路径为：诈骗受害人→数字人民币账户→手机店→销售变现"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type, merchant_category, location"
+    },
+    {
+      "pattern": "利用数字人民币账户作为资金中转站，规避传统银行账户监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "数字人民币账户在短时间内接收多笔来自不同来源的整数金额转账",
+        "数字人民币账户资金快速流出用于购买商品",
+        "交易金额接近但不超过20000元等常见监控阈值"
+      ],
+      "data_hint": "amount, timestamp, account_type, transaction_volume, balance_change"
+    },
+    {
+      "pattern": "团伙成员分工协作，有人负责提供账户二维码，有人负责购买手机变现，利润按比例分配",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在频繁的资金往来或利润分配转账",
+        "账户之间共享二维码或收款信息",
+        "多个账户在同一时间段内进行类似交易模式"
+      ],
+      "data_hint": "from_address, to_address, transaction_amount, timestamp, relationship_graph"
+    },
+    {
+      "pattern": "犯罪资金在短时间内跨多地流转，试图分散交易地点以规避监管",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一团伙在短时间内（如数天内）在宿迁、苏州、常州、江阴等多个城市进行交易",
+        "交易地点分散且与账户注册地或居住地不一致",
+        "资金从不同地域的受害人账户转入"
+      ],
+      "data_hint": "timestamp, location, ip_address, transaction_origin"
+    },
+    {
+      "pattern": "使用手机等易变现商品作为洗钱媒介，将非法资金转化为实物资产",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户资金直接用于购买手机等高价值、易转售商品",
+        "购买后短时间内将商品销售变现",
+        "交易金额与商品价格高度吻合"
+      ],
+      "data_hint": "transaction_type, merchant_category, amount, product_type, sell_time"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "source": "141赵某安掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币账户和银行卡为网络犯罪提供支付结算帮助",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "提供数字人民币账户和银行卡用于收款、转账",
+        "从他人处租用银行卡进行收款、转账",
+        "指使他人提供账户"
+      ],
+      "data_hint": "account_type, transaction_type, counterparty_account, authorization_flag"
+    },
+    {
+      "pattern": "通过他人介绍租用银行卡进行资金转移以逃避监管",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过中间人介绍租用他人银行卡",
+        "使用非本人账户进行资金流转",
+        "账户间存在多层委托关系"
+      ],
+      "data_hint": "account_relationship, intermediary_flag, account_owner_chain"
+    },
+    {
+      "pattern": "明知他人实施网络犯罪仍提供支付结算服务并赚取佣金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户频繁接收和转出资金",
+        "交易金额与正常收入不符",
+        "收取佣金作为报酬"
+      ],
+      "data_hint": "transaction_amount, transaction_frequency, commission_amount, income_pattern"
+    },
+    {
+      "pattern": "短时间内银行卡支付结算金额巨大且包含诈骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "支付结算金额超过260万元",
+        "其中部分资金经查证为诈骗资金",
+        "交易集中在2023年5月至7月"
+      ],
+      "data_hint": "total_transaction_amount, fraud_related_amount, transaction_timestamp, date_range"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "source": "212李某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行卡通过刷脸验证进行资金转移的跑分洗钱模式",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一银行卡接收来自多个不同受害人的转账",
+        "银行卡持有者提供刷脸验证操作，但交易由他人控制",
+        "资金在多个账户间快速流转，且持有者与交易操作者分离"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, biometric_verification_flag, device_id"
+    },
+    {
+      "pattern": "通过社交平台（如陌陌）接触并招募银行卡提供者进行洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡持有者与操作者通过非正规社交平台建立联系",
+        "多个银行卡提供者与同一上线存在关联",
+        "银行卡提供者之间存在共同联系人"
+      ],
+      "data_hint": "user_id, social_platform_id, contact_graph, recruitment_channel"
+    },
+    {
+      "pattern": "银行卡提供者明知资金违法仍提供银行卡并协助转移，获取非法收益",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡接收大量小额或大额资金后迅速转出",
+        "银行卡持有者获取固定比例或固定金额的报酬",
+        "交易金额与持有者正常收入水平显著不符"
+      ],
+      "data_hint": "account_balance, transaction_amount, fee_amount, income_profile"
+    },
+    {
+      "pattern": "使用数字人民币钱包和手机银行APP进行资金转移，逃避传统银行监控",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易涉及数字人民币钱包和手机银行APP的频繁使用",
+        "资金在多个数字钱包和银行账户间快速流转",
+        "交易时间集中在特定时段（如夜间）"
+      ],
+      "data_hint": "app_type, wallet_address, transaction_time, ip_address, geo_location"
+    },
+    {
+      "pattern": "银行卡提供者与操作者在线下特定地点（如民宿酒店）进行交接和操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易操作集中在特定地理位置（如酒店、网吧）",
+        "同一地点出现多个银行卡提供者或操作者",
+        "交易时间与线下会面时间高度相关"
+      ],
+      "data_hint": "location, meeting_point, transaction_timestamp, device_location"
+    },
+    {
+      "pattern": "银行卡提供者在发现账户异常后删除聊天记录和交易短信，试图掩盖痕迹",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户异常后立即删除相关通讯记录和交易信息",
+        "银行卡持有者与上线失去联系",
+        "交易后短时间内账户被注销或休眠"
+      ],
+      "data_hint": "message_deletion_flag, account_status_change, communication_break_pattern"
+    }
+  ]
+}

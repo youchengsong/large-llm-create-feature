@@ -1,0 +1,70 @@
+{
+  "source": "168张伟东曹运祥等帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过收购他人银行卡接收违法犯罪资金，并利用多种渠道转移赃款",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内被多人收购并用于接收资金",
+        "资金通过数字人民币、USDT、无卡存现等多种方式快速转移",
+        "资金从多个不同来源的银行卡汇聚后分散转移"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, bank_card_id, transaction_channel"
+    },
+    {
+      "pattern": "利用网络聊天工具（如“飞机”）匿名联系上线，组织他人参与取款和转移资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用匿名通信工具进行指令传递",
+        "指使他人（如贾某某）代为取款",
+        "取款行为在ATM机上进行，有视频记录"
+      ],
+      "data_hint": "communication_channel, instruction_content, participant_id, ATM_location, timestamp"
+    },
+    {
+      "pattern": "以低价收购银行卡（200-300元），用于接收犯罪赃款",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡收购价格远低于正常市场价值",
+        "同一人控制多张银行卡用于接收资金",
+        "银行卡开户时间与收购时间间隔短"
+      ],
+      "data_hint": "card_purchase_price, card_owner_id, card_open_date, transaction_amount"
+    },
+    {
+      "pattern": "通过数字人民币、USDT等虚拟资产进行资金转移，规避传统银行监管",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包或USDT地址",
+        "转移金额较大（28.937万元）且分多次进行",
+        "使用无卡存现方式存入现金"
+      ],
+      "data_hint": "transaction_type (digital_currency, USDT, cash_deposit), amount, timestamp, wallet_address, bank_card_id"
+    },
+    {
+      "pattern": "资金在短时间内经过多层地址或账户，最终流向不明上线",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从多个银行卡账户快速转入同一目标地址",
+        "转移过程中涉及多种交易类型（如数字人民币、USDT）",
+        "资金最终流向无法追踪的匿名账户"
+      ],
+      "data_hint": "transaction_chain, hop_count, timestamp, amount, sender_address, receiver_address"
+    }
+  ]
+}

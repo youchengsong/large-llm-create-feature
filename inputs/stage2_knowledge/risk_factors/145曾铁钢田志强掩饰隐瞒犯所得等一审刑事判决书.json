@@ -1,0 +1,82 @@
+{
+  "source": "145曾铁钢田志强掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过街边小卡片二维码进入微信群，提供银行卡号及密码用于接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "新注册或低活跃账户短时间内加入陌生微信群",
+        "账户提供银行卡号及密码给第三方",
+        "账户接收资金后立即通过手机银行转账或取现"
+      ],
+      "data_hint": "address, transaction_count, group_id, account_creation_time, login_ip"
+    },
+    {
+      "pattern": "提供银行卡接收多笔小额诈骗资金后快速转出，形成快进快出模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日进账金额与出账金额高度接近",
+        "进账笔数多且单笔金额较小",
+        "资金在账户停留时间极短（通常数小时内）"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, balance_before, balance_after"
+    },
+    {
+      "pattern": "使用数字人民币账户帮助转移资金，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户注册后立即用于大额转账",
+        "数字人民币账户进账与出账金额相等",
+        "同一主体同时使用传统银行卡和数字人民币账户进行资金转移"
+      ],
+      "data_hint": "account_type, digital_wallet_id, transaction_amount, timestamp, device_id"
+    },
+    {
+      "pattern": "提供银行卡给他人取现，将线上资金转为线下现金，切断资金追踪链条",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "银行卡在ATM或柜台被他人取现",
+        "取现时间集中在资金到账后短时间内",
+        "取现地点与账户持有人常住地不一致"
+      ],
+      "data_hint": "withdrawal_location, atm_id, withdrawal_time, account_holder_address, transaction_type"
+    },
+    {
+      "pattern": "同一银行账户关联多起电信诈骗案件，资金来源于多个不同受害人",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户接收来自多个不同来源的小额转账",
+        "每个来源金额符合电信诈骗典型金额（如数千元）",
+        "账户被多个受害人报案指认"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, case_id, victim_report_count"
+    },
+    {
+      "pattern": "明知账户用于违法犯罪仍提供支付结算帮助，具有主观故意",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人主动提供银行卡号及密码",
+        "账户持有人按照上线指引操作转账",
+        "账户持有人注册数字人民币账户用于协助转账"
+      ],
+      "data_hint": "communication_records, chat_logs, device_operation_logs, account_holder_statement"
+    }
+  ]
+}

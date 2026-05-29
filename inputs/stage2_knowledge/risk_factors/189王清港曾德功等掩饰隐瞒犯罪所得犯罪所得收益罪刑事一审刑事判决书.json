@@ -1,0 +1,68 @@
+{
+  "source": "189王清港曾德功等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "明知他人用于信息网络犯罪活动，仍提供数字人民币钱包账户供上线使用并获利",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在短期内接收大量资金转入",
+        "账户资金来源与已知电信诈骗被害人转账关联",
+        "账户使用人从中获取非法利益"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, beneficiary, source_funds"
+    },
+    {
+      "pattern": "明知他人从事帮助信息网络犯罪活动，仍协助计算提成并提供支付宝账户收取提成",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "协助计算提成行为表明对资金流向的知情参与",
+        "使用支付宝账户接收与犯罪活动相关的提成资金",
+        "提成金额与犯罪活动资金规模成比例"
+      ],
+      "data_hint": "transaction_amount, account_type, transaction_purpose, beneficiary, timestamp"
+    },
+    {
+      "pattern": "数字钱包账户在短时间内累计转入大额资金，涉及电信诈骗被害人转账",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在特定时间段内（如2021年10月17日至11月13日）累计转入超过147万元",
+        "转入资金中包含电信诈骗被害人转账（如10万元）",
+        "资金转入频率高，单笔金额较大"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, cumulative_amount, victim_address"
+    },
+    {
+      "pattern": "通过他人介绍提供账户给上线使用，形成多层级的账户控制关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户提供者通过中间人（廖某）介绍给上线使用",
+        "上线身份不明确，存在匿名或假名控制",
+        "多个账户可能由同一上线控制"
+      ],
+      "data_hint": "address, intermediary_address, upstream_address, relationship_graph"
+    },
+    {
+      "pattern": "账户资金最终流向电信诈骗被害人，资金路径涉及多层转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从被害人账户转入数字钱包账户",
+        "资金可能经过多层地址转移以掩盖来源",
+        "资金最终被提现或转移至其他账户"
+      ],
+      "data_hint": "transaction_path, intermediate_addresses, final_destination, amount_flow"
+    }
+  ]
+}

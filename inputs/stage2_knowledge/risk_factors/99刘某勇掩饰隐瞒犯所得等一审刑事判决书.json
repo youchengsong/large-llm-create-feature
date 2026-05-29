@@ -1,0 +1,119 @@
+{
+  "source": "99刘某勇掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡及身份证、支付密码、手机给他人使用，并配合刷脸验证，用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人提供多张不同银行账户",
+        "账户被他人控制使用，配合刷脸验证",
+        "介绍他人提供银行卡给上线"
+      ],
+      "data_hint": "address, bank_card_number, identity_verification_records, referral_network"
+    },
+    {
+      "pattern": "异常资金快进快出，短时间内大额资金流入后迅速转出或取现，形成多层资金转移链条",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单日大额资金流入后立即转出至多个二级、三级账户",
+        "资金在多个账户间快速流转，最终取现或转出",
+        "账户余额极少或为零"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_chain_depth"
+    },
+    {
+      "pattern": "利用多个银行账户进行资金归集和分散转移，形成多层资金流转路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从一级卡转入二级卡再转入三级卡",
+        "不同账户间资金流转时间间隔极短（分钟级）",
+        "最终资金通过取现或充值至第三方支付平台流出"
+      ],
+      "data_hint": "transaction_sequence, intermediate_addresses, withdrawal_amount, e-wallet_topup"
+    },
+    {
+      "pattern": "账户在接收异常资金前进行小额验证交易，测试账户可用性",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在接收大额资金前有多次小额验证交易（如0.01元）",
+        "验证交易后立即进行大额资金操作"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (test_transfer)"
+    },
+    {
+      "pattern": "资金流入后立即通过ATM取现或微信充值等方式快速变现，规避账户监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额资金流入后短时间内分多笔取现（如每笔5000元）",
+        "资金充值至微信零钱等第三方支付平台",
+        "取现或充值金额接近但不超过阈值"
+      ],
+      "data_hint": "amount, timestamp, withdrawal_method, e-wallet_address"
+    },
+    {
+      "pattern": "账户持有人与上线存在频繁联系，并在资金转移后删除聊天记录以隐匿证据",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与上线有通话记录或微信聊天记录",
+        "资金转移后删除相关聊天记录",
+        "上线指导账户持有人如何规避调查"
+      ],
+      "data_hint": "communication_records, chat_logs, deletion_timestamps"
+    },
+    {
+      "pattern": "账户持有人介绍他人提供银行卡，形成卡商网络，扩大洗钱规模",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与多人讨论出借、出售银行卡",
+        "存在支付好处费给介绍人的记录",
+        "被介绍人的银行卡也出现异常交易并被冻结"
+      ],
+      "data_hint": "referral_network, payment_records, frozen_accounts"
+    },
+    {
+      "pattern": "账户持有人出境前接受指导如何规避海关检查，暗示参与跨境洗钱活动",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人在资金转移后短期内出境",
+        "出境前收到详细规避海关检查的指导",
+        "出境目的地为洗钱高风险地区（如柬埔寨）"
+      ],
+      "data_hint": "travel_records, border_crossing_timestamps, destination_country"
+    },
+    {
+      "pattern": "账户持有人明知账户用于犯罪仍继续提供，并拒绝配合司法机关调查",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人多次传讯未到案",
+        "将司法机关电话拉黑",
+        "指示家人谎称联系不上自己"
+      ],
+      "data_hint": "court_appearance_records, call_logs, evasion_indicators"
+    }
+  ]
+}

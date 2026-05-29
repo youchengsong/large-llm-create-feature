@@ -1,0 +1,119 @@
+{
+  "source": "55赵某甲掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事其他",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行账户及APP账号密码给他人用于接收和转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户绑定多个不同银行的银行卡",
+        "账户密码、验证码提供给第三方使用",
+        "多个账户资金最终流向同一控制人"
+      ],
+      "data_hint": "address, account_id, binding_info, authorization_log"
+    },
+    {
+      "pattern": "短时间内接收资金后立即通过微信或银行转账分散转出至多个账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后数小时内即被转出",
+        "单笔大额资金被拆分为多笔小额转出",
+        "转出账户与转入账户无直接关联"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_hash"
+    },
+    {
+      "pattern": "利用数字人民币APP和多个银行账户进行资金归集和分散转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一手机号注册多个数字人民币钱包",
+        "数字人民币钱包绑定多个不同银行的银行卡",
+        "资金从多个来源汇集后统一转出"
+      ],
+      "data_hint": "phone_number, wallet_id, bank_card_number, transaction_log"
+    },
+    {
+      "pattern": "通过赌博类APP（如迈博）进行资金清洗，将赌博收益提现至个人银行卡",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金来源于赌博平台提现",
+        "提现金额频繁且数额较大",
+        "提现后立即转至其他账户"
+      ],
+      "data_hint": "platform_id, deposit_amount, withdrawal_amount, timestamp"
+    },
+    {
+      "pattern": "使用他人身份信息或账户进行资金转移，以规避实名制监管",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "转账收款人姓名与账户持有人不一致",
+        "多个账户资金最终流向同一实际控制人",
+        "账户持有人对资金来源和去向不知情"
+      ],
+      "data_hint": "sender_name, receiver_name, account_holder, relationship"
+    },
+    {
+      "pattern": "资金快速进出账户，停留时间极短，呈现‘快进快出’特征",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后数分钟内即被转出",
+        "账户余额长期接近零",
+        "单日交易笔数异常高"
+      ],
+      "data_hint": "amount, timestamp, balance, transaction_count"
+    },
+    {
+      "pattern": "利用微信等社交工具接收转账指令，资金流向与指令高度一致",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "转账金额、时间与聊天记录中的指令匹配",
+        "转账对象为聊天记录中指定的账户",
+        "转账前有明确的指令沟通"
+      ],
+      "data_hint": "chat_log, transfer_amount, transfer_time, target_account"
+    },
+    {
+      "pattern": "账户被冻结后立即更换绑定银行卡继续操作",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户冻结后短时间内更换绑定银行卡",
+        "新绑定银行卡与旧卡属于不同银行",
+        "更换后继续接收和转移资金"
+      ],
+      "data_hint": "account_status, binding_change_log, bank_card_number"
+    },
+    {
+      "pattern": "资金来源于电信诈骗被害人，通过多层账户转移后难以追回",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金经过多个中间账户流转",
+        "最终收款账户与初始来源账户无直接关联",
+        "资金流转路径复杂，涉及多个银行和平台"
+      ],
+      "data_hint": "transaction_chain, intermediate_addresses, final_receiver"
+    }
+  ]
+}

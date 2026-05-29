@@ -1,0 +1,62 @@
+{
+  "source": "263黄晨林刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多个数字人民币钱包账户用于接收和转移犯罪所得资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个主体名下持有超过3个数字人民币钱包账户",
+        "同一主体控制多个不同银行的数字人民币钱包账户"
+      ],
+      "data_hint": "wallet_address, bank_account, owner_id"
+    },
+    {
+      "pattern": "通过微信和支付宝等第三方支付工具帮助转移不明资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包转入微信或支付宝账户",
+        "微信或支付宝账户接收资金后短时间内转出"
+      ],
+      "data_hint": "transaction_type, source_wallet, target_account, timestamp"
+    },
+    {
+      "pattern": "明知是犯罪所得仍受雇提供账户接收并转移资金，涉及电信诈骗被害人资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收资金中部分来自已知电信诈骗案件被害人",
+        "账户资金流入金额与被害人被骗金额匹配"
+      ],
+      "data_hint": "amount, victim_id, fraud_report_id"
+    },
+    {
+      "pattern": "短时间内通过多个账户接收并转移大额资金，获利与交易量不成比例",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户累计接收资金超过100万元",
+        "获利金额（2500元）远低于接收资金总额（100万元）的1%"
+      ],
+      "data_hint": "total_inflow_amount, profit_amount, transaction_count"
+    },
+    {
+      "pattern": "使用多个银行账户绑定数字人民币钱包，形成资金归集和分散通道",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个银行账户绑定同一数字人民币钱包",
+        "资金从多个银行账户归集到数字人民币钱包后统一转出"
+      ],
+      "data_hint": "linked_bank_accounts, wallet_id, transfer_path"
+    }
+  ]
+}

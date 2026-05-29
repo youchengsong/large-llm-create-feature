@@ -1,0 +1,80 @@
+{
+  "source": "35邓某某诈骗罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出租银行卡、手机号、支付宝账号及数字人民币账户给他人用于转移犯罪所得",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内关联多个支付工具（银行卡、支付宝、数字人民币）",
+        "账户被用于接收和转移多笔资金",
+        "账户持有者与资金实际控制者分离"
+      ],
+      "data_hint": "address, account_type, associated_accounts, transaction_count"
+    },
+    {
+      "pattern": "使用数字人民币APP通过密码验证加刷脸验证的双重认证方式转移赃款",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币账户在短时间内进行大额转账",
+        "使用高安全级别认证（密码+刷脸）进行交易",
+        "交易行为与账户历史行为模式不符"
+      ],
+      "data_hint": "auth_method, transaction_type, amount, timestamp"
+    },
+    {
+      "pattern": "为获取好处费而明知资金系犯罪所得仍提供支付结算工具",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在收到资金后立即进行转账操作",
+        "账户交易金额与账户持有者身份及收入水平不匹配",
+        "账户存在异常的小额测试交易后跟随大额交易"
+      ],
+      "data_hint": "amount, timestamp, transaction_sequence, account_holder_profile"
+    },
+    {
+      "pattern": "单日支付结算金额高达17万余元，其中核实为网络犯罪赃款4万余元",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日交易总额显著高于账户历史日均交易额",
+        "交易金额呈现整数或接近整数特征",
+        "交易频次在短时间内急剧增加"
+      ],
+      "data_hint": "daily_total_amount, transaction_amount, transaction_frequency, historical_average"
+    },
+    {
+      "pattern": "前往异地（青岛市）进行出租账户和转账操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录或交易IP地址与账户注册地或常住地不一致",
+        "交易发生在异地且时间集中",
+        "账户持有者短时间内出现在多个不同地点"
+      ],
+      "data_hint": "ip_address, geo_location, timestamp, account_registration_location"
+    },
+    {
+      "pattern": "通过聊天软件（通融APP、微信）与上游犯罪分子联系并安排转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户交易前后存在与已知可疑账户的通信记录",
+        "通信内容包含转账指令或账户信息",
+        "通信时间与交易时间高度相关"
+      ],
+      "data_hint": "communication_logs, contact_list, message_timestamps, transaction_timestamps"
+    }
+  ]
+}

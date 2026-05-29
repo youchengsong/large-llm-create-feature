@@ -1,0 +1,57 @@
+{
+  "source": "198郑某某郑某某被控掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供多个支付账户用于接收和转移上游犯罪资金，并通过刷脸验证协助转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体短时间内提供5个以上不同支付账户",
+        "账户收到资金后立即被转移，无停留时间",
+        "存在刷脸验证操作辅助转账"
+      ],
+      "data_hint": "address, account_id, amount, timestamp, transaction_type, authentication_method"
+    },
+    {
+      "pattern": "单笔大额资金快速转入后立即转出，呈现快进快出特征",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单笔资金入账金额较大（如6万元）",
+        "资金入账后短时间内（如几分钟内）被转移",
+        "入账与转出时间间隔极短"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_interval"
+    },
+    {
+      "pattern": "多个支付账户单边入账流水总额较大，但个人获利极低，呈现为洗钱工具人特征",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户总流水金额（如15万余元）远高于个人获利（如300元）",
+        "获利与流水金额比例极低",
+        "账户数量多但获利微薄"
+      ],
+      "data_hint": "account_id, total_inflow, profit_amount, profit_ratio"
+    },
+    {
+      "pattern": "明知资金来源于信息网络犯罪活动，仍提供账户并协助转账，体现主观明知与配合",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人对资金来源非法性有认知",
+        "主动提供多个账户用于接收资金",
+        "配合刷脸等验证操作完成转账"
+      ],
+      "data_hint": "account_holder_behavior, transaction_consent, authentication_logs"
+    }
+  ]
+}

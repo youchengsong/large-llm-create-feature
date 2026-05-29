@@ -1,0 +1,68 @@
+{
+  "source": "13孙某某掩饰隐瞒犯罪所得犯罪所得收益罪刑事二审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包作为资金中转工具，为非法平台提供支付结算通道",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体绑定多个亲属名下的数字人民币钱包用于收款",
+        "钱包资金流入后迅速转出或用于购买虚拟货币",
+        "钱包账户与已知非法平台存在交易关联"
+      ],
+      "data_hint": "wallet_address, owner_relation, transaction_counterparty, platform_id"
+    },
+    {
+      "pattern": "通过USDT虚拟货币交易为非法资金提供支付结算帮助，赚取差价获利",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户频繁进行USDT买卖交易，且交易金额与市场价存在明显价差",
+        "交易对手方为已知高风险平台或地址",
+        "交易时间集中在短期（如数周内），资金量级较大"
+      ],
+      "data_hint": "token_type, transaction_amount, price_spread, counterparty_address, timestamp"
+    },
+    {
+      "pattern": "使用他人身份信息注册账户和钱包，规避实名制监管",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "注册邮箱、手机号等与账户实际控制人不一致",
+        "绑定的数字钱包所有者与平台注册者无亲属或合理关系",
+        "多个账户共享相同设备指纹或IP地址"
+      ],
+      "data_hint": "registration_info, wallet_owner, device_id, ip_address"
+    },
+    {
+      "pattern": "明知平台专门用于非法资金流转仍主动注册并提供帮助",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户注册后立即开始高频交易，无正常使用过渡期",
+        "交易对手方多为高风险或已被标记的地址",
+        "账户行为模式与正常用户显著不同（如仅进行买卖操作）"
+      ],
+      "data_hint": "account_creation_time, first_transaction_time, transaction_pattern, risk_label"
+    },
+    {
+      "pattern": "通过亲属钱包分散收款，掩盖资金真实流向",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同身份的数字钱包收款",
+        "各钱包收款金额较小但总和巨大，呈现拆分特征",
+        "钱包之间资金互转频繁，形成网状结构"
+      ],
+      "data_hint": "wallet_owner_relation, transaction_amount, inter_wallet_transfers, network_graph"
+    }
+  ]
+}

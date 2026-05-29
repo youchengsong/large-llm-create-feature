@@ -1,0 +1,55 @@
+{
+  "source": "41李明阳李志豪帮助信息网络犯罪活动罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过办理贷款为由，将银行卡、手机及支付密码提供给他人用于支付结算，获取少量报酬",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内产生大量资金进出，总流水远超个人正常收入水平",
+        "账户资金快进快出，进账与出账金额接近，余额趋近于零",
+        "账户涉及多起电信诈骗案件，有被害人资金流入",
+        "账户持有者获得少量固定报酬（如600元），与流水金额不成比例"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, balance, counterparty_address, case_id, victim_report"
+    },
+    {
+      "pattern": "使用云闪付APP和数字人民币APP进行刷脸认证，配合他人进行支付结算操作",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内安装并认证多个支付类APP（如云闪付、数字人民币）",
+        "账户在非本人常用地点进行刷脸认证操作",
+        "账户在认证后立即产生大量交易"
+      ],
+      "data_hint": "device_id, app_installation_timestamp, authentication_method, geolocation, transaction_timestamp"
+    },
+    {
+      "pattern": "跨地域流动至指定地点（如合肥市）进行银行卡操作，食宿交通由他人承担",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人的地理位置在短时间内发生跨城市移动",
+        "账户交易发生在非居住地城市（如合肥）",
+        "账户交易时间与持有人移动轨迹一致"
+      ],
+      "data_hint": "geolocation, travel_history, transaction_location, timestamp"
+    },
+    {
+      "pattern": "账户短期内总流水巨大，但单笔涉案金额较小，呈现分散入金特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户日流水总额（如739914.39元）远超个人正常收入",
+        "涉案资金（如71000.13元）仅占总流水的一小部分",
+        "多笔小额资金从不同来源汇入，随后集中转出"
+      ],
+      "data_hint": "amount, transaction_count, total_inflow, total_outflow, counterparty_count, case_related_amount"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "source": "219王某某帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人账户为网络非法资金提供流转服务，短时间内接收多笔来自不同被害人的资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的转账",
+        "账户资金快速转入后立即转出，余额接近零",
+        "交易金额与账户历史交易模式明显不符",
+        "账户同时绑定多个银行账户或数字人民币钱包"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, account_balance"
+    },
+    {
+      "pattern": "异地使用账户进行资金流转，开户地与交易地不一致",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户开户地与交易IP地址或实际交易地点跨市/跨省",
+        "短时间内从开户地移动到异地并立即开始大额交易",
+        "交易时间集中在短时间内，无正常生活规律"
+      ],
+      "data_hint": "account_register_location, transaction_ip_location, timestamp, transaction_geolocation"
+    },
+    {
+      "pattern": "利用数字人民币和传统银行账户混合进行非法资金流转",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体同时注册并使用数字人民币钱包和传统银行卡",
+        "资金在数字人民币钱包和银行卡之间快速转移",
+        "交易链路涉及多种支付渠道，增加追踪难度"
+      ],
+      "data_hint": "wallet_type, transaction_channel, asset_type, transaction_flow_path"
+    },
+    {
+      "pattern": "账户资金流转金额与获利比例严重失衡，小额获利驱动大额资金流转",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金流转总额远大于账户正常收入水平",
+        "获利金额与流转金额比例极低（如0.5%）",
+        "账户无正常工资或经营收入，仅出现大额资金快进快出"
+      ],
+      "data_hint": "total_transaction_amount, profit_amount, profit_ratio, account_income_history"
+    }
+  ]
+}

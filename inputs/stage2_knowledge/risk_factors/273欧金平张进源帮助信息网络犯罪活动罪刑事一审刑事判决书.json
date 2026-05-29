@@ -1,0 +1,73 @@
+{
+  "source": "273欧金平张进源帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行卡给陌生人用于接收和转移非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短期内与多个陌生账户发生大额交易",
+        "账户持有人与交易对手无历史关联或社交关系"
+      ],
+      "data_hint": "sender_address, receiver_address, transaction_count, account_age"
+    },
+    {
+      "pattern": "资金快进快出，短时间内大额进账后立即取现或转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔大额进账后短时间内（如1小时内）发生取现或转账",
+        "账户余额接近零"
+      ],
+      "data_hint": "amount, timestamp, balance_after_transaction"
+    },
+    {
+      "pattern": "通过银行柜台取现和ATM取现相结合的方式拆分资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内同时出现柜台取现和ATM取现",
+        "取现金额接近但不超过大额报告阈值"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, location"
+    },
+    {
+      "pattern": "使用人脸验证等生物识别技术协助转移数字人民币资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人多次进行人脸验证操作",
+        "数字人民币转出与银行卡取现发生在同一时段"
+      ],
+      "data_hint": "auth_method, transaction_type, amount, timestamp"
+    },
+    {
+      "pattern": "账户持有人获利与转移资金金额不成比例，表明为有偿出借账户",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人获得固定比例或小额报酬",
+        "报酬金额与转移资金总额明显不匹配"
+      ],
+      "data_hint": "profit_amount, total_transfer_amount, profit_ratio"
+    },
+    {
+      "pattern": "账户用于接收电信诈骗等犯罪活动的被害人资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收资金来自多个不同来源且与账户持有人无合理关系",
+        "资金来源方被标记为诈骗受害者"
+      ],
+      "data_hint": "sender_address, receiver_address, transaction_notes, risk_tags"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "source": "193杨江涛赵伟东帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "团伙利用他人银行卡在酒店集中操作转账进行洗钱",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一银行卡被多人操作转账",
+        "转账操作集中在酒店房间等非固定场所",
+        "转账过程中使用刷脸验证服务"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, device_id, ip_address, location, biometric_verification_flag"
+    },
+    {
+      "pattern": "通过多层级上线指令控制洗钱操作",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "存在上线与下线之间的指令传递",
+        "操作人员与银行卡提供人分离",
+        "团伙成员分工明确（联系上线、转账、看管、刷脸）"
+      ],
+      "data_hint": "address_relationship_graph, communication_records, role_tag, hierarchical_level"
+    },
+    {
+      "pattern": "利用银行卡日限额进行大额资金快速进出",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日入账流水超过100万元",
+        "入账与出账金额高度接近（入账1105074元，出账1105000元）",
+        "达到银行卡转账限额后切换至数字人民币和云闪付继续转账"
+      ],
+      "data_hint": "amount, cumulative_daily_inflow, cumulative_daily_outflow, transaction_count, limit_exceeded_flag, payment_method"
+    },
+    {
+      "pattern": "短时间内集中接收多笔来自不同被害人的资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单日内接收多笔小额资金（涉及6起刑事案件）",
+        "资金来自不同地域的被害人",
+        "资金快速归集后转出"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, geographic_location, victim_flag"
+    },
+    {
+      "pattern": "洗钱团伙成员获取固定日薪和额外生活费作为报酬",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "参与洗钱操作人员获得固定日薪（700元）和不参与时的生活费（200元）",
+        "团伙成员非法获利金额相对固定（每人10000余元）"
+      ],
+      "data_hint": "transaction_amount, fee_pattern, profit_distribution, wallet_balance_change"
+    },
+    {
+      "pattern": "洗钱过程中更换地点以规避侦查",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "因发送定位感到不安全而更换酒店",
+        "使用不同酒店房间进行转账操作",
+        "操作人员在外望风"
+      ],
+      "data_hint": "location_change_frequency, ip_address_change, geolocation_data, check_in_records"
+    },
+    {
+      "pattern": "银行卡提供人与操作人分离，提供人仅配合刷脸验证",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡提供人不直接操作转账，仅提供刷脸服务",
+        "银行卡提供人获利远低于操作人（800元 vs 10000元）",
+        "银行卡提供人与操作人无直接亲属关系"
+      ],
+      "data_hint": "account_ownership, operation_permission, biometric_verification_participant, profit_ratio"
+    }
+  ]
+}

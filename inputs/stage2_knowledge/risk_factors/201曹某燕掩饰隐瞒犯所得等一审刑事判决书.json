@@ -1,0 +1,156 @@
+{
+  "source": "201曹某燕掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包接收并快速转移赃款至个人银行卡再转至指定账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从多个被害人数字钱包转入同一中间人数字钱包",
+        "中间人将数字钱包资金立即兑回至个人银行卡",
+        "资金从个人银行卡立即转出至最终收款账户",
+        "资金在短时间内完成多层级转移（被害人钱包->中间人钱包->中间人银行卡->最终账户）"
+      ],
+      "data_hint": "wallet_id, from_address, to_address, amount, timestamp, transaction_type (e.g., 'digital_currency_transfer', 'bank_transfer')"
+    },
+    {
+      "pattern": "同一账户在短时间内集中接收来自多个不同来源的诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一中间人账户在数小时内接收来自多个不同被害人的资金",
+        "单日接收资金笔数超过正常阈值",
+        "每笔资金金额从数千到数十万不等，但均立即转出"
+      ],
+      "data_hint": "wallet_id, from_address, to_address, amount, timestamp, transaction_count_per_day"
+    },
+    {
+      "pattern": "资金接收后立即转出，几乎无停留时间",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金进入中间人账户后几分钟内即被转出",
+        "转入与转出时间差极短（如5分钟内）",
+        "账户余额长期接近零，仅作为资金中转站"
+      ],
+      "data_hint": "wallet_id, amount, timestamp_in, timestamp_out, balance_after_transaction"
+    },
+    {
+      "pattern": "利用多个不同银行账户和数字钱包进行资金归集和分散转移",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人控制多个银行账户和数字钱包",
+        "资金在不同账户间频繁划转",
+        "最终资金汇入同一指定账户（如杨林账户）"
+      ],
+      "data_hint": "account_id, wallet_id, owner_id, transaction_graph, counterparty_account"
+    },
+    {
+      "pattern": "洗钱团伙层级分明，分为老板、操盘手、卡头、卡农等多层结构",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在明确的层级关系（如老板->操盘手->卡头->卡农）",
+        "资金流向呈现多级传递模式",
+        "不同层级账户交易频率和金额存在差异"
+      ],
+      "data_hint": "account_id, owner_relationship, transaction_flow_graph, role_label"
+    },
+    {
+      "pattern": "利用男女朋友等亲密关系提供账户用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与犯罪团伙核心成员存在亲密关系（如男女朋友）",
+        "账户持有人无正当职业或收入来源，但账户有大额资金往来",
+        "账户持有人对资金来源无法合理解释"
+      ],
+      "data_hint": "account_holder, relationship_to_other_accounts, employment_status, income_level"
+    },
+    {
+      "pattern": "账户因涉嫌诈骗被多地公安机关多次冻结",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内被多个不同地区的公安机关冻结",
+        "冻结原因均为涉嫌电信诈骗",
+        "账户历史交易记录显示与多起诈骗案件相关"
+      ],
+      "data_hint": "account_id, freeze_history, freeze_reason, freeze_location, freeze_timestamp"
+    },
+    {
+      "pattern": "洗钱操作集中在特定地理位置（如租住小区附近）",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多笔转账操作的IP地址位于同一地理区域",
+        "IP地址覆盖账户持有人的居住地",
+        "操作时间集中在白天或特定时段"
+      ],
+      "data_hint": "ip_address, geolocation, transaction_timestamp, account_holder_address"
+    },
+    {
+      "pattern": "账户持有人从洗钱活动中获取小额报酬（如每笔1000-1700元）",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人从转移资金中截留少量资金作为个人收益",
+        "截留金额占转移总额比例极低（如0.1%-0.5%）",
+        "截留行为发生在资金转出之前"
+      ],
+      "data_hint": "amount, fee_amount, fee_ratio, transaction_sequence"
+    },
+    {
+      "pattern": "上游犯罪通过远程控制软件获取被害人验证码，实现资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "被害人被诱导安装远程控制或屏幕共享软件（如钉钉、飞书）",
+        "犯罪嫌疑人在被害人不知情的情况下获取短信验证码",
+        "资金转移操作与验证码获取时间高度关联"
+      ],
+      "data_hint": "device_id, installed_apps, sms_log, transaction_timestamp, verification_code_usage"
+    },
+    {
+      "pattern": "被害人资金通过数字人民币钱包被快速转移，利用数字人民币匿名性",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "被害人资金先转入其本人或他人数字人民币钱包",
+        "数字人民币钱包资金再转至中间人数字钱包",
+        "数字人民币交易记录难以追踪实际控制人"
+      ],
+      "data_hint": "wallet_id, transaction_type, anonymity_level, wallet_owner_info"
+    },
+    {
+      "pattern": "洗钱团伙使用多个卡农（账户提供者）分散资金流入",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "多个不同账户持有人向同一最终账户转账",
+        "每个卡农账户接收资金金额相对较小",
+        "卡农账户交易模式相似（快进快出）"
+      ],
+      "data_hint": "account_id, counterparty_account, amount, transaction_frequency, account_holder_demographics"
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "source": "303胡齐刚掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用个人数字人民币账户和银行卡进行跑分，通过频繁取现转移非法资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短期内多次大额现金取现",
+        "取现金额接近但不超过特定阈值（如10000元）",
+        "取现频率与正常个人行为不符"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, cash_withdrawal_flag, account_balance"
+    },
+    {
+      "pattern": "通过飞机等加密聊天工具与上游犯罪沟通，协调资金转移和取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户交易前存在加密聊天工具使用记录",
+        "交易时间与聊天时间高度相关",
+        "多账户间通过同一聊天工具协调操作"
+      ],
+      "data_hint": "communication_tool, communication_timestamp, transaction_timestamp, ip_address"
+    },
+    {
+      "pattern": "使用多层级账户结构转移资金：数字人民币账户→银行卡账户→现金取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金在短时间内经过数字人民币账户、银行卡账户至少两层转移",
+        "资金最终以现金形式流出",
+        "不同账户间转账时间间隔短"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_chain"
+    },
+    {
+      "pattern": "利用他人账户（李某）接收上游资金，再转入自己账户取现，分散风险",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户接收来自同一上游地址的资金",
+        "资金从他人账户快速转入主控账户",
+        "账户间存在控制关系（如亲属、同住）"
+      ],
+      "data_hint": "address, relationship_graph, transaction_flow, account_owner_info"
+    },
+    {
+      "pattern": "跑分取现按比例获利，每取现10000元获利50-60元，形成稳定收益模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "取现金额与获利金额呈线性比例关系",
+        "获利金额与取现次数正相关",
+        "账户收入模式与正常劳动收入不符"
+      ],
+      "data_hint": "amount, profit_amount, transaction_count, income_pattern"
+    },
+    {
+      "pattern": "上游资金通过网商银行接收后，部分转入农村银行取现，利用不同银行系统延迟",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从网商银行转入农村银行后立即取现",
+        "跨行转账时间与取现时间间隔极短",
+        "取现地点与账户开户地一致"
+      ],
+      "data_hint": "bank_type, transfer_time, withdrawal_time, location, account_branch"
+    }
+  ]
+}

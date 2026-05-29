@@ -1,0 +1,75 @@
+{
+  "source": "153吕某帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机、身份证及密码给他人用于转账，并配合人脸识别等身份验证，帮助转移违法犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内被多个不同来源账户转入资金",
+        "账户登录或交易时频繁触发人脸识别等身份验证",
+        "账户绑定手机号、身份证等个人信息与账户实际使用人身份不一致",
+        "账户交易后立即收到来自非交易对手方的报酬转账"
+      ],
+      "data_hint": "amount, from_address, to_address, timestamp, identity_verification_event, device_id, ip_address, phone_number, id_card_number"
+    },
+    {
+      "pattern": "使用数字人民币账户接收资金后以数字钱包形式取现，规避传统银行转账监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户同时开通传统银行账户和数字人民币账户",
+        "资金从传统银行账户快速转入数字人民币账户",
+        "数字人民币账户资金在短时间内以数字钱包形式取现",
+        "取现金额接近但不超过大额交易报告阈值"
+      ],
+      "data_hint": "amount, account_type, transaction_type (transfer/cashout), timestamp, wallet_address, digital_currency_flag"
+    },
+    {
+      "pattern": "上家通过电话联系、安排人员接送，进行线下非面对面交易，以规避线上监控",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人在短时间内从多个不同地理位置进行交易",
+        "交易时间集中在非工作时间段（如13:50-17:50）",
+        "账户交易前有异常的电话联系记录或线下会面",
+        "交易地点为停车场、酒店等非固定场所"
+      ],
+      "data_hint": "timestamp, location (gps_coordinates), ip_address, phone_call_log, meeting_location_type"
+    },
+    {
+      "pattern": "短期内账户资金快进快出，流入资金总额与涉诈资金高度关联，且资金流向多个不同案件受害人",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如4小时内）发生多笔大额资金流入",
+        "流入资金总额与涉诈资金总额高度匹配",
+        "资金来自多个不同案件受害人账户",
+        "资金流入后迅速转出或取现，账户余额接近零"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_count, balance_after_transaction"
+    },
+    {
+      "pattern": "以高额报酬（约5个点）诱使他人提供银行账户用于走账，形成多层级的资金转移网络",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人收到与交易金额成比例的固定比例报酬（如5%）",
+        "报酬转账来自非交易对手方账户",
+        "多个账户之间存在共同的资金接收方或报酬支付方",
+        "账户持有人与上家之间存在多次联系或介绍关系"
+      ],
+      "data_hint": "amount, from_address, to_address, reward_amount, reward_ratio, relationship_graph, communication_records"
+    }
+  ]
+}

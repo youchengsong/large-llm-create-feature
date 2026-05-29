@@ -1,0 +1,127 @@
+{
+  "source": "88陈某喜李某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行账户（卡农）接收并转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同持有人银行账户在短时间内集中接收来自不同受害人的资金",
+        "账户持有人与资金实际控制人不一致，账户由他人操作",
+        "资金到账后迅速通过取现或POS机套现转移"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, account_holder_id, transaction_type"
+    },
+    {
+      "pattern": "通过测试银行账户可用性（测卡）筛选可用的卡农账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在正式接收大额资金前，先进行小额转账测试账户是否正常",
+        "测试交易后短时间内即进行大额资金操作"
+      ],
+      "data_hint": "amount, timestamp, transaction_sequence, account_status"
+    },
+    {
+      "pattern": "团伙分工协作，指挥者、接送人员、操作人员、取款人员层级分明",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户资金最终流向同一控制人或同一团伙",
+        "不同角色人员（如接卡人、操手、取款人）在交易前后有规律地关联",
+        "团伙成员通过特定群组（如微信群）接收指令"
+      ],
+      "data_hint": "address_network, group_chat_id, ip_address, device_id"
+    },
+    {
+      "pattern": "利用ATM取现和POS机套现快速将资金转换为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额资金到账后短时间内多次在ATM或POS机进行取现或套现",
+        "取现金额接近银行柜台或ATM单次限额",
+        "取现地点分散或频繁更换"
+      ],
+      "data_hint": "amount, transaction_type (withdrawal/POS), location, timestamp, account_balance"
+    },
+    {
+      "pattern": "通过人脸识别验证操作他人账户进行转账",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户登录或转账操作需要人脸识别时，卡农本人被要求配合",
+        "同一账户短时间内多次人脸识别操作",
+        "人脸识别操作与账户持有人历史行为模式不符"
+      ],
+      "data_hint": "biometric_authentication_event, device_id, ip_address, timestamp"
+    },
+    {
+      "pattern": "使用境外通讯软件（如飞机软件）和境内微信群进行联络以规避监管",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "团伙成员同时使用境内和境外通讯软件",
+        "关键指令通过境外软件下达，境内群组仅用于日常协调",
+        "通讯记录被定期删除"
+      ],
+      "data_hint": "communication_app_type, message_content, deletion_pattern, ip_geolocation"
+    },
+    {
+      "pattern": "卡农账户资金流入后迅速被转移，资金停留时间极短",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后数小时内即被取现或转出",
+        "账户余额在资金流入后迅速归零或接近零",
+        "资金流向呈现多层转移（如从卡农账户到其他账户再到取现）"
+      ],
+      "data_hint": "amount, timestamp, account_balance_history, transaction_chain"
+    },
+    {
+      "pattern": "通过介绍他人提供银行卡（卡农）获取手续费，形成卡农招募网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一介绍人关联多个卡农账户",
+        "卡农账户之间无直接交易但共享同一介绍人",
+        "卡农账户在相近时间段内被激活使用"
+      ],
+      "data_hint": "referral_network, account_opening_date, shared_contact_info"
+    },
+    {
+      "pattern": "利用夜间或非工作时间进行取现操作以降低被发现风险",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "取现交易发生在深夜或凌晨时段",
+        "取现时间与正常营业时间不符",
+        "同一账户在非工作时间频繁交易"
+      ],
+      "data_hint": "timestamp, hour_of_day, transaction_type, location"
+    },
+    {
+      "pattern": "通过租借或借用他人银行卡进行资金转移，账户持有人与实际使用人分离",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人声称银行卡被他人借用或租用",
+        "账户交易IP地址或设备ID与持有人历史记录不一致",
+        "账户持有人无法解释交易目的"
+      ],
+      "data_hint": "account_holder_statement, device_id, ip_address, transaction_pattern"
+    }
+  ]
+}

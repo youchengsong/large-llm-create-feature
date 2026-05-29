@@ -1,0 +1,83 @@
+{
+  "source": "192胥某掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过赌博网站客服招募银行卡提供者，利用数字人民币和银行卡进行资金转移",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金在短时间内快速转入转出",
+        "数字人民币账户与银行卡账户绑定并频繁交互",
+        "多个账户由同一人控制并提供给第三方使用"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type (e.g., digital RMB, bank card), account_owner_id"
+    },
+    {
+      "pattern": "通过微信等社交平台传递账户密码，实现远程控制账户进行转账",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户密码通过非官方渠道（如微信）传递",
+        "账户登录IP地址与账户注册地或持有人所在地不一致",
+        "账户在短时间内被多个不同IP地址访问"
+      ],
+      "data_hint": "account_credentials_sharing_channel, login_ip, login_timestamp, account_holder_location"
+    },
+    {
+      "pattern": "利用数字人民币APP绑定银行卡，为网络犯罪提供支付结算通道",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币账户与银行卡绑定后立即进行大额转账",
+        "数字人民币账户资金流水与银行卡资金流水高度同步",
+        "账户资金流水总额较大（如39万、45万）但余额极低"
+      ],
+      "data_hint": "amount, timestamp, account_type (digital RMB, bank card), transaction_pair_id, balance_after_transaction"
+    },
+    {
+      "pattern": "多层级账户链式转移资金，以掩盖资金来源",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金经过多个中间账户（如从被害人账户到黎某账户再到周诗林账户）",
+        "每层转账金额接近或相同",
+        "转账时间间隔短，形成快速链式转移"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_chain_depth, intermediate_account_count"
+    },
+    {
+      "pattern": "通过出租银行卡和数字人民币账户获取报酬，账户被用于接收电信诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收来自多个不同来源的小额资金后集中转出",
+        "账户资金流入中包含已知诈骗案件受害人的转账",
+        "账户持有人与账户实际使用者非同一人"
+      ],
+      "data_hint": "amount, timestamp, counterparty_address, fraud_victim_flag, account_holder_vs_user_mismatch"
+    },
+    {
+      "pattern": "团伙成员分工协作，通过社交网络招募和传递账户信息",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在社交关系（如微信好友）",
+        "账户信息在团伙成员间传递后短时间内被用于转账",
+        "团伙成员之间资金往来（如石贸向林石东转账5130元）"
+      ],
+      "data_hint": "social_network_edges, message_timestamps, account_sharing_events, inter_account_transfers"
+    }
+  ]
+}

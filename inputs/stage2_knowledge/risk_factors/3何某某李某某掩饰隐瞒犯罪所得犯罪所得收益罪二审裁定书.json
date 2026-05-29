@@ -1,0 +1,80 @@
+{
+  "source": "3何某某李某某掩饰隐瞒犯罪所得犯罪所得收益罪二审裁定书",
+  "risk_factors": [
+    {
+      "pattern": "团伙分工协作，利用多张银行卡和数字人民币账户进行资金快速流转和取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一团伙成员在短时间内使用多个不同银行账户接收资金并取现",
+        "资金从多个受害人账户转入后，由不同人员分工取现和存款",
+        "使用数字人民币账户作为资金流转通道"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, account_type, involved_parties"
+    },
+    {
+      "pattern": "利用他人银行卡账户接收电信诈骗资金，通过取现再存入上线指定账户完成资金清洗",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金快速从多个受害人账户转入少数中间账户",
+        "中间账户在短时间内发生多笔小额转入后立即取现",
+        "取现金额与转入金额高度匹配，且取现后迅速存入其他账户"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (deposit/withdrawal), from_account, to_account, account_holder"
+    },
+    {
+      "pattern": "团伙成员多次、多日连续作案，形成稳定的资金流转模式",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在2022年9月19日至10月16日期间，共5次作案，间隔数天",
+        "每次作案均涉及多人协作，流程相似：联系上线、提供账户、取现、存款",
+        "作案地点集中在湘潭市和长沙市，具有地域聚集性"
+      ],
+      "data_hint": "timestamp, location, transaction_sequence, involved_parties"
+    },
+    {
+      "pattern": "团伙中不同成员提供多个银行账户用于资金流转，形成账户网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户（浦发银行、农业银行、建设银行、数字人民币账户）由不同团伙成员提供",
+        "账户之间通过取现和存款操作形成资金流转链条",
+        "部分账户持有人（如黄兵、黄添予）未到案，表明可能存在更广泛的账户网络"
+      ],
+      "data_hint": "account_id, account_holder, bank_name, transaction_links, network_graph"
+    },
+    {
+      "pattern": "利用小额分散转入规避大额交易监测，再集中取现",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔转入金额较小（如1000元、2000元、2100元等），但多笔累计后取现",
+        "取现行为发生在转入后短时间内，金额与累计转入额接近",
+        "资金流转总额52700元，但单笔最大转入不超过20000元"
+      ],
+      "data_hint": "amount, cumulative_amount, withdrawal_amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "团伙成员在取保候审期间再次犯罪，显示主观恶性大且可能持续从事洗钱活动",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "被告人刘涛在2022年10月被取保候审后，于2023年2月又犯偷越国（边）境罪",
+        "多次犯罪表明其与犯罪网络有长期联系",
+        "团伙成员可能跨区域、跨类型犯罪"
+      ],
+      "data_hint": "criminal_record, arrest_date, release_date, reoffending_interval"
+    }
+  ]
+}

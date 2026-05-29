@@ -1,0 +1,77 @@
+{
+  "source": "284杨某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合刷脸验证帮助转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内大额资金快进快出（进账577759元，出账577616.9元）",
+        "资金进出金额高度接近（差额仅142.1元）",
+        "账户持有人现场配合刷脸认证",
+        "账户关联多起诈骗案件"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, authentication_method, account_holder_behavior"
+    },
+    {
+      "pattern": "跨地域流动提供银行账户用于洗钱",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人从四川内江前往四川成都提供账户",
+        "账户开立地与交易发生地不一致"
+      ],
+      "data_hint": "account_opening_location, transaction_location, ip_address, geolocation"
+    },
+    {
+      "pattern": "利用他人银行卡账户进行资金归集和分散转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔大额资金进账后迅速分散出账",
+        "出账笔数与进账笔数不匹配（进账1笔，出账多笔）",
+        "资金在账户内停留时间极短"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, inflow_outflow_ratio"
+    },
+    {
+      "pattern": "涉案账户资金与诈骗案件直接关联",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金流向与已知诈骗案件受害人资金匹配",
+        "账户被多个案件关联"
+      ],
+      "data_hint": "case_id, victim_address, transaction_hash, account_id"
+    },
+    {
+      "pattern": "账户持有人有前科且再次涉案，形成累犯",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人有妨害公务罪前科",
+        "刑满释放后五年内再次犯罪"
+      ],
+      "data_hint": "identity_info, criminal_record, recidivism_flag"
+    },
+    {
+      "pattern": "通过小额报酬诱导他人提供账户用于洗钱",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人仅获得500元报酬，远低于涉案金额",
+        "报酬支付与涉案资金转移时间相近"
+      ],
+      "data_hint": "reward_amount, transaction_amount, reward_payment_timestamp"
+    }
+  ]
+}

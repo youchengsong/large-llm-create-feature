@@ -1,0 +1,84 @@
+{
+  "source": "287周世杰帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用多张非本人名下电话卡为诈骗分子提供通信支持",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一设备或IP地址关联多张不同持有人名下的电话卡",
+        "电话卡注册时间集中且短期内大量使用"
+      ],
+      "data_hint": "phone_number, device_id, ip_address, registration_time, call_duration"
+    },
+    {
+      "pattern": "通过飞机软件等加密通讯工具与上线联系，规避侦查",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用加密通讯软件（如Telegram、Signal）进行联系",
+        "通讯记录中频繁出现匿名或虚拟身份"
+      ],
+      "data_hint": "communication_app, message_content, contact_frequency, encryption_flag"
+    },
+    {
+      "pattern": "使用两部手机实现诈骗通话中转，隐藏真实通话路径",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一时间点两部手机同时在线且存在通话关联",
+        "通话链长度大于1（A->B->C）"
+      ],
+      "data_hint": "call_log, device_id_pairing, call_forwarding_flag, call_duration_overlap"
+    },
+    {
+      "pattern": "按小时计酬的固定报酬模式，表明有组织分工",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "报酬与通话时长线性相关",
+        "报酬支付频率高且金额固定（如每小时300元）"
+      ],
+      "data_hint": "payment_amount, payment_frequency, work_duration, hourly_rate"
+    },
+    {
+      "pattern": "诈骗资金最终转入数字人民币钱包，利用新型支付工具洗钱",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金最终流向数字人民币钱包",
+        "数字人民币钱包地址为新开或异常活跃"
+      ],
+      "data_hint": "transaction_to_address, wallet_type, wallet_age, transaction_count"
+    },
+    {
+      "pattern": "使用宾馆等临时场所进行诈骗活动，规避固定地点监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "通话地点频繁变更且多为临时住宿场所",
+        "同一设备在不同地理位置短时间内出现"
+      ],
+      "data_hint": "location_history, venue_type, check_in_time, device_mobility"
+    },
+    {
+      "pattern": "短时间内注册多张电话卡用于非法活动",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证或设备在短时间内注册多张电话卡",
+        "注册时间集中且注册后立即用于拨打诈骗电话"
+      ],
+      "data_hint": "registration_timestamp, id_card_number, device_id, phone_number_count"
+    }
+  ]
+}

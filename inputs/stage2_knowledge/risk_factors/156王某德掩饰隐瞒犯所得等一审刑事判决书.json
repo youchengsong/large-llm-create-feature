@@ -1,0 +1,77 @@
+{
+  "source": "156王某德掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租出售银行账户及支付工具用于接收和转移电信诈骗等非法资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一自然人提供多个不同支付账户（银行卡、数字人民币、云闪付、杉德宝、微信）",
+        "账户被用于接收来自多个不同受害人的资金",
+        "账户在短时间内接收来自多个不同来源的小额资金后迅速转出"
+      ],
+      "data_hint": "address, account_id, account_type, counterparty_address, transaction_count, victim_count"
+    },
+    {
+      "pattern": "提供刷脸等生物认证帮助完成非法资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在资金转入后短时间内进行刷脸认证操作",
+        "刷脸认证操作与资金转入时间高度关联",
+        "账户持有者主动配合完成多笔转账的认证环节"
+      ],
+      "data_hint": "timestamp, authentication_type, authentication_event, transaction_id, amount"
+    },
+    {
+      "pattern": "多个账户流水总额与涉案金额存在显著差异，显示资金分散转移特征",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户总流水远大于直接涉案金额，表明存在其他非法资金流入",
+        "单笔涉案金额较小（平均约2045元），但总流水较大",
+        "资金在多个账户间快速流转以混淆资金来源"
+      ],
+      "data_hint": "amount, total_flow, involved_amount, transaction_count, account_balance"
+    },
+    {
+      "pattern": "非法获利与资金流水成比例，体现为按比例收取手续费模式",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "非法获利金额（5293元）与总流水（285422.25元）比例约为1.85%",
+        "资金转移过程中存在固定比例的手续费扣除",
+        "多个账户的获利模式一致，表明有组织性"
+      ],
+      "data_hint": "amount, fee_amount, fee_rate, profit_amount, transaction_metadata"
+    },
+    {
+      "pattern": "上游犯罪通过黄色网站诱导受害人做数据、刷单等方式进行诈骗，资金最终流入洗钱账户",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "受害人资金从多个不同来源（11名受害人）汇入同一账户",
+        "资金在短时间内从多个受害人账户集中到目标账户",
+        "资金进入后迅速被转移，停留时间极短"
+      ],
+      "data_hint": "source_address, destination_address, amount, timestamp, transaction_chain, victim_count"
+    },
+    {
+      "pattern": "账户持有者明知账户用于违法犯罪仍主动提供，具有主观故意",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有者与上游犯罪嫌疑人存在直接联系",
+        "账户持有者提供多个账户并配合认证操作",
+        "账户持有者从中获取非法利益"
+      ],
+      "data_hint": "account_holder_relationship, account_creation_time, account_activity_pattern, profit_amount"
+    }
+  ]
+}

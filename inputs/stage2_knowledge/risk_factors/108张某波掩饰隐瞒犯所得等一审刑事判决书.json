@@ -1,0 +1,155 @@
+{
+  "source": "108张某波掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "使用多个银行账户、微信和支付宝账户接收并转移电信网络犯罪所得资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体控制多个不同银行、微信、支付宝账户接收资金",
+        "资金在多个账户间快速流转",
+        "账户接收资金后短时间内被转出或取现"
+      ],
+      "data_hint": "account_id, amount, timestamp, transaction_type, counterparty_account"
+    },
+    {
+      "pattern": "通过提供银行卡信息、支付密码、刷脸验证等方式协助上线转移赃款",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户密码或验证信息由他人提供",
+        "账户登录或交易操作由他人远程控制",
+        "账户持有人配合进行人脸识别验证"
+      ],
+      "data_hint": "login_ip, device_id, biometric_verification_flag, password_change_frequency"
+    },
+    {
+      "pattern": "利用他人银行卡进行大额取现，将现金交给上线",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一银行账户短期内多次大额取现",
+        "取现金额接近整数或频繁出现整数金额",
+        "取现后资金迅速转移给第三方"
+      ],
+      "data_hint": "withdrawal_amount, withdrawal_timestamp, atm_location, cash_recipient"
+    },
+    {
+      "pattern": "账户资金流入后立即通过微信、支付宝等第三方支付平台转出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行账户收到资金后短时间内通过微信或支付宝转出",
+        "微信/支付宝账户与多个银行账户绑定",
+        "转账金额与入账金额高度匹配"
+      ],
+      "data_hint": "incoming_transfer_amount, outgoing_transfer_amount, transfer_channel, time_delta"
+    },
+    {
+      "pattern": "使用数字人民币钱包接收并转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人注册数字人民币钱包并绑定银行卡",
+        "数字人民币钱包接收资金后迅速转出或取现",
+        "数字人民币钱包交易记录与银行卡交易记录关联"
+      ],
+      "data_hint": "digital_wallet_id, wallet_binding_time, transaction_type, amount"
+    },
+    {
+      "pattern": "账户资金在多个层级间流转，形成多层资金转移链",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过三个或以上账户层级",
+        "每个层级账户持有人不同",
+        "资金在短时间内完成多层转移"
+      ],
+      "data_hint": "transaction_chain_length, intermediate_accounts, transfer_timestamps"
+    },
+    {
+      "pattern": "账户被冻结后，卡主按上线指示谎称资金为赌博所得以解冻",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户被银行冻结后，持有人向银行提供虚假资金来源说明",
+        "账户解冻后立即恢复异常交易",
+        "账户持有人与上线有通信记录提及解冻策略"
+      ],
+      "data_hint": "account_freeze_flag, unfreeze_reason, communication_records, customer_service_calls"
+    },
+    {
+      "pattern": "上线组织者招募卡主并提供报酬，形成层级分明的洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一上线控制多个卡主账户",
+        "卡主之间通过上线介绍认识",
+        "上线按取现金额或介绍人数支付报酬"
+      ],
+      "data_hint": "referral_network, payment_to_card_holders, commission_rate, group_chat_records"
+    },
+    {
+      "pattern": "洗钱活动在夜间或非工作时间进行，以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易时间集中在夜间或凌晨",
+        "交易时间与正常商业活动时间不符",
+        "同一账户在非工作时间频繁交易"
+      ],
+      "data_hint": "transaction_timestamp, hour_of_day, day_of_week"
+    },
+    {
+      "pattern": "使用ATM机在不同地点分散取现，避免引起注意",
+      "dimension": [
+        "时间地域",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户在多个不同ATM机取现",
+        "取现金额低于大额交易报告阈值",
+        "取现地点分散在多个区域"
+      ],
+      "data_hint": "atm_location, withdrawal_amount, atm_id, geographic_coordinates"
+    },
+    {
+      "pattern": "账户持有人有犯罪前科或不良记录，易被招募为洗钱工具",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人有吸毒、赌博、诈骗等前科",
+        "账户持有人曾因出借银行卡被处罚",
+        "账户持有人经济状况不佳或有不良嗜好"
+      ],
+      "data_hint": "criminal_record, prior_penalties, financial_status, substance_abuse_history"
+    },
+    {
+      "pattern": "通过介绍他人提供银行卡获取额外报酬，形成卡商网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一卡主介绍多个其他人提供银行卡",
+        "介绍人从上线处获得介绍费",
+        "被介绍人的账户与介绍人账户有资金关联"
+      ],
+      "data_hint": "referrer_id, referee_id, referral_fee, account_relationship_graph"
+    }
+  ]
+}

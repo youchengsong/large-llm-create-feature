@@ -1,0 +1,100 @@
+{
+  "source": "140张某掩饰隐瞒犯罪所得犯罪所得收益一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供本人及他人名下多张银行卡、支付账户给上游犯罪分子用于转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同身份名下的银行卡和支付账户",
+        "账户间存在资金流转且最终流向同一上游方"
+      ],
+      "data_hint": "account_holder_id, account_number, account_type, transaction_counterparty, transaction_amount"
+    },
+    {
+      "pattern": "通过资金取现方式将犯罪所得转移，规避电子追踪",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内被取现",
+        "取现金额与入账金额高度匹配",
+        "取现行为发生在多个不同银行网点"
+      ],
+      "data_hint": "transaction_type, transaction_amount, timestamp, location, account_balance"
+    },
+    {
+      "pattern": "使用数字人民币钱包等新型支付工具进行资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字人民币钱包交易频繁且金额分散",
+        "数字人民币钱包资金快速转入传统银行账户或取现"
+      ],
+      "data_hint": "wallet_type, transaction_amount, transaction_count, timestamp, counterparty_wallet"
+    },
+    {
+      "pattern": "短时间内通过多个不同账户（银行卡、支付宝、微信）进行资金分散转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一时间段内多个账户发生资金转入和转出",
+        "单笔金额较小但累计金额较大",
+        "资金在多个账户间快速流转"
+      ],
+      "data_hint": "account_number, transaction_amount, timestamp, transaction_type, cumulative_amount"
+    },
+    {
+      "pattern": "明知资金来源于网络违法犯罪（如诈骗）仍提供账户并协助转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户资金来源于已知诈骗案件受害人",
+        "账户持有人与上游犯罪分子存在事前关联或共同行动"
+      ],
+      "data_hint": "account_holder_id, transaction_counterparty, fraud_case_id, communication_records"
+    },
+    {
+      "pattern": "使用他人名下银行卡、支付账户进行资金转移，形成多层资金链",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金经过多个不同身份名下的账户",
+        "资金流转路径超过2层",
+        "最终资金被取现或转入不可追踪账户"
+      ],
+      "data_hint": "transaction_chain, account_holder_id, transaction_amount, timestamp, counterparty_account"
+    },
+    {
+      "pattern": "通过操作转账和取现相结合的方式转移犯罪所得",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户同时存在转账和取现操作",
+        "转账和取现操作在时间上紧密衔接",
+        "取现金额与转账金额存在关联"
+      ],
+      "data_hint": "transaction_type, transaction_amount, timestamp, account_number, operation_mode"
+    },
+    {
+      "pattern": "非法获利与资金流水规模不成比例，表明为洗钱行为而非正常交易",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户流水总额远大于实际获利金额",
+        "获利比例极低（如本案中获利2700元对应流水55万余元）"
+      ],
+      "data_hint": "total_transaction_amount, profit_amount, profit_ratio"
+    }
+  ]
+}

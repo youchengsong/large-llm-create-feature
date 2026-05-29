@@ -1,0 +1,70 @@
+{
+  "source": "188孙箭阚泽等妨害信用卡管理罪掩饰隐瞒犯罪所得罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用他人银行卡进行资金走账和取现",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一控制人操作多张非本人银行卡",
+        "银行卡资金快进快出，短时间内完成转入和取现",
+        "多张银行卡资金流水异常集中，且与账户持有人的正常交易模式不符"
+      ],
+      "data_hint": "交易记录（sender, receiver, amount, timestamp），账户关联信息（account_holder, operator_ip），取现记录（withdrawal_amount, atm_location）"
+    },
+    {
+      "pattern": "通过数字人民币钱包进行资金转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一账户短时间内注册多个银行的数字钱包",
+        "数字钱包资金转入后迅速转出至其他钱包或账户",
+        "数字钱包交易金额与账户历史交易模式显著偏离"
+      ],
+      "data_hint": "数字钱包注册记录（wallet_id, bank, registration_time），交易记录（from_wallet, to_wallet, amount, timestamp），账户历史交易统计"
+    },
+    {
+      "pattern": "取保候审期间继续从事洗钱活动",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一主体在司法程序期间仍有新的异常交易行为",
+        "新增交易账户与之前涉案账户存在关联",
+        "交易时间集中在取保候审期间"
+      ],
+      "data_hint": "司法案件信息（case_id, defendant, status, period），交易记录（account_id, timestamp, amount），账户关联图"
+    },
+    {
+      "pattern": "通过飞机群等加密通讯工具与上线联系",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易指令通过加密通讯工具传递",
+        "资金操作与通讯记录时间高度吻合",
+        "交易对手方身份不明或使用虚拟身份"
+      ],
+      "data_hint": "通讯记录（app_type, message_content, timestamp），交易记录（sender, receiver, amount, timestamp），IP地址、设备指纹"
+    },
+    {
+      "pattern": "银行卡资金流水与被害人报案金额高度关联",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡进账流水总额远大于正常个人账户水平",
+        "资金流入时间与被害人报案时间相近",
+        "多笔小额资金快速汇入后集中转出"
+      ],
+      "data_hint": "交易记录（amount, timestamp, counterparty），被害人报案记录（victim_id, fraud_amount, report_time），账户流水统计"
+    }
+  ]
+}

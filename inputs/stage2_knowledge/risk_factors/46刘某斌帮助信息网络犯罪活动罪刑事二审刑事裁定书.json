@@ -1,0 +1,71 @@
+{
+  "source": "46刘某斌帮助信息网络犯罪活动罪刑事二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "个人名下多张银行卡集中提供给他人用于非法资金流转",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下多张银行卡短时间内被用于接收和转移资金",
+        "多张银行卡的U盾、身份证等配套工具一并提供给他人"
+      ],
+      "data_hint": "address, bank_card_number, device_id, timestamp"
+    },
+    {
+      "pattern": "银行卡资金单向流入金额巨大且与个人正常收入不符",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单张银行卡单向流入资金超过360万元",
+        "资金流入总额远高于账户持有人的正常收入水平"
+      ],
+      "data_hint": "amount, transaction_direction, account_balance"
+    },
+    {
+      "pattern": "跨地域多次提供银行卡用于非法刷流水",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "在不同城市（沈阳、天津、保定、天津）多次提供银行卡",
+        "提供银行卡的时间间隔从数天到数月不等"
+      ],
+      "data_hint": "location, timestamp, ip_address"
+    },
+    {
+      "pattern": "银行卡被用于电信网络诈骗资金接收和转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "涉案银行卡直接接收诈骗资金并快速转出",
+        "资金在短时间内经过多个账户流转"
+      ],
+      "data_hint": "transaction_chain, counterparty_address, amount, timestamp"
+    },
+    {
+      "pattern": "通过手机APP获取出借银行卡获利信息并主动联系",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过非正规渠道（手机APP）获取洗钱信息",
+        "主动联系并前往指定地点提供银行卡"
+      ],
+      "data_hint": "device_info, app_usage_log, communication_records"
+    },
+    {
+      "pattern": "提供银行卡及配套工具后获取固定比例或固定金额的报酬",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "非法获利8000元，与资金流入量成比例",
+        "报酬金额与银行卡使用时长或流水金额相关"
+      ],
+      "data_hint": "amount, profit_amount, transaction_fee"
+    }
+  ]
+}

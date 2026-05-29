@@ -1,0 +1,65 @@
+{
+  "source": "290刘仁东孙晓宇等掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡、手机及刷脸帮助，用于接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "单个账户在短时间内接收来自多个不同受害人的资金",
+        "资金入账后立即被转走，无停留",
+        "账户持有者提供刷脸验证协助转账",
+        "账户交易流水显示多笔分散入金后集中转出"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, receiver_address, transaction_type, authentication_method"
+    },
+    {
+      "pattern": "利用数字人民币APP进行资金转移，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内下载并注册数字人民币APP",
+        "通过数字人民币APP进行转账操作",
+        "转账过程中需要人脸识别验证"
+      ],
+      "data_hint": "app_usage_log, transaction_channel, authentication_method, device_info"
+    },
+    {
+      "pattern": "账户短时间内接收多笔来自不同受害人的资金，总金额较大",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日接收来自6个不同来源的转账",
+        "单日累计接收金额达259800元",
+        "单笔入金金额从10000元到70000元不等"
+      ],
+      "data_hint": "transaction_amount, transaction_count, sender_count, cumulative_amount_per_day"
+    },
+    {
+      "pattern": "账户持有者通过提供银行卡和手机获利，获利金额远低于转移资金总额",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有者非法获利仅700元，与转移资金259800元比例极低",
+        "账户持有者无正当职业，但账户出现大额资金流动"
+      ],
+      "data_hint": "account_holder_profile, income_level, transaction_amount, profit_amount"
+    },
+    {
+      "pattern": "账户在短时间内集中发生资金转移，时间窗口狭窄",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "所有资金转移发生在2022年9月25日至9月26日两天内",
+        "资金入账后迅速被转走，间隔时间短"
+      ],
+      "data_hint": "transaction_timestamp, time_window_between_inflow_and_outflow"
+    }
+  ]
+}

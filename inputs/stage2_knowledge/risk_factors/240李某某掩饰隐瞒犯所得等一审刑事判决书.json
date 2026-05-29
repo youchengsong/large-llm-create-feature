@@ -1,0 +1,83 @@
+{
+  "source": "240李某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字钱包接收上游资金并出售虚拟币，资金快进快出，交易量巨大且价格异常",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内（1-2个月）交易流水超过2000万元",
+        "每日交易金额数十万至百万级",
+        "资金快进快出，收款后立即提现至银行卡用于购买虚拟币",
+        "交易价格固定，仅赚取微小差价（每币几分钱），不随市场波动"
+      ],
+      "data_hint": "amount, timestamp, transaction_frequency, wallet_balance, price_spread"
+    },
+    {
+      "pattern": "使用多个数字钱包账户进行收款，以逃避银行监管和账户冻结",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "开通并使用了7个不同银行的数字钱包账户",
+        "收款码经常更换，付款方数字钱包也频繁更换",
+        "收款后提现至多张银行卡，无固定提现模式"
+      ],
+      "data_hint": "wallet_id, bank_account_count, wallet_switch_frequency, withdrawal_pattern"
+    },
+    {
+      "pattern": "通过微信群等社交渠道联系虚拟币买家，进行场外交易，交易对手不固定",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "通过微信群添加买家，群内发布收币信息",
+        "交易对手（陈某海）使用多个不同数字钱包付款",
+        "交易对手身份信息不完整，仅知微信号和自称姓名"
+      ],
+      "data_hint": "social_network_edges, counterparty_wallet_count, counterparty_identity_incomplete"
+    },
+    {
+      "pattern": "明知银行卡可能被冻结，故意选择数字钱包进行收款以规避监管",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易前已被告知使用数字钱包可避免银行卡被冻结",
+        "收款使用数字钱包，但购买虚拟币时仍使用银行卡",
+        "交易过程中主动询问资金来源合法性，但未深入核实"
+      ],
+      "data_hint": "transaction_channel_type, channel_switch_reason, compliance_checks"
+    },
+    {
+      "pattern": "资金流向呈现多层转移：数字钱包→银行卡→购买虚拟币→转至买家指定钱包",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从数字钱包提现至银行卡，再用于购买虚拟币",
+        "虚拟币最终转至买家提供的不同钱包地址",
+        "整个流程在短时间内完成，资金快进快出"
+      ],
+      "data_hint": "transaction_chain, wallet_address_sequence, time_lag_between_steps"
+    },
+    {
+      "pattern": "交易金额与个人正常收入严重不符，且交易对手资金可能来源于电信诈骗等犯罪",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "个人无正当职业，交易流水却达2000多万元",
+        "部分收款直接来自电信诈骗被害人账户",
+        "交易对手声称资金合法但无法提供有效证明"
+      ],
+      "data_hint": "income_level, transaction_volume_ratio, fund_source_origin"
+    }
+  ]
+}

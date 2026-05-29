@@ -1,0 +1,70 @@
+{
+  "source": "154唐某奇刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租出借银行卡和手机卡，配合刷脸验证，用于转移诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的资金",
+        "账户持有人配合刷脸验证操作",
+        "账户资金快速转出至其他账户",
+        "账户持有人与账户实际使用人非同一人"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, device_id, biometric_verification_flag, account_holder_id"
+    },
+    {
+      "pattern": "利用他人银行卡进行资金归集和快速转移，非法获利",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔或多笔资金从多个来源转入同一账户后立即转出",
+        "转入资金总额与转出资金总额相近",
+        "账户余额在短时间内归零或接近归零",
+        "账户持有人获得与交易金额不成比例的小额报酬"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_count, fee_amount"
+    },
+    {
+      "pattern": "在旅店等临时场所进行银行卡转账操作，行为地点异常",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "交易IP地址或地理位置与账户持有人常住地不一致",
+        "交易发生在旅店、网吧等临时场所",
+        "交易时间集中在非正常活动时段"
+      ],
+      "data_hint": "ip_address, geo_location, transaction_timestamp, device_location"
+    },
+    {
+      "pattern": "账户被用于接收多笔来自不同受害人的小额诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的小额资金",
+        "资金来源账户与账户持有人无正常社交或交易关系",
+        "资金转入后快速转出，形成资金快进快出模式"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count, counterparty_relationship_score"
+    },
+    {
+      "pattern": "账户持有人主动投案并退还资金，但已协助完成资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人事后主动联系执法机关",
+        "账户资金已被转出至无法追踪的地址",
+        "账户持有人有退还资金行为"
+      ],
+      "data_hint": "transaction_history, law_enforcement_contact_flag, refund_amount, refund_timestamp"
+    }
+  ]
+}

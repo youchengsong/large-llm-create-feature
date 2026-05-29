@@ -1,0 +1,69 @@
+{
+  "source": "122兰某河津市人民检察院掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租多张银行卡及数字人民币账户给他人用于转移犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体提供多张不同银行的银行卡（中行、交行、邮储、农行）及数字人民币账户",
+        "账户用于接收和转移不明来源资金，资金快速进出",
+        "账户短期内被用于多笔交易，总转移金额达122万余元"
+      ],
+      "data_hint": "address, bank_card_number, account_type, transaction_amount, transaction_count, counterparty_address"
+    },
+    {
+      "pattern": "明知他人使用银行卡转移犯罪资金，仍跨地域提供账户协助",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人前往不同城市（天津、徐州）提供银行卡",
+        "账户在短时间内（2023年1月初至2月2日）被用于转移资金",
+        "资金转移行为与上游诈骗犯罪时间高度关联"
+      ],
+      "data_hint": "timestamp, location, account_activation_time, transaction_time, upstream_crime_time"
+    },
+    {
+      "pattern": "使用多个银行账户和数字人民币账户分散转移资金，规避单账户大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用多个账户（至少6个）分别接收和转移资金",
+        "单个账户交易金额较小（如1500元一笔），但总金额巨大（122万余元）",
+        "资金通过多个账户层层转移，形成资金链"
+      ],
+      "data_hint": "transaction_amount, transaction_count, account_id, transaction_chain, total_amount_per_account"
+    },
+    {
+      "pattern": "账户用于接收诈骗资金后快速转出，呈现快进快出模式",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从上游诈骗账户转入后，短时间内被转出至其他账户",
+        "账户余额接近零或保持低余额",
+        "交易频率高，单笔金额与诈骗资金数额匹配"
+      ],
+      "data_hint": "transaction_timestamp, amount, balance_before, balance_after, transaction_direction"
+    },
+    {
+      "pattern": "通过他人介绍（谭小成）组织提供银行卡，形成团伙式洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户持有人之间存在介绍或组织关系",
+        "账户持有人与上游犯罪人员之间存在间接关联",
+        "账户使用行为具有协同性（同一时间段、同一地点）"
+      ],
+      "data_hint": "account_holder_relationship, referral_chain, shared_ip_address, shared_device_id"
+    }
+  ]
+}

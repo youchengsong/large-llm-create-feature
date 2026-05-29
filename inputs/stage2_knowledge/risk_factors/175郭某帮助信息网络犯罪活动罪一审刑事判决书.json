@@ -1,0 +1,70 @@
+{
+  "source": "175郭某帮助信息网络犯罪活动罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供手机、银行卡及密码给他人用于接收和转移电信诈骗资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收来自多个不同地区受害人的转账",
+        "资金到账后立即被转走，无停留",
+        "账户同时绑定多个支付工具（京东、云闪付、数字人民币）",
+        "账户密码交由他人操作"
+      ],
+      "data_hint": "transaction_records (amount, timestamp, sender_address, receiver_address), account_binding_info, login_device_info"
+    },
+    {
+      "pattern": "同一账户短时间内接收多笔来自不同受害人的小额转账并立即转出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多笔小额资金（1万、3万、0.5万）在短时间内（同日）汇入同一账户",
+        "每笔资金到账后立即被转走",
+        "资金来自不同地域（甘肃、广东阳江、广东博罗）"
+      ],
+      "data_hint": "transaction_records (amount, timestamp, sender_geolocation, receiver_geolocation), account_balance_history"
+    },
+    {
+      "pattern": "账户持有人亲自操作将大额资金拆分转账至多个目标账户",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "一笔6万元资金分5次转入同一目标账户（49976.51元）",
+        "剩余资金（10023.49元）转入自己的支付宝账户",
+        "转账操作在短时间内连续完成"
+      ],
+      "data_hint": "transaction_records (amount, timestamp, sender_address, receiver_address, transaction_count), account_balance_history"
+    },
+    {
+      "pattern": "使用数字人民币等新型支付工具进行资金转移以规避监管",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户下载并使用数字人民币、云闪付等非传统银行转账工具",
+        "资金通过多种支付渠道流转"
+      ],
+      "data_hint": "app_usage_logs, transaction_channel_type, account_binding_info"
+    },
+    {
+      "pattern": "犯罪团伙控制他人账户进行资金收转，并支付小额报酬",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户持有人收到小额报酬（600元）后，其余资金被团伙成员转走",
+        "报酬金额远低于流转资金总额",
+        "账户持有人与团伙成员通过社交软件（如“笑＊笑＊笑＊”）联系"
+      ],
+      "data_hint": "transaction_records (amount, timestamp, sender_address, receiver_address), communication_records, reward_amount"
+    }
+  ]
+}

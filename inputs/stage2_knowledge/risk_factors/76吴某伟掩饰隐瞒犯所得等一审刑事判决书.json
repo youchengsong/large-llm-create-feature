@@ -1,0 +1,64 @@
+{
+  "source": "76吴某伟掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、手机及支付密码给他人用于转移犯罪所得资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内被多个IP或设备登录",
+        "账户密码频繁修改",
+        "账户关联多个数字钱包地址"
+      ],
+      "data_hint": "address, device_id, ip_address, login_timestamp, password_change_count"
+    },
+    {
+      "pattern": "配合他人进行刷脸认证登录和修改支付密码",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "人脸认证操作与账户异常登录时间重合",
+        "支付密码修改后立即发生大额转账"
+      ],
+      "data_hint": "biometric_auth_timestamp, password_change_timestamp, transfer_timestamp, amount"
+    },
+    {
+      "pattern": "下载并认证数字人民币钱包APP后用于资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "新注册数字钱包账户后立即接收大额资金",
+        "资金从银行卡快速转入数字钱包并转出"
+      ],
+      "data_hint": "wallet_creation_time, wallet_balance_change, transfer_from_bank_to_wallet, transfer_out_time"
+    },
+    {
+      "pattern": "涉案银行卡涉及多起电信网络诈骗案件，资金快速流转",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一银行卡关联多个诈骗案件",
+        "资金在短时间内（如1-2天）集中流入并快速转出"
+      ],
+      "data_hint": "case_id, amount, timestamp, transaction_frequency, inflow_outflow_ratio"
+    },
+    {
+      "pattern": "提供银行卡用于接收和转移犯罪所得，非法获利金额较小",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收大额资金后立即转出，余额接近零",
+        "交易对手方为多个不同账户",
+        "获利金额与交易总额比例极低"
+      ],
+      "data_hint": "amount, balance_after_transfer, counterparty_count, profit_amount, total_transaction_amount"
+    }
+  ]
+}

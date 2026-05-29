@@ -4,6 +4,9 @@ data/transactions.csv
 # Large output files
 output/full_baseline_features.csv
 output/full_baseline_features_original.csv
+outputs/baseline_cache.parquet
+outputs/single_agent_run/*.parquet
+logs/
 
 # Python
 __pycache__/

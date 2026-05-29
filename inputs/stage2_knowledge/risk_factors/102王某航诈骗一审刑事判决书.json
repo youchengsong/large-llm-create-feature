@@ -1,0 +1,57 @@
+{
+  "source": "102王某航诈骗一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人银行卡出借给他人用于接收和转移网络违法犯罪资金，并配合刷脸转账",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内收到来自多个不同受害人的资金",
+        "资金入账后立即通过数字人民币钱包和第三方金融平台转出至指定账户",
+        "账户持有者与资金接收方存在线下社交关系（如酒吧结识）",
+        "账户持有者配合进行人脸识别验证完成转账"
+      ],
+      "data_hint": "transaction_id, from_address, to_address, amount, timestamp, device_id, biometric_verification_flag, social_network_edges"
+    },
+    {
+      "pattern": "跑分人员通过许诺高额提成（转账金额3%）招募他人提供银行卡进行洗钱",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收资金后立即按比例（如3%）向招募者支付报酬",
+        "多个账户在相近时间点接收来自同一上游地址的资金",
+        "账户持有者与招募者之间存在频繁的小额转账或红包记录"
+      ],
+      "data_hint": "amount, fee_rate, counterparty_address, transaction_graph, timestamp_cluster"
+    },
+    {
+      "pattern": "利用数字人民币钱包和第三方金融平台（如京东金融小金卡）进行资金多层转移以规避追踪",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入数字人民币钱包后，再转至其他平台或账户",
+        "资金在多个不同金融平台之间快速流转，形成多层转移路径",
+        "每层转移金额与原始入账金额高度匹配"
+      ],
+      "data_hint": "transaction_path, platform_type (e.g., digital_yuan, jd_finance), amount_sequence, timestamp_sequence"
+    },
+    {
+      "pattern": "账户持有者主动投案并退赔部分被害人损失，试图减轻法律责任",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有者在案发后主动联系部分受害人进行赔偿",
+        "赔偿金额远低于涉案总金额（如1500元 vs 10900元）",
+        "账户持有者主动到公安机关投案"
+      ],
+      "data_hint": "event_timeline, compensation_amount, victim_contact_record, legal_proceeding_flag"
+    }
+  ]
+}

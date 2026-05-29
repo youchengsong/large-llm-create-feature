@@ -1,0 +1,75 @@
+{
+  "source": "134王某帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户接收赃款后立即转入第三方支付账户，次日再提现转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内（数小时内）转入支付宝或微信账户",
+        "次日通过另一银行账户提现",
+        "资金在多个账户间快速流转"
+      ],
+      "data_hint": "amount, timestamp, from_address, to_address, transaction_type (bank, alipay, wechat)"
+    },
+    {
+      "pattern": "跨地域往返进行资金转移操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一日内跨城市往返（如上海至邳州）",
+        "资金转移行为与跨地域出行时间高度重合"
+      ],
+      "data_hint": "timestamp, location, travel_records, transaction_time"
+    },
+    {
+      "pattern": "使用聊天工具提前沟通办卡、取现等洗钱事宜",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "聊天记录中出现'办卡'、'取现'、'料子'、'公安打击'等敏感词汇",
+        "与上线约定见面时间和地点"
+      ],
+      "data_hint": "chat_content, chat_time, participant_ids"
+    },
+    {
+      "pattern": "上游电信诈骗资金分散转入同一账户后集中转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个不同来源的小额资金（数千至两万余元）在短时间内汇入同一账户",
+        "资金汇总后立即被转出"
+      ],
+      "data_hint": "amount, timestamp, sender_addresses, receiver_address"
+    },
+    {
+      "pattern": "账户持有者具有洗钱相关前科且累犯",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人曾因帮助信息网络犯罪活动罪被判刑",
+        "前科记录显示类似犯罪手法"
+      ],
+      "data_hint": "user_identity, criminal_record, previous_case_details"
+    },
+    {
+      "pattern": "到案后不配合调查且供述前后矛盾",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "到案后拒不认罪",
+        "对资金性质的解释前后不一且无合理解释",
+        "违反取保候审规定被逮捕"
+      ],
+      "data_hint": "user_behavior_logs, interrogation_records, compliance_status"
+    }
+  ]
+}

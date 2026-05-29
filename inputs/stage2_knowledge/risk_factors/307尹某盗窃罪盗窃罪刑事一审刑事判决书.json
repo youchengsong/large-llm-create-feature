@@ -1,0 +1,69 @@
+{
+  "source": "307尹某盗窃罪盗窃罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并协助取现转移犯罪所得",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡收到多笔来源不明资金后立即取现",
+        "短时间内多笔ATM取现（如三次5000元）",
+        "取现后现金交给他人",
+        "账户资金流入后迅速通过数字人民币兑出"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (取现/转账), counterparty, channel (ATM/数字人民币), account_balance"
+    },
+    {
+      "pattern": "利用数字人民币渠道快速转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额资金通过数字人民币兑出（如20000元）",
+        "数字人民币兑出与取现行为在同一天发生",
+        "资金流入后短时间内通过数字人民币转出"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (数字人民币兑出), channel, counterparty"
+    },
+    {
+      "pattern": "小额多次取现规避大额交易报告",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔取现金额接近但不超过5000元",
+        "同一ATM机连续多次取现",
+        "取现总金额较大但单笔金额较小"
+      ],
+      "data_hint": "amount, timestamp, location (ATM编号), transaction_type (取现), frequency"
+    },
+    {
+      "pattern": "账户短期内集中流入多笔诈骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在同一天内收到来自不同受害人的转账",
+        "资金流入时间高度集中",
+        "账户历史交易模式突然改变"
+      ],
+      "data_hint": "amount, timestamp, sender_account, receiver_account, transaction_history"
+    },
+    {
+      "pattern": "通过他人介绍参与洗钱活动",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金提供者存在线下社交关系",
+        "账户持有人无正当理由协助陌生人转账",
+        "账户持有人获得小额报酬（如500元）"
+      ],
+      "data_hint": "account_holder_info, counterparty_info, relationship_type, reward_amount"
+    }
+  ]
+}

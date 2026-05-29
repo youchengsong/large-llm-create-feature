@@ -1,0 +1,56 @@
+{
+  "source": "81张智聪帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人为获取非法利益，明知资金违法，仍提供数字人民币钱包账户并协助转移资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短时间内接收多笔来自不同来源的小额资金（54笔，共124098元）",
+        "资金在接收后短时间内被分多笔（28笔）全部转移",
+        "账户操作者与账户注册者身份一致，且主动按外部指令操作转移"
+      ],
+      "data_hint": "交易记录（amount, timestamp, from_address, to_address），账户注册信息（user_id, registration_time），操作日志（operation_type, timestamp）"
+    },
+    {
+      "pattern": "数字人民币钱包账户被用于接收电信网络诈骗资金，资金快速进出形成资金清洗通道",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内（2023年3月23日至4月5日）频繁接收资金（54笔），平均每笔约2298元",
+        "资金转入后迅速分多笔转出（28笔），无停留时间",
+        "转入资金总额与转出资金总额高度匹配（124098元全部转出）"
+      ],
+      "data_hint": "交易记录（amount, timestamp, transaction_type），账户流水（balance_changes）"
+    },
+    {
+      "pattern": "账户操作者通过电话联系陌生男子，下载注册数字人民币钱包并接受指令操作，体现远程控制特征",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册时间与首次接收资金时间接近",
+        "操作指令来自外部陌生联系人（电话联系）",
+        "账户操作者未直接接触资金上游，仅按指令执行转账"
+      ],
+      "data_hint": "通话记录（call_logs），账户注册时间（registration_time），交易指令来源（instruction_source）"
+    },
+    {
+      "pattern": "资金来源于多起电信网络诈骗案件，且被害人分布广泛，资金归集到同一账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收来自不同被害人的资金（如廖某萍转入23400元）",
+        "资金来自不同地域的被害人（如东莞东城区）",
+        "账户作为资金归集点，接收多笔诈骗资金后统一转移"
+      ],
+      "data_hint": "交易记录（from_address, to_address, amount），被害人信息（victim_location, victim_id）"
+    }
+  ]
+}

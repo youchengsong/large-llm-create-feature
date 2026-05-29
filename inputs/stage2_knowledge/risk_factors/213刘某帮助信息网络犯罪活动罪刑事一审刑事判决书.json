@@ -1,0 +1,57 @@
+{
+  "source": "213刘某帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织他人提供银行卡为网络犯罪提供支付结算帮助",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一控制人安排多个不同身份人员提供银行卡",
+        "银行卡流入资金与流出资金高度接近，差额极小",
+        "涉及多笔小额分散资金流入后集中转出"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, account_holder_id"
+    },
+    {
+      "pattern": "利用数字人民币账户进行洗钱，将诈骗资金快速转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "短时间内开通多个数字人民币账户",
+        "数字人民币账户与银行卡之间频繁转账",
+        "资金从多个来源账户汇入后迅速分散转出"
+      ],
+      "data_hint": "account_type, transaction_type, amount, timestamp, sender_address, receiver_address"
+    },
+    {
+      "pattern": "使用多个非本人银行卡进行转账操作以掩饰资金来源",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一操作者控制多个不同主体名下的银行卡",
+        "银行卡之间资金流转路径复杂，涉及多跳转账",
+        "转账操作集中在短时间内完成"
+      ],
+      "data_hint": "account_holder_id, device_id, ip_address, transaction_chain, amount, timestamp"
+    },
+    {
+      "pattern": "明知是犯罪所得仍提供银行卡并操作转账（跑分洗钱）",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡短时间内大量资金流入流出，流水总额巨大",
+        "单笔交易金额接近但不超过常见阈值",
+        "资金在多个账户间快速循环流转"
+      ],
+      "data_hint": "amount, transaction_frequency, balance_fluctuation, transaction_loop_detection"
+    }
+  ]
+}

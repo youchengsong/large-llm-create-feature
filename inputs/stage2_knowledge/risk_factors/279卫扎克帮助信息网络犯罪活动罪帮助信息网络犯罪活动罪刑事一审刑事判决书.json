@@ -1,0 +1,81 @@
+{
+  "source": "279卫扎克帮助信息网络犯罪活动罪帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台（微信）联系，以兼职名义诱骗个人提供银行卡及密码用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户短期内与多个陌生个人或机构发生大额资金往来",
+        "账户持有人年龄偏小或职业与资金规模不匹配",
+        "账户在短时间内被多个设备或IP登录"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, device_id, ip_address, account_age, account_type"
+    },
+    {
+      "pattern": "使用个人名下多张银行卡（工商、邮政、招商）接收不明资金，并在ATM和柜台多次取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一人在短时间内使用多张不同银行卡进行资金归集和取现",
+        "ATM取现次数频繁（4次共20000元）且柜台取现大额（49000元）",
+        "取现金额接近但不超过大额报告阈值"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (ATM/柜台), bank_card_number, account_holder_id, location"
+    },
+    {
+      "pattern": "资金快速到账后立即通过取现方式转移，形成快进快出的资金链",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内（数小时内）即被取现",
+        "取现地点与账户开户地或居住地不一致",
+        "资金在多个账户间快速流转后最终取现"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_chain, location, account_open_location"
+    },
+    {
+      "pattern": "使用数字人民币APP进行转账操作，利用新型支付工具规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户突然开始使用数字人民币等新型支付工具",
+        "数字人民币交易金额与账户历史交易模式不符",
+        "数字人民币交易后立即进行传统银行取现"
+      ],
+      "data_hint": "transaction_type, payment_method, amount, timestamp, device_info"
+    },
+    {
+      "pattern": "账户短期内收到来自不同受害人的多笔诈骗资金，资金归集特征明显",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内收到来自多个不同账户的大额转账",
+        "转入资金来源分散且与账户持有人无正常业务关联",
+        "转入资金总额与账户历史交易量级差异巨大"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, account_history"
+    },
+    {
+      "pattern": "取现行为发生在不同银行网点（ATM和柜台），且取现时无人跟随，但取现后立即将现金交给第三方",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "取现后短时间内与已知或可疑地址发生现金交接",
+        "取现行为模式异常（如多次小额取现后大额柜台取现）",
+        "取现账户持有人与取现后现金接收方无亲属或业务关系"
+      ],
+      "data_hint": "amount, timestamp, location, transaction_type, counterparty_address, relationship_graph"
+    }
+  ]
+}

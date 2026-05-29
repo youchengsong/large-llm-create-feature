@@ -1,0 +1,69 @@
+{
+  "source": "173佘昶霖姚振飞帮助信息网络犯罪活动罪掩饰隐瞒犯罪所得犯罪所得收益罪诈骗罪掩饰隐瞒犯罪所得犯罪所得收益罪...",
+  "risk_factors": [
+    {
+      "pattern": "个人名下多张银行卡被集中用于接收和转移电信诈骗资金，并通过第三方支付工具转账、取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户短时间内接收来自多个不同受害人的转账",
+        "资金进入后立即通过支付宝、微信、数字人民币APP等第三方工具转出或取现",
+        "账户内资金快进快出，不留余额"
+      ],
+      "data_hint": "amount, timestamp, sender_address, receiver_address, transaction_type, platform_type"
+    },
+    {
+      "pattern": "利用数字人民币APP刷脸辅助转账，规避传统银行转账监控",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币账户出现刷脸认证后的大额或频繁转账",
+        "同一设备或IP地址操作多个数字人民币账户",
+        "数字人民币转账与银行卡取现交替使用"
+      ],
+      "data_hint": "transaction_type, auth_method, device_id, ip_address, amount, timestamp"
+    },
+    {
+      "pattern": "团伙成员提供本人银行卡并配合柜台取现，将诈骗资金转化为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内收到多笔小额资金后立即前往柜台大额取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "取现行为发生在非正常营业时间或异地"
+      ],
+      "data_hint": "amount, timestamp, location, transaction_type, cash_withdrawal_amount"
+    },
+    {
+      "pattern": "多层级账户体系用于资金分散转移，每层账户仅经手少量资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户之间存在资金流转路径，形成链条",
+        "每个账户接收资金后迅速转出至下一层账户",
+        "账户间转账金额较小，但总金额较大"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_graph"
+    },
+    {
+      "pattern": "团伙成员通过电话通知到案，表明其具有自首情节，但前期已实施多次洗钱行为",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一团伙成员之间在案发前存在频繁通讯记录",
+        "团伙成员在案发后主动联系执法机关",
+        "团伙成员之间资金往来频繁且金额异常"
+      ],
+      "data_hint": "communication_records, transaction_records, address, phone_number"
+    }
+  ]
+}

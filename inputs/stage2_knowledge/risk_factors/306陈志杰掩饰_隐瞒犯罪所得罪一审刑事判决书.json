@@ -1,0 +1,92 @@
+{
+  "source": "306陈志杰掩饰、隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡、支付密码及手机给跑分团伙用于接收和转移网络赌博资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡与多个陌生账户发生大额资金往来",
+        "账户在短时间内被多个上游案件冻结",
+        "账户同时绑定银行卡、支付宝、数字人民币钱包等多种支付工具"
+      ],
+      "data_hint": "bank_card_id, counterparty_address, amount, timestamp, freeze_status, payment_channel"
+    },
+    {
+      "pattern": "跑分团伙通过支付宝网上快捷支付和数字人民币钱包转出资金，并利用刷脸验证完成转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡快速转入支付宝或数字人民币钱包后立即转出",
+        "短时间内多次使用刷脸验证进行大额转账",
+        "资金流转路径涉及多个支付渠道（银行卡→支付宝→数字人民币钱包→其他账户）"
+      ],
+      "data_hint": "transaction_type, payment_channel, face_authentication_flag, amount, timestamp, source_account, destination_account"
+    },
+    {
+      "pattern": "单日银行卡流入资金27.3万元，涉及多起电信网络诈骗案件，资金直接来自被骗受害人",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单日累计流入金额超过27万元",
+        "同一账户在一天内接收来自多个不同受害人的资金",
+        "资金流入后未停留即被转移"
+      ],
+      "data_hint": "daily_total_inflow, number_of_incoming_transactions, counterparty_count, amount, timestamp, transaction_interval"
+    },
+    {
+      "pattern": "被告人经工友推荐与上线‘北某’联系，约定提供银行卡并获取好处费，形成层级式招募关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户间存在推荐或介绍关系（工友推荐微信好友）",
+        "多个账户共享相同设备或IP地址",
+        "账户之间存在资金往来或共同联系人"
+      ],
+      "data_hint": "referrer_id, shared_device_id, shared_ip_address, contact_graph"
+    },
+    {
+      "pattern": "被告人从湖北武汉经湖南长沙中转前往江西宜春，异地提供银行卡和支付工具",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户登录或交易IP地址与户籍地、常驻地不一致",
+        "短时间内跨省移动（武汉→长沙→宜春）",
+        "交易时间与出行时间高度重合"
+      ],
+      "data_hint": "ip_address, geolocation, travel_history, transaction_timestamp, login_timestamp"
+    },
+    {
+      "pattern": "跑分团伙在便利店门口宝马车上进行资金转移操作，利用隐蔽场所规避监控",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易发生在非营业场所或临时地点",
+        "交易时间集中在夜间或非工作时间",
+        "交易前后设备位置发生快速变化"
+      ],
+      "data_hint": "transaction_location, timestamp, device_gps_coordinates, transaction_interval"
+    },
+    {
+      "pattern": "被告人未获得约定好处费，但银行卡已被用于接收诈骗资金并冻结，显示其作为‘卡农’角色",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户在短期内被多个司法机关冻结",
+        "账户余额与预期收益不符",
+        "账户持有人与多个可疑账户存在关联"
+      ],
+      "data_hint": "freeze_count, freeze_reason, account_balance, expected_benefit, associated_suspicious_accounts"
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "source": "17田某某掩饰隐瞒犯所得等二审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用数字人民币钱包进行跑分洗钱，通过预交保证金、接收上线资金、提现循环操作完成资金转移",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "数字人民币钱包账户数量异常多（如394个）",
+        "账户流水金额巨大（如2839万元）",
+        "资金接收后立即提现，形成循环操作",
+        "预交保证金与收款金额比例固定（2%-3%提成）"
+      ],
+      "data_hint": "wallet_address, amount, timestamp, transaction_type (deposit/withdraw), fee_rate, balance_before, balance_after"
+    },
+    {
+      "pattern": "组织多人发展下线，形成多层级数字人民币钱包网络进行洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "存在明确的上下线层级关系（如张某枫→申某阳→马某浩等）",
+        "下线人员继续发展下级（如曹某祥发展姚生辉、孔某森）",
+        "多个钱包地址由同一人或组织控制",
+        "钱包注册时间集中、行为模式相似"
+      ],
+      "data_hint": "wallet_address, user_id, parent_user_id, registration_time, ip_address, device_id"
+    },
+    {
+      "pattern": "利用数字人民币钱包收取诈骗资金，通过快速转移掩盖资金来源",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从诈骗账户流入数字人民币钱包后快速提现",
+        "资金流转路径涉及多个钱包地址",
+        "提现操作在短时间内完成",
+        "钱包地址注册地与诈骗发生地不一致"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_hash, location"
+    },
+    {
+      "pattern": "通过预交保证金机制控制洗钱额度，规避平台风控",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "保证金账户资金归零后需再次充值才能继续收款",
+        "每笔收款金额与保证金比例相关",
+        "提现金额与保证金金额存在关联",
+        "账户余额频繁归零"
+      ],
+      "data_hint": "deposit_amount, withdrawal_amount, balance, fee_amount, transaction_count"
+    },
+    {
+      "pattern": "利用他人身份或控制多个账户进行批量洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人控制多个数字人民币钱包（如张某枫控制394个）",
+        "多个钱包地址交易模式高度相似",
+        "钱包注册信息存在关联（如相同IP、设备）",
+        "钱包之间频繁互转资金"
+      ],
+      "data_hint": "wallet_address, owner_id, registration_ip, device_fingerprint, linked_wallets"
+    }
+  ]
+}

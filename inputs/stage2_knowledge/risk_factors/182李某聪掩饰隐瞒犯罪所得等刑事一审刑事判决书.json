@@ -1,0 +1,80 @@
+{
+  "source": "182李某聪掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡及密码给他人用于转移网络犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡账户短时间内接收来自多个不同受害人的资金",
+        "银行卡账户与在逃人员账户存在直接资金往来",
+        "银行卡密码提供给非本人使用"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, account_holder_id, password_sharing_flag"
+    },
+    {
+      "pattern": "通过ATM机取款、数字人民币转账和微信转账等多种方式快速转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内通过ATM、数字人民币、微信等多渠道频繁取现或转账",
+        "资金从多个受害人账户汇入后立即通过不同渠道分散转出"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, channel_type, from_address, to_address"
+    },
+    {
+      "pattern": "团伙合谋招募多人提供银行卡进行资金转移，分工明确",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个银行卡账户在相近时间段内接收来自同一上游犯罪团伙的资金",
+        "账户之间存在层级关系，如招募者账户与提供者账户有资金往来",
+        "多个账户在相同IP地址或地理位置进行交易"
+      ],
+      "data_hint": "account_holder_id, from_address, to_address, ip_address, location, timestamp"
+    },
+    {
+      "pattern": "在网吧包厢等隐蔽场所配合进行网银人脸识别和密码身份认证",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易发生在网吧等非住宅区场所",
+        "人脸识别认证时间与交易时间高度吻合",
+        "同一设备或IP地址短时间内认证多个不同账户"
+      ],
+      "data_hint": "location, device_id, ip_address, biometric_auth_timestamp, transaction_timestamp"
+    },
+    {
+      "pattern": "银行卡接收多笔小额诈骗资金后集中转移",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收多笔小额资金（如2000元、1500元、7680元）后短时间内转出",
+        "转入金额与转出金额在时间上高度聚集",
+        "账户余额在接收资金后迅速清零"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_count"
+    },
+    {
+      "pattern": "提供银行卡的账户持有人与上游犯罪人员存在合谋关系",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与在逃人员有直接联系或共同活动记录",
+        "多个账户持有人之间存在社交网络关联",
+        "账户持有人年龄偏小、无业等特征"
+      ],
+      "data_hint": "account_holder_id, social_network_data, employment_status, age"
+    }
+  ]
+}

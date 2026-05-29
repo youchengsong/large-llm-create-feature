@@ -1,0 +1,57 @@
+{
+  "source": "179焦某某严某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行卡并配合人脸识别帮助他人转移犯罪所得",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户出借给他人使用",
+        "账户登录设备或IP地址频繁变化",
+        "转账过程中触发人脸识别认证",
+        "账户短时间内转入转出金额基本相等"
+      ],
+      "data_hint": "address, login_device, ip_address, amount, timestamp, face_recognition_event"
+    },
+    {
+      "pattern": "短时间内资金快进快出，总流水接近转入金额的两倍",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内（如数小时内）转入资金后立即全额转出",
+        "转入总金额与转出总金额高度接近",
+        "账户流水总额约为转入金额的两倍"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, balance"
+    },
+    {
+      "pattern": "同一账户接收来自不同电信诈骗受害人的资金并迅速转移",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内接收来自多个不同来源的转账",
+        "资金来源涉及多起诈骗案件",
+        "资金到账后短时间内被转出"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, case_id"
+    },
+    {
+      "pattern": "使用数字人民币APP等新型支付工具进行资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户关联数字人民币APP登录记录",
+        "通过数字人民币APP进行转账操作",
+        "转账记录中包含数字人民币交易"
+      ],
+      "data_hint": "app_type, transaction_channel, digital_currency_transaction_log"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "source": "150李某某掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡给他人用于接收和转移电信诈骗赃款，并配合刷脸验证服务以牟利",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一主体名下多张银行卡被用于接收来源不明资金",
+        "账户在短时间内接收多笔来自不同受害人的转账",
+        "资金到账后立即通过数字人民币APP刷脸验证转移",
+        "账户持有人配合提供生物识别验证（刷脸）"
+      ],
+      "data_hint": "bank_card_id, account_holder_id, transaction_amount, transaction_timestamp, counterparty_address, biometric_verification_flag, digital_currency_app_usage"
+    },
+    {
+      "pattern": "电信诈骗赃款通过个人银行卡快速接收并转移，资金流转路径短且集中",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单笔或多笔小额资金从不同受害人账户集中转入同一收款账户",
+        "收款账户在短时间内（如数小时内）将资金转出或通过数字人民币转移",
+        "转入资金总额与电信诈骗案件涉案金额高度吻合"
+      ],
+      "data_hint": "transaction_amount, transaction_timestamp, sender_address, receiver_address, transaction_chain_length, total_inflow_amount"
+    },
+    {
+      "pattern": "账户持有人明知资金为犯罪所得仍提供银行卡并协助转账，体现主观故意和共谋行为",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与资金提供方存在非正常社交关系或线上联系（如微信）",
+        "账户持有人多次提供银行卡并配合验证，且收取报酬",
+        "账户持有人对资金来源异常有认知（如供述中承认明知）"
+      ],
+      "data_hint": "account_holder_communication_records, reward_amount, transaction_purpose_description, user_behavior_logs"
+    },
+    {
+      "pattern": "利用数字人民币APP进行资金转移，增加追踪难度",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金通过数字人民币APP进行刷脸验证后转移",
+        "数字人民币交易记录中显示快速转出至其他地址或账户",
+        "数字人民币交易与传统银行卡交易混合使用"
+      ],
+      "data_hint": "digital_currency_transaction_id, verification_method, transaction_type, transfer_destination"
+    }
+  ]
+}

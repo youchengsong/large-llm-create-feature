@@ -1,0 +1,78 @@
+{
+  "source": "118侯某红掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体招募个人提供银行卡和数字人民币钱包用于接收和转移网络违法犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户注册后短时间内绑定多个银行数字人民币钱包",
+        "账户与多个不同银行的数字人民币钱包关联",
+        "账户将钱包信息及身份证信息提供给第三方"
+      ],
+      "data_hint": "wallet_registration_time, bank_card_binding, wallet_type, identity_verification, communication_records"
+    },
+    {
+      "pattern": "利用数字人民币钱包将违法犯罪资金兑回到银行卡，实现资金转移",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币钱包快速兑回至绑定的银行卡",
+        "兑回资金金额与后续取现金额高度匹配",
+        "资金在数字钱包和银行卡之间循环转移"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, wallet_address, bank_account"
+    },
+    {
+      "pattern": "通过银行柜台大额取现方式将犯罪所得资金变现并交付上线",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内多次进行大额柜台取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "取现后资金立即交付给第三方"
+      ],
+      "data_hint": "withdrawal_amount, withdrawal_time, counter_transaction, cash_flow_destination"
+    },
+    {
+      "pattern": "使用本人及亲属的多个银行账户进行资金接收和取现",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一控制人使用多个不同银行的账户",
+        "账户涉及亲属关系",
+        "多个账户在相近时间内发生类似交易模式"
+      ],
+      "data_hint": "account_holder_relation, bank_account_list, transaction_pattern_similarity"
+    },
+    {
+      "pattern": "资金接收后短时间内完成兑回和取现，形成快速资金流转",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从数字钱包兑回到银行卡的时间间隔极短",
+        "兑回后立即进行柜台取现",
+        "整个资金转移过程在数小时或一天内完成"
+      ],
+      "data_hint": "transaction_timestamp, time_diff_between_events, withdrawal_timestamp"
+    },
+    {
+      "pattern": "通过收取固定比例好处费的方式激励个人提供账户协助洗钱",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户接收资金总额与取现金额存在差额",
+        "差额与接收资金总额的比例固定",
+        "账户中保留固定金额作为报酬"
+      ],
+      "data_hint": "total_inflow, total_outflow, fee_amount, fee_ratio"
+    }
+  ]
+}

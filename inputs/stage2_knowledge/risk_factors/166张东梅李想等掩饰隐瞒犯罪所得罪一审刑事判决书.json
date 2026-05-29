@@ -1,0 +1,68 @@
+{
+  "source": "166张东梅李想等掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过出卖银行卡为网络犯罪提供支付结算帮助，按流水比例获取报酬",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡短时间内接收大量小额转账并快速转出",
+        "多张银行卡集中使用且资金快速归集",
+        "账户持有人与操盘手非同一人操作转账"
+      ],
+      "data_hint": "transaction_count, amount, timestamp, sender_address, receiver_address, device_id"
+    },
+    {
+      "pattern": "短时间内高频次交易，进账笔数远多于出账笔数，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "单日进账笔数超过200笔",
+        "进账金额与出账金额高度接近",
+        "交易集中在夜间至凌晨时段"
+      ],
+      "data_hint": "incoming_count, outgoing_count, total_in_amount, total_out_amount, timestamp"
+    },
+    {
+      "pattern": "使用数字人民币APP和银行APP进行资金转移，将非法资金转入个人支付宝再转至其他银行卡",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从数字人民币账户转至支付宝",
+        "再从支付宝转至其他银行卡",
+        "资金最终用于个人消费"
+      ],
+      "data_hint": "transaction_type, source_account, destination_account, app_type, amount"
+    },
+    {
+      "pattern": "跨省流动携带多张银行卡进行跑分操作",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人短时间内跨省移动",
+        "多张银行卡在同一地点被集中使用",
+        "操作地点与开户地不一致"
+      ],
+      "data_hint": "geolocation, ip_address, device_location, card_issuing_bank, transaction_location"
+    },
+    {
+      "pattern": "通过朋友介绍和操盘手操作，形成多层级的洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与操盘手非直接关联",
+        "资金经过多个中间账户",
+        "账户持有人与上游犯罪人员存在间接联系"
+      ],
+      "data_hint": "account_relationship_graph, intermediary_accounts, transaction_chain_length"
+    }
+  ]
+}

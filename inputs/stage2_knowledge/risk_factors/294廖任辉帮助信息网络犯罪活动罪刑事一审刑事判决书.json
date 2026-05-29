@@ -1,0 +1,104 @@
+{
+  "source": "294廖任辉帮助信息网络犯罪活动罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交平台（微信兼职群）招募人员提供银行卡用于资金过账，并支付固定比例好处费",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户通过社交群组与陌生网友建立联系",
+        "账户被用于接收来自多个不同受害人的转账",
+        "账户与多个无正常交易背景的对手方发生资金往来"
+      ],
+      "data_hint": "address, counterparty_address, transaction_channel, social_media_group_id"
+    },
+    {
+      "pattern": "提供银行卡、手机、身份证及支付密码给他人使用，账户控制权转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录设备或IP地址频繁变更",
+        "账户密码或绑定手机短时间内被修改",
+        "账户交易行为模式与历史行为显著不同"
+      ],
+      "data_hint": "device_id, ip_address, login_timestamp, password_change_flag, binding_phone_change_flag"
+    },
+    {
+      "pattern": "使用ATM机取现方式将资金从账户中提取，规避线上追踪",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户在收到资金后短时间内进行ATM取现",
+        "ATM取现金额接近整数或单笔限额（如2万、1.5万、5000元）",
+        "ATM取现行为发生在非正常营业时间"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, atm_location, atm_id"
+    },
+    {
+      "pattern": "账户资金快进快出，收到资金后立即转出或取现，不留余额",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户收到资金后短时间内（如数小时内）全部转出或取现",
+        "账户余额长期接近零",
+        "单笔转入金额与转出金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, balance_after_transaction, transaction_flow_direction"
+    },
+    {
+      "pattern": "同一账户被用于接收多起电信诈骗案件受害人的资金，资金混同",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收来自多个不同受害人的转账",
+        "受害人的转账金额与账户其他交易金额无关联",
+        "账户交易对手方数量异常增多"
+      ],
+      "data_hint": "counterparty_address, amount, transaction_count, victim_flag"
+    },
+    {
+      "pattern": "账户在银行卡被冻结后仍继续提供新银行卡用于过账，无视风险信号",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户历史存在被冻结记录",
+        "账户在冻结后短时间内重新启用新银行卡",
+        "账户交易行为在解冻后立即恢复异常模式"
+      ],
+      "data_hint": "account_freeze_flag, freeze_timestamp, unfreeze_timestamp, new_card_activation_time"
+    },
+    {
+      "pattern": "通过微信兼职群等线上渠道招募人员提供银行卡，形成批量控制账户的网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户注册信息（如手机号、身份证）存在关联",
+        "多个账户在相近时间段内被同一IP地址或设备登录",
+        "多个账户交易对手方存在重叠"
+      ],
+      "data_hint": "registration_info, ip_address, device_id, counterparty_overlap"
+    },
+    {
+      "pattern": "使用数字人民币、云闪付等新型支付渠道进行资金过账，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户交易渠道中包含数字人民币或云闪付等新型支付方式",
+        "账户交易金额与新型支付渠道的限额特征相符",
+        "账户交易行为在新型支付渠道上表现出异常模式"
+      ],
+      "data_hint": "transaction_channel, payment_method, amount, timestamp"
+    }
+  ]
+}

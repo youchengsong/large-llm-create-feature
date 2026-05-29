@@ -1,0 +1,110 @@
+{
+  "source": "176何某掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供银行卡给诈骗分子用于接收和转移犯罪资金，并按进账比例获取佣金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户短时间内接收来自多个不同来源的转账",
+        "账户进账后立即通过取现或转账方式转移资金",
+        "账户持有人与多个不同账户存在资金往来",
+        "账户持有人按进账资金比例收取佣金"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_type, fee"
+    },
+    {
+      "pattern": "利用银行卡取现方式将犯罪所得资金转换为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在收到大额资金后短时间内进行ATM或柜台取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "取现行为发生在资金进账后数小时内"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (withdrawal), location, account_balance"
+    },
+    {
+      "pattern": "通过数字人民币钱包和微信等电子支付渠道快速转移犯罪资金",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入多个数字人民币钱包",
+        "资金通过微信等第三方支付平台快速转出",
+        "转账操作在短时间内密集进行",
+        "账户持有人通过刷脸验证配合转账"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_type, device_id, biometric_verification"
+    },
+    {
+      "pattern": "同一人提供多张银行卡和多个数字钱包账户用于资金分散转移",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一身份证下关联多个银行账户和数字钱包",
+        "多个账户在相近时间段内接收和转出资金",
+        "资金在多个账户间快速流转"
+      ],
+      "data_hint": "account_id, owner_id, linked_accounts, amount, timestamp"
+    },
+    {
+      "pattern": "犯罪团伙成员之间相互介绍和招募他人提供银行账户",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在社交或通讯联系记录",
+        "账户开户时间相近且地理位置集中",
+        "账户之间资金往来模式相似"
+      ],
+      "data_hint": "account_owner_relationship, communication_records, ip_address, location"
+    },
+    {
+      "pattern": "同一账户短时间内接收来自多个不同被害人的被骗资金",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内收到多笔来自不同账户的转账",
+        "转账金额分散且单笔金额较小",
+        "转账时间集中在同一日或连续数日"
+      ],
+      "data_hint": "from_address, to_address, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "账户资金快速进出，余额几乎为零，呈现洗钱账户典型特征",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在收到资金后立即转出或取现",
+        "账户余额长期接近零",
+        "资金停留时间极短（通常数小时内）"
+      ],
+      "data_hint": "account_balance, amount, timestamp, transaction_interval"
+    },
+    {
+      "pattern": "利用他人银行卡和数字钱包进行资金转移，配合刷脸验证绕过安全控制",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户登录和交易操作IP地址与账户持有人常住地不符",
+        "交易操作涉及生物特征验证（如刷脸）但非账户持有人本人操作",
+        "账户交易行为模式异常（如频繁更换设备登录）"
+      ],
+      "data_hint": "ip_address, device_id, biometric_verification, login_timestamp, transaction_timestamp"
+    }
+  ]
+}

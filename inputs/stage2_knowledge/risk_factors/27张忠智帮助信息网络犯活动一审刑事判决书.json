@@ -1,0 +1,56 @@
+{
+  "source": "27张忠智帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过USDT（U币）交易为信息网络犯罪提供支付结算帮助，利用数字人民币钱包收款规避账户冻结",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "使用多个（13个）数字钱包接收资金",
+        "交易金额接近（流入360548.7元，流出360411.4元）",
+        "资金快速进出，流入流出金额高度匹配",
+        "涉及不明资金来源（仅7994元可溯源至诈骗被害人）"
+      ],
+      "data_hint": "wallet_address, amount, timestamp, transaction_type, counterparty_wallet"
+    },
+    {
+      "pattern": "通过‘纸飞机’聊天软件从他人处购买U币，再在平台上以高于市场价2%左右转售，赚取差价获利",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易价格偏离市场均价（高于市场价约2%）",
+        "资金流向呈现‘买入-卖出’循环模式",
+        "使用加密聊天软件（如Telegram）进行交易沟通"
+      ],
+      "data_hint": "transaction_price, market_price, transaction_chain, communication_app_usage"
+    },
+    {
+      "pattern": "明知平台专门用于U币交易且涉及信息网络违法犯罪资金，仍注册账号并绑定多个数字钱包进行资金流转",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体注册多个数字钱包（13个）",
+        "钱包绑定同一平台账号",
+        "平台被标记为高风险或已知涉诈平台"
+      ],
+      "data_hint": "user_id, wallet_address, platform_id, risk_label"
+    },
+    {
+      "pattern": "短时间内大量资金通过多个数字钱包快速流转，流入流出金额高度匹配，疑似洗钱通道",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金在短时间内（2024年5月至6月）集中流入流出",
+        "流入流出金额几乎相等（360548.7元 vs 360411.4元）",
+        "资金流转速度快，无明显停留"
+      ],
+      "data_hint": "amount, timestamp, wallet_address, net_flow, transaction_frequency"
+    }
+  ]
+}

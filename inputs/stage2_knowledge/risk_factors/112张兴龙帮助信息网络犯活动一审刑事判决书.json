@@ -1,0 +1,116 @@
+{
+  "source": "112张兴龙帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户及支付密码供他人接收和转移电信诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户接收多笔来自不同受害人的小额资金后快速转出或取现",
+        "账户在短时间内出现资金快进快出，且余额接近零",
+        "账户被用于接收已立案的电信诈骗涉案资金",
+        "账户持有人与多个上游犯罪人员存在频繁通讯联系"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, receiver_address, account_balance, communication_records"
+    },
+    {
+      "pattern": "使用他人银行账户进行资金归集和取现，形成多层资金转移链",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "资金从多个受害人账户集中转入少数中间账户",
+        "中间账户在短时间内将资金转入最终取现账户",
+        "最终取现账户在ATM或柜台大额取现",
+        "资金流转路径涉及3个以上账户层级"
+      ],
+      "data_hint": "transaction_amount, transaction_time, sender_address, receiver_address, transaction_chain_length, cash_withdrawal_amount"
+    },
+    {
+      "pattern": "利用数字人民币钱包和支付宝等第三方支付工具转移非法资金",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户绑定数字人民币钱包并用于接收和转出资金",
+        "资金从银行账户充值到支付宝后立即转出到其他账户",
+        "支付宝账户在短时间内充值后快速注销或停机",
+        "使用多个支付工具进行资金拆分和转移"
+      ],
+      "data_hint": "wallet_type, recharge_amount, transfer_amount, account_status, device_info"
+    },
+    {
+      "pattern": "账户在短时间内被多个不同人员操作，且操作人员与账户持有人无直接关联",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在短时间内由不同IP或设备登录操作",
+        "账户持有人与操作人员之间存在社交网络联系但无亲属关系",
+        "操作人员要求提供支付密码并进行人脸识别等敏感操作",
+        "账户持有人与操作人员通话频率在资金转移期间显著增加"
+      ],
+      "data_hint": "login_ip, device_id, authentication_method, communication_frequency, social_network_links"
+    },
+    {
+      "pattern": "账户资金交易模式异常，表现为小额测试交易后大额资金快速进出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户先接收小额测试资金（如1000元以下），随后接收大额资金",
+        "大额资金到账后立即被转出或取现，停留时间极短",
+        "账户交易频率在短时间内急剧增加",
+        "账户余额在交易后接近零"
+      ],
+      "data_hint": "transaction_amount, transaction_time, account_balance, transaction_frequency, amount_threshold"
+    },
+    {
+      "pattern": "使用他人身份信息开立的银行账户进行资金转移，账户持有人对交易不知情",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人声称未操作交易或不知情",
+        "账户交易时间与账户持有人活动时间不符",
+        "账户被用于接收来自多个不同受害人的资金",
+        "账户持有人与交易对手无任何关联关系"
+      ],
+      "data_hint": "account_holder_statement, transaction_time, account_holder_activity_log, counterparty_relationship"
+    },
+    {
+      "pattern": "资金转移过程中使用现金取现规避银行监控",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "大额资金到账后立即在ATM或柜台取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "取现地点与账户持有人常住地或工作地不符",
+        "取现时间集中在非工作时间或深夜"
+      ],
+      "data_hint": "cash_withdrawal_amount, withdrawal_location, withdrawal_time, account_holder_location, transaction_threshold"
+    },
+    {
+      "pattern": "账户持有人与上游犯罪人员存在社交网络联系，且通讯记录显示异常频繁",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与已知犯罪人员存在微信、电话等通讯记录",
+        "通讯频率在资金转移前后显著增加",
+        "通讯内容涉及银行卡、密码、转账等敏感词汇",
+        "账户持有人与多个犯罪人员存在关联"
+      ],
+      "data_hint": "communication_records, contact_list, call_frequency, message_content_keywords"
+    }
+  ]
+}

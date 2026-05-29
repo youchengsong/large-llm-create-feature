@@ -1,0 +1,70 @@
+{
+  "source": "24张某枫申某阳帮助信息网络犯活动二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "通过实体商户POS机刷卡大额购买黄金，将非法资金转化为实物资产",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔或短时间内多次刷卡交易金额巨大（如339万元），远超正常经营规模",
+        "交易后立即购买等值高价值商品（如金条）",
+        "商户账户在异常交易后很快被银行封控"
+      ],
+      "data_hint": "amount, transaction_count, merchant_category_code, pos_transaction_flag, account_closure_flag"
+    },
+    {
+      "pattern": "利用数字人民币钱包接收多笔小额分散资金，累积后购买黄金转移价值",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内（如6天）接收大量小额转账（如141笔），累计金额较大（199万余元）",
+        "资金到账后立即用于购买黄金等易变现商品",
+        "收款账户为对公数字人民币钱包，交易对手众多且分散"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, wallet_type, counterparty_count, purchase_after_deposit"
+    },
+    {
+      "pattern": "在银行或警方警告后，短期内继续接收并转移不明资金，无视合规警示",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在收到异常资金并被银行封控或警方告知后，短时间内再次出现类似异常资金流入",
+        "商户在签署反洗钱告知书后，仍继续接收并转移大额资金",
+        "资金流入时间集中在特定日期（如9月29日至10月4日）"
+      ],
+      "data_hint": "account_warning_flag, warning_date, subsequent_transaction_date, amount"
+    },
+    {
+      "pattern": "利用实体店铺作为掩护，通过多次小额扫码支付累积资金，规避大额交易监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一店铺在短时间内出现大量小额扫码支付（数字人民币收款码）",
+        "每次支付金额较小，但累计金额巨大",
+        "支付后立即要求购买高价值商品（黄金）"
+      ],
+      "data_hint": "payment_method, transaction_amount, cumulative_amount, time_window, merchant_behavior"
+    },
+    {
+      "pattern": "资金来源于多个不同地区的被害人，呈现分散入金、集中出金（购买黄金）的特征",
+      "dimension": [
+        "主体关联",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "收款账户的资金来源涉及多个不同地域的被害人账户",
+        "资金入账时间分散，但出金（购买黄金）时间集中",
+        "资金流向呈现多对一模式，最终转化为实物资产"
+      ],
+      "data_hint": "sender_location, receiver_location, transaction_time, amount, counterparty_count, asset_type"
+    }
+  ]
+}

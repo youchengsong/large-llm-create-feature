@@ -1,0 +1,68 @@
+{
+  "source": "109张某河津市人民检察院掩饰隐瞒犯罪所得犯罪所得收益罪刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过提供银行卡为他人刷流水洗钱并获取好处费",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内银行卡进账流水金额巨大（如60万元、50万元）",
+        "银行卡进账流水与个人正常收入明显不符",
+        "资金快进快出，无明显停留",
+        "涉案资金与上游诈骗案件关联"
+      ],
+      "data_hint": "交易金额(amount)、交易时间(timestamp)、交易对手地址(counterparty_address)、银行卡流水明细"
+    },
+    {
+      "pattern": "组织他人异地提供银行卡进行洗钱活动",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "组织者购买机票带领多人前往异地（如福建云霄）",
+        "多人同时在同一地点提供银行卡",
+        "上线通过QQ等匿名通讯工具远程指挥"
+      ],
+      "data_hint": "交易地点(location)、IP地址(ip_address)、通讯记录(communication_log)、出行记录(travel_record)"
+    },
+    {
+      "pattern": "通过多层介绍关系形成银行卡提供链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "上线通过中间人层层介绍银行卡提供者",
+        "介绍人从中获取好处费",
+        "多个银行卡账户之间存在关联关系"
+      ],
+      "data_hint": "账户关联关系(account_relation)、转账记录(transfer_record)、通讯录(contact_list)"
+    },
+    {
+      "pattern": "利用小额分散交易规避监管",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔交易金额较小但交易频率高",
+        "累计交易金额大但单笔金额低于大额报告阈值",
+        "交易时间集中在短时间内"
+      ],
+      "data_hint": "交易金额(amount)、交易频次(frequency)、交易时间(timestamp)"
+    },
+    {
+      "pattern": "银行卡进账资金与上游诈骗案件资金直接关联",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡进账资金中部分资金被公安机关认定为涉案资金",
+        "资金流向与已知诈骗案件被害人账户关联",
+        "资金到账后迅速转出或取现"
+      ],
+      "data_hint": "涉案资金标识(illegal_fund_flag)、交易对手地址(counterparty_address)、资金流向路径(fund_flow_path)"
+    }
+  ]
+}

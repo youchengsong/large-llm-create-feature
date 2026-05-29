@@ -1,0 +1,62 @@
+{
+  "source": "93贺显通帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "行为人明知他人可能从事违法犯罪活动，仍提供本人银行账户及数字钱包用于接收诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体提供多个不同银行账户和数字钱包给他人使用",
+        "账户接收资金后迅速被转移"
+      ],
+      "data_hint": "address, account_id, account_type, counterparty_address"
+    },
+    {
+      "pattern": "接收资金后通过人脸识别、取现等方式帮助转移犯罪所得",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金到账后短时间内进行人脸识别验证",
+        "资金到账后短时间内进行取现操作",
+        "取现金额与入账金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, verification_method, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "利用数字钱包接收和转移诈骗资金，涉及新型支付工具",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "数字钱包账户短时间内接收来自不同来源的小额资金",
+        "数字钱包资金快速转出或提现"
+      ],
+      "data_hint": "wallet_id, transaction_type, amount, timestamp, source_address, destination_address"
+    },
+    {
+      "pattern": "行为人具有多次违法行为前科，再次参与洗钱犯罪",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人有吸毒、赌博等行政处罚记录",
+        "账户持有人有多次违法行为历史"
+      ],
+      "data_hint": "user_id, prior_offense_type, prior_offense_date"
+    },
+    {
+      "pattern": "行为人到案后供述反复，先供后翻再供，存在规避侦查意图",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "调查过程中供述内容多次变化",
+        "翻供行为与证据链出现矛盾"
+      ],
+      "data_hint": "investigation_statement_timeline, statement_consistency_flag"
+    }
+  ]
+}

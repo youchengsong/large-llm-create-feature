@@ -1,0 +1,55 @@
+{
+  "source": "233何某晖掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过他人配合刷脸验证开通数字人民币钱包，用于转移电信网络诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "数字人民币钱包开通时涉及多个关联账户的刷脸验证",
+        "钱包资金流水短时间内大量进出，且与电信诈骗案件关联",
+        "资金转入后迅速转出，无明显停留"
+      ],
+      "data_hint": "wallet_open_time, face_verification_records, wallet_flow_amount, transaction_timestamps, linked_accounts"
+    },
+    {
+      "pattern": "利用他人数字人民币钱包进行资金中转，掩盖资金来源和流向",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单个数字人民币钱包流水金额巨大（如434万、530万），远超正常个人使用范围",
+        "资金在多个钱包间快速流转，形成多层中转",
+        "资金流入与流出时间间隔极短"
+      ],
+      "data_hint": "wallet_flow_amount, transaction_amount, transaction_timestamp, sender_wallet, receiver_wallet"
+    },
+    {
+      "pattern": "通过提供食宿及日薪报酬招募他人配合开通钱包并协助转账",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个钱包账户由同一组织者控制或关联",
+        "账户之间具有相同的IP地址或设备指纹",
+        "账户注册时间集中，且注册后立即用于大额转账"
+      ],
+      "data_hint": "account_registration_time, ip_address, device_id, linked_accounts, payment_records"
+    },
+    {
+      "pattern": "明知资金为犯罪所得仍协助转移，且资金涉及跨地域诈骗案件",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金来源地址与电信诈骗案件被害人所在地不符",
+        "资金流转路径涉及多个不同地区",
+        "交易时间与电信诈骗案件发生时间高度关联"
+      ],
+      "data_hint": "transaction_timestamp, sender_location, receiver_location, fraud_case_timeline"
+    }
+  ]
+}

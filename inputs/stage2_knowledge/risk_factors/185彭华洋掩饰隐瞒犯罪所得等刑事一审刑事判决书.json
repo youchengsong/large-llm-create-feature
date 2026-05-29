@@ -1,0 +1,65 @@
+{
+  "source": "185彭华洋掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "个人出租出借银行卡为网络犯罪提供支付结算服务",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一银行卡账户关联多起诈骗案件",
+        "账户持有人与上线人员存在网络结识关系",
+        "账户被用于接收来自不同受害人的资金"
+      ],
+      "data_hint": "address, transaction_count, counterparty_count, case_association"
+    },
+    {
+      "pattern": "利用他人手机和银行卡进行资金转移，涉及人脸识别验证",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内账户登录设备更换频繁",
+        "人脸识别操作由他人指使完成",
+        "手机和银行卡物理交付给第三方使用"
+      ],
+      "data_hint": "device_id, login_timestamp, biometric_authentication_event, physical_delivery_indicator"
+    },
+    {
+      "pattern": "通过云闪付和数字人民币APP进行资金转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用云闪付和数字人民币APP进行交易",
+        "交易金额与受害人报案金额高度吻合",
+        "资金快速分散转移"
+      ],
+      "data_hint": "app_type, transaction_amount, transaction_timestamp, victim_report_amount"
+    },
+    {
+      "pattern": "单张银行卡涉及多起诈骗案件，涉案金额巨大",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单张银行卡涉案金额超过100万元",
+        "单张银行卡关联诈骗案件超过30起",
+        "账户资金流入频率异常高"
+      ],
+      "data_hint": "account_balance, total_inflow_amount, case_count_per_account, transaction_frequency"
+    },
+    {
+      "pattern": "非法获利与涉案金额比例异常",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "非法获利金额（5万元）与涉案金额（142万余元）比例约为1:28",
+        "资金流入后迅速转出，账户余额极低"
+      ],
+      "data_hint": "profit_amount, total_transaction_amount, account_balance_after_transfer"
+    }
+  ]
+}

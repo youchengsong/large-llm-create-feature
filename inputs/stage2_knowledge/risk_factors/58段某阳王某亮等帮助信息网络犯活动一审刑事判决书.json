@@ -1,0 +1,121 @@
+{
+  "source": "58段某阳王某亮等帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "通过社交媒体招募银行卡提供者，用于接收和转移诈骗资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户与多个陌生社交账号存在联系",
+        "账户在短时间内与多个新联系人发生资金往来"
+      ],
+      "data_hint": "address, social_media_id, transaction_partner"
+    },
+    {
+      "pattern": "提供多张银行卡并预约大额取款，用于快速提取现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户持有者名下多张银行卡同时预约大额取款",
+        "预约取款金额接近银行柜台限额（如30万元）",
+        "取款后现金迅速转移给第三方"
+      ],
+      "data_hint": "amount, bank_card_id, appointment_time, withdrawal_amount, cash_transfer"
+    },
+    {
+      "pattern": "短时间内集中取现大额资金，规避银行监测",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一日内在多家银行柜台取现累计超过50万元",
+        "取现时间集中在上午或下午短时间内"
+      ],
+      "data_hint": "amount, timestamp, bank_branch, withdrawal_method"
+    },
+    {
+      "pattern": "使用新开立的银行卡接收诈骗资金后立即转出或取现",
+      "dimension": [
+        "行为序列",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡开立后短期内（如几天内）即有大额资金入账",
+        "资金入账后短时间内（如几分钟到几小时）被转出或取现"
+      ],
+      "data_hint": "account_open_date, transaction_timestamp, amount, balance_change"
+    },
+    {
+      "pattern": "资金从多个受害人账户集中转入同一接收账户",
+      "dimension": [
+        "主体关联",
+        "金额频次"
+      ],
+      "observable_signals": [
+        "同一接收账户在短时间内收到来自多个不同账户的大额转账",
+        "转账金额与典型诈骗案值相符（如20万、24.5万等）"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp"
+    },
+    {
+      "pattern": "利用夜间或非工作时间进行资金转移以规避监控",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金转账发生在凌晨时段（如00:48）",
+        "交易时间与正常商业活动时间不符"
+      ],
+      "data_hint": "timestamp, transaction_type"
+    },
+    {
+      "pattern": "使用数字人民币和云闪付等新兴支付工具快速转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户下载并注册多个支付APP（如数字人民币、云闪付）",
+        "通过刷脸验证完成注册后立即进行资金转移"
+      ],
+      "data_hint": "app_installation, registration_time, face_authentication, transfer_record"
+    },
+    {
+      "pattern": "银行卡单向流水金额巨大但余额极少，呈现快进快出模式",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户单向流水总额远大于账户平均余额",
+        "资金入账后短时间内全部转出，账户余额接近零"
+      ],
+      "data_hint": "total_inflow, total_outflow, balance, transaction_frequency"
+    },
+    {
+      "pattern": "跨省市流动进行取现或转账操作，增加追踪难度",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有者短时间内出现在不同城市（如从山东到潍坊）",
+        "取现地点与账户开户地或居住地不一致"
+      ],
+      "data_hint": "transaction_location, account_open_location, residential_address, travel_records"
+    },
+    {
+      "pattern": "使用他人银行卡或身份证进行交易，账户实际控制人与名义持有人不一致",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡交易由非持卡人操作",
+        "持卡人将银行卡和身份证交给第三方使用"
+      ],
+      "data_hint": "card_holder_id, transaction_ip_address, device_id, biometric_data"
+    }
+  ]
+}

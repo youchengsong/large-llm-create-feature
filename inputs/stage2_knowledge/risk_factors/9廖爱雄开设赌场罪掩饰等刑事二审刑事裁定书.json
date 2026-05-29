@@ -1,0 +1,80 @@
+{
+  "source": "9廖爱雄开设赌场罪掩饰等刑事二审刑事裁定书",
+  "risk_factors": [
+    {
+      "pattern": "个人提供多张银行卡及支付账户给上游犯罪分子用于资金转移和取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一人提供多张不同银行的银行卡",
+        "同时提供微信、支付宝、数字人民币账户",
+        "账户用于接收资金后立即取现"
+      ],
+      "data_hint": "address, bank_card_number, account_type, transaction_type, cash_withdrawal_flag"
+    },
+    {
+      "pattern": "短时间内多张银行卡进账后快速出账，资金快进快出",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多张银行卡在1-2天内集中进账和出账",
+        "进账金额与出账金额高度接近",
+        "单张银行卡进账后短时间内全部或大部分出账"
+      ],
+      "data_hint": "amount, timestamp, transaction_direction, account_id, transaction_count"
+    },
+    {
+      "pattern": "银行卡进账流水远大于涉案金额，存在大量非涉案异常资金流动",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "银行卡总进账流水显著大于关联的涉诈案件金额",
+        "存在多笔未关联案件的异常资金转入"
+      ],
+      "data_hint": "amount, case_association_flag, total_inflow, fraud_related_amount"
+    },
+    {
+      "pattern": "使用个人银行卡接收电信诈骗资金并帮助取现，获取小额非法报酬",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户接收资金后立即通过ATM或柜台取现",
+        "取现金额与进账金额匹配",
+        "非法获利金额远小于转移资金总额"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, cash_withdrawal_amount, profit_amount"
+    },
+    {
+      "pattern": "同一人控制多个银行账户和支付账户，形成资金归集和分散转移网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份证下关联多张银行卡和支付账户",
+        "资金在银行卡与支付账户之间频繁互转",
+        "不同账户的进账和出账时间高度重叠"
+      ],
+      "data_hint": "identity_id, account_id, account_type, inter_account_transfer_flag, timestamp"
+    },
+    {
+      "pattern": "账户资金流向涉及多起电信诈骗案件，资金混同",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户关联多起电信诈骗案件",
+        "不同案件受害人的资金进入同一账户",
+        "资金混合后统一转移或取现"
+      ],
+      "data_hint": "account_id, case_id, fraud_amount, transaction_chain, victim_address"
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "source": "155王兵刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "组织多人提供银行卡进行支付结算，资金快速转入后分散转出或取现",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一组织者控制多张银行卡用于接收资金",
+        "资金在短时间内从多个来源转入后迅速转出或取现",
+        "多张银行卡在同一时间段内出现类似的交易模式"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_count, account_id"
+    },
+    {
+      "pattern": "利用第三方支付工具（支付宝、微信、数字人民币APP）进行资金转移和取现",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金从银行卡转入第三方支付账户后快速转出或提现",
+        "使用多种第三方支付工具进行资金流转",
+        "交易记录显示频繁的转账和取现操作"
+      ],
+      "data_hint": "transaction_type, payment_method, amount, timestamp, account_id"
+    },
+    {
+      "pattern": "银行卡接收电信诈骗资金后，通过取现方式将资金洗白",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内接收多笔小额资金后立即进行大额取现",
+        "取现金额与转入资金总额高度匹配",
+        "取现行为发生在资金转入后短时间内"
+      ],
+      "data_hint": "amount, timestamp, transaction_type (deposit/withdrawal), account_id"
+    },
+    {
+      "pattern": "团伙成员提供银行卡、手机、身份证等工具用于洗钱，形成层级结构",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户由同一组织者控制",
+        "账户之间资金流转频繁",
+        "账户注册信息存在关联（如相同手机号、IP地址）"
+      ],
+      "data_hint": "account_id, linked_accounts, registration_info, ip_address"
+    },
+    {
+      "pattern": "资金通过多层级账户流转后最终取现，掩盖资金来源",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金经过至少两层以上账户转移",
+        "每层账户资金停留时间短",
+        "最终账户进行取现操作"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_chain_length"
+    },
+    {
+      "pattern": "利用他人银行卡进行资金转移，账户实际控制人与注册人不一致",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡注册人与实际使用人不同",
+        "多个银行卡由同一人控制使用",
+        "账户交易行为与注册人历史行为模式不符"
+      ],
+      "data_hint": "account_owner, actual_user, transaction_pattern, device_id"
+    },
+    {
+      "pattern": "短时间内大量资金涌入单一账户后快速分散转出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收多笔大额资金",
+        "资金转入后立即被分散转出到多个账户",
+        "转入转出时间间隔极短"
+      ],
+      "data_hint": "amount, timestamp, transaction_count, sender_address, receiver_address"
+    }
+  ]
+}

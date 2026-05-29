@@ -1,0 +1,90 @@
+{
+  "source": "245陆冬冬掩饰隐瞒犯罪所得罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户用于接收诈骗资金并快速转移",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户在短时间内接收大额资金后立即分散转出",
+        "资金转入后通过数字人民币小额转账兑出",
+        "资金转入后用于电费充值等非消费用途"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, to_address, memo"
+    },
+    {
+      "pattern": "利用数字人民币进行小额快速转账以规避监管",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "大额资金转入后，短时间内连续多笔数字人民币小额转账（如2000元、998元）",
+        "数字人民币转账金额接近但不超过阈值"
+      ],
+      "data_hint": "amount, timestamp, transaction_type, currency_type"
+    },
+    {
+      "pattern": "通过电费充值方式转移涉案资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金转入后短时间内大量进行电费充值，充值金额接近总转入金额",
+        "充值行为集中在数小时内，频率异常高"
+      ],
+      "data_hint": "amount, timestamp, payee_type, bill_type"
+    },
+    {
+      "pattern": "异常贷款办理场景下的账户控制行为",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人将手机及银行账户交由陌生人操作",
+        "操作时间长达数小时，且车辆在行驶中操作",
+        "操作过程中需要多次刷脸验证"
+      ],
+      "data_hint": "device_id, login_ip, biometric_authentication_count, session_duration"
+    },
+    {
+      "pattern": "账户持有人删除聊天记录以掩盖犯罪痕迹",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "在资金转移后立即删除相关聊天记录",
+        "删除行为发生在账户异常交易当天"
+      ],
+      "data_hint": "message_deletion_timestamp, chat_app_activity_log"
+    },
+    {
+      "pattern": "账户持有人事先知晓并提及‘打擦边球’等洗钱暗示",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户持有人与第三方聊天记录中出现‘打擦边球’等模糊洗钱术语",
+        "账户持有人对异常交易行为有预期"
+      ],
+      "data_hint": "chat_message_content, keyword_matching"
+    },
+    {
+      "pattern": "账户持有人名下账户接收诈骗资金后，部分资金通过支付宝提现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "银行账户资金转入后，支付宝账户在相近时间收到小额进账（如2500元）",
+        "资金流向涉及多平台账户"
+      ],
+      "data_hint": "amount, timestamp, source_account, destination_account, platform"
+    }
+  ]
+}

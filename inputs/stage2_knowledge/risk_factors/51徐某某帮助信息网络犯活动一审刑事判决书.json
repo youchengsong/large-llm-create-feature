@@ -1,0 +1,95 @@
+{
+  "source": "51徐某某帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "跑分团队组织卡农提供多个银行账户接收并取现转移犯罪资金",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户短时间内集中接收来自不同来源的资金",
+        "账户资金到账后立即通过ATM或柜台取现",
+        "同一控制人操作多个不同卡农的账户进行转账和取现"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, counterparty_address, device_id, ip_address"
+    },
+    {
+      "pattern": "卡农提供个人银行账户用于接收上游犯罪资金并协助取现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "个人账户突然收到多笔大额资金且来源分散",
+        "资金到账后短时间内频繁取现或转账至其他账户",
+        "账户历史交易模式与当前大额快进快出模式显著不同"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, balance_before, balance_after, account_age"
+    },
+    {
+      "pattern": "跑分团队使用多个卡农的多个账户分散接收资金以规避监测",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在相近时间段内收到来自不同受害人的资金",
+        "每个账户接收的资金金额在阈值附近或以下",
+        "账户之间无正常商业或个人往来关系"
+      ],
+      "data_hint": "address, amount, timestamp, counterparty_address, transaction_graph, account_relationship"
+    },
+    {
+      "pattern": "跑分团队负责人开车接送卡农并监督取现，形成物理移动轨迹",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "卡农取现行为与车辆轨迹停留点高度重合",
+        "取现行为发生在多个不同银行网点且时间紧凑",
+        "取现时间集中在银行营业时段内"
+      ],
+      "data_hint": "timestamp, location, atm_id, vehicle_gps_track, transaction_type"
+    },
+    {
+      "pattern": "跑分团队使用飞机软件等加密通讯工具进行组织协调",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户控制人使用同一加密通讯软件且群组相同",
+        "通讯时间与交易时间存在关联性",
+        "账户之间通过加密通讯分享交易指令"
+      ],
+      "data_hint": "communication_metadata, device_id, ip_address, timestamp, group_membership"
+    },
+    {
+      "pattern": "跑分团队通过多层级账户结构转移资金以增加追踪难度",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "资金从受害人账户转入卡农一级账户后，再转入二级账户或取现",
+        "资金流转路径涉及多个不同姓名和机构的账户",
+        "资金在短时间内经过多层账户且每层金额递减或分散"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_chain, hop_count, counterparty_address"
+    },
+    {
+      "pattern": "跑分团队利用多个卡农的账户接收资金后集中取现，形成资金池",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个卡农账户在相近时间段内取现金额总和较大",
+        "取现后资金被汇总至同一人或团队",
+        "取现行为具有周期性或规律性"
+      ],
+      "data_hint": "address, amount, timestamp, transaction_type, aggregation_address, cash_amount"
+    }
+  ]
+}

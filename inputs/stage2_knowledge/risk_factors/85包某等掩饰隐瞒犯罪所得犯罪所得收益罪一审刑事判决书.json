@@ -1,0 +1,90 @@
+{
+  "source": "85包某等掩饰隐瞒犯罪所得犯罪所得收益罪一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "出借银行账户和支付账户给他人用于接收和转移犯罪资金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体名下多个银行账户和支付账户被用于接收不明资金",
+        "账户出借行为与上线存在关联",
+        "账户被用于多起诈骗案件的资金接收"
+      ],
+      "data_hint": "address, account_id, transaction_counterparty, case_id"
+    },
+    {
+      "pattern": "使用刷脸方式配合上线注册虚拟账户和数字人民币账号",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内注册多个虚拟账户和数字人民币账号",
+        "注册过程中涉及生物识别验证（刷脸）",
+        "新注册账户立即用于资金周转"
+      ],
+      "data_hint": "account_creation_timestamp, account_type, biometric_verification, transaction_timestamp"
+    },
+    {
+      "pattern": "银行实体卡直接接收被骗资金，不明进账金额较大",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单个银行账户接收不明进账14万余元",
+        "进账涉及多笔小额资金（如15700元）",
+        "账户进账与诈骗案件直接关联"
+      ],
+      "data_hint": "amount, transaction_type, counterparty_info, case_id"
+    },
+    {
+      "pattern": "使用多个账户进行资金周转，分散资金流向",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "12个账户用于资金周转",
+        "资金在多个账户间快速流转",
+        "账户间转账频繁且无合理商业背景"
+      ],
+      "data_hint": "transaction_chain, from_address, to_address, amount, timestamp"
+    },
+    {
+      "pattern": "持银行卡为上线取现，将电子资金转化为现金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "使用工行卡和交行实体卡取现共计25000元",
+        "取现行为发生在账户接收资金后",
+        "取现金额与接收资金金额存在关联"
+      ],
+      "data_hint": "cash_withdrawal_amount, atm_location, transaction_timestamp, account_balance"
+    },
+    {
+      "pattern": "通过出借账户获利，形成非法利益链条",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户出借人获得报酬（4500元）",
+        "报酬与账户使用频率或金额相关",
+        "账户出借人与上线之间存在资金往来"
+      ],
+      "data_hint": "transaction_amount, counterparty_address, profit_tracking"
+    },
+    {
+      "pattern": "账户被用于接收多起诈骗案件资金，涉及多个被害人",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户接收来自不同被害人的资金",
+        "资金来自不同案件",
+        "账户与多个诈骗案件关联"
+      ],
+      "data_hint": "case_id, victim_address, transaction_counterparty, amount"
+    }
+  ]
+}

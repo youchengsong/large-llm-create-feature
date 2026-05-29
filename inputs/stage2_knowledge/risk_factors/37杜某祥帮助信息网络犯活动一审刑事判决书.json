@@ -1,0 +1,91 @@
+{
+  "source": "37杜某祥帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡并配合刷脸验证用于接收和转移非法资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡出借期间接收资金后立即通过ATM取现或数字人民币转移",
+        "转账时配合刷脸验证",
+        "短时间内资金从入账到转移完成"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, account_id, verification_method"
+    },
+    {
+      "pattern": "通过ATM机取现和数字人民币兑出快速转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后立即通过ATM取现",
+        "资金入账后立即通过数字人民币兑出",
+        "取现金额接近或超过3万元"
+      ],
+      "data_hint": "amount, transaction_type, timestamp, channel_type (ATM/digital_currency)"
+    },
+    {
+      "pattern": "跨地域流动参与跑分洗钱活动",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户持有人从深圳前往福建省云霄县",
+        "在异地使用银行卡进行交易"
+      ],
+      "data_hint": "location, ip_address, transaction_timestamp, account_holder_travel_history"
+    },
+    {
+      "pattern": "提供银行卡密码和手机密码给他人用于资金转移",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡密码和手机密码被他人掌握",
+        "多笔交易由不同设备或IP发起",
+        "账户登录设备异常"
+      ],
+      "data_hint": "account_id, device_id, ip_address, password_change_frequency"
+    },
+    {
+      "pattern": "通过无卡自助消费方式转移资金",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后通过无卡自助消费转出",
+        "无卡消费金额与入账金额匹配",
+        "短时间内多笔无卡消费"
+      ],
+      "data_hint": "transaction_type, amount, merchant_category, timestamp"
+    },
+    {
+      "pattern": "接收诈骗资金后快速转移，资金停留时间极短",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "资金入账后数分钟内即被转移",
+        "入账与转出时间间隔极短",
+        "账户余额接近零"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after"
+    },
+    {
+      "pattern": "为获取好处费而出租出借银行卡用于洗钱",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户持有人与多个不明身份人员有资金往来",
+        "账户持有人收到固定金额的好处费",
+        "账户交易对手多为陌生账户"
+      ],
+      "data_hint": "counterparty_address, transaction_amount, transaction_frequency, fee_pattern"
+    }
+  ]
+}

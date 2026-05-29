@@ -1,0 +1,96 @@
+{
+  "source": "205崔龙掩饰隐瞒犯所得等一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡用于网络平台充值转账，按转账金额比例收取好处费",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单笔转账金额与固定比例手续费（如每5万元收300元）",
+        "短期内频繁小额转账"
+      ],
+      "data_hint": "amount, fee, transaction_count, time_interval"
+    },
+    {
+      "pattern": "出租银行卡给他人用于网络平台转账，按固定期限收取租金",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户在短期内与多个不同对手方交易",
+        "账户出租行为导致资金快进快出"
+      ],
+      "data_hint": "from_address, to_address, transaction_time, account_holder_relationship"
+    },
+    {
+      "pattern": "多人结伙前往固定地点，集中使用银行卡和手机进行转账操作",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户在同一IP地址或物理位置进行交易",
+        "多个账户之间资金互转或集中转入同一目标账户"
+      ],
+      "data_hint": "ip_address, location, transaction_time, from_address, to_address"
+    },
+    {
+      "pattern": "使用数字人民币APP进行转账，规避传统银行监控",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "交易渠道从银行卡切换至数字人民币APP",
+        "数字人民币交易金额与银行卡交易金额存在关联"
+      ],
+      "data_hint": "transaction_channel, app_type, amount, timestamp"
+    },
+    {
+      "pattern": "银行卡因涉及电信诈骗案件被止付冻结，资金来源于诈骗受害人",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户被司法机关冻结或止付",
+        "账户内资金来自多个不同来源且金额分散"
+      ],
+      "data_hint": "account_status, freeze_flag, incoming_amount, source_address_count"
+    },
+    {
+      "pattern": "短期内银行卡转入大量资金，总额高达数百万元",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "单日或数日内累计转入金额远超正常收入水平",
+        "单笔转入金额较大且频繁"
+      ],
+      "data_hint": "total_incoming_amount, transaction_count, time_window"
+    },
+    {
+      "pattern": "多次在不同时间、不同地点提供银行卡进行转账操作，每次获利金额不等",
+      "dimension": [
+        "时间地域",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一账户在多个不同城市进行交易",
+        "交易时间分散且无规律"
+      ],
+      "data_hint": "transaction_location, timestamp, account_id"
+    },
+    {
+      "pattern": "被告人介绍他人一同提供银行卡，形成层级式资金转移网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "账户之间存在介绍关系或层级结构",
+        "资金从多个下层账户流向同一上层账户"
+      ],
+      "data_hint": "account_hierarchy, referral_relationship, fund_flow_path"
+    }
+  ]
+}

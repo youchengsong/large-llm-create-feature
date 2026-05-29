@@ -1,0 +1,81 @@
+{
+  "source": "298冯兆君掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供个人银行账户并协助转账、刷脸、套现、取现以转移违法犯罪资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一账户短时间内发生多笔大额转入转出",
+        "账户资金快进快出，不留余额",
+        "账户交易涉及多笔套现或取现操作",
+        "账户交易伴随刷脸验证行为"
+      ],
+      "data_hint": "transaction_amount, transaction_time, transaction_type, account_balance, biometric_verification_flag"
+    },
+    {
+      "pattern": "明知资金来源于网络赌博等违法犯罪，仍提供银行卡并实施转账行为",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户总转出金额显著高于正常个人消费水平",
+        "单笔转出金额接近但不超过大额交易报告阈值",
+        "账户交易频率异常高，短时间内大量交易"
+      ],
+      "data_hint": "total_outgoing_amount, transaction_amount, transaction_count, time_window"
+    },
+    {
+      "pattern": "通过他人介绍提供银行账户，形成多层级的洗钱网络",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "多个账户之间存在共同介绍人",
+        "账户开户时间相近或集中",
+        "账户交易对手方涉及多个不同主体"
+      ],
+      "data_hint": "account_opening_time, counterparty_address, introducer_info"
+    },
+    {
+      "pattern": "使用数字人民币APP等新型支付工具进行资金转移",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "账户交易涉及数字人民币渠道",
+        "交易时间分布异常，如夜间或非工作时间",
+        "交易地点与账户开户地或常住地不一致"
+      ],
+      "data_hint": "payment_channel, transaction_timestamp, transaction_location, account_registration_address"
+    },
+    {
+      "pattern": "提供多张银行卡（农业银行、建设银行）用于分散转移资金",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一控制人持有多个不同银行的账户",
+        "多个账户在相近时间段内发生类似交易模式",
+        "各账户资金转移总额累计较大"
+      ],
+      "data_hint": "account_bank, account_holder_id, transaction_time, total_amount_per_account"
+    },
+    {
+      "pattern": "涉案资金中部分为电信诈骗资金，资金流向复杂",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金经过多个账户流转",
+        "资金流向涉及多个层级",
+        "最终资金被取现或套现"
+      ],
+      "data_hint": "transaction_chain, intermediate_accounts, final_cash_out"
+    }
+  ]
+}

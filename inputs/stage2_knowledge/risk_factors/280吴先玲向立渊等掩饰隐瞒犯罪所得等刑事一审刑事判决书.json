@@ -1,0 +1,70 @@
+{
+  "source": "280吴先玲向立渊等掩饰隐瞒犯罪所得等刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "提供银行卡及数字人民币钱包协助接收和转移诈骗资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡在短时间内接收来自多个不同账户的转账",
+        "资金入账后立即通过支付密码或取现方式转移",
+        "账户绑定数字人民币钱包用于资金转移"
+      ],
+      "data_hint": "sender_address, receiver_address, amount, timestamp, transaction_type, wallet_binding_info"
+    },
+    {
+      "pattern": "使用个人手机号码帮助诈骗分子拨打被害人电话并建立语音通话",
+      "dimension": [
+        "行为序列",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一手机号码在短时间内拨打多个不同号码",
+        "通话时长与诈骗话术模式匹配",
+        "通话后伴随资金转移行为"
+      ],
+      "data_hint": "phone_number, call_timestamp, call_duration, call_frequency, associated_transaction"
+    },
+    {
+      "pattern": "同一账户接收来自不同被害人的多笔小额诈骗资金",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一收款账户在短时间内接收多笔来自不同账户的转账",
+        "单笔金额较小但累计金额较大",
+        "转账备注或来源无合理商业背景"
+      ],
+      "data_hint": "receiver_address, sender_addresses, amount, timestamp, transaction_count"
+    },
+    {
+      "pattern": "诈骗资金通过银行卡取现方式快速变现",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "资金入账后短时间内通过ATM或柜台取现",
+        "取现金额接近但不超过大额报告阈值",
+        "取现时间与入账时间间隔极短"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, withdrawal_location, account_balance"
+    },
+    {
+      "pattern": "利用互联网对不特定多数人实施诈骗，涉及多地区被害人",
+      "dimension": [
+        "时间地域",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "被害人来自不同地理区域",
+        "诈骗行为通过互联网远程实施",
+        "同一账户关联多个不同IP地址或设备"
+      ],
+      "data_hint": "victim_location, IP_address, device_id, transaction_geography"
+    }
+  ]
+}

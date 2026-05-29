@@ -1,0 +1,106 @@
+{
+  "source": "143郑某某刑事一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "多人分工配合，利用多张银行卡通过刷脸转账、现金支取、数字人民币兑出等方式快速转移资金",
+      "dimension": [
+        "行为序列",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "短时间内同一账户或关联账户频繁进行刷脸转账、现金支取、数字人民币兑出操作",
+        "多个账户资金快速转入后立即全额转出",
+        "多张银行卡在同一时间段内被同一组人员操作"
+      ],
+      "data_hint": "transaction_type, amount, timestamp, sender_address, receiver_address, device_id, ip_address"
+    },
+    {
+      "pattern": "使用他人银行卡（非本人名下）进行洗钱，账户实际控制人与开户人不一致",
+      "dimension": [
+        "主体关联"
+      ],
+      "observable_signals": [
+        "银行卡开户人与实际使用人不同",
+        "同一设备或IP操作多个不同开户人的账户",
+        "账户资金进出频繁但开户人无正常交易背景"
+      ],
+      "data_hint": "account_holder_id, operator_id, device_fingerprint, ip_address, transaction_frequency"
+    },
+    {
+      "pattern": "资金快进快出，短期内进入资金后立即全额转出，不留余额",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "单笔或多笔资金入账后短时间内（如几分钟到几小时）全额转出",
+        "账户余额长期接近零",
+        "入账金额与转出金额高度匹配"
+      ],
+      "data_hint": "amount, timestamp, balance_before, balance_after, transaction_sequence"
+    },
+    {
+      "pattern": "通过现金支取方式规避银行转账监控",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金入账后立即通过ATM或柜台现金取现",
+        "取现金额接近但不超过大额交易报告阈值",
+        "同一账户短期内多次现金取款"
+      ],
+      "data_hint": "transaction_type, amount, cash_withdrawal_amount, timestamp, location"
+    },
+    {
+      "pattern": "使用数字人民币兑出功能转移资金，利用新型支付渠道规避监管",
+      "dimension": [
+        "金额频次",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "账户资金通过数字人民币兑出操作转出",
+        "数字人民币兑出金额与入账金额一致",
+        "兑出操作后资金流向不明或分散"
+      ],
+      "data_hint": "transaction_type, amount, digital_currency_address, timestamp"
+    },
+    {
+      "pattern": "团伙成员事先商量，分工明确，分别提供银行卡、操作转账、取现等环节",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "多个账户在同一时间段内出现相似交易模式",
+        "不同账户间资金流动存在关联",
+        "多个账户操作时间、地点、设备高度重叠"
+      ],
+      "data_hint": "account_id, transaction_time, device_id, ip_address, location, counterparty_account"
+    },
+    {
+      "pattern": "短时间内连续多日使用同一组银行卡进行洗钱操作",
+      "dimension": [
+        "时间地域"
+      ],
+      "observable_signals": [
+        "同一银行卡在连续多日内频繁进行转账、取现操作",
+        "交易时间集中在特定时段（如夜间）",
+        "交易频率远高于正常个人账户"
+      ],
+      "data_hint": "timestamp, account_id, transaction_frequency, time_of_day"
+    },
+    {
+      "pattern": "涉诈资金混入正常交易流水，通过多笔小额交易掩盖来源",
+      "dimension": [
+        "金额频次"
+      ],
+      "observable_signals": [
+        "账户收到多笔小额资金后集中转出",
+        "单笔金额较小但累计金额较大",
+        "交易金额呈现整数或规律性"
+      ],
+      "data_hint": "amount, transaction_count, cumulative_amount, rounding_pattern"
+    }
+  ]
+}

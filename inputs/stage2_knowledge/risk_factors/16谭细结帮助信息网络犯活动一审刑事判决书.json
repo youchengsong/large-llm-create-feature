@@ -1,0 +1,74 @@
+{
+  "source": "16谭细结帮助信息网络犯活动一审刑事判决书",
+  "risk_factors": [
+    {
+      "pattern": "利用USDT币交易平台为信息网络犯罪提供支付结算帮助，通过注册账号并绑定多个数字人民币钱包进行资金流转",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一身份注册多个数字人民币钱包并绑定同一平台账号",
+        "平台账号绑定钱包数量异常（如17个）",
+        "钱包流入不明资金总额较大（如101万元）",
+        "资金来源于多个不同被害人"
+      ],
+      "data_hint": "wallet_address, platform_account_id, user_identity, amount, transaction_type, victim_id"
+    },
+    {
+      "pattern": "通过购买USDT币再转售赚取差价，实现非法资金清洗和获利",
+      "dimension": [
+        "行为序列"
+      ],
+      "observable_signals": [
+        "短时间内频繁进行USDT币买卖交易",
+        "买入与卖出价格存在明显价差",
+        "交易对手方为不明身份或高风险地址",
+        "资金在平台内快速流转并提现"
+      ],
+      "data_hint": "transaction_type (buy/sell), token_type, amount, price, counterparty_address, timestamp"
+    },
+    {
+      "pattern": "帮助他人注册平台账号并代购USDT币，形成多人协作的洗钱链条",
+      "dimension": [
+        "主体关联",
+        "行为序列"
+      ],
+      "observable_signals": [
+        "同一IP地址或设备注册多个平台账号",
+        "不同账号绑定多个数字人民币钱包",
+        "一个主体为多个账号提供代购服务",
+        "多个账号资金流向存在关联"
+      ],
+      "data_hint": "ip_address, device_id, platform_account_id, wallet_address, transaction_flow, user_relationship"
+    },
+    {
+      "pattern": "数字人民币钱包用于接收诈骗等犯罪资金，资金分散转入后集中转出",
+      "dimension": [
+        "金额频次",
+        "时间地域"
+      ],
+      "observable_signals": [
+        "多个小额资金从不同来源转入同一钱包",
+        "转入时间集中在特定时段（如夜间）",
+        "资金在钱包内停留时间短后快速转出",
+        "转出金额与转入总额存在匹配关系"
+      ],
+      "data_hint": "wallet_address, incoming_amount, outgoing_amount, timestamp, transaction_count, counterparty_address"
+    },
+    {
+      "pattern": "通过绑定多个数字人民币钱包分散风险，规避单个钱包大额交易监测",
+      "dimension": [
+        "金额频次",
+        "主体关联"
+      ],
+      "observable_signals": [
+        "同一主体控制多个数字人民币钱包",
+        "每个钱包单笔交易金额较小但总金额大",
+        "钱包之间无直接交易但资金流向相似",
+        "钱包注册时间集中且使用模式一致"
+      ],
+      "data_hint": "wallet_address, user_id, registration_time, transaction_amount, transaction_frequency"
+    }
+  ]
+}
