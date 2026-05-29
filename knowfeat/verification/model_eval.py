@@ -26,6 +26,7 @@ class ModelEvalResult:
     delta_f1: float
     new_precision: float
     reject_reasons: list[str]
+    cr_at_k: dict[str, float] | None = None
 
 
 def _compute_metrics(
@@ -44,16 +45,37 @@ def _compute_metrics(
     return float(recall), float(precision), float(f1)
 
 
+def capture_rate_at_k(
+    y_true: np.ndarray,
+    y_prob: np.ndarray,
+    k_pcts: list[float] = (0.001, 0.002, 0.003, 0.005, 0.01, 0.03, 0.05),
+) -> dict[str, float]:
+    """CR@K: Top K% 样本中捕获的正样本占总正样本的比例。"""
+    n = len(y_true)
+    total_pos = y_true.sum()
+    if total_pos == 0:
+        return {f"CR@{k*100:g}%": 0.0 for k in k_pcts}
+    indices = np.argsort(y_prob)[::-1]
+    results = {}
+    for k in k_pcts:
+        top_k = max(1, int(n * k))
+        captured = y_true[indices[:top_k]].sum()
+        results[f"CR@{k*100:g}%"] = float(captured / total_pos)
+    return results
+
+
 def _cv_evaluate(
     X: pd.DataFrame,
     y: np.ndarray,
     n_folds: int = 5,
     seed: int = 42,
-) -> tuple[float, float, float]:
-    """XGBoost StratifiedKFold CV，返回 (mean_recall, mean_precision, mean_f1)。"""
+    compute_cr: bool = False,
+) -> tuple[float, float, float] | tuple[float, float, float, dict[str, float]]:
+    """XGBoost StratifiedKFold CV，返回 (mean_recall, mean_precision, mean_f1[, cr@k])。"""
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
 
     recalls, precisions, f1s = [], [], []
+    cr_accum: dict[str, list[float]] = {}
 
     for train_idx, val_idx in skf.split(X, y):
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
@@ -76,11 +98,21 @@ def _cv_evaluate(
         precisions.append(p)
         f1s.append(f)
 
-    return (
+        if compute_cr:
+            y_prob = clf.predict_proba(X_val)[:, 1]
+            cr = capture_rate_at_k(y_val, y_prob)
+            for k, v in cr.items():
+                cr_accum.setdefault(k, []).append(v)
+
+    base = (
         float(np.mean(recalls)),
         float(np.mean(precisions)),
         float(np.mean(f1s)),
     )
+    if compute_cr:
+        cr_mean = {k: float(np.mean(v)) for k, v in cr_accum.items()}
+        return (*base, cr_mean)
+    return base
 
 
 def evaluate_feature(

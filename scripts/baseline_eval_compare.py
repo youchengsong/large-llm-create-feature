@@ -22,10 +22,26 @@ LABEL_ID_COLS = {"is_laundering", "is_risk", "tx_id", "src", "dst"}
 EXCLUDED_10 = BASELINE_EXCLUDE_FEATURES - LABEL_ID_COLS
 
 
+def capture_rate_at_k(y_true, y_prob, k_pcts=(0.01, 0.03, 0.05)):
+    """CR@K: Top K% 样本中捕获的正样本占总正样本的比例。"""
+    n = len(y_true)
+    total_pos = y_true.sum()
+    if total_pos == 0:
+        return {f"CR@{int(k*100)}%": 0.0 for k in k_pcts}
+    indices = np.argsort(y_prob)[::-1]
+    results = {}
+    for k in k_pcts:
+        top_k = max(1, int(n * k))
+        captured = y_true[indices[:top_k]].sum()
+        results[f"CR@{int(k*100)}%"] = float(captured / total_pos)
+    return results
+
+
 def cv_evaluate(X, y, n_folds=5, seed=42):
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
 
     recalls, precisions, f1s, aucs = [], [], [], []
+    cr_accum = {}
     from sklearn.metrics import roc_auc_score
 
     for train_idx, val_idx in skf.split(X, y):
@@ -34,7 +50,7 @@ def cv_evaluate(X, y, n_folds=5, seed=42):
 
         clf = XGBClassifier(
             n_estimators=200, max_depth=6, learning_rate=0.1,
-            scale_pos_weight=99.0, eval_metric="aucpr",
+            scale_pos_weight=59.0, eval_metric="logloss",
             random_state=seed, verbosity=0,
         )
         clf.fit(X_train, y_train)
@@ -44,7 +60,6 @@ def cv_evaluate(X, y, n_folds=5, seed=42):
         tp = ((y_pred == 1) & (y_val == 1)).sum()
         fp = ((y_pred == 1) & (y_val == 0)).sum()
         fn = ((y_pred == 0) & (y_val == 1)).sum()
-        tn = ((y_pred == 0) & (y_val == 0)).sum()
 
         recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
         precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
@@ -56,7 +71,11 @@ def cv_evaluate(X, y, n_folds=5, seed=42):
         f1s.append(f1)
         aucs.append(auc)
 
-    return {
+        cr = capture_rate_at_k(y_val, y_prob)
+        for k, v in cr.items():
+            cr_accum.setdefault(k, []).append(v)
+
+    result = {
         "recall": float(np.mean(recalls)),
         "precision": float(np.mean(precisions)),
         "f1": float(np.mean(f1s)),
@@ -66,6 +85,10 @@ def cv_evaluate(X, y, n_folds=5, seed=42):
         "f1_std": float(np.std(f1s)),
         "auc_std": float(np.std(aucs)),
     }
+    for k, v in cr_accum.items():
+        result[k] = float(np.mean(v))
+        result[f"{k}_std"] = float(np.std(v))
+    return result
 
 
 print("加载 baseline_cache.parquet ...")
@@ -110,6 +133,7 @@ print(f"全量: recall={result_full['recall']:.4f}±{result_full['recall_std']:.
       f"precision={result_full['precision']:.4f}±{result_full['precision_std']:.4f}  "
       f"f1={result_full['f1']:.4f}±{result_full['f1_std']:.4f}  "
       f"auc={result_full['auc']:.4f}±{result_full['auc_std']:.4f}")
+print(f"  CR@1%={result_full.get('CR@1%', 0):.4f}  CR@3%={result_full.get('CR@3%', 0):.4f}  CR@5%={result_full.get('CR@5%', 0):.4f}")
 
 print(f"\n精简特征 ({len(slim_cols)}个) 开始评估...")
 result_slim = cv_evaluate(X_slim, y)
@@ -117,6 +141,7 @@ print(f"精简: recall={result_slim['recall']:.4f}±{result_slim['recall_std']:.
       f"precision={result_slim['precision']:.4f}±{result_slim['precision_std']:.4f}  "
       f"f1={result_slim['f1']:.4f}±{result_slim['f1_std']:.4f}  "
       f"auc={result_slim['auc']:.4f}±{result_slim['auc_std']:.4f}")
+print(f"  CR@1%={result_slim.get('CR@1%', 0):.4f}  CR@3%={result_slim.get('CR@3%', 0):.4f}  CR@5%={result_slim.get('CR@5%', 0):.4f}")
 
 print(f"\n=== 对比 ===")
 for metric in ["recall", "precision", "f1", "auc"]:
