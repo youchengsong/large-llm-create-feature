@@ -55,19 +55,15 @@ def _cv_evaluate(
 
     recalls, precisions, f1s = [], [], []
 
-    pos_count = y.sum()
-    neg_count = len(y) - pos_count
-    scale = neg_count / pos_count if pos_count > 0 else 1.0
-
     for train_idx, val_idx in skf.split(X, y):
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
 
         clf = XGBClassifier(
-            n_estimators=100,
+            n_estimators=200,
             max_depth=6,
             learning_rate=0.1,
-            scale_pos_weight=scale,
+            scale_pos_weight=59.0,
             eval_metric="logloss",
             random_state=seed,
             verbosity=0,

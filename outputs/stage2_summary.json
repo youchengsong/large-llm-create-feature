@@ -1,0 +1,29 @@
+{
+  "stage": "stage2",
+  "total_rounds": 7,
+  "total_accepted": 18,
+  "total_candidates": 0,
+  "total_rejected": 25,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 34065.8,
+  "accepted_features": [
+    "small_test_round_amount_ratio",
+    "amount_concentration_entropy",
+    "top3_hour_concentration",
+    "fan_in_fan_out_ratio",
+    "mode_transition_entropy",
+    "new_counterparty_concentration",
+    "counterparty_level_diversity_risk",
+    "amount_range_ratio_risk",
+    "high_risk_region_off_hour_ratio",
+    "rhythm_stability_risk",
+    "net_flow_direction_risk",
+    "enterprise_counterparty_concentration",
+    "first_small_test_ratio",
+    "night_amount_short_term_risk",
+    "amount_bin_skew_index",
+    "counterparty_type_amount_divergence",
+    "tiny_amount_concentration",
+    "time_concentration_risk_index"
+  ]
+}

@@ -8,13 +8,13 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-from openai import OpenAI, APIConnectionError, APITimeoutError, RateLimitError
+from openai import OpenAI, APIConnectionError, APITimeoutError, RateLimitError, InternalServerError
 
 from knowfeat.config import LLMConfig
 
 logger = logging.getLogger(__name__)
 
-RETRYABLE_ERRORS = (APIConnectionError, APITimeoutError, RateLimitError)
+RETRYABLE_ERRORS = (APIConnectionError, APITimeoutError, RateLimitError, InternalServerError)
 
 
 # ---------------------------------------------------------------------------

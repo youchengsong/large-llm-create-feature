@@ -61,13 +61,31 @@ def compute_iv(feature: pd.Series, label: pd.Series, n_bins: int = 10) -> float:
     try:
         bins = pd.qcut(feat, q=n_bins, duplicates="drop")
     except ValueError:
-        return 0.0
+        bins = None
 
-    bin_codes = bins.codes
-    unique_bins = np.unique(bin_codes[bin_codes >= 0])
+    if bins is not None:
+        bin_codes = bins.codes
+        unique_bins = np.unique(bin_codes[bin_codes >= 0])
+    else:
+        unique_bins = np.array([])
 
     if len(unique_bins) < 2:
-        return 0.0
+        # qcut 分箱失败（稀疏特征），改用零/非零 + 非零部分再分箱
+        zero_mask = feat == 0
+        if zero_mask.all() or (~zero_mask).all():
+            return 0.0
+        nonzero_feat = feat[~zero_mask]
+        try:
+            nz_bins = pd.qcut(nonzero_feat, q=min(n_bins - 1, len(np.unique(nonzero_feat))),
+                              duplicates="drop")
+            nz_codes = nz_bins.codes + 1  # 非零部分的bin从1开始
+        except (ValueError, TypeError):
+            nz_codes = np.ones(len(nonzero_feat), dtype=int)
+        bin_codes = np.zeros(len(feat), dtype=int)  # 0 = 零值bin
+        bin_codes[~zero_mask] = nz_codes
+        unique_bins = np.unique(bin_codes[bin_codes >= 0])
+        if len(unique_bins) < 2:
+            return 0.0
 
     total_good = (lab == 0).sum()
     total_bad = (lab == 1).sum()
