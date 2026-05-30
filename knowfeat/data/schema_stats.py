@@ -6,7 +6,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-from knowfeat.data.loader import Stage2Data
+from knowfeat.data.loader import Stage1Data, Stage2Data
 
 logger = logging.getLogger(__name__)
 
@@ -205,4 +205,34 @@ def generate_all_schema_text(data: Stage2Data, label_col: str = "is_risk") -> st
 
     text = "\n\n".join(sections)
     logger.info("Generated schema text: %d chars", len(text))
+    return text
+
+
+def generate_all_schema_text_stage1(data: Stage1Data) -> str:
+    """Generate schema + distribution diff for Stage 1 (BABD-13 single table).
+
+    Parameters
+    ----------
+    data : Stage1Data
+        Stage 1 单表数据容器。
+
+    Returns
+    -------
+    str
+        格式化文本，可直接注入 System Prompt。
+    """
+    sections = [
+        "## 数据 Schema\n",
+        generate_schema(data.df, "BABD-13 (df)"),
+        "\n## 正常 vs 异常 (Illicit) 分布差异\n",
+        generate_distribution_diff(data.df, data.label_col, "BABD-13"),
+    ]
+
+    if data.baseline_features is not None:
+        cols = data.feature_cols or []
+        sections.append(f"\n## 基线特征 ({len(cols)} 个)\n")
+        sections.append(", ".join(cols))
+
+    text = "\n\n".join(sections)
+    logger.info("Generated Stage 1 schema text: %d chars", len(text))
     return text

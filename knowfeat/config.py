@@ -28,10 +28,13 @@ class LLMConfig:
 # ---------------------------------------------------------------------------
 @dataclass
 class PathConfig:
-    # Stage 2 数据
+    # Stage 2 数据 (SimECNY)
     accounts_csv: Path = PROJECT_ROOT / "data" / "accounts.csv"
     transactions_csv: Path = PROJECT_ROOT / "data" / "transactions.csv"
     close_csv: Path = PROJECT_ROOT / "data" / "close.csv"
+
+    # Stage 1 数据 (BABD-13)
+    babd13_csv: Path = Path("/root/autodl-tmp/archive/BABD-13.csv")
 
     # 基线特征
     baseline_cache: Path = PROJECT_ROOT / "outputs" / "baseline_cache.parquet"

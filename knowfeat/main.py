@@ -23,8 +23,8 @@ import pandas as pd
 from knowfeat.agent.react_agent import ReactAgent, RoundResult
 from knowfeat.agent.tools import ToolContext
 from knowfeat.config import KnowFeatConfig, load_config
-from knowfeat.data.loader import Stage2Data, get_label_series, load_stage2
-from knowfeat.data.schema_stats import generate_all_schema_text
+from knowfeat.data.loader import Stage1Data, Stage2Data, get_label_series, load_stage1, load_stage2
+from knowfeat.data.schema_stats import generate_all_schema_text, generate_all_schema_text_stage1
 from knowfeat.extractor.key_clue_extractor import run_extraction
 from knowfeat.llm.client import LLMClient
 from knowfeat.prompt.builder import (
@@ -107,7 +107,7 @@ def _failures_to_prompt(records: list[FailureRecord]) -> list[PromptFailureRecor
 
 def run_stage(
     cfg: KnowFeatConfig,
-    data: Stage2Data,
+    data: Stage2Data | Stage1Data,
     domain_knowledge: DomainKnowledge,
     noise_thresholds: Optional[NoiseThresholds] = None,
 ) -> StageResult:
@@ -116,7 +116,7 @@ def run_stage(
     Parameters
     ----------
     cfg : KnowFeatConfig
-    data : Stage2Data
+    data : Stage2Data | Stage1Data
     domain_knowledge : DomainKnowledge
     noise_thresholds : NoiseThresholds, optional
         Pre-computed noise calibration. If *None* it will be computed here.
@@ -125,13 +125,19 @@ def run_stage(
     -------
     StageResult
     """
+    from knowfeat.data.loader import get_label_series_stage1
+
     t0 = time.time()
     result = StageResult(stage=cfg.stage)
 
     # -- initialise components ------------------------------------------------
     llm = LLMClient(cfg.llm)
-    label = get_label_series(data)
-    schema_text = generate_all_schema_text(data)
+    if isinstance(data, Stage1Data):
+        label = get_label_series_stage1(data)
+        schema_text = generate_all_schema_text_stage1(data)
+    else:
+        label = get_label_series(data)
+        schema_text = generate_all_schema_text(data)
 
     dim_mgr = DimensionManager(cfg=cfg)
     failure_mem = FailureMemory()
@@ -486,7 +492,10 @@ def run(stage: str = "stage2", **config_overrides) -> StageResult:
     # -- Key-clue Extraction（首次运行时自动提取，有缓存则跳过）--------
     _ensure_knowledge_extracted(cfg)
 
-    data = load_stage2(cfg=cfg)
+    if stage == "stage1":
+        data = load_stage1(cfg=cfg)
+    else:
+        data = load_stage2(cfg=cfg)
     domain_knowledge = load_domain_knowledge(cfg)
     result = run_stage(cfg, data, domain_knowledge)
     save_results(result, cfg.paths.output_dir)

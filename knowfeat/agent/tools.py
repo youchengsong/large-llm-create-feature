@@ -17,16 +17,21 @@ from typing import Any, Optional
 import pandas as pd
 
 from knowfeat.config import KnowFeatConfig, VerificationConfig
-from knowfeat.data.loader import BASELINE_EXCLUDE_FEATURES, Stage2Data, get_label_series
+from knowfeat.data.loader import (
+    BASELINE_EXCLUDE_FEATURES, Stage1Data, Stage2Data,
+    get_label_series, get_label_series_stage1,
+)
 from knowfeat.llm.client import ToolSpec
 from knowfeat.search.forward_selection import CandidateFeature
 from knowfeat.verification.model_eval import ModelEvalResult, evaluate_feature
-from knowfeat.verification.sandbox import SandboxResult, run_sandbox
+from knowfeat.verification.sandbox import SandboxResult, run_sandbox, run_sandbox_stage1
 from knowfeat.verification.statistics import (
     NoiseThresholds,
     StatResult,
     validate_feature,
 )
+
+StageData = Stage1Data | Stage2Data
 
 logger = logging.getLogger(__name__)
 
@@ -132,7 +137,85 @@ EXECUTE_SANDBOX_SPEC = ToolSpec(
     },
 )
 
+# Stage 1 工具定义（单表输入）
+EXPLORE_DATA_SPEC_STAGE1 = ToolSpec(
+    name="explore_data",
+    description=(
+        "在 BABD-13 DataFrame 上执行 Python 代码探索数据分布。"
+        "可用变量: df (完整数据表，含 account, 149 个特征列, label, is_illicit)。"
+        "代码最后一行的值（或 print 输出）将作为结果返回。超时 15 秒。"
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "code": {
+                "type": "string",
+                "description": "要执行的 Python 代码（可使用 pandas/numpy）",
+            },
+        },
+        "required": ["code"],
+    },
+)
+
+GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
+    name="generate_feature",
+    description=(
+        "提交特征代码和溯源信息。代码必须定义函数 "
+        "def feature_xxx(df) -> pd.DataFrame，"
+        "输入 df 是 BABD-13 完整数据表，"
+        "输出必须含 account 列作为主键。"
+        "提交后需调用 execute_sandbox 执行验证。"
+    ),
+    parameters={
+        "type": "object",
+        "properties": {
+            "feature_name": {
+                "type": "string",
+                "description": "特征名称（英文 snake_case）",
+            },
+            "dimension": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "所属维度列表，如 [\"金额频次\", \"时间地域\"]",
+            },
+            "code": {
+                "type": "string",
+                "description": (
+                    "Python 代码，签名 def feature_xxx(df) -> pd.DataFrame"
+                ),
+            },
+            "explanation": {
+                "type": "string",
+                "description": "特征含义解释",
+            },
+            "reasoning": {
+                "type": "string",
+                "description": "设计推理过程",
+            },
+            "knowledge_source": {
+                "type": "string",
+                "description": "知识溯源（来自哪个案例/风险因子）",
+            },
+            "data_fields_used": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "使用的原始数据字段列表",
+            },
+        },
+        "required": [
+            "feature_name",
+            "dimension",
+            "code",
+            "explanation",
+            "reasoning",
+            "knowledge_source",
+            "data_fields_used",
+        ],
+    },
+)
+
 ALL_TOOL_SPECS = [EXPLORE_DATA_SPEC, GENERATE_FEATURE_SPEC, EXECUTE_SANDBOX_SPEC]
+ALL_TOOL_SPECS_STAGE1 = [EXPLORE_DATA_SPEC_STAGE1, GENERATE_FEATURE_SPEC_STAGE1, EXECUTE_SANDBOX_SPEC]
 
 
 # ---------------------------------------------------------------------------
@@ -177,8 +260,8 @@ class ToolContext:
 
     Parameters
     ----------
-    data : Stage2Data
-        三表数据 + 基线特征。
+    data : Stage1Data | Stage2Data
+        Stage 1 单表或 Stage 2 三表数据 + 基线特征。
     cfg : KnowFeatConfig
         全局配置。
     noise_thresholds : NoiseThresholds, optional
@@ -189,7 +272,7 @@ class ToolContext:
 
     def __init__(
         self,
-        data: Stage2Data,
+        data: StageData,
         cfg: KnowFeatConfig,
         noise_thresholds: Optional[NoiseThresholds] = None,
         baseline_X: Optional[pd.DataFrame] = None,
@@ -198,7 +281,12 @@ class ToolContext:
         self.cfg = cfg
         self.vcfg = cfg.verification
         self.noise_thresholds = noise_thresholds
-        self.label = get_label_series(data)
+        self.is_stage1 = isinstance(data, Stage1Data)
+
+        if self.is_stage1:
+            self.label = get_label_series_stage1(data)
+        else:
+            self.label = get_label_series(data)
 
         if baseline_X is not None:
             self.baseline_X = baseline_X.copy()
@@ -207,9 +295,10 @@ class ToolContext:
         else:
             self.baseline_X = pd.DataFrame(index=self.label.index)
 
-        drop_cols = [c for c in BASELINE_EXCLUDE_FEATURES if c in self.baseline_X.columns]
-        if drop_cols:
-            self.baseline_X = self.baseline_X.drop(columns=drop_cols)
+        if not self.is_stage1:
+            drop_cols = [c for c in BASELINE_EXCLUDE_FEATURES if c in self.baseline_X.columns]
+            if drop_cols:
+                self.baseline_X = self.baseline_X.drop(columns=drop_cols)
 
         self.registered: dict[str, RegisteredFeature] = {}
         self.accepted_features: dict[str, CandidateFeature] = {}
@@ -245,11 +334,16 @@ class ToolContext:
         if not code.strip():
             return json.dumps({"error": "代码不能为空"}, ensure_ascii=False)
 
-        result = _run_explore_in_process(
-            code, self.data.open_df, self.data.tx_df,
-            self.data.close_df, self.data.baseline_features,
-            timeout=EXPLORE_TIMEOUT,
-        )
+        if self.is_stage1:
+            result = _run_explore_in_process_stage1(
+                code, self.data.df, timeout=EXPLORE_TIMEOUT,
+            )
+        else:
+            result = _run_explore_in_process(
+                code, self.data.open_df, self.data.tx_df,
+                self.data.close_df, self.data.baseline_features,
+                timeout=EXPLORE_TIMEOUT,
+            )
         return json.dumps(result, ensure_ascii=False)
 
     # ------------------------------------------------------------------
@@ -317,13 +411,20 @@ class ToolContext:
         pr = PipelineResult(feature_name=reg.feature_name)
 
         # --- L1: 沙盒执行 ---
-        l1 = run_sandbox(
-            code=reg.code,
-            open_df=self.data.open_df,
-            tx_df=self.data.tx_df,
-            close_df=self.data.close_df,
-            timeout=self.vcfg.sandbox_timeout_sec,
-        )
+        if self.is_stage1:
+            l1 = run_sandbox_stage1(
+                code=reg.code,
+                df=self.data.df,
+                timeout=self.vcfg.sandbox_timeout_sec,
+            )
+        else:
+            l1 = run_sandbox(
+                code=reg.code,
+                open_df=self.data.open_df,
+                tx_df=self.data.tx_df,
+                close_df=self.data.close_df,
+                timeout=self.vcfg.sandbox_timeout_sec,
+            )
         pr.l1_result = l1
         pr.stage_reached = "L1"
 
@@ -340,9 +441,14 @@ class ToolContext:
             return pr
 
         # 对齐 label 索引
-        feature_aligned, label_aligned = _align_series(
-            feature_series, l1.df, self.label, self.data,
-        )
+        if self.is_stage1:
+            feature_aligned, label_aligned = _align_series_stage1(
+                feature_series, l1.df, self.label, self.data,
+            )
+        else:
+            feature_aligned, label_aligned = _align_series(
+                feature_series, l1.df, self.label, self.data,
+            )
 
         # --- L2: 统计验证 ---
         existing_features = self._get_existing_features_df()
@@ -485,6 +591,8 @@ class ToolContext:
 
     def get_tool_specs(self) -> list[ToolSpec]:
         """返回所有工具的 ToolSpec 列表。"""
+        if self.is_stage1:
+            return list(ALL_TOOL_SPECS_STAGE1)
         return list(ALL_TOOL_SPECS)
 
 
@@ -569,7 +677,7 @@ def _extract_feature_column(
     feature_name: str,
 ) -> Optional[pd.Series]:
     """从沙盒输出中提取特征列（排除 ID 列后的第一个列）。"""
-    id_cols = {"wallet_id", "tx_id"}
+    id_cols = {"wallet_id", "tx_id", "account"}
     feature_cols = [c for c in df.columns if c not in id_cols]
     if not feature_cols:
         return None
@@ -615,3 +723,94 @@ def _align_series(
         pd.Series(aligned_feat, index=label.index, name=feature_series.name),
         label,
     )
+
+
+# ---------------------------------------------------------------------------
+# Stage 1 辅助函数
+# ---------------------------------------------------------------------------
+
+def _align_series_stage1(
+    feature_series: pd.Series,
+    sandbox_df: pd.DataFrame,
+    label: pd.Series,
+    data: Stage1Data,
+) -> tuple[pd.Series, pd.Series]:
+    """Stage 1: 将沙盒输出与标签对齐。
+
+    BABD-13 是地址级数据，沙盒输出含 account 列，
+    与原始 df 的 account 列做 JOIN。
+    """
+    if "account" in sandbox_df.columns:
+        account_map = dict(zip(sandbox_df["account"], feature_series.values))
+        aligned = data.df["account"].map(account_map)
+        return (
+            aligned.fillna(0).rename(feature_series.name).reset_index(drop=True),
+            label.reset_index(drop=True),
+        )
+
+    if len(sandbox_df) == len(data.df):
+        return (
+            pd.Series(feature_series.values, index=label.index, name=feature_series.name),
+            label,
+        )
+
+    aligned_feat = feature_series.values[:len(label)]
+    return (
+        pd.Series(aligned_feat, index=label.index, name=feature_series.name),
+        label,
+    )
+
+
+def _explore_worker_stage1(code, df, result_queue):
+    """Stage 1 explore worker: 单表输入。"""
+    import numpy as np
+
+    namespace = {
+        "pd": pd,
+        "np": np,
+        "df": df,
+    }
+    stdout_buf = io.StringIO()
+    stderr_buf = io.StringIO()
+
+    try:
+        compiled = compile(code, "<explore>", "exec")
+        with redirect_stdout(stdout_buf), redirect_stderr(stderr_buf):
+            exec(compiled, namespace)
+        last_expr = _try_eval_last_line(code, namespace)
+
+        output_parts = []
+        stdout_text = stdout_buf.getvalue().strip()
+        if stdout_text:
+            output_parts.append(stdout_text)
+        if last_expr is not None:
+            output_parts.append(str(last_expr))
+
+        output = "\n".join(output_parts) if output_parts else "(无输出)"
+        if len(output) > EXPLORE_OUTPUT_MAX_CHARS:
+            output = output[:EXPLORE_OUTPUT_MAX_CHARS] + "\n... [输出截断]"
+        result_queue.put({"output": output})
+    except Exception as exc:
+        result_queue.put({"error": f"代码执行错误: {exc}"})
+
+
+def _run_explore_in_process_stage1(code, df, timeout=30):
+    """Stage 1: run explore_data in child process."""
+    import multiprocessing
+    ctx = multiprocessing.get_context("fork")
+    result_queue = ctx.Queue()
+    proc = ctx.Process(
+        target=_explore_worker_stage1,
+        args=(code, df, result_queue),
+    )
+    proc.start()
+    proc.join(timeout=timeout)
+
+    if proc.is_alive():
+        proc.kill()
+        proc.join(timeout=5)
+        return {"error": f"explore_data 执行超时（>{timeout}s），请简化代码或减少数据量"}
+
+    if not result_queue.empty():
+        return result_queue.get_nowait()
+    return {"error": f"explore_data 执行异常（进程退出码={proc.exitcode}）"}

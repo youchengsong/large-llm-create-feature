@@ -15,7 +15,7 @@ from knowfeat.config import KnowFeatConfig, VerificationConfig
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_ID_COLS = {"wallet_id", "tx_id"}
+REQUIRED_ID_COLS = {"wallet_id", "tx_id", "account"}
 
 _RUNNER_TEMPLATE = textwrap.dedent("""\
     import pickle, sys, pathlib
@@ -26,6 +26,17 @@ _RUNNER_TEMPLATE = textwrap.dedent("""\
     {code}
 
     result = {func_name}(open_df, tx_df, close_df)
+    pathlib.Path(sys.argv[2]).write_bytes(pickle.dumps(result))
+""")
+
+_RUNNER_TEMPLATE_STAGE1 = textwrap.dedent("""\
+    import pickle, sys, pathlib
+
+    df = pickle.loads(pathlib.Path(sys.argv[1]).read_bytes())
+
+    {code}
+
+    result = {func_name}(df)
     pathlib.Path(sys.argv[2]).write_bytes(pickle.dumps(result))
 """)
 
@@ -153,6 +164,77 @@ def run_sandbox(
 
     logger.info(
         "L1 沙盒通过: %s, 输出 shape=%s", func_name, result_df.shape
+    )
+    return SandboxResult(success=True, df=result_df)
+
+
+def run_sandbox_stage1(
+    code: str,
+    df: pd.DataFrame,
+    timeout: int = 30,
+) -> SandboxResult:
+    """Stage 1 沙盒执行：单表输入，函数签名 def feature_xxx(df)。"""
+    try:
+        func_name = _extract_func_name(code)
+    except ValueError as e:
+        return SandboxResult(success=False, error=str(e), error_type="parse")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+        input_path = tmpdir / "input.pkl"
+        output_path = tmpdir / "output.pkl"
+        script_path = tmpdir / "runner.py"
+
+        import pickle
+        input_path.write_bytes(pickle.dumps(df))
+
+        script_path.write_text(
+            _RUNNER_TEMPLATE_STAGE1.format(code=code, func_name=func_name),
+            encoding="utf-8",
+        )
+
+        try:
+            proc = subprocess.run(
+                [sys.executable, str(script_path),
+                 str(input_path), str(output_path)],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+            )
+        except subprocess.TimeoutExpired:
+            return SandboxResult(
+                success=False,
+                error=f"代码执行超时（>{timeout}s）",
+                error_type="timeout",
+            )
+
+        if proc.returncode != 0:
+            stderr = proc.stderr.strip()
+            return SandboxResult(
+                success=False,
+                error=f"代码执行失败:\n{stderr}",
+                error_type="runtime",
+            )
+
+        try:
+            result_df = pickle.loads(output_path.read_bytes())
+        except Exception as e:
+            return SandboxResult(
+                success=False,
+                error=f"无法加载输出结果: {e}",
+                error_type="output",
+            )
+
+    validation_error = _validate_output(result_df)
+    if validation_error:
+        return SandboxResult(
+            success=False,
+            error=validation_error,
+            error_type="validation",
+        )
+
+    logger.info(
+        "L1 沙盒通过 (Stage 1): %s, 输出 shape=%s", func_name, result_df.shape
     )
     return SandboxResult(success=True, df=result_df)
 

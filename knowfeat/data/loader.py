@@ -1,4 +1,4 @@
-"""Stage 2 数据加载：三表 + 基线特征。"""
+"""数据加载：Stage 2 三表 / Stage 1 单表 + 基线特征。"""
 
 import logging
 from dataclasses import dataclass
@@ -25,6 +25,37 @@ class Stage2Data:
     close_df: pd.DataFrame
     baseline_features: Optional[pd.DataFrame] = None
     label_col: str = "is_risk"
+
+
+# ---------------------------------------------------------------------------
+# Stage 1 (BABD-13): 单表数据
+# ---------------------------------------------------------------------------
+
+BABD13_ILLICIT_LABELS = {0, 2, 6, 7, 8, 9, 11}
+
+BABD13_LABEL_MAP = {
+    0: "Blackmail", 1: "Cyber-Security Service", 2: "Darknet Market",
+    3: "Centralized Exchange", 4: "Infrastructure/Service", 5: "P2P Financial",
+    6: "Gambling", 7: "Gov Criminal Blacklist", 8: "Money Laundering",
+    9: "Ponzi Scheme", 10: "Mining Pool", 11: "Tumbler", 12: "Individual Wallet",
+}
+
+
+@dataclass
+class Stage1Data:
+    """Stage 1 单表 + 基线特征的容器 (BABD-13)。"""
+    df: pd.DataFrame
+    baseline_features: Optional[pd.DataFrame] = None
+    label_col: str = "is_illicit"
+    id_col: str = "account"
+    feature_cols: list[str] = None
+
+    def __post_init__(self):
+        if self.feature_cols is None:
+            self.feature_cols = [
+                c for c in self.df.columns
+                if c not in (self.id_col, "label", self.label_col)
+            ]
 
 
 def load_accounts(path: Path) -> pd.DataFrame:
@@ -142,3 +173,53 @@ def get_baseline_feature_names(data: Stage2Data) -> list[str]:
     if data.baseline_features is None:
         return []
     return [c for c in data.baseline_features.columns if c not in BASELINE_EXCLUDE_FEATURES]
+
+
+# ---------------------------------------------------------------------------
+# Stage 1 加载
+# ---------------------------------------------------------------------------
+
+def load_stage1(cfg: Optional[KnowFeatConfig] = None,
+                paths: Optional[PathConfig] = None) -> Stage1Data:
+    """加载 BABD-13 单表数据，执行 13-class → binary 标签映射。
+
+    Returns
+    -------
+    Stage1Data
+        包含 df (含 is_illicit 二值标签) 和 baseline_features 的容器。
+    """
+    if paths is None:
+        paths = cfg.paths if cfg is not None else PathConfig()
+
+    csv_path = paths.babd13_csv
+    logger.info("Loading BABD-13 from %s", csv_path)
+    df = pd.read_csv(csv_path)
+    logger.info("BABD-13 loaded: %d rows, %d cols", *df.shape)
+
+    # SW 列是类别型 (SA/WA)，编码为 0/1
+    if "SW" in df.columns and df["SW"].dtype == object:
+        df["SW"] = (df["SW"] == "WA").astype(int)
+
+    # 13-class → binary
+    df["is_illicit"] = df["label"].isin(BABD13_ILLICIT_LABELS).astype(int)
+    n_pos = df["is_illicit"].sum()
+    n_neg = len(df) - n_pos
+    logger.info("Binary label: illicit=%d (%.2f%%), licit=%d",
+                n_pos, 100 * n_pos / len(df), n_neg)
+
+    # 基线特征 = 除 account 和 label 列外的所有列
+    feature_cols = [c for c in df.columns if c not in ("account", "label", "is_illicit")]
+    baseline_features = df[feature_cols].copy()
+
+    return Stage1Data(
+        df=df,
+        baseline_features=baseline_features,
+        label_col="is_illicit",
+        id_col="account",
+        feature_cols=feature_cols,
+    )
+
+
+def get_label_series_stage1(data: Stage1Data) -> pd.Series:
+    """从 Stage 1 df 中提取标签列。"""
+    return data.df[data.label_col].astype(int)

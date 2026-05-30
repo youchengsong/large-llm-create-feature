@@ -9,8 +9,8 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from knowfeat.config import KnowFeatConfig
-from knowfeat.data.loader import Stage2Data
-from knowfeat.data.schema_stats import generate_all_schema_text
+from knowfeat.data.loader import Stage1Data, Stage2Data
+from knowfeat.data.schema_stats import generate_all_schema_text, generate_all_schema_text_stage1
 from knowfeat.prompt.domain_knowledge import (
     DomainKnowledge,
     format_domain_knowledge,
@@ -156,16 +156,24 @@ _ROLE_STAGE1 = """\
 你是一个加密货币反洗钱特征工程专家 Agent。你的任务是基于加密货币洗钱案例的\
 结构化风险因子，在 BABD-13 数据集上设计识别洗钱地址的统计特征。
 
+## 数据集说明
+
+BABD-13 是比特币地址行为数据集，每行代表一个比特币地址，包含 149 个预计算的\
+链上行为特征（PAI/PDI/PTI/CI/S 五类指标）和 13 类标签。\
+二分类标签 is_illicit: Illicit={Blackmail, Darknet Market, Gambling, \
+Gov Criminal Blacklist, Money Laundering, Ponzi Scheme, Tumbler}。
+
 ## 目标
 
 - 生成能提升洗钱地址检测 Recall 的特征（Precision 需 ≥ 90%）
 - 每个特征必须有明确的知识溯源（来自哪个案例/风险因子）
-- 特征代码必须可执行，基于 BABD-13 数据集的现有字段
-- 输出 DataFrame 必须包含地址标识列
+- 特征代码必须可执行，签名为 `def feature_xxx(df) -> pd.DataFrame`
+- 输入 df 是 BABD-13 完整数据表（含 account, 149 个特征列, label, is_illicit）
+- 输出 DataFrame 必须包含 `account` 列作为主键 + 一个特征值列
 
 ## 可用工具
 
-1. **explore_data**: 在 DataFrame 上执行查询代码，探索数据分布
+1. **explore_data**: 在 DataFrame 上执行查询代码，探索数据分布（可用变量: df）
 2. **generate_feature**: 提交特征代码 + 名称 + 维度 + 溯源信息
 3. **execute_sandbox**: 在隔离沙盒中执行代码，触发三级验证
 
@@ -173,7 +181,7 @@ _ROLE_STAGE1 = """\
 
 1. 阅读 BABD-13 Schema 和风险因子，理解可用字段和洗钱模式
 2. 使用 explore_data 探索数据分布，验证假设
-3. 设计特征，使用 generate_feature 提交
+3. 设计特征（可以是现有特征的交叉、组合、变换），使用 generate_feature 提交
 4. **立即**调用 execute_sandbox 验证该特征
 5. 根据验证结果迭代改进，然后设计下一个特征
 
@@ -266,7 +274,7 @@ def build_round_instruction(
 def build_system_prompt(
     cfg: KnowFeatConfig,
     domain_knowledge: DomainKnowledge,
-    data: Optional[Stage2Data] = None,
+    data: Optional[Stage2Data | Stage1Data] = None,
     schema_text: Optional[str] = None,
     shap_feedback: Optional[ShapFeedback] = None,
     failure_records: Optional[list[FailureRecord]] = None,
@@ -280,8 +288,8 @@ def build_system_prompt(
         全局配置。
     domain_knowledge : DomainKnowledge
         领域知识容器（由 load_domain_knowledge 加载）。
-    data : Stage2Data, optional
-        Stage 2 数据容器。如提供则自动生成 schema_text。
+    data : Stage2Data | Stage1Data, optional
+        数据容器。如提供则自动生成 schema_text。
     schema_text : str, optional
         预生成的 Schema 文本。如不提供且 data 不为 None，则自动生成。
     shap_feedback : ShapFeedback, optional
@@ -312,7 +320,10 @@ def build_system_prompt(
     if schema_text is not None:
         sections.append(schema_text)
     elif data is not None:
-        sections.append(generate_all_schema_text(data))
+        if isinstance(data, Stage1Data):
+            sections.append(generate_all_schema_text_stage1(data))
+        else:
+            sections.append(generate_all_schema_text(data))
 
     # 4. 验证规则
     sections.append(_format_verification_rules(cfg))

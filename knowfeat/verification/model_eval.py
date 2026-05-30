@@ -81,11 +81,12 @@ def _cv_evaluate(
         X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
         y_train, y_val = y[train_idx], y[val_idx]
 
+        spw = float((y == 0).sum() / max((y == 1).sum(), 1))
         clf = XGBClassifier(
             n_estimators=200,
             max_depth=6,
             learning_rate=0.1,
-            scale_pos_weight=59.0,
+            scale_pos_weight=spw,
             eval_metric="logloss",
             random_state=seed,
             verbosity=0,
