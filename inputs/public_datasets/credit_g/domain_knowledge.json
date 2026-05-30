@@ -1,0 +1,261 @@
+{
+  "dataset": "credit-g",
+  "openml_id": 31,
+  "domain": "信贷风控",
+  "task": "二分类（good/bad）",
+  "target": "class",
+  "features": 20,
+  "size": 1000,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "活期账户透支",
+      "field": "checking_status",
+      "direction": "负余额(<0) = 高风险; 无活期账户或>=200 = 低风险",
+      "threshold": "'<0' 为高风险",
+      "rationale": "活期账户余额为负表明慢性透支和现金流问题，是德国信贷数据集中最强的单一预测因子。"
+    },
+    {
+      "id": "IND_02",
+      "name": "贷款期限风险",
+      "field": "duration",
+      "direction": "期限越长风险越高",
+      "threshold": ">24个月为高风险; >36个月为极高风险",
+      "rationale": "较长贷款期限增加了收入冲击、失业和宏观经济下行的暴露。巴塞尔II将期限作为PD调整的关键因素。"
+    },
+    {
+      "id": "IND_03",
+      "name": "不良信用历史",
+      "field": "credit_history",
+      "direction": "过去违约 = 高风险; 但'all paid'/'no credits' 也是高风险（薄档案/选择偏差）",
+      "threshold": "'critical/other existing credit' 和 'delayed previously' 为高风险",
+      "rationale": "过去的违约是所有信用评分模型中未来违约的最强预测因子。'all paid' 悖论性地表示更高风险，因为完全还清的借款人可能有薄信用档案。"
+    },
+    {
+      "id": "IND_04",
+      "name": "信贷金额",
+      "field": "credit_amount",
+      "direction": "金额越高风险越大",
+      "threshold": ">5000 DM为高风险; >10000 DM为极高风险",
+      "rationale": "较大贷款金额增加违约损失，且往往超出借款人的还款能力。"
+    },
+    {
+      "id": "IND_05",
+      "name": "储蓄不足",
+      "field": "savings_status",
+      "direction": "储蓄越少风险越高",
+      "threshold": "'<100' 或 'no known savings' 为高风险",
+      "rationale": "储蓄作为收入冲击的财务缓冲。缺乏储蓄的申请人无法覆盖哪怕一次还款缺失。"
+    },
+    {
+      "id": "IND_06",
+      "name": "就业不稳定",
+      "field": "employment",
+      "direction": "就业时间越短风险越高",
+      "threshold": "'unemployed' 或 '<1' 为高风险; '>=7' 为低风险",
+      "rationale": "就业稳定性是所有主要信用评分系统的标准因素，就业不到1年表明收入不稳定。"
+    },
+    {
+      "id": "IND_07",
+      "name": "分期付款负担",
+      "field": "installment_commitment",
+      "direction": "数值越高负担越重",
+      "threshold": "4（最高级别）为高风险",
+      "rationale": "编码为可支配收入的百分比(1-4)，值为4表示借款人将最大比例收入用于偿债。欧洲银行监管将>40%偿债收入比视为高风险。"
+    },
+    {
+      "id": "IND_08",
+      "name": "年龄风险",
+      "field": "age",
+      "direction": "年龄越小风险越高",
+      "threshold": "<25岁为高风险; >35岁为较低风险",
+      "rationale": "年轻申请人信用历史较短、储蓄较少、就业不稳定。20-25岁组违约率最高。"
+    },
+    {
+      "id": "IND_09",
+      "name": "无资产",
+      "field": "property_magnitude",
+      "direction": "无资产 = 高风险; 有房产 = 低风险",
+      "threshold": "'no known property' 为高风险",
+      "rationale": "房产所有权既是抵押品也是财务稳定和财富积累的代理指标。"
+    },
+    {
+      "id": "IND_10",
+      "name": "外部债务",
+      "field": "other_payment_plans",
+      "direction": "有外部还款计划 = 高风险",
+      "threshold": "'bank' 或 'stores' 为高风险",
+      "rationale": "在其他银行或商店有分期付款计划增加总债务负担，直接影响偿债能力。"
+    },
+    {
+      "id": "IND_11",
+      "name": "住房不稳定",
+      "field": "housing",
+      "direction": "非自有住房 = 较高风险",
+      "threshold": "'for free' 或 'rent' 为较高风险",
+      "rationale": "租房者面临持续的住房成本，与贷款偿还竞争。自有住房信号财务稳定。"
+    },
+    {
+      "id": "IND_12",
+      "name": "信贷过度",
+      "field": "existing_credits",
+      "direction": "现有信贷数越多风险越高",
+      "threshold": ">=3 为高风险",
+      "rationale": "在同一银行有3个以上现有信贷表明信贷依赖和潜在过度杠杆。"
+    },
+    {
+      "id": "IND_13",
+      "name": "职业风险",
+      "field": "job",
+      "direction": "低技能/无业 = 高风险",
+      "threshold": "'unemp/unskilled non res' 为高风险",
+      "rationale": "失业/非技术非居民的收入最不稳定，失业概率最高。"
+    },
+    {
+      "id": "IND_14",
+      "name": "外籍工人",
+      "field": "foreign_worker",
+      "direction": "外籍工人 = 略高风险",
+      "threshold": "'yes' 为略高风险",
+      "rationale": "外籍工人可能面临工作许可到期、语言障碍等额外风险。但数据集中96%为外籍工人，判别力有限。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "透支+高金额",
+      "description": "申请人活期账户余额为负且申请金额超过5000 DM",
+      "fields": ["checking_status", "credit_amount"],
+      "logic": "checking_status == '<0' AND credit_amount > 5000",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_002",
+      "name": "年轻+长期+高额",
+      "description": "25岁以下申请人，贷款期限超过24个月且金额超过3000 DM",
+      "fields": ["age", "duration", "credit_amount"],
+      "logic": "age < 25 AND duration > 24 AND credit_amount > 3000",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_003",
+      "name": "无储蓄+无资产+租房",
+      "description": "储蓄不足100 DM，无已知资产，且为租房住户",
+      "fields": ["savings_status", "property_magnitude", "housing"],
+      "logic": "savings_status IN ('<100', 'no known savings') AND property_magnitude == 'no known property' AND housing == 'rent'",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_004",
+      "name": "最大分期负担+外部债务",
+      "description": "分期付款负担为最高级别(4)且有外部还款计划",
+      "fields": ["installment_commitment", "other_payment_plans"],
+      "logic": "installment_commitment == 4 AND other_payment_plans IN ('bank', 'stores')",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_005",
+      "name": "不良历史+高暴露",
+      "description": "信用历史显示过去违约或危险信贷，且金额超过中位数",
+      "fields": ["credit_history", "credit_amount"],
+      "logic": "credit_history IN ('critical/other existing credit', 'delayed previously') AND credit_amount > 2500",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_006",
+      "name": "薄档案风险",
+      "description": "无信贷或全部还清（薄档案），加上就业不足1年且年龄小于30",
+      "fields": ["credit_history", "employment", "age"],
+      "logic": "credit_history IN ('no credits/all paid', 'all paid') AND employment IN ('unemployed', '<1') AND age < 30",
+      "risk_level": "MEDIUM-HIGH"
+    },
+    {
+      "id": "RULE_007",
+      "name": "期限金额不匹配",
+      "description": "短贷款期限(<12月)但极高金额(>8000 DM)，月还款压力过大",
+      "fields": ["duration", "credit_amount"],
+      "logic": "duration < 12 AND credit_amount > 8000",
+      "risk_level": "MEDIUM-HIGH"
+    },
+    {
+      "id": "RULE_008",
+      "name": "月还款代理",
+      "description": "credit_amount / duration 可作为月还款负担的代理指标",
+      "fields": ["credit_amount", "duration"],
+      "logic": "credit_amount / duration > 400",
+      "risk_level": "MEDIUM"
+    },
+    {
+      "id": "RULE_009",
+      "name": "多重信贷+非必需用途",
+      "description": "3个以上现有信贷且贷款用途为非必需品",
+      "fields": ["existing_credits", "purpose"],
+      "logic": "existing_credits >= 3 AND purpose IN ('radio/tv', 'vacation', 'domestic appliance')",
+      "risk_level": "MEDIUM"
+    },
+    {
+      "id": "RULE_010",
+      "name": "担保人缓释",
+      "description": "有担保人或共同申请人可降低风险",
+      "fields": ["other_parties"],
+      "logic": "other_parties IN ('guarantor', 'co applicant')",
+      "risk_level": "RISK_REDUCING"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "活期账户状态是德国信贷数据集中违约预测最强的单一特征，在所有模型类型中始终排名第一。余额为负(<0 DM)的申请人违约概率约为>=200 DM申请人的2-3倍。'no checking'类别反直觉地与较低风险相关。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "贷款期限和金额与违约风险存在乘法交互。大额短期贷款造成不可持续的月还款，大额长期贷款则最大化了风险暴露期。特征工程应捕获交互项：credit_amount * duration（总暴露）和 credit_amount / duration（月还款负担代理）。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "信用历史编码存在著名悖论：'no credits/all paid' 和 'all paid' 的违约率高于 'existing paid'。解释是选择偏差——当前正常还款的借款人展示了可靠的还款行为，而已全部还清的可能有薄信用档案。一个二元特征 has_active_credit_being_paid 可以捕获这一效应。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "年龄与几乎所有其他特征存在交互。年轻(<25岁)申请人贷款用于非必需品(radio/tv, vacation)违约率约为平均水平的2倍。年龄分段交互特征 age_group × savings_status 和 age_group × employment 特别有信息量。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "贷款用途包含显著的非线性风险信息。二手车贷款违约率最低（购买者更谨慎），新车中等，商业贷款较高，度假贷款最高。将用途分为风险等级(必需/中等/非必需/商业)比one-hot编码更有效。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "分期付款承诺(1-4)是偿债收入比(DSTI)的序数代理。与other_payment_plans组合可推断总DSTI是否超过可持续阈值。同时installment_commitment与savings_status的交互捕获缓冲能力：高负担无储蓄远比高负担有储蓄危险。"
+    },
+    {
+      "id": "EXP_07",
+      "content": "资产和住房特征共同构成的财富/稳定性复合指标比单独使用更具预测力。层级为：自有房产+自住(最低风险) > 人寿保险 > 汽车 > 无已知资产+租房(最高风险)。创建 financial_stability_score = f(property_magnitude, housing, savings_status) 可产生强有力的序数特征。"
+    }
+  ],
+
+  "field_reference": {
+    "checking_status": ["<0", "0<=X<200", ">=200", "no checking"],
+    "duration": "numeric (months)",
+    "credit_history": ["no credits/all paid", "all paid", "existing paid", "delayed previously", "critical/other existing credit"],
+    "purpose": ["new car", "used car", "furniture/equipment", "radio/tv", "domestic appliance", "repairs", "education", "vacation", "retraining", "business", "other"],
+    "credit_amount": "numeric (DM)",
+    "savings_status": ["<100", "100<=X<500", "500<=X<1000", ">=1000", "no known savings"],
+    "employment": ["unemployed", "<1", "1<=X<4", "4<=X<7", ">=7"],
+    "installment_commitment": "numeric (1-4)",
+    "personal_status": ["male div/sep", "female div/dep/mar", "male single", "male mar/wid"],
+    "other_parties": ["none", "co applicant", "guarantor"],
+    "residence_since": "numeric (years)",
+    "property_magnitude": ["real estate", "life insurance", "car", "no known property"],
+    "age": "numeric (years)",
+    "other_payment_plans": ["bank", "stores", "none"],
+    "housing": ["rent", "own", "for free"],
+    "existing_credits": "numeric (count)",
+    "job": ["unemp/unskilled non res", "unskilled resident", "skilled", "high qualif/self emp/mgmt"],
+    "num_dependents": "numeric (count)",
+    "own_telephone": ["none", "yes"],
+    "foreign_worker": ["yes", "no"]
+  }
+}

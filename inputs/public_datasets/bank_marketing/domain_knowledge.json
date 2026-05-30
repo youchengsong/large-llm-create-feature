@@ -1,0 +1,245 @@
+{
+  "dataset": "bank-marketing",
+  "openml_id": 1461,
+  "domain": "银行营销",
+  "task": "二分类（是否认购定期存款）",
+  "target": "y",
+  "features": 16,
+  "size": 45211,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "历史营销成功",
+      "field": "poutcome",
+      "direction": "poutcome=success 大幅增加认购概率",
+      "threshold": "success: >60%转化率; unknown: ~6%; failure: 更低",
+      "rationale": "之前成功认购的客户是预筛合格线索。在所有pre-call特征中预测力最强。RFM框架中的'正面响应近因'原则。"
+    },
+    {
+      "id": "IND_02",
+      "name": "通话时长(信息泄漏警告)",
+      "field": "duration",
+      "direction": "时长越长转化率越高",
+      "threshold": ">473秒约84%认购; 205-473秒约64%; <120秒很低",
+      "rationale": "通话时长是后验变量——只有通话结束后才知道。原论文(Moro et al. 2014)明确警告：仅用于基准测试，不应用于真实预测模型。时长反映客户参与度，不是原因。"
+    },
+    {
+      "id": "IND_03",
+      "name": "联系方式-手机",
+      "field": "contact",
+      "direction": "cellular > telephone > unknown",
+      "threshold": "cellular ~15%认购; telephone ~5%",
+      "rationale": "手机联系说明银行与客户有已建立的关系(客户提供了手机号)。联系方式编码了关系深度而非技术偏好。"
+    },
+    {
+      "id": "IND_04",
+      "name": "季节性时机",
+      "field": "month",
+      "direction": "3月(~50.5%)、9月、10月、12月最高; 5月(~6.4%)最低",
+      "threshold": "March, Sep, Oct, Dec 为最佳月份",
+      "rationale": "财年末(9-10月)、年终奖(12月)和税季(3月)创造考虑储蓄产品的自然时机。5月联系量最大(13769)但转化率最低，体现过度饱和。"
+    },
+    {
+      "id": "IND_05",
+      "name": "无住房贷款",
+      "field": "housing",
+      "direction": "housing=no 认购概率更高",
+      "threshold": "no > yes",
+      "rationale": "无住房贷款的客户有更多可支配收入，不受长期财务义务约束，更愿意锁定储蓄。"
+    },
+    {
+      "id": "IND_06",
+      "name": "无个人贷款",
+      "field": "loan",
+      "direction": "loan=no 认购概率更高",
+      "threshold": "no > yes",
+      "rationale": "无个人贷款的客户有更多自由现金流，不太需要即时流动性，定期存款对其更有吸引力。"
+    },
+    {
+      "id": "IND_07",
+      "name": "职业类型",
+      "field": "job",
+      "direction": "retired和student转化率最高",
+      "threshold": "student ~31.3%; retired ~25.3%; blue-collar最低",
+      "rationale": "退休人员有积累储蓄且寻求安全固定收益产品。学生可能开设首个储蓄账户。两类人群金融状况较简单。"
+    },
+    {
+      "id": "IND_08",
+      "name": "婚姻状况",
+      "field": "marital",
+      "direction": "single > divorced > married",
+      "threshold": "single认购率略高",
+      "rationale": "单身客户独立做财务决策(无需配偶协商)，可能有更多可支配收入。"
+    },
+    {
+      "id": "IND_09",
+      "name": "教育水平",
+      "field": "education",
+      "direction": "高等教育正相关",
+      "threshold": "tertiary > secondary > primary",
+      "rationale": "高等教育与金融素养、更高收入、对结构化金融产品更舒适相关。"
+    },
+    {
+      "id": "IND_10",
+      "name": "无信用违约",
+      "field": "default",
+      "direction": "default=no 强相关认购; default=yes 几乎不认购",
+      "threshold": "default=yes 认购率近乎为零",
+      "rationale": "信用违约客户处于财务困境，不太可能有多余资金用于定期存款。仅约1.8%的数据为default=yes。"
+    },
+    {
+      "id": "IND_11",
+      "name": "账户余额",
+      "field": "balance",
+      "direction": "余额越高认购率越高",
+      "threshold": "正余额正相关; 负余额强负相关",
+      "rationale": "更高的平均年度余额代表更多可投资资本。余额是财务健康和投入固定期限产品能力的代理指标。"
+    },
+    {
+      "id": "IND_12",
+      "name": "联系次数边际效应",
+      "field": "campaign",
+      "direction": "超过3-4次后效果递减",
+      "threshold": ">3次递减; >5次转化率降至~8.7%",
+      "rationale": "当前活动中重复联系同一客户产生活动疲劳和递减回报。previous>0(之前被联系过)是正信号。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "3次联系规则",
+      "description": "每个客户每次活动最多联系3次，超过后转化率急剧下降",
+      "fields": ["campaign"],
+      "logic": "campaign <= 3 (optimal)",
+      "risk_level": "MARKETING_RULE"
+    },
+    {
+      "id": "RULE_002",
+      "name": "优先历史成功客户",
+      "description": "先联系poutcome=success的客户，60%+转化率",
+      "fields": ["poutcome"],
+      "logic": "poutcome == 'success'",
+      "risk_level": "HIGH_PRIORITY"
+    },
+    {
+      "id": "RULE_003",
+      "name": "季节性活动时机",
+      "description": "集中在3月、9月、10月、12月开展活动",
+      "fields": ["month"],
+      "logic": "month IN ('mar', 'sep', 'oct', 'dec')",
+      "risk_level": "TIMING_RULE"
+    },
+    {
+      "id": "RULE_004",
+      "name": "手机优先",
+      "description": "有手机号码时始终使用手机联系，转化率约为电话的3倍",
+      "fields": ["contact"],
+      "logic": "contact == 'cellular'",
+      "risk_level": "CHANNEL_RULE"
+    },
+    {
+      "id": "RULE_005",
+      "name": "财务能力分层",
+      "description": "无住房贷款+无个人贷款+正余额+无违约 = 高优先级客户",
+      "fields": ["housing", "loan", "balance", "default"],
+      "logic": "housing=='no' AND loan=='no' AND balance>0 AND default=='no'",
+      "risk_level": "HIGH_PRIORITY"
+    },
+    {
+      "id": "RULE_006",
+      "name": "违约排除规则",
+      "description": "信用违约客户(default=yes)应完全排除在活动列表之外",
+      "fields": ["default"],
+      "logic": "default == 'yes' → EXCLUDE",
+      "risk_level": "EXCLUSION"
+    },
+    {
+      "id": "RULE_007",
+      "name": "pdays编码处理",
+      "description": "pdays=-1表示未曾被联系过，应拆分为二元特征was_previously_contacted和days_since_contact",
+      "fields": ["pdays"],
+      "logic": "was_previously_contacted = (pdays != -1); days_since_contact = pdays if pdays > 0 else NaN",
+      "risk_level": "DATA_QUALITY"
+    },
+    {
+      "id": "RULE_008",
+      "name": "通话时长参与度阈值",
+      "description": "通话超过5分钟(300秒)表示真正感兴趣，应转向成交；<2分钟应结束通话",
+      "fields": ["duration"],
+      "logic": "duration > 300 → close; duration < 120 → abandon",
+      "risk_level": "OPERATIONAL"
+    },
+    {
+      "id": "RULE_009",
+      "name": "退休人员优先",
+      "description": "退休人员有积累储蓄寻求安全产品，应使用安全收益话术",
+      "fields": ["job"],
+      "logic": "job == 'retired'",
+      "risk_level": "SEGMENT_RULE"
+    },
+    {
+      "id": "RULE_010",
+      "name": "反饱和量控",
+      "description": "月联系量超过5000后预期递减回报，应控制量级注重质量",
+      "fields": ["month", "campaign"],
+      "logic": "monthly_volume > 5000 → expect diminishing returns",
+      "risk_level": "VOLUME_RULE"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "duration(通话时长)是最具争议的特征。几乎所有模型中排名第一，但Moro et al.(2014)原论文明确说明'仅用于基准测试，若意图建立真实预测模型应丢弃'。包含duration会造成信息泄漏，AUC虚高至0.90+，不含时AUC约0.75-0.80。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "contact(联系方式)编码的是关系深度而非技术偏好。手机联系意味着银行有客户个人手机号(已有关系)，而电话(座机)往往是冷呼叫。cellular的3倍转化优势来自更温暖的线索质量，不是手机本身更有说服力。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "数据集收集于葡萄牙2008-2013年经济危机期间。GDP萎缩，失业率超17%，2011年接受EU/IMF救助。Euribor利率从2008年的5%降至2012-2013年的近零。这些模式反映危机时代行为，可能不适用于稳定经济时期。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "最可能认购者画像：单身、高等教育、管理层或退休、无住房贷款、无个人贷款、无违约、正余额、之前成功认购(poutcome=success)、通过手机联系、在3月/9月/10月。但该画像仅占1-2%数据。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "pdays变量编码问题：-1表示'未被联系过'(约82%记录)，与正整数(距上次联系天数)不在同一尺度。应工程化为：(1)二元指标was_previously_contacted；(2)独立的days_since_contact(仅对被联系过的有效)。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "关键特征交互：poutcome-duration(历史成功+长通话=几乎确定认购)；housing-balance(无房贷+高余额=理想财务能力)；month-campaign(3月单次联系>5月三次联系)；age-job(年轻学生和老年退休者响应方式不同)。"
+    },
+    {
+      "id": "EXP_07",
+      "content": "数据集类别不平衡约88:12(否:是)。朴素分类器预测全'否'达88%准确率。应使用AUC和LIFT作为评估指标。LIFT在营销场景最有实践意义：如果只能联系10%客户，能捕获多少比例的实际认购者？LIFT 4-5倍为优秀。"
+    },
+    {
+      "id": "EXP_08",
+      "content": "葡萄牙定期存款认购的季节性由三因素驱动：税季(3月)、财年末(9-10月)、年终奖(12月)。营销应跟随客户的财务日历而非银行的活动日历。5-8月(度假季)表现最差：度假计划消耗可支配收入，银行大量活动造成市场饱和。"
+    }
+  ],
+
+  "field_reference": {
+    "age": "numeric (years)",
+    "job": ["admin.", "blue-collar", "entrepreneur", "housemaid", "management", "retired", "self-employed", "services", "student", "technician", "unemployed", "unknown"],
+    "marital": ["divorced", "married", "single"],
+    "education": ["primary", "secondary", "tertiary", "unknown"],
+    "default": ["yes", "no"],
+    "balance": "numeric (euros, average yearly balance)",
+    "housing": ["yes", "no"],
+    "loan": ["yes", "no"],
+    "contact": ["cellular", "telephone", "unknown"],
+    "day": "numeric (day of month)",
+    "month": ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"],
+    "duration": "numeric (seconds, POST-HOC variable)",
+    "campaign": "numeric (contacts during this campaign)",
+    "pdays": "numeric (days since last contact, -1 = never contacted)",
+    "previous": "numeric (contacts before this campaign)",
+    "poutcome": ["failure", "other", "success", "unknown"]
+  }
+}

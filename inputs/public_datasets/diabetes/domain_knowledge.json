@@ -1,0 +1,237 @@
+{
+  "dataset": "diabetes",
+  "openml_id": 37,
+  "domain": "糖尿病诊断",
+  "task": "二分类（糖尿病阳性/阴性）",
+  "target": "class",
+  "features": 8,
+  "size": 768,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "血糖水平",
+      "field": "Glucose",
+      "direction": "血糖越高风险越大",
+      "threshold": ">=200 mg/dL 为糖尿病; 140-199 为糖耐量减低; <140 正常 (OGTT标准)",
+      "rationale": "ADA诊断标准：2小时OGTT血糖>=200 mg/dL确诊糖尿病。该数据集中Glucose为2小时OGTT值，是最强预测因子。"
+    },
+    {
+      "id": "IND_02",
+      "name": "BMI指数",
+      "field": "BMI",
+      "direction": "BMI越高风险越大",
+      "threshold": ">=30 为肥胖(高风险); 25-29.9 为超重; <25 正常",
+      "rationale": "WHO标准：BMI>=30定义为肥胖，是2型糖尿病的强独立危险因素。Pima印第安人群肥胖率高于一般人群。"
+    },
+    {
+      "id": "IND_03",
+      "name": "年龄",
+      "field": "Age",
+      "direction": "年龄越大风险越高",
+      "threshold": ">=45岁为高风险筛查阈值(ADA建议); >=35岁在高危人群中",
+      "rationale": "ADA建议45岁以上所有成人筛查糖尿病。但Pima人群发病年龄更早，该数据集中21岁以上女性均被纳入。"
+    },
+    {
+      "id": "IND_04",
+      "name": "糖尿病家族史",
+      "field": "DiabetesPedigreeFunction",
+      "direction": "函数值越高遗传风险越大",
+      "threshold": ">0.5 表示显著遗传负担",
+      "rationale": "糖尿病谱系函数量化了家族中糖尿病的遗传影响。一级亲属患病使风险增加2-6倍。Pima人群有极高的糖尿病遗传易感性。"
+    },
+    {
+      "id": "IND_05",
+      "name": "妊娠次数",
+      "field": "Pregnancies",
+      "direction": "妊娠次数越多风险越高",
+      "threshold": ">=6次为高风险",
+      "rationale": "多次妊娠与妊娠期糖尿病风险累积相关。妊娠期糖尿病史使未来发展2型糖尿病的风险增加7倍。"
+    },
+    {
+      "id": "IND_06",
+      "name": "血压",
+      "field": "BloodPressure",
+      "direction": "高血压与代谢综合征相关",
+      "threshold": ">=80 mmHg(舒张压)为高血压; 0值为缺失数据",
+      "rationale": "高血压是代谢综合征的组成部分，与胰岛素抵抗密切相关。但该字段为舒张压，0值(35条记录)为生理不可能值，代表缺失数据。"
+    },
+    {
+      "id": "IND_07",
+      "name": "皮褶厚度",
+      "field": "SkinThickness",
+      "direction": "皮褶厚度越大体脂越多",
+      "threshold": ">35 mm 表示肥胖; 0值为缺失数据(227条)",
+      "rationale": "三头肌皮褶厚度是体脂的间接测量。但该字段有约30%的零值(缺失数据)，需要插补处理。"
+    },
+    {
+      "id": "IND_08",
+      "name": "胰岛素水平",
+      "field": "Insulin",
+      "direction": "异常胰岛素水平指示胰岛素抵抗",
+      "threshold": "正常空腹16-166 mU/L; 0值为缺失数据(374条)",
+      "rationale": "高胰岛素血症（高于正常的空腹胰岛素）是2型糖尿病早期阶段的标志，反映胰岛素抵抗。近49%为零值（缺失数据），是最需要插补的字段。"
+    },
+    {
+      "id": "IND_09",
+      "name": "代谢综合征聚集",
+      "field": "Glucose + BMI + BloodPressure",
+      "direction": "多因素同时异常风险倍增",
+      "threshold": "Glucose>=140 AND BMI>=30 AND BloodPressure>=80",
+      "rationale": "代谢综合征标准要求满足至少3项(高血糖、肥胖、高血压、高甘油三酯、低HDL)。风险因素的交互是乘法而非加法的。"
+    },
+    {
+      "id": "IND_10",
+      "name": "年龄-BMI交互",
+      "field": "Age × BMI",
+      "direction": "高龄肥胖组合风险最高",
+      "threshold": "Age>=40 AND BMI>=30",
+      "rationale": "随年龄增长胰岛素敏感性下降，加上肥胖进一步加重胰岛素抵抗。该交互在Pima人群中特别显著。"
+    },
+    {
+      "id": "IND_11",
+      "name": "妊娠-年龄-血糖交互",
+      "field": "Pregnancies × Age × Glucose",
+      "direction": "多次妊娠的高龄高血糖女性风险极高",
+      "threshold": "Pregnancies>=4 AND Age>=35 AND Glucose>=140",
+      "rationale": "反复妊娠期糖尿病暴露叠加年龄相关的代谢功能下降，使长期糖尿病风险显著升高。"
+    },
+    {
+      "id": "IND_12",
+      "name": "胰岛素-血糖比值",
+      "field": "Insulin / Glucose",
+      "direction": "比值异常指示胰岛功能障碍",
+      "threshold": "比值过高=胰岛素抵抗; 比值过低=β细胞衰竭",
+      "rationale": "HOMA-IR (空腹胰岛素×空腹血糖/405) 是评估胰岛素抵抗的金标准。该数据集可用Insulin/Glucose作为近似替代。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "ADA糖尿病诊断阈值",
+      "description": "2小时OGTT血糖>=200 mg/dL 确诊糖尿病",
+      "fields": ["Glucose"],
+      "logic": "Glucose >= 200",
+      "risk_level": "DIAGNOSTIC"
+    },
+    {
+      "id": "RULE_002",
+      "name": "糖耐量减低",
+      "description": "2小时OGTT血糖140-199 mg/dL 为糖耐量减低(糖尿病前期)",
+      "fields": ["Glucose"],
+      "logic": "Glucose >= 140 AND Glucose < 200",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_003",
+      "name": "肥胖高血糖组合",
+      "description": "BMI>=30(肥胖)且血糖>=140(糖耐量减低)",
+      "fields": ["BMI", "Glucose"],
+      "logic": "BMI >= 30 AND Glucose >= 140",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_004",
+      "name": "代谢综合征判定",
+      "description": "高血糖+肥胖+高血压三项同时存在",
+      "fields": ["Glucose", "BMI", "BloodPressure"],
+      "logic": "Glucose >= 140 AND BMI >= 30 AND BloodPressure >= 80",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_005",
+      "name": "高遗传风险组合",
+      "description": "高糖尿病谱系函数值且血糖偏高",
+      "fields": ["DiabetesPedigreeFunction", "Glucose"],
+      "logic": "DiabetesPedigreeFunction > 0.5 AND Glucose >= 120",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_006",
+      "name": "多次妊娠累积风险",
+      "description": "妊娠>=6次且年龄>=30的女性",
+      "fields": ["Pregnancies", "Age"],
+      "logic": "Pregnancies >= 6 AND Age >= 30",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_007",
+      "name": "年轻肥胖预警",
+      "description": "年龄<30但BMI>=35的极度肥胖年轻人",
+      "fields": ["Age", "BMI"],
+      "logic": "Age < 30 AND BMI >= 35",
+      "risk_level": "MEDIUM-HIGH"
+    },
+    {
+      "id": "RULE_008",
+      "name": "胰岛素抵抗指示",
+      "description": "高胰岛素水平(>166 mU/L)伴随高血糖(>=140)",
+      "fields": ["Insulin", "Glucose"],
+      "logic": "Insulin > 166 AND Glucose >= 140",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_009",
+      "name": "零值缺失数据标记",
+      "description": "Glucose/BloodPressure/SkinThickness/Insulin/BMI中0值为生理不可能，代表缺失数据",
+      "fields": ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"],
+      "logic": "field_value == 0 (for non-Pregnancies fields)",
+      "risk_level": "DATA_QUALITY"
+    },
+    {
+      "id": "RULE_010",
+      "name": "低风险组合",
+      "description": "血糖正常+BMI正常+无家族史的年轻女性",
+      "fields": ["Glucose", "BMI", "DiabetesPedigreeFunction", "Age"],
+      "logic": "Glucose < 120 AND BMI < 25 AND DiabetesPedigreeFunction < 0.3 AND Age < 30",
+      "risk_level": "LOW"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "该数据集来自NIH对亚利桑那州Pima印第安人的研究。Pima人群有世界最高的2型糖尿病患病率(>50%成人)，与遗传易感性和生活方式西化有关。数据集中所有受试者均为21岁以上女性。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "Glucose(2小时OGTT值)是最强的单一预测因子，因为它直接测量葡萄糖代谢能力。ADA使用>=200 mg/dL的标准来确诊糖尿病。但数据集中5条Glucose=0记录代表缺失数据而非真实测量值。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "BMI是第二强预测因子。WHO将BMI>=30定义为肥胖。在Pima人群中，肥胖与2型糖尿病的关联尤其显著。BMI与Glucose的交互特征(BMI*Glucose)在多数模型中比单独使用任一特征更有预测力。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "数据集存在严重的零值缺失问题：Insulin(49%零值)、SkinThickness(30%)、BloodPressure(5%)、BMI(1.4%)、Glucose(0.7%)。这些零值不是真实的生理测量值。建议使用按目标变量分层的中位数插补或KNN/MICE插补。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "DiabetesPedigreeFunction是一个独特的遗传风险量化指标，编码了家族中糖尿病的模式和程度。高值(>0.5)表示强遗传负担。与Age交互后(老年+高遗传风险)预测力更强，因为遗传因素在年龄增长后更容易表现为疾病。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "风险因素的交互是乘法的而非加法的。高血糖+肥胖+高血压的组合(代谢综合征)产生的风险远大于三者单独风险之和。特征工程应创建交互特征：Glucose×BMI、Age×BMI、Pregnancies×Glucose等。"
+    },
+    {
+      "id": "EXP_07",
+      "content": "妊娠次数在该全女性数据集中是独特的风险因子。妊娠期糖尿病(GDM)每次妊娠都可能发生，且每次GDM都使未来2型糖尿病风险增加。Pregnancies与Age的交互反映了累积代谢负担。"
+    },
+    {
+      "id": "EXP_08",
+      "content": "该数据集人群特殊性（Pima印第安女性）限制了模型的泛化性，但数据集的价值在于它完整地捕获了2型糖尿病的主要风险因素。HOMA-IR近似值(Insulin×Glucose/405)可作为强力派生特征，但需先处理Insulin的缺失值。"
+    }
+  ],
+
+  "field_reference": {
+    "Pregnancies": "numeric (count, 0-17)",
+    "Glucose": "numeric (mg/dL, 2-hour OGTT value, 0=missing)",
+    "BloodPressure": "numeric (mmHg, diastolic, 0=missing)",
+    "SkinThickness": "numeric (mm, triceps skinfold, 0=missing)",
+    "Insulin": "numeric (mU/L, 2-hour serum insulin, 0=missing)",
+    "BMI": "numeric (kg/m², 0=missing)",
+    "DiabetesPedigreeFunction": "numeric (0.078-2.42)",
+    "Age": "numeric (years, 21-81)"
+  }
+}

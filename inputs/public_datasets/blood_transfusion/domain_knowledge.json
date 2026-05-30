@@ -1,0 +1,193 @@
+{
+  "dataset": "blood-transfusion",
+  "openml_id": 1464,
+  "domain": "献血行为预测",
+  "task": "二分类（是否在2007年3月献血）",
+  "target": "donated",
+  "features": 4,
+  "size": 748,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "最近一次献血时间(Recency)",
+      "field": "Recency",
+      "direction": "间隔越短越可能再次献血",
+      "threshold": "<=6个月为高概率; >12个月为低概率",
+      "rationale": "RFM模型中Recency是最强预测因子。最近献血过的人保持了献血习惯，再次献血的概率远高于长期未献血者。献血间隔≤6个月的献血者保留率约为70%。"
+    },
+    {
+      "id": "IND_02",
+      "name": "献血频次(Frequency)",
+      "field": "Frequency",
+      "direction": "频次越高越可能再次献血",
+      "threshold": ">=10次为高频献血者; 1-2次为低频",
+      "rationale": "高频献血者形成了稳定的献血习惯和利他动机。心理学研究表明，行为重复超过一定次数后形成习惯，不易中断。"
+    },
+    {
+      "id": "IND_03",
+      "name": "总献血量(Monetary)",
+      "field": "Monetary",
+      "direction": "总量越大越可能再次献血",
+      "threshold": "Monetary = Frequency × 250 cc",
+      "rationale": "总献血量(cc)等于献血次数乘以每次250cc。与Frequency完全线性相关(相关系数=1.0)，不提供独立信息。是RFM框架中M(Monetary)维度的直接映射。"
+    },
+    {
+      "id": "IND_04",
+      "name": "首次献血以来时间(Time)",
+      "field": "Time",
+      "direction": "非线性关系",
+      "threshold": "Time很大但Frequency很小=流失风险; Time与Frequency同时大=稳定献血者",
+      "rationale": "首次献血以来的总时间单独看意义有限，需要与Frequency结合理解。长时间+高频次=持续献血者(最佳)；长时间+低频次=已流失或偶尔献血者。"
+    },
+    {
+      "id": "IND_05",
+      "name": "献血频率(派生)",
+      "field": "Frequency / Time",
+      "direction": "频率越高越可能再次献血",
+      "threshold": ">0.5次/月 为高频率",
+      "rationale": "献血频率 = Frequency/Time，标准化了献血行为的密度。比单独的Frequency更能反映献血积极性，因为考虑了时间跨度。"
+    },
+    {
+      "id": "IND_06",
+      "name": "献血间隔一致性(派生)",
+      "field": "(Time - Recency) / (Frequency - 1)",
+      "direction": "间隔越规律越可能再次献血",
+      "threshold": "间隔变异系数低=规律献血者",
+      "rationale": "规律献血者（如每3个月一次）比不规律献血者更可能继续献血。平均间隔可由(Time-Recency)/(Frequency-1)近似计算。"
+    },
+    {
+      "id": "IND_07",
+      "name": "Recency-Frequency比值",
+      "field": "Recency / Frequency",
+      "direction": "比值越低越好（最近献血且频次高）",
+      "threshold": "<2为活跃献血者; >10为可能流失",
+      "rationale": "R/F比值综合了最近性和频次。低比值意味着既频繁又最近才献过血——最佳预测指标。"
+    },
+    {
+      "id": "IND_08",
+      "name": "献血衰减信号",
+      "field": "Recency / Time",
+      "direction": "比值越大越可能已流失",
+      "threshold": ">0.5 暗示最近一次献血已过半总时间，献血行为可能已停止",
+      "rationale": "如果Recency接近Time，说明首次献血后很快就停止了，最近很长时间没有献过血。"
+    },
+    {
+      "id": "IND_09",
+      "name": "是否首次献血者",
+      "field": "Frequency == 1",
+      "direction": "首次献血者再次献血概率较低",
+      "threshold": "Frequency == 1",
+      "rationale": "首次献血者还没有形成献血习惯，约50%不会再次献血。而有2次以上经历的献血者保留率显著更高。"
+    },
+    {
+      "id": "IND_10",
+      "name": "活跃窗口",
+      "field": "Time - Recency",
+      "direction": "活跃期越长越稳定",
+      "threshold": "Time-Recency 为最早到最近一次献血的跨度",
+      "rationale": "活跃窗口反映了持续献血的时间长度。活跃窗口长且Recency短的人是最稳定的献血者。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "RFM最佳细分",
+      "description": "最近(<6月)、高频(>=5次)献血者最可能再次献血",
+      "fields": ["Recency", "Frequency"],
+      "logic": "Recency <= 6 AND Frequency >= 5",
+      "risk_level": "VERY_LIKELY"
+    },
+    {
+      "id": "RULE_002",
+      "name": "Monetary冗余规则",
+      "description": "Monetary = Frequency × 250，完全线性相关，应只保留Frequency",
+      "fields": ["Monetary", "Frequency"],
+      "logic": "Monetary == Frequency * 250 (always true)",
+      "risk_level": "DATA_QUALITY"
+    },
+    {
+      "id": "RULE_003",
+      "name": "流失预警",
+      "description": "超过12个月未献血且总频次<3",
+      "fields": ["Recency", "Frequency"],
+      "logic": "Recency > 12 AND Frequency < 3",
+      "risk_level": "UNLIKELY"
+    },
+    {
+      "id": "RULE_004",
+      "name": "习惯形成阈值",
+      "description": "献血>=4次的人形成稳定献血习惯",
+      "fields": ["Frequency"],
+      "logic": "Frequency >= 4",
+      "risk_level": "HABIT_FORMED"
+    },
+    {
+      "id": "RULE_005",
+      "name": "活跃献血者",
+      "description": "献血频率(Frequency/Time)超过0.3次/月且最近6个月内献过血",
+      "fields": ["Frequency", "Time", "Recency"],
+      "logic": "Frequency / Time > 0.3 AND Recency <= 6",
+      "risk_level": "VERY_LIKELY"
+    },
+    {
+      "id": "RULE_006",
+      "name": "首次献血者分流",
+      "description": "仅献过1次血的人需要不同的再激活策略",
+      "fields": ["Frequency"],
+      "logic": "Frequency == 1",
+      "risk_level": "UNCERTAIN"
+    },
+    {
+      "id": "RULE_007",
+      "name": "长期忠诚献血者",
+      "description": "首次献血超过36个月前，至少献过10次，最近6个月内献过",
+      "fields": ["Time", "Frequency", "Recency"],
+      "logic": "Time >= 36 AND Frequency >= 10 AND Recency <= 6",
+      "risk_level": "HIGHLY_LIKELY"
+    },
+    {
+      "id": "RULE_008",
+      "name": "最低献血间隔约束",
+      "description": "男性≥8周(2个月)、女性≥12周(3个月)方可再次全血献血",
+      "fields": ["Recency"],
+      "logic": "Recency >= 2 (months, minimum eligible interval)",
+      "risk_level": "ELIGIBILITY"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "该数据集来自台湾新竹血液中心(2007年)，基于RFM(Recency-Frequency-Monetary)营销分析框架。RFM是客户行为分析的经典模型，在献血场景中Recency(最近性)是最强预测因子。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "关键数据特征：Monetary与Frequency完全线性相关(Monetary=Frequency×250cc)，提供零独立信息。特征工程时应移除Monetary或仅使用Frequency。这是该数据集最重要的数据质量洞察。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "该数据集仅有4个原始特征，特征工程的核心价值在于创建有意义的派生比率特征：Frequency/Time(献血频率)、Recency/Frequency(RF比值)、(Time-Recency)/(Frequency-1)(平均献血间隔)。这些比率比原始特征更具预测力。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "献血行为心理学研究表明：习惯形成是关键转折点。献过3-4次血的人形成了稳定的利他认同和行为习惯，保留率显著高于仅献过1-2次的人。特征工程可据此创建'是否形成习惯'的二元特征。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "RFM框架中各维度并非独立。R-F交互最为重要：高频+最近献过血=忠诚活跃(最佳)；高频+长期未献=可能流失(需激活)；低频+最近献过=新加入(需培养)；低频+长期未献=已流失(最难挽回)。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "数据集类别不平衡(约24%阳性)。评估指标应使用AUC而非准确率，因为一个只预测'不献血'的分类器也能达到76%准确率。LIFT指标在营销场景中最有实践意义。"
+    }
+  ],
+
+  "field_reference": {
+    "Recency": "numeric (months since last donation)",
+    "Frequency": "numeric (total number of donations)",
+    "Monetary": "numeric (total blood donated in cc, = Frequency × 250)",
+    "Time": "numeric (months since first donation)"
+  }
+}

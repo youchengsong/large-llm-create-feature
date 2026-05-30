@@ -1,0 +1,238 @@
+{
+  "dataset": "breast-w",
+  "openml_id": 15,
+  "domain": "乳腺癌诊断",
+  "task": "二分类（良性/恶性）",
+  "target": "Class",
+  "features": 9,
+  "size": 699,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "团块厚度",
+      "field": "Clump_Thickness",
+      "direction": "厚度越大越可能恶性",
+      "threshold": ">=5 提示恶性; >=7 强烈恶性",
+      "rationale": "良性上皮细胞排列成有序单层。恶性细胞失去极性，堆积成无序多层团块。评分1-3为单层(良性)；6-10为多层(癌性)。反映接触抑制的丧失——肿瘤转化的标志。"
+    },
+    {
+      "id": "IND_02",
+      "name": "细胞大小均匀性",
+      "field": "Cell_Size_Uniformity",
+      "direction": "变异越大越可能恶性",
+      "threshold": ">=4 提示恶性; >=6 强烈恶性",
+      "rationale": "良性细胞大小均匀(评分1-2)。恶性细胞表现明显大小不等(anisocytosis)。良性均值约1.3，恶性均值约6.6，是最具判别力的特征之一。"
+    },
+    {
+      "id": "IND_03",
+      "name": "细胞形状均匀性",
+      "field": "Cell_Shape_Uniformity",
+      "direction": "变异越大越可能恶性",
+      "threshold": ">=4 提示恶性; >=6 强烈恶性",
+      "rationale": "正常细胞形状一致(圆形至椭圆)。恶性细胞表现细胞多形性(pleomorphism)。与Cell_Size_Uniformity高度相关(r>0.9)。"
+    },
+    {
+      "id": "IND_04",
+      "name": "边缘粘附",
+      "field": "Marginal_Adhesion",
+      "direction": "粘附力越低(评分越高)越可能恶性",
+      "threshold": ">=4 提示恶性; >=6 强烈恶性",
+      "rationale": "正常上皮细胞通过E-cadherin等分子紧密黏合。恶性细胞因E-cadherin(CDH1)下调或突变而失去黏附力(discohesion)。粘附丧失是侵袭性潜力的关键指标。"
+    },
+    {
+      "id": "IND_05",
+      "name": "单上皮细胞大小",
+      "field": "Single_Epi_Cell_Size",
+      "direction": "细胞越大越可能恶性",
+      "threshold": ">=4 提示恶性; >=6 强烈恶性",
+      "rationale": "恶性细胞通常因核浆比增大和异常生长信号而整体肥大。评分7-10表示明显增大(>2倍正常大小)。"
+    },
+    {
+      "id": "IND_06",
+      "name": "裸核",
+      "field": "Bare_Nuclei",
+      "direction": "裸核越多越可能恶性",
+      "threshold": ">=4 提示恶性; >=7 强烈恶性",
+      "rationale": "良性标本中裸核为小的双极肌上皮核(良性标志)。恶性标本中裸核为大的不规则异型上皮核。良性均值约1.3，恶性均值约7.6——最大的单特征分离度。有16条缺失值记录。"
+    },
+    {
+      "id": "IND_07",
+      "name": "淡染色质",
+      "field": "Bland_Chromatin",
+      "direction": "染色质越粗糙越可能恶性",
+      "threshold": ">=5 提示恶性; >=7 强烈恶性",
+      "rationale": "尽管名称为'bland'(淡)，该特征测量从淡(细、均匀=良性)到粗(块状、不规则=恶性)的染色质纹理。高评分反映DNA含量异常(非整倍体)和表观遗传失调。"
+    },
+    {
+      "id": "IND_08",
+      "name": "正常核仁",
+      "field": "Normal_Nucleoli",
+      "direction": "核仁越显著越可能恶性",
+      "threshold": ">=4 提示恶性; >=6 强烈恶性",
+      "rationale": "尽管名称为'Normal'，评分反映核仁突出度。良性细胞核仁不明显(1-2分)。恶性细胞发展大核仁(macronucleoli)——反映增殖活跃的rRNA合成增加。"
+    },
+    {
+      "id": "IND_09",
+      "name": "有丝分裂",
+      "field": "Mitoses",
+      "direction": "有丝分裂越多越可能恶性",
+      "threshold": ">=3 提示增殖增加; >=5 强烈恶性",
+      "rationale": "超过80%的样本评分为1。有丝分裂计数反映细胞分裂率。高评分是高度特异但低灵敏度的标记——低评分不排除恶性。在Nottingham分级系统中是三个组成部分之一。"
+    },
+    {
+      "id": "IND_10",
+      "name": "核浆比(派生)",
+      "field": "Cell_Size_Uniformity + Single_Epi_Cell_Size",
+      "direction": "两者同时高提示高核浆比",
+      "threshold": "两者均>=5",
+      "rationale": "核浆比(N:C ratio)是细胞病理学最基本指标之一。恶性细胞特征性地核浆比升高(>0.7)。"
+    },
+    {
+      "id": "IND_11",
+      "name": "核膜不规则(派生)",
+      "field": "Cell_Shape_Uniformity + Bare_Nuclei",
+      "direction": "两者同时高提示核膜不规则",
+      "threshold": "两者均>=5",
+      "rationale": "良性核膜光滑规则，恶性核膜显示不规则、切迹、沟槽。通过形状均匀性和裸核异型性间接捕获。"
+    },
+    {
+      "id": "IND_12",
+      "name": "染色质-核仁复合(派生)",
+      "field": "Bland_Chromatin + Normal_Nucleoli",
+      "direction": "两者同时高强烈提示恶性",
+      "threshold": "两者均>=5",
+      "rationale": "粗糙染色质+显著核仁的组合是恶性最强的核特征指标。在Robinson细胞学分级中两者分别评分但组合更具预测力。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "Wolberg主分离面",
+      "description": "Cell_Size_Uniformity>=3 AND Cell_Shape_Uniformity>=3 → 恶性(93%准确率)",
+      "fields": ["Cell_Size_Uniformity", "Cell_Shape_Uniformity"],
+      "logic": "Cell_Size_Uniformity >= 3 AND Cell_Shape_Uniformity >= 3",
+      "risk_level": "DIAGNOSTIC"
+    },
+    {
+      "id": "RULE_002",
+      "name": "裸核阈值规则",
+      "description": "Bare_Nuclei>=5 → 恶性(灵敏度~85%, 特异度~90%)",
+      "fields": ["Bare_Nuclei"],
+      "logic": "Bare_Nuclei >= 5",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_003",
+      "name": "三重核特征规则",
+      "description": "Bland_Chromatin>=5 AND Normal_Nucleoli>=4 AND Bare_Nuclei>=4 → 恶性(特异度>95%)",
+      "fields": ["Bland_Chromatin", "Normal_Nucleoli", "Bare_Nuclei"],
+      "logic": "Bland_Chromatin >= 5 AND Normal_Nucleoli >= 4 AND Bare_Nuclei >= 4",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_004",
+      "name": "全低分良性规则",
+      "description": "所有9个特征<=3 → 良性(准确率>98%)",
+      "fields": ["all_features"],
+      "logic": "ALL features <= 3",
+      "risk_level": "BENIGN"
+    },
+    {
+      "id": "RULE_005",
+      "name": "团块+粘附组合",
+      "description": "Clump_Thickness>=6 AND Marginal_Adhesion>=5 → 恶性(侵袭性癌)",
+      "fields": ["Clump_Thickness", "Marginal_Adhesion"],
+      "logic": "Clump_Thickness >= 6 AND Marginal_Adhesion >= 5",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_006",
+      "name": "有丝分裂分级规则",
+      "description": "Mitoses>=3 AND (Cell_Size_Uniformity>=4 OR Bland_Chromatin>=5) → 高级别恶性",
+      "fields": ["Mitoses", "Cell_Size_Uniformity", "Bland_Chromatin"],
+      "logic": "Mitoses >= 3 AND (Cell_Size_Uniformity >= 4 OR Bland_Chromatin >= 5)",
+      "risk_level": "HIGH_GRADE"
+    },
+    {
+      "id": "RULE_007",
+      "name": "IAC横滨C2映射",
+      "description": "所有特征1-2分(总分<=18) → 良性(恶性风险1.4-2.3%)",
+      "fields": ["all_features"],
+      "logic": "ALL features <= 2 (total_score <= 18)",
+      "risk_level": "BENIGN"
+    },
+    {
+      "id": "RULE_008",
+      "name": "IAC横滨C5映射",
+      "description": "任意3个以上特征>=7 或总分>=55 → 恶性(恶性风险99-100%)",
+      "fields": ["all_features"],
+      "logic": "count(features >= 7) >= 3 OR total_score >= 55",
+      "risk_level": "MALIGNANT"
+    },
+    {
+      "id": "RULE_009",
+      "name": "可疑区间规则",
+      "description": "总分25-40且1-2个特征>=5 → C3(非典型)或C4(可疑)",
+      "fields": ["all_features"],
+      "logic": "25 <= total_score <= 40 AND 1 <= count(features >= 5) <= 2",
+      "risk_level": "SUSPICIOUS"
+    },
+    {
+      "id": "RULE_010",
+      "name": "Robinson细胞学分级",
+      "description": "6项(Size+Shape+Adhesion+Chromatin+Nucleoli+Mitoses)映射到1-3分求和：6-11=I级，12-14=II级，15-18=III级",
+      "fields": ["Cell_Size_Uniformity", "Cell_Shape_Uniformity", "Marginal_Adhesion", "Bland_Chromatin", "Normal_Nucleoli", "Mitoses"],
+      "logic": "map 1-3→1, 4-6→2, 7-10→3; sum for grade",
+      "risk_level": "GRADING"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "最具判别力的特征排序：(1)Cell_Size_Uniformity (2)Cell_Shape_Uniformity (3)Bare_Nuclei (4)Bland_Chromatin (5)Normal_Nucleoli。这5个特征单独可达到>96%准确率。大小和形状均匀性是最强对，因为大小不等(anisocytosis)和多形性(pleomorphism)是良恶性之间最显著的视觉差异。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "9个特征之间存在强相关性。Cell_Size与Cell_Shape高度相关(r>0.9)，因为同样的生物过程(细胞周期控制丧失、基因组不稳定)同时导致大小和形状变异。Bland_Chromatin与Normal_Nucleoli中度相关(r~0.7)。恶性倾向同时影响多个特征。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "Bare_Nuclei是最具信息量的单一特征。它同时捕获两个现象：良性肌上皮细胞的缺失和异型恶性裸核的出现。良性均值约1.3 vs 恶性均值约7.6代表数据集中任何特征最大的分离度。有16条缺失记录需要处理。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "核特征(Bare_Nuclei, Bland_Chromatin, Normal_Nucleoli)通常被认为比细胞特征更可靠且可重复。核三联征(染色质模式+核仁突出度+核膜不规则性)构成大多数细胞学分级系统的基础。但细胞特征提供了核特征无法捕获的肿瘤架构和侵袭行为的互补信息。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "Mitoses是最偏态的特征(>80%样本评分1)。低有丝分裂评分不排除恶性——许多低中级恶性肿瘤在FNA中有丝分裂很少。其诊断价值主要在于对已确诊恶性肿瘤的分级而非初始良恶性鉴别。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "最强诊断组合：(a)Cell_Size+Cell_Shape均>=5时恶性概率>95%；(b)Bare_Nuclei+Bland_Chromatin是捕获良恶性核质差异的最佳核对；(c)Clump_Thickness+Marginal_Adhesion+Cell_Size_Uniformity的三联捕获肿瘤架构、侵袭潜力和细胞异型性。"
+    },
+    {
+      "id": "EXP_07",
+      "content": "数据集类别分布：65.5%良性，34.5%恶性，反映临床实践中良性乳腺肿物的高患病率。所有699例均由Wolberg医生亲自采集和评分(1-10量表主观评估)，提供内部一致性但存在观察者间变异性。"
+    },
+    {
+      "id": "EXP_08",
+      "content": "特征工程建议：(1)总分sum(所有9特征)作为粗略恶性度量；(2)核复合评分(Bare_Nuclei+Bland_Chromatin+Normal_Nucleoli)；(3)细胞复合评分(Clump+Size+Shape+Adhesion)；(4)Robinson映射分级；(5)二元化各特征(>=5为异常)后的异常计数。这些复合特征比原始特征更接近临床决策逻辑。"
+    }
+  ],
+
+  "field_reference": {
+    "Clump_Thickness": "ordinal (1-10)",
+    "Cell_Size_Uniformity": "ordinal (1-10)",
+    "Cell_Shape_Uniformity": "ordinal (1-10)",
+    "Marginal_Adhesion": "ordinal (1-10)",
+    "Single_Epi_Cell_Size": "ordinal (1-10)",
+    "Bare_Nuclei": "ordinal (1-10, 16 missing values)",
+    "Bland_Chromatin": "ordinal (1-10)",
+    "Normal_Nucleoli": "ordinal (1-10)",
+    "Mitoses": "ordinal (1-10, highly skewed)"
+  }
+}

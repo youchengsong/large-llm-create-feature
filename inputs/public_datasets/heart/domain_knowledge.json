@@ -1,0 +1,240 @@
+{
+  "dataset": "heart",
+  "source": "Kaggle Heart Failure Prediction",
+  "domain": "心脏病诊断",
+  "task": "二分类（HeartDisease: 0/1）",
+  "target": "HeartDisease",
+  "features": 11,
+  "size": 918,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "高龄",
+      "field": "Age",
+      "direction": "年龄越大风险越高",
+      "threshold": ">=45岁(男)或>=55岁(女)为独立风险因素",
+      "rationale": "Framingham心脏研究确认年龄是最强的不可改变风险因素。ESC SCORE2适用于40-69岁年龄段。男性比女性提前约10年发展CVD。"
+    },
+    {
+      "id": "IND_02",
+      "name": "男性性别",
+      "field": "Sex",
+      "direction": "男性 = 更高风险(年轻时)",
+      "threshold": "Sex = M",
+      "rationale": "男性比女性平均提前10年发展心血管疾病。绝经前女性有雌激素保护效应，但绝经后女性风险接近男性水平。"
+    },
+    {
+      "id": "IND_03",
+      "name": "高血压",
+      "field": "RestingBP",
+      "direction": "血压越高风险越高",
+      "threshold": ">=140 mmHg为确定高血压; >=130为1期高血压(2017 ACC/AHA); RestingBP=0为缺失数据",
+      "rationale": "2025 AHA/ACC声明将BP>=140 mmHg自动归类为高风险。正常值<120 mmHg。注意RestingBP=0代表缺失值。"
+    },
+    {
+      "id": "IND_04",
+      "name": "高胆固醇",
+      "field": "Cholesterol",
+      "direction": "胆固醇越高风险越高",
+      "threshold": ">=240 mg/dL为高; 200-239为边缘高; Cholesterol=0为缺失数据(约19%即172条记录)",
+      "rationale": "AHA/ACC将总胆固醇>=240 mg/dL归为高风险。关键数据质量问题：约172条记录(19%)胆固醇为0，是生理不可能值，代表缺失数据。"
+    },
+    {
+      "id": "IND_05",
+      "name": "空腹高血糖",
+      "field": "FastingBS",
+      "direction": "FastingBS=1 = 更高风险",
+      "threshold": "FastingBS=1 表示空腹血糖>120 mg/dL",
+      "rationale": "空腹血糖>120 mg/dL与冠心病风险显著增加相关。2025 AHA自动将糖尿病患者归为高风险。"
+    },
+    {
+      "id": "IND_06",
+      "name": "无症状胸痛(悖论高风险)",
+      "field": "ChestPainType",
+      "direction": "ASY(无症状) = 最高风险",
+      "threshold": "ASY > TA > ATA > NAP (在该数据集中)",
+      "rationale": "反直觉但有据可查：无症状(沉默性)缺血的患者通常有更严重的冠脉疾病。在该数据集中ASY的心脏病比例最高。选择偏差：被转诊评估的无症状患者有其他令人担忧的发现。"
+    },
+    {
+      "id": "IND_07",
+      "name": "低最大心率",
+      "field": "MaxHR",
+      "direction": "最大心率越低风险越高(变时性功能不全)",
+      "threshold": "MaxHR < (220-Age)×0.85 为变时性功能不全",
+      "rationale": "未达到年龄预测最大心率(220-Age)的85%是不良心脏事件的强独立预测因子，称为变时性功能不全。"
+    },
+    {
+      "id": "IND_08",
+      "name": "运动诱发心绞痛",
+      "field": "ExerciseAngina",
+      "direction": "ExerciseAngina=Y = 更高风险",
+      "threshold": "存在 = 高风险",
+      "rationale": "运动诱发心绞痛提示心肌缺血。是Duke跑步机评分(DTS)的组成部分。运动受限型心绞痛(score=2)比非限制型(score=1)预后更差。"
+    },
+    {
+      "id": "IND_09",
+      "name": "ST段压低(Oldpeak)",
+      "field": "Oldpeak",
+      "direction": "ST压低越大风险越高",
+      "threshold": ">=1.0 mm(男)或>=1.5 mm(女)为显著缺血; >=2.0 mm为严重缺血",
+      "rationale": "运动试验阳性标准为水平或下斜型ST段压低>=1 mm(J点+80ms)。灵敏度65%，特异度87%(SPECT)。压低幅度与缺血严重程度相关。"
+    },
+    {
+      "id": "IND_10",
+      "name": "下斜型ST段",
+      "field": "ST_Slope",
+      "direction": "Down > Flat > Up (风险由高到低)",
+      "threshold": "ST_Slope=Down 为最病理性",
+      "rationale": "下斜型ST压低是CAD最强的ST形态学预测因子。水平(Flat)次之。快速上斜型(Up)通常被认为是良性的，CHD死亡风险降低30%。"
+    },
+    {
+      "id": "IND_11",
+      "name": "异常静息心电图",
+      "field": "RestingECG",
+      "direction": "ST异常或LVH = 高风险",
+      "threshold": "RestingECG=ST 或 LVH",
+      "rationale": "静息ST-T波异常的心血管死亡风险比为3.2。ECG诊断的左室肥厚(LVH)伴劳损图形是独立的心血管病率和死亡率预测因子。"
+    },
+    {
+      "id": "IND_12",
+      "name": "心率储备比(派生)",
+      "field": "MaxHR / (220 - Age)",
+      "direction": "比值越低风险越高",
+      "threshold": "<0.80 为变时性功能不全; <0.85 为次最大运动",
+      "rationale": "年龄校正的心率储备比临床意义大于原始MaxHR。70岁MaxHR=120(80%正常，边缘)，而40岁MaxHR=120(67%，明显异常)。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "ACC/AHA自动高风险",
+      "description": "RestingBP>=140 或 FastingBS=1(糖尿病)自动归为高心血管风险",
+      "fields": ["RestingBP", "FastingBS"],
+      "logic": "RestingBP >= 140 OR FastingBS == 1",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_002",
+      "name": "运动试验阳性",
+      "description": "Oldpeak>=1.0 mm 且 ST_Slope为Down或Flat",
+      "fields": ["Oldpeak", "ST_Slope"],
+      "logic": "Oldpeak >= 1.0 AND ST_Slope IN ('Down', 'Flat')",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_003",
+      "name": "组合缺血规则",
+      "description": "ST段压低>=1.0且下斜型，同时有运动诱发心绞痛",
+      "fields": ["Oldpeak", "ST_Slope", "ExerciseAngina"],
+      "logic": "Oldpeak >= 1.0 AND ST_Slope == 'Down' AND ExerciseAngina == 'Y'",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_004",
+      "name": "Duke跑步机评分(DTS)",
+      "description": "DTS = exercise_time - (5×Oldpeak) - (4×angina_index); DTS<=-11为高风险",
+      "fields": ["Oldpeak", "ExerciseAngina"],
+      "logic": "Derived: DTS_proxy = -(5 * Oldpeak) - (4 * (1 if ExerciseAngina=='Y' else 0))",
+      "risk_level": "COMPOSITE"
+    },
+    {
+      "id": "RULE_005",
+      "name": "Diamond-Forrester预测试概率",
+      "description": "基于年龄、性别和胸痛类型的CAD先验概率",
+      "fields": ["Age", "Sex", "ChestPainType"],
+      "logic": "Male + Age>50 + TA: pre-test probability >90%; Female + Age<40 + NAP: <10%",
+      "risk_level": "COMPOSITE"
+    },
+    {
+      "id": "RULE_006",
+      "name": "代谢综合征聚集",
+      "description": "高血压+高血糖+高胆固醇三项同时存在",
+      "fields": ["RestingBP", "FastingBS", "Cholesterol"],
+      "logic": "RestingBP >= 130 AND FastingBS == 1 AND Cholesterol >= 200",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_007",
+      "name": "静息ECG+运动ECG一致",
+      "description": "静息ECG异常 + Oldpeak>=2.0 + 下斜型ST = 极高风险(LR+>10)",
+      "fields": ["RestingECG", "Oldpeak", "ST_Slope"],
+      "logic": "RestingECG == 'ST' AND Oldpeak >= 2.0 AND ST_Slope == 'Down'",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_008",
+      "name": "年龄-性别-症状复合",
+      "description": "男性+>=55岁+无症状+运动心绞痛 = 预测试概率>85%",
+      "fields": ["Sex", "Age", "ChestPainType", "ExerciseAngina"],
+      "logic": "Sex=='M' AND Age>=55 AND ChestPainType=='ASY' AND ExerciseAngina=='Y'",
+      "risk_level": "VERY_HIGH"
+    },
+    {
+      "id": "RULE_009",
+      "name": "变时性功能不全",
+      "description": "未达到年龄预测最大心率的85%",
+      "fields": ["MaxHR", "Age"],
+      "logic": "MaxHR < (220 - Age) * 0.85",
+      "risk_level": "HIGH"
+    },
+    {
+      "id": "RULE_010",
+      "name": "低风险排除",
+      "description": "女性+<45岁+非心绞痛疼痛+无运动心绞痛 = 预测试概率<5%",
+      "fields": ["Sex", "Age", "ChestPainType", "ExerciseAngina"],
+      "logic": "Sex=='F' AND Age<45 AND ChestPainType=='NAP' AND ExerciseAngina=='N'",
+      "risk_level": "LOW"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "心血管风险因素的交互是乘法的而非加法的。高血压+糖尿病+高胆固醇组合产生的风险远大于各项风险之和。Framingham模型使用对数变换的Cox模型，风险比相乘。特征工程应捕获这些交互：RestingBP×FastingBS、Cholesterol×Age等。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "女性心脏病表现与男性不同：更常表现为不典型症状(呼吸困难、疲劳)而非典型胸痛。数据集中女性更可能有ATA或NAP的ChestPainType，但这不意味低风险。运动试验的ST压低阈值女性应使用1.5mm而非1.0mm。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "Oldpeak(运动诱发ST压低)与ST_Slope应一起使用。同样1.5mm的ST压低，下斜型(Down)远比上斜型(Up)令人担忧。建议创建交互特征：Oldpeak × ST_Slope_encoded，其中Down=2, Flat=1, Up=0。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "ChestPainType=ASY(无症状)悖论性地是最强的心脏病单一预测因子。这是选择偏差：被转诊评估的无症状患者有其他异常发现(异常ECG、多重风险因素)。TA(典型心绞痛)有Diamond-Forrester三标准。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "原始MaxHR值需要年龄校正才有意义。推荐创建派生特征：HR_ratio = MaxHR / (220 - Age)。70岁MaxHR=120(80%正常)而40岁MaxHR=120(仅67%)。变时性功能不全(<80%心率储备)是心血管死亡的独立预测因子。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "约172条记录(19%)Cholesterol=0，是生理不可能的缺失值。如果不处理，会产生虚假的'低胆固醇=疾病'模式。建议按HeartDisease分层的中位数插补。同样RestingBP=0也是缺失值。"
+    },
+    {
+      "id": "EXP_07",
+      "content": "运动试验提供三个同步诊断通道：(1)血流动力学—MaxHR和变时性功能；(2)ECG变化—Oldpeak和ST_Slope；(3)症状—ExerciseAngina。三项均异常(一致阳性)比仅一项异常(不一致)风险高得多。应考虑创建一致性评分特征。"
+    },
+    {
+      "id": "EXP_08",
+      "content": "RestingECG为运动试验解释提供基线背景。RestingECG=Normal的患者运动中出现ST改变=明确运动诱发缺血。RestingECG=LVH使运动试验解释复杂化，因基线复极化异常可能掩盖或模拟缺血。RestingECG应作为运动试验解释的修饰因子。"
+    }
+  ],
+
+  "field_reference": {
+    "Age": "numeric (years)",
+    "Sex": ["M", "F"],
+    "ChestPainType": ["TA (typical angina)", "ATA (atypical angina)", "NAP (non-anginal pain)", "ASY (asymptomatic)"],
+    "RestingBP": "numeric (mmHg, 0=missing)",
+    "Cholesterol": "numeric (mg/dL, 0=missing ~19%)",
+    "FastingBS": "binary (1 if fasting blood sugar > 120 mg/dL, 0 otherwise)",
+    "RestingECG": ["Normal", "ST (ST-T wave abnormality)", "LVH (left ventricular hypertrophy)"],
+    "MaxHR": "numeric (bpm, age-predicted max = 220 - Age)",
+    "ExerciseAngina": ["Y", "N"],
+    "Oldpeak": "numeric (mm, ST depression)",
+    "ST_Slope": ["Up (upsloping)", "Flat (flat)", "Down (downsloping)"]
+  }
+}
