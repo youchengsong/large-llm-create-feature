@@ -28,29 +28,31 @@
 
 > 在跑任何实验之前，必须先完成
 
-- [ ] **P0.1** 公开数据集通用适配器
-  - 当前 KnowFeat 硬编码为数字人民币三表结构(open_df, tx_df, close_df)
-  - 需要开发通用单表适配器：输入一个 DataFrame + target列名 → 适配到 KnowFeat pipeline
-  - 涉及文件：`knowfeat/config.py`, `knowfeat/prompt/builder.py`, `knowfeat/agent/tools.py`
-  - 公开数据集的 prompt 模板需要通用化（不能写死"数字人民币反洗钱"）
-  - 每个数据集从 `domain_knowledge.json` 加载知识，格式化注入 prompt
+- [x] **P0.1** 公开数据集通用适配器 ✅ commit 8a1e8eb
+  - `knowfeat/config.py`: 新增 `PublicDatasetConfig`, `stage="generic"`
+  - `knowfeat/data/loader.py`: 新增 `load_public_dataset()` (CSV → Stage1Data)
+  - `knowfeat/prompt/domain_knowledge.py`: 新增 JSON 知识加载器 + 格式化 + 注册表
+  - `knowfeat/prompt/builder.py`: 新增通用角色模板 `_build_role_generic()`
+  - `knowfeat/agent/tools.py`: 新增 `build_generic_tool_specs()`, `row_id` 支持
+  - `knowfeat/verification/sandbox.py`: `REQUIRED_ID_COLS` 加入 `row_id`
+  - `scripts/run_knowfeat_public.py`: 便捷入口，6 个数据集配置齐全
 
-- [ ] **P0.2** 公开数据集下载脚本
-  - 从 OpenML 下载 5 个数据集（credit-g #31, diabetes #37, blood-transfusion #1464, bank-marketing #1461, breast-w #15）
-  - heart 从 Kaggle 下载
+- [x] **P0.2** 公开数据集下载脚本 ✅ commit 8a1e8eb
+  - `scripts/download_public_datasets.py`: OpenML 5个 + Kaggle heart
   - 统一存放到 `data/public/` 目录，CSV 格式
+  - 需要运行: `python scripts/download_public_datasets.py`
 
-- [ ] **P0.3** 统一评估框架
-  - 实现统一的评估脚本：80/20 split × 5 seeds × XGBoost
+- [x] **P0.3** 统一评估框架 ✅ commit 8a1e8eb
+  - `scripts/evaluate.py`: 80/20 split × 5 seeds × XGBoost
   - 数字人民币指标：Recall, Precision, F1, AUC
   - 公开数据集指标：AUC, Accuracy
-  - 输出标准化 JSON 结果文件
+  - 输出标准化 JSON 到 `outputs/eval_results/`
   - 显著性检验：Welch's t-test (p=0.05)
 
 - [ ] **P0.4** Baseline 方法安装与适配
   - `pip install openfe autofeat`
-  - CAAFE: clone github.com/noahho/CAAFE，确认能否用 DeepSeek API 替代 OpenAI
-  - FeatLLM: clone github.com/Sungwon-Han/FeatLLM，确认 API 兼容性
+  - CAAFE: 需改 1-2 行添加 `base_url` 参数即可用 DeepSeek API
+  - FeatLLM: 需将 `openai.ChatCompletion.create()` 升级为现代 SDK
   - 如果 LLM-based baseline 必须用 OpenAI API，记录成本估算
 
 ---
