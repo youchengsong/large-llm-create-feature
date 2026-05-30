@@ -4,7 +4,7 @@
 >
 > 设计参考：`docs/KnowFeat_design.md`
 >
-> 最后更新：2026-05-29
+> 最后更新：2026-05-30
 
 ---
 
@@ -41,7 +41,7 @@
 | 样本数 | 544,462 个地址 |
 | 原始标签 | 13 类 |
 | 二分类映射 | Illicit (~140K) vs Licit (~404K) |
-| 基线特征 | 148 个 (PAI/PDI/PTI/CI/LSI) |
+| 基线特征 | 149 个 (PAI/PDI/PTI/CI/S + SW) |
 | 数据结构 | 单表 (地址级预计算特征) |
 | Stage | Stage 1 |
 
@@ -67,12 +67,12 @@
 
 #### 1.2 Stage 1 — BABD-13 完整运行 ⬜ 未开始
 
-- **配置**: 148 基线特征, max_rounds=5, max_features=30
+- **配置**: 149 基线特征, max_rounds=5, max_features=30, scale_pos_weight=2.88
 - **前置条件**: 
-  - [ ] 上传 BABD-13 数据到 `/root/autodl-tmp/babd13/`
-  - [ ] 实现 13→binary 标签映射
+  - [x] 上传 BABD-13 数据到 `/root/autodl-tmp/archive/BABD-13.csv`
+  - [x] 实现 13→binary 标签映射: Illicit={0,2,6,7,8,9,11}
   - [ ] 适配 Stage 1 数据加载器 (单表 → `def feature_xxx(df)`)
-  - [ ] 确认 scale_pos_weight (需根据 BABD-13 正负比例计算)
+  - [x] 确认 scale_pos_weight=2.88 (140274/404188)
 - **需要记录**: 每轮接受特征数、总耗时、最终 recall/precision/f1/auc
 - **输出文件**: `outputs/stage1_summary.json`, `outputs/stage1_features.json`
 
@@ -104,10 +104,10 @@
 
 在 RESULT.md 中汇总两个数据集的最终结果:
 
-| Dataset | Baseline Features | +KnowFeat | Δrecall | Δprecision | #New Features |
-|---------|------------------|-----------|---------|------------|--------------|
-| SimECNY | 95 | 95+18 | +2.09% | +2.19% | 18 |
-| BABD-13 | 148 | 148+? | ? | ? | ? |
+| Dataset | Baseline Features | Baseline Recall | +KnowFeat | Δrecall | Δprecision | #New Features |
+|---------|------------------|----------------|-----------|---------|------------|--------------|
+| SimECNY | 95 | 0.9538 | 95+18 | +2.09% | +2.19% | 18 |
+| BABD-13 | 149 | 0.9814 | 149+? | ? | ? | ? |
 
 ---
 
@@ -121,7 +121,7 @@
 
 - SimECNY: 95 特征 → recall=0.9538, precision=0.9402
 - SimECNY: 105 特征 → recall=0.9739, precision=0.9781
-- BABD-13: 148 特征 → 待跑
+- BABD-13: 149 特征 → recall=0.9814±0.0006, precision=0.9439±0.0018 ✅
 
 #### 2.2 OpenFE ⬜ 未开始
 
@@ -398,10 +398,10 @@ Stage 2 总耗时 34,065.8s，需要分解为：
 
 ### Phase 1: 数据准备 (当前阶段)
 
-- [ ] **T1.1** 上传 BABD-13 数据到 `/root/autodl-tmp/babd13/`
-- [ ] **T1.2** 实现 BABD-13 标签映射 (13-class → binary)
+- [x] **T1.1** 上传 BABD-13 数据到 `/root/autodl-tmp/archive/BABD-13.csv` ✅
+- [x] **T1.2** 实现 BABD-13 标签映射 (13-class → binary): Illicit={0,2,6,7,8,9,11} ✅
 - [ ] **T1.3** 适配 Stage 1 数据加载器
-- [ ] **T1.4** 在 BABD-13 上跑基线 (148 特征, 确定 scale_pos_weight)
+- [x] **T1.4** 在 BABD-13 上跑基线 (149 特征, scale_pos_weight=2.88): recall=0.9814, prec=0.9439 ✅
 - [ ] **T1.5** 安装 baseline 工具: `pip install openfe featuretools autofeat caafe`
 
 ### Phase 2: 主实验 + Baseline (P0)
@@ -465,7 +465,7 @@ xgb_params = {
     "n_estimators": 200,
     "max_depth": 6,
     "learning_rate": 0.1,
-    "scale_pos_weight": 59.0,  # SimECNY; BABD-13 需单独计算
+    "scale_pos_weight": 59.0,  # SimECNY; BABD-13 使用 2.88
     "eval_metric": "logloss",
     "random_state": 42,
     "n_jobs": -1,
@@ -593,8 +593,8 @@ knowfeat_params = {
 - [x] 基线调优 (scale_pos_weight 5 档)
 - [x] Stage 1 知识获取 (13 文档 → 88 risk factors)
 - [x] RESULT.md 文件维护
-- [ ] BABD-13 数据下载和上传 ← **当前阶段**
-- [ ] BABD-13 标签映射和适配
+- [x] BABD-13 数据上传 (已在 `/root/autodl-tmp/archive/BABD-13.csv`)
+- [x] BABD-13 标签映射 (Illicit={0,2,6,7,8,9,11}) 和基线 (recall=0.9814)
 - [ ] Stage 1 运行
 - [ ] Baseline 对比实验
 - [ ] 消融实验

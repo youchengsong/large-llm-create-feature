@@ -1,6 +1,6 @@
 # 实验结果汇总
 
-> 最后更新：2026-05-29
+> 最后更新：2026-05-30
 
 ## 1. 数据集概况
 
@@ -803,3 +803,81 @@ def feature_time_concentration_risk_index(open_df, tx_df, close_df):
 | L3 precision ~0.55 | scale_pos_weight=307.8 (neg/pos) | 固定为 59.0 | 2afeb02 |
 | IV=0.0 稀疏特征 | pd.qcut 对多零值特征分箱失败 | 零/非零 fallback 分箱 | 2afeb02 |
 | DeepSeek 503 不重试 | InternalServerError 不在重试列表 | 加入 RETRYABLE_ERRORS | 2afeb02 |
+
+---
+
+## 6. BABD-13 (Bitcoin) 基线实验
+
+### 数据集概况
+
+| 项目 | 值 |
+|------|-----|
+| 数据集 | BABD-13 (Bitcoin Address Behavior Dataset) |
+| 总样本数 | 544,462 个地址 |
+| 原始标签 | 13 类 |
+| Illicit (正样本) | 140,274 (25.76%) |
+| Licit (负样本) | 404,188 (74.24%) |
+| 特征数 | 149 个 (PAI/PDI/PTI/CI/S + SW) |
+| 数据结构 | 单表，地址级预计算特征 |
+
+### 标签映射 (13-class → binary)
+
+| 标签 | 类别 | 数量 | 二分类 |
+|------|------|------|--------|
+| 0 | Blackmail | 8,686 | Illicit |
+| 1 | Cyber-Security Service | 91,617 | Licit |
+| 2 | Darknet Market | 13,861 | Illicit |
+| 3 | Centralized Exchange | 300,000 | Licit |
+| 4 | Infrastructure/Service | 180 | Licit |
+| 5 | P2P Financial | 9,309 | Licit |
+| 6 | Gambling | 105,257 | Illicit |
+| 7 | Gov Criminal Blacklist | 27 | Illicit |
+| 8 | Money Laundering | 16 | Illicit |
+| 9 | Ponzi Scheme | 15 | Illicit |
+| 10 | Mining Pool | 1,580 | Licit |
+| 11 | Tumbler | 12,412 | Illicit |
+| 12 | Individual Wallet | 1,502 | Licit |
+
+### 基线结果 (149 特征, XGBoost, scale_pos_weight=2.88)
+
+| Fold | Recall | Precision | F1 | AUC |
+|------|--------|-----------|------|------|
+| 1 | 0.9809 | 0.9469 | 0.9636 | 0.9981 |
+| 2 | 0.9811 | 0.9433 | 0.9618 | 0.9980 |
+| 3 | 0.9810 | 0.9444 | 0.9624 | 0.9980 |
+| 4 | 0.9824 | 0.9414 | 0.9615 | 0.9980 |
+| 5 | 0.9817 | 0.9434 | 0.9622 | 0.9980 |
+| **Mean±Std** | **0.9814±0.0006** | **0.9439±0.0018** | **0.9623±0.0007** | **0.9980±0.0000** |
+
+### CR@K 结果
+
+| CR@0.1% | CR@0.2% | CR@0.3% | CR@0.5% | CR@1% | CR@3% | CR@5% |
+|---------|---------|---------|---------|-------|-------|-------|
+| 0.0039 | 0.0078 | 0.0117 | 0.0194 | 0.0388 | 0.1165 | 0.1941 |
+
+> 注：BABD-13 正样本率 25.76%，CR@K 值较低是预期行为。top 5% 样本最多只能覆盖 ~19.4% 的正样本 (5%/25.76%)。
+
+### Top 20 特征重要性
+
+| 排名 | 特征 | Importance |
+|------|------|-----------|
+| 1 | S1-6 | 0.1095 |
+| 2 | CI3a12-3 | 0.0540 |
+| 3 | PTIa41-3 | 0.0406 |
+| 4 | PAIa14-R2 | 0.0395 |
+| 5 | S7 | 0.0302 |
+| 6 | PAIa13 | 0.0279 |
+| 7 | CI3a11-2 | 0.0278 |
+| 8 | SW | 0.0277 |
+| 9 | S6 | 0.0263 |
+| 10 | PTIa41-2 | 0.0260 |
+| 11 | CI2a12-3 | 0.0246 |
+| 12 | PDIa1-2 | 0.0232 |
+| 13 | PAIa14-3 | 0.0226 |
+| 14 | CI4a23 | 0.0220 |
+| 15 | PAIa14-R1 | 0.0201 |
+| 16 | PAIa14-R4 | 0.0174 |
+| 17 | PAIa14-R3 | 0.0174 |
+| 18 | S9 | 0.0168 |
+| 19 | CI3a32-1 | 0.0162 |
+| 20 | S8 | 0.0149 |
