@@ -1,0 +1,17 @@
+{
+  "stage": "stage1",
+  "total_rounds": 4,
+  "total_accepted": 6,
+  "total_candidates": 0,
+  "total_rejected": 4,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 15577.1,
+  "accepted_features": [
+    "conc_disp_ratio_recv",
+    "path_complexity_network_ratio",
+    "counterparty_diversity_centrality",
+    "send_ratio_centrality",
+    "time_entropy_autocorr_ratio",
+    "time_entropy_ratio"
+  ]
+}

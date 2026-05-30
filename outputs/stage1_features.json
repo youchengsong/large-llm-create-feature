@@ -1,0 +1,44 @@
+[
+  {
+    "name": "conc_disp_ratio_recv",
+    "dimensions": [
+      "金额频次"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_conc_disp_ratio_recv(df):\n    \"\"\"\n    接收金额集中度与分散度的比率（对数变换）\n    洗钱地址往往呈现\"高集中度+低分散度\"的特征：\n    - 集中度（PAIa14-R3）高：资金集中在少数大额交易中\n    - 分散度（PAIa22-1）低：金额区间分布不均匀\n    两者的比率能放大这种差异。取对数变换稳定分布。\n    \"\"\"\n    result = df[['account']].copy()\n    # 集中度/分散度，加小值避免除零\n    ratio = (df['PAIa14-R3'] + 1e-10) / (df['PAIa22-1'] + 1e-10)\n    # 对数变换\n    result['conc_disp_ratio_recv'] = np.log1p(ratio)\n    return result\n"
+  },
+  {
+    "name": "path_complexity_network_ratio",
+    "dimensions": [
+      "行为序列"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_path_complexity_network_ratio(df):\n    \"\"\"\n    交易路径复杂度与网络中心性的比值，经交易时间规律性调整。\n    \n    洗钱地址的行为序列特征：\n    - 交易路径复杂度高（S5高）：资金经过多跳转，路径复杂\n    - 网络中心性高（S6高）：处于网络核心位置，连接多个地址\n    - 交易时间规律性低（S7低）：交易时间分布不均匀，集中在特定时段\n    \n    洗钱地址往往同时具备\"路径复杂 + 中心性高 + 时间规律性低\"的特征。\n    使用 S5 * S6 / S7 来放大这种差异。\n    \"\"\"\n    result = df[['account']].copy()\n    \n    # S5: 交易路径复杂度\n    # S6: 网络中心性（地址在网络中的中心程度）\n    # S7: 交易时间规律性（越高越规律）\n    # 洗钱地址：S5高, S6高, S7低 → 比值大\n    # 正常地址：S5低, S6低, S7高 → 比值小\n    result['path_complexity_network_ratio'] = df['S5'] * df['S6'] / (df['S7'] + 1e-10)\n    \n    return result\n"
+  },
+  {
+    "name": "counterparty_diversity_centrality",
+    "dimensions": [
+      "主体关联"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_counterparty_diversity_centrality(df):\n    \"\"\"\n    交易对手多样性与网络中心性的乘积：CI3a23-1 × S5 × S6\n    \n    洗钱地址在主体关联维度的特征：\n    - 交易对手多样性高(CI3a23-1)：洗钱地址与多样化的对手方交易（团伙内部分工）\n    - 路径复杂度高(S5)：资金经过多跳转\n    - 网络中心性高(S6)：处于网络核心位置\n    \n    正常地址：对手多样性低、路径简单、中心性低 → 乘积小\n    洗钱地址：对手多样性高、路径复杂、中心性高 → 乘积大\n    均值比约1.77x，中位数差异约22x\n    \"\"\"\n    result = df[['account']].copy()\n    \n    # CI3a23-1: 交易对手多样性（基于金额加权的对手方多样性）\n    # S5: 交易路径复杂度\n    # S6: 网络中心性\n    raw_val = df['CI3a23-1'] * df['S5'] * df['S6']\n    result['counterparty_diversity_centrality'] = np.log1p(raw_val)\n    \n    return result"
+  },
+  {
+    "name": "send_ratio_centrality",
+    "dimensions": [
+      "主体关联"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_send_ratio_centrality(df):\n    \"\"\"\n    发送交互占比与网络中心性的乘积。\n    \n    洗钱地址在主体关联维度的特征：\n    - 发送交互占比高（S2-1/S2-3）：洗钱地址更多是向外分散资金（将赃款化整为零），\n      因此发送交互地址占总交互地址的比例更高\n    - 网络中心性高（S6）：洗钱地址处于网络核心位置，连接多个地址\n    \n    正常地址：发送和接收交互地址比例均衡（约各占50%），网络中心性较低\n    洗钱地址：发送交互占比显著偏高（>60%），网络中心性高（S6≥6）\n    两者的乘积放大了这种差异。\n    \"\"\"\n    result = df[['account']].copy()\n    \n    # 发送交互占比 = 发送交互地址数 / 总交互地址数\n    send_ratio = df['S2-1'] / (df['S2-3'] + 1e-10)\n    \n    # 乘以网络中心性\n    result['send_ratio_centrality'] = send_ratio * df['S6']\n    \n    return result"
+  },
+  {
+    "name": "time_entropy_autocorr_ratio",
+    "dimensions": [
+      "时间地域"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_time_entropy_autocorr_ratio(df):\n    \"\"\"\n    时间熵与时间自相关的比值：S1-2 / |S3|\n    \n    洗钱地址的时间地域特征：\n    - S1-2（时间熵归一化值）更低：交易时间集中在特定时段（如夜间），而非均匀分布\n    - S3（时间自相关）更接近0：交易时间序列呈现更强的自相关性，说明有规律性（如自动化程序操作）\n    \n    洗钱地址：S1-2低（时间集中）+ S3接近0（自相关强）→ 比值小\n    正常地址：S1-2高（时间分散）+ S3远离0（自相关弱）→ 比值大\n    \n    取倒数后：洗钱地址比值大，正常地址比值小\n    \"\"\"\n    result = df[['account']].copy()\n    # S1-2: 时间熵归一化值（越低越集中）\n    # S3: 时间自相关（越接近0自相关越强）\n    # 洗钱地址：S1-2低, S3接近0 → 比值小\n    # 正常地址：S1-2高, S3远离0 → 比值大\n    # 使用S1-2 / |S3| 放大差异\n    result['time_entropy_autocorr_ratio'] = df['S1-2'] / (np.abs(df['S3']) + 1e-10)\n    return result"
+  },
+  {
+    "name": "time_entropy_ratio",
+    "dimensions": [
+      "时间地域"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_time_entropy_ratio(df):\n    \"\"\"\n    时间熵比值：S1-2 / S1-6\n    \n    洗钱地址的时间地域特征：\n    - S1-2（时间熵归一化值）异常低（均值比0.511x）：交易时间集中在特定时段\n    - S1-6（时间熵）异常低（均值比0.378x）：交易时间高度集中\n    \n    洗钱地址两个时间熵指标都低，但S1-6下降更剧烈（0.378x vs 0.511x），\n    因此S1-2/S1-6比值在洗钱地址中更高。\n    正常地址两个指标都高，比值相对较低。\n    \"\"\"\n    result = df[['account']].copy()\n    # S1-2: 时间熵归一化值\n    # S1-6: 时间熵\n    # 洗钱地址：S1-2和S1-6都低，但S1-6下降更剧烈 → 比值高\n    # 正常地址：S1-2和S1-6都高 → 比值低\n    result['time_entropy_ratio'] = df['S1-2'] / (df['S1-6'] + 1e-10)\n    return result"
+  }
+]

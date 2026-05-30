@@ -65,16 +65,13 @@
 - **结果**: 18/30 特征被接受, recall 0.9538→0.9737 (+2.09%), precision 0.9402→0.9621
 - **数据位置**: `outputs/stage2_summary.json`, `outputs/stage2_features.json`
 
-#### 1.2 Stage 1 — BABD-13 完整运行 ⬜ 未开始
+#### 1.2 Stage 1 — BABD-13 完整运行 ✅ 已完成
 
 - **配置**: 149 基线特征, max_rounds=5, max_features=30, scale_pos_weight=2.88
-- **前置条件**: 
-  - [x] 上传 BABD-13 数据到 `/root/autodl-tmp/archive/BABD-13.csv`
-  - [x] 实现 13→binary 标签映射: Illicit={0,2,6,7,8,9,11}
-  - [x] 适配 Stage 1 数据加载器 (单表 → `def feature_xxx(df)`) ✅
-  - [x] 确认 scale_pos_weight=2.88 (140274/404188)
-- **需要记录**: 每轮接受特征数、总耗时、最终 recall/precision/f1/auc
-- **输出文件**: `outputs/stage1_summary.json`, `outputs/stage1_features.json`
+- **结果**: 6/30 特征被接受, 4 轮 (收敛), 4.3 小时
+  - recall 0.9814→0.9828 (+0.0014), precision 0.9439→0.9465 (+0.0026)
+  - send_ratio_centrality 以 SHAP=1.0767 跃居全局 #1
+- **数据位置**: `outputs/stage1_summary.json`, `outputs/stage1_features.json`, `outputs/stage1_provenance.json`
 
 #### 1.3 知识迁移后 Stage 2 再运行 ⬜ 未开始
 
@@ -107,7 +104,7 @@
 | Dataset | Baseline Features | Baseline Recall | +KnowFeat | Δrecall | Δprecision | #New Features |
 |---------|------------------|----------------|-----------|---------|------------|--------------|
 | SimECNY | 95 | 0.9538 | 95+18 | +2.09% | +2.19% | 18 |
-| BABD-13 | 149 | 0.9814 | 149+? | ? | ? | ? |
+| BABD-13 | 149 | 0.9814 | 149+6 | +0.14% | +0.28% | 6 |
 
 ---
 
