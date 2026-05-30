@@ -40,7 +40,12 @@
 - [x] **P0.2** 公开数据集下载脚本 ✅ commit 8a1e8eb
   - `scripts/download_public_datasets.py`: OpenML 5个 + Kaggle heart
   - 统一存放到 `data/public/` 目录，CSV 格式
-  - 需要运行: `python scripts/download_public_datasets.py`
+
+- [ ] **P0.2b** 执行数据集下载
+  - 运行: `.venv/bin/python scripts/download_public_datasets.py`
+  - 验证: 确认 `data/public/` 下有 6 个 CSV 文件（credit_g.csv, diabetes.csv, blood_transfusion.csv, heart.csv, bank_marketing.csv, breast_w.csv）
+  - 验证: 每个 CSV 行数与数据集总览表一致
+  - 完成后在数据集总览表中更新状态为「✅ 已下载」
 
 - [x] **P0.3** 统一评估框架 ✅ commit 8a1e8eb
   - `scripts/evaluate.py`: 80/20 split × 5 seeds × XGBoost
@@ -50,29 +55,51 @@
   - 显著性检验：Welch's t-test (p=0.05)
 
 - [ ] **P0.4** Baseline 方法安装与适配
-  - `pip install openfe autofeat`
-  - CAAFE: 需改 1-2 行添加 `base_url` 参数即可用 DeepSeek API
-  - FeatLLM: 需将 `openai.ChatCompletion.create()` 升级为现代 SDK
-  - 如果 LLM-based baseline 必须用 OpenAI API，记录成本估算
+  - **P0.4a** 经典 AutoFE baseline:
+    - 运行: `.venv/bin/pip install openfe autofeat`
+    - 验证: `python -c "import openfe; import autofeat; print('OK')"`
+  - **P0.4b** CAAFE 适配 DeepSeek API:
+    - Clone: `git clone https://github.com/noahho/CAAFE.git baselines/CAAFE`
+    - 找到 CAAFE 中调用 `openai.OpenAI()` 的地方，添加 `base_url` 和 `api_key` 参数
+    - base_url 用环境变量 `KNOWFEAT_BASE_URL`（默认 `https://api.deepseek.com/v1`）
+    - api_key 用环境变量 `KNOWFEAT_API_KEY`
+    - model 改为 `deepseek-chat`
+    - 写一个 wrapper 脚本 `scripts/run_caafe.py`，接受 --dataset 参数，输出特征到 CSV
+  - **P0.4c** FeatLLM 适配 DeepSeek API:
+    - Clone: `git clone https://github.com/Sungwon-Han/FeatLLM.git baselines/FeatLLM`
+    - FeatLLM 使用旧版 `openai.ChatCompletion.create()` API，需升级为现代 SDK:
+      - `openai.ChatCompletion.create(...)` → `client.chat.completions.create(...)`
+      - 初始化 `client = openai.OpenAI(api_key=..., base_url=...)`
+    - model 改为 `deepseek-chat`
+    - 写一个 wrapper 脚本 `scripts/run_featllm.py`，接受 --dataset 参数，输出特征到 CSV
+  - **P0.4d** 验证所有 baseline 能跑通:
+    - 用 breast-w（最小数据集）测试每个 baseline
+    - 确认 OpenFE、AutoFeat 可直接运行
+    - 确认 CAAFE、FeatLLM 可通过 DeepSeek API 运行
+    - 如果某个 baseline 无法适配，记录原因并在实验中标注
 
 ---
 
 ## Phase 1: Exp 1 — 主性能对比 (Performance Comparison)
 
 > 目标：7个数据集 × 6种方法 → 两张性能对比表
+> 评估命令: `.venv/bin/python scripts/evaluate.py --dataset <name> --method <method> [--features-csv <path>]`
+> 结果存放: `outputs/eval_results/<dataset>_<method>.json`
 
 ### 1A: 数字人民币上的 Baseline
 
-- [ ] **T1.1** No-FE baseline（原始95特征 + XGBoost）— ✅ 已有数据: recall=0.9538
-- [ ] **T1.2** OpenFE baseline（95特征上自动搜索，top 30 特征）
-- [ ] **T1.3** AutoFeat baseline（95特征上多项式+L1选择）
-- [ ] **T1.4** CAAFE baseline（LLM单轮生成，DeepSeek API）
-- [ ] **T1.5** FeatLLM baseline（LLM模板生成）
-- [ ] **T1.6** KnowFeat — ✅ 已有数据: recall=0.9737, 18/30特征被接受
+- [ ] **T1.1** No-FE baseline — 用 `scripts/evaluate.py --dataset simecny --baseline`
+  - 已有参考数据: recall=0.9538，需用新的 80/20×5seeds 评估框架重新跑
+- [ ] **T1.2** OpenFE baseline — 在 95 特征上运行 OpenFE 自动搜索 top 30 特征
+- [ ] **T1.3** AutoFeat baseline — 在 95 特征上运行 AutoFeat 多项式+L1 选择
+- [ ] **T1.4** CAAFE baseline — 用 `scripts/run_caafe.py --dataset simecny` 生成特征
+- [ ] **T1.5** FeatLLM baseline — 用 `scripts/run_featllm.py --dataset simecny` 生成特征
+- [ ] **T1.6** KnowFeat — 已有参考数据: recall=0.9737, 18/30特征被接受，需用新评估框架重新跑
 
 ### 1B: 6个公开数据集上的全部方法
 
-> 依赖 P0.1（适配器）和 P0.2（数据）
+> 依赖 P0.2b（数据已下载）和 P0.4（baseline 已安装）
+> 每个数据集对 6 种方法分别运行评估脚本
 
 - [ ] **T1.7** credit-g: No-FE, OpenFE, AutoFeat, CAAFE, FeatLLM, KnowFeat
 - [ ] **T1.8** diabetes: No-FE, OpenFE, AutoFeat, CAAFE, FeatLLM, KnowFeat
@@ -83,7 +110,7 @@
 
 ### 1C: 结果汇总
 
-- [ ] **T1.13** 生成 Table 1（数字人民币性能对比）和 Table 2（公开数据集性能对比）
+- [ ] **T1.13** 从 `outputs/eval_results/*.json` 汇总生成 Table 1（数字人民币）和 Table 2（公开数据集）
 
 ---
 
@@ -163,27 +190,26 @@
 
 ## 执行顺序与依赖
 
+> **Loop 模式执行规则**：从上到下找到第一个未完成的 `- [ ]` 任务，执行它。
+> 完成后勾选 `- [x]`，commit + push，然后继续下一个任务。
+
 ```
-Phase 0 (基础设施)
-  ├── P0.1 适配器 ──┐
-  ├── P0.2 数据下载 ─┤
-  ├── P0.3 评估框架 ─┼── Phase 1 (主性能对比)
-  └── P0.4 Baseline ─┘       │
-                              ├── Phase 2 (知识消融, 可并行)
-                              ├── Phase 3 (溯源指标, 可并行)
-                              ├── Phase 5 (Case Study, 可并行)
-                              └── Phase 6 (效率, 可并行)
-                                    │
-                              Phase 4 (专家打分, 人工, 最后)
+Phase 0 (基础设施) — 剩余: P0.2b 下载数据, P0.4 Baseline 安装
+  ├── P0.2b 执行下载 ─┐
+  └── P0.4 Baseline ──┼── Phase 1 (主性能对比)
+                       │
+                       ├── Phase 2 (知识消融, 可并行)
+                       ├── Phase 3 (溯源指标, 可并行)
+                       ├── Phase 5 (Case Study, 可并行)
+                       └── Phase 6 (效率, 可并行)
+                             │
+                       Phase 4 (专家打分, 人工, 最后)
 ```
 
-**预计工作量**：
-- Phase 0: 2-3 天（主要是适配器开发）
-- Phase 1: 3-4 天（7个数据集 × 6种方法 = 42 次运行）
-- Phase 2: 2 天（5 次消融运行，数字人民币）
-- Phase 3: 1 天（指标计算脚本 + 收集解释）
-- Phase 4: 1 周+（依赖专家排期）
-- Phase 5: 0.5 天
-- Phase 6: 0.5 天
+**关键路径**: P0.2b → P0.4 → Phase 1 → Phase 2~6
 
-**总计约 2 周（不含专家评审等待时间）**
+**环境信息**:
+- Python: `.venv/bin/python`
+- DeepSeek API Key: 环境变量 `KNOWFEAT_API_KEY`
+- DeepSeek Base URL: `https://api.deepseek.com/v1`
+- DeepSeek Model: `deepseek-chat`
