@@ -15,7 +15,7 @@ from knowfeat.config import KnowFeatConfig, VerificationConfig
 
 logger = logging.getLogger(__name__)
 
-REQUIRED_ID_COLS = {"wallet_id", "tx_id", "account"}
+REQUIRED_ID_COLS = {"wallet_id", "tx_id", "account", "row_id"}
 
 _RUNNER_TEMPLATE = textwrap.dedent("""\
     import pickle, sys, pathlib

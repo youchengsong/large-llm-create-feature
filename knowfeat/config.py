@@ -121,12 +121,25 @@ class SearchConfig:
 # 顶层配置
 # ---------------------------------------------------------------------------
 @dataclass
+class PublicDatasetConfig:
+    """公开数据集配置（用于 stage='generic'）。"""
+    dataset_name: str = ""
+    csv_path: Path = Path("")
+    target_col: str = ""
+    id_col: str = "row_id"
+    domain: str = ""
+    task: str = ""
+    domain_knowledge_path: Path = Path("")
+
+
+@dataclass
 class KnowFeatConfig:
     llm: LLMConfig = field(default_factory=LLMConfig)
     paths: PathConfig = field(default_factory=PathConfig)
     verification: VerificationConfig = field(default_factory=VerificationConfig)
     search: SearchConfig = field(default_factory=SearchConfig)
-    stage: str = "stage2"
+    public_dataset: PublicDatasetConfig = field(default_factory=PublicDatasetConfig)
+    stage: str = "stage2"  # "stage1", "stage2", or "generic"
     seed: int = 42
     verbose: bool = True
 

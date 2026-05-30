@@ -208,13 +208,15 @@ def generate_all_schema_text(data: Stage2Data, label_col: str = "is_risk") -> st
     return text
 
 
-def generate_all_schema_text_stage1(data: Stage1Data) -> str:
-    """Generate schema + distribution diff for Stage 1 (BABD-13 single table).
+def generate_all_schema_text_stage1(data: Stage1Data, table_name: str = "BABD-13") -> str:
+    """Generate schema + distribution diff for Stage 1 or generic single table.
 
     Parameters
     ----------
     data : Stage1Data
-        Stage 1 单表数据容器。
+        单表数据容器。
+    table_name : str
+        表显示名称，默认 "BABD-13"。
 
     Returns
     -------
@@ -223,9 +225,9 @@ def generate_all_schema_text_stage1(data: Stage1Data) -> str:
     """
     sections = [
         "## 数据 Schema\n",
-        generate_schema(data.df, "BABD-13 (df)"),
-        "\n## 正常 vs 异常 (Illicit) 分布差异\n",
-        generate_distribution_diff(data.df, data.label_col, "BABD-13"),
+        generate_schema(data.df, f"{table_name} (df)"),
+        "\n## 正类 vs 负类分布差异\n",
+        generate_distribution_diff(data.df, data.label_col, table_name),
     ]
 
     if data.baseline_features is not None:
@@ -234,5 +236,5 @@ def generate_all_schema_text_stage1(data: Stage1Data) -> str:
         sections.append(", ".join(cols))
 
     text = "\n\n".join(sections)
-    logger.info("Generated Stage 1 schema text: %d chars", len(text))
+    logger.info("Generated schema text for %s: %d chars", table_name, len(text))
     return text

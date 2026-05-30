@@ -10,6 +10,7 @@ from typing import Optional
 
 from knowfeat.config import KnowFeatConfig
 from knowfeat.data.loader import Stage1Data, Stage2Data
+from knowfeat.prompt.domain_knowledge import PublicDatasetKnowledge
 from knowfeat.data.schema_stats import generate_all_schema_text, generate_all_schema_text_stage1
 from knowfeat.prompt.domain_knowledge import (
     DomainKnowledge,
@@ -195,16 +196,63 @@ Gov Criminal Blacklist, Money Laundering, Ponzi Scheme, Tumbler}。
 """
 
 
+def _build_role_generic(pk: "PublicDatasetKnowledge", id_col: str = "row_id") -> str:
+    """构建公开数据集的通用角色模板。"""
+    return f"""\
+# 角色
+
+你是一个{pk.domain}特征工程专家 Agent。你的任务是基于领域知识和数据分析，\
+在 {pk.dataset_name} 数据集上设计能有效提升 {pk.task} 性能的统计特征。
+
+## 数据集说明
+
+{pk.dataset_name} 数据集，每行代表一个样本，目标变量为 `{pk.target}`。\
+这是一个单表数据集，所有特征和标签在同一个 DataFrame 中。
+
+## 目标
+
+- 生成能提升分类性能（AUC / Accuracy）的特征
+- 每个特征必须有明确的领域知识依据和可追溯的设计逻辑
+- **溯源要求**：必须在 knowledge_ids 中填写具体的知识资产ID（如 RULE_001, IND_01, EXP_01），不要用笼统描述
+- **计算步骤**：必须在 computation_steps 中逐步描述从原始字段到最终特征值的每一步变换
+- **设计推理**：必须在 reasoning 中按计算步骤逐步解释，每一步先说明知识依据（因为），再说明计算操作（所以）。格式: 步骤N: 因为ID(含义)指出...，所以...
+- 特征代码必须可执行，签名为 `def feature_xxx(df) -> pd.DataFrame`
+- 输入 df 是完整数据表（含 {id_col}, 原始特征列, {pk.target}）
+- 输出 DataFrame 必须包含 `{id_col}` 列作为主键 + 一个或多个特征值列
+
+## 可用工具
+
+1. **explore_data**: 在 DataFrame 上执行查询代码，探索数据分布（可用变量: df）
+2. **generate_feature**: 提交特征代码 + 名称 + 维度 + 溯源信息
+3. **execute_sandbox**: 在隔离沙盒中执行代码，触发三级验证
+
+## 工作流程（严格遵守）
+
+1. 阅读数据 Schema 和领域知识，理解可用字段和领域模式
+2. 使用 explore_data 探索数据分布，验证假设
+3. 设计特征（可以是现有特征的交叉、组合、变换），使用 generate_feature 提交
+4. **立即**调用 execute_sandbox 验证该特征
+5. 根据验证结果迭代改进，然后设计下一个特征
+
+**重要：必须逐个生成和验证！每次 generate_feature 后必须立即调用 execute_sandbox，不要批量注册多个特征后再验证。只有通过验证的特征才计入预算。**
+"""
+
+
 # ── 验证规则说明 ──────────────────────────────────────────────────────────────
 
 def _format_verification_rules(cfg: KnowFeatConfig) -> str:
     v = cfg.verification
+    if cfg.stage == "generic":
+        id_col = cfg.public_dataset.id_col
+        id_text = f"输出 DataFrame 必须包含 `{id_col}` 列"
+    else:
+        id_text = "输出 DataFrame 必须包含 wallet_id 或 tx_id 列"
     return f"""\
 ## 验证规则（你的特征需通过以下三级验证）
 
 ### L1 沙盒执行
 - 代码必须在 {v.sandbox_timeout_sec}s 内执行完毕
-- 输出 DataFrame 必须包含 wallet_id 或 tx_id 列
+- {id_text}
 - 执行失败可自动修复（最多 {v.sandbox_max_retries} 次）
 
 ### L2 统计质量
@@ -316,6 +364,12 @@ def build_system_prompt(
     # 1. 角色定义
     if stage == "stage2":
         sections.append(_ROLE_STAGE2)
+    elif stage == "generic":
+        pk = domain_knowledge.public_knowledge
+        if pk is not None:
+            sections.append(_build_role_generic(pk, cfg.public_dataset.id_col))
+        else:
+            sections.append(_ROLE_STAGE1)
     else:
         sections.append(_ROLE_STAGE1)
 
@@ -327,7 +381,12 @@ def build_system_prompt(
         sections.append(schema_text)
     elif data is not None:
         if isinstance(data, Stage1Data):
-            sections.append(generate_all_schema_text_stage1(data))
+            table_name = (
+                cfg.public_dataset.dataset_name
+                if stage == "generic" and cfg.public_dataset.dataset_name
+                else "BABD-13"
+            )
+            sections.append(generate_all_schema_text_stage1(data, table_name=table_name))
         else:
             sections.append(generate_all_schema_text(data))
 

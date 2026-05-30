@@ -272,6 +272,33 @@ ALL_TOOL_SPECS = [EXPLORE_DATA_SPEC, GENERATE_FEATURE_SPEC, EXECUTE_SANDBOX_SPEC
 ALL_TOOL_SPECS_STAGE1 = [EXPLORE_DATA_SPEC_STAGE1, GENERATE_FEATURE_SPEC_STAGE1, EXECUTE_SANDBOX_SPEC]
 
 
+def build_generic_tool_specs(
+    dataset_name: str, id_col: str, target_col: str,
+) -> list[ToolSpec]:
+    """构建公开数据集的通用工具定义。"""
+    explore = ToolSpec(
+        name="explore_data",
+        description=(
+            f"在 {dataset_name} DataFrame 上执行 Python 代码探索数据分布。"
+            f"可用变量: df (完整数据表，含 {id_col}, 原始特征列, {target_col})。"
+            "代码最后一行的值（或 print 输出）将作为结果返回。超时 15 秒。"
+        ),
+        parameters=EXPLORE_DATA_SPEC_STAGE1.parameters,
+    )
+    generate = ToolSpec(
+        name="generate_feature",
+        description=(
+            "提交特征代码和溯源信息。代码必须定义函数 "
+            "def feature_xxx(df) -> pd.DataFrame，"
+            f"输入 df 是 {dataset_name} 完整数据表，"
+            f"输出必须含 {id_col} 列作为主键。"
+            "提交后需调用 execute_sandbox 执行验证。"
+        ),
+        parameters=GENERATE_FEATURE_SPEC_STAGE1.parameters,
+    )
+    return [explore, generate, EXECUTE_SANDBOX_SPEC]
+
+
 # ---------------------------------------------------------------------------
 # 特征注册信息
 # ---------------------------------------------------------------------------
@@ -338,6 +365,7 @@ class ToolContext:
         self.vcfg = cfg.verification
         self.noise_thresholds = noise_thresholds
         self.is_stage1 = isinstance(data, Stage1Data)
+        self.is_generic = cfg.stage == "generic"
 
         if self.is_stage1:
             self.label = get_label_series_stage1(data)
@@ -655,6 +683,11 @@ class ToolContext:
 
     def get_tool_specs(self) -> list[ToolSpec]:
         """返回所有工具的 ToolSpec 列表。"""
+        if self.is_generic:
+            pub = self.cfg.public_dataset
+            return build_generic_tool_specs(
+                pub.dataset_name, pub.id_col, pub.target_col,
+            )
         if self.is_stage1:
             return list(ALL_TOOL_SPECS_STAGE1)
         return list(ALL_TOOL_SPECS)
@@ -741,7 +774,7 @@ def _extract_feature_column(
     feature_name: str,
 ) -> Optional[pd.Series]:
     """从沙盒输出中提取特征列（排除 ID 列后的第一个列）。"""
-    id_cols = {"wallet_id", "tx_id", "account"}
+    id_cols = {"wallet_id", "tx_id", "account", "row_id"}
     feature_cols = [c for c in df.columns if c not in id_cols]
     if not feature_cols:
         return None
@@ -799,14 +832,14 @@ def _align_series_stage1(
     label: pd.Series,
     data: Stage1Data,
 ) -> tuple[pd.Series, pd.Series]:
-    """Stage 1: 将沙盒输出与标签对齐。
+    """Stage 1 / Generic: 将沙盒输出与标签对齐。
 
-    BABD-13 是地址级数据，沙盒输出含 account 列，
-    与原始 df 的 account 列做 JOIN。
+    通过 id_col（account / row_id 等）做 JOIN 对齐。
     """
-    if "account" in sandbox_df.columns:
-        account_map = dict(zip(sandbox_df["account"], feature_series.values))
-        aligned = data.df["account"].map(account_map)
+    id_col = data.id_col
+    if id_col in sandbox_df.columns and id_col in data.df.columns:
+        id_map = dict(zip(sandbox_df[id_col], feature_series.values))
+        aligned = data.df[id_col].map(id_map)
         return (
             aligned.fillna(0).rename(feature_series.name).reset_index(drop=True),
             label.reset_index(drop=True),

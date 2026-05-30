@@ -1,4 +1,4 @@
-"""数据加载：Stage 2 三表 / Stage 1 单表 + 基线特征。"""
+"""数据加载：Stage 2 三表 / Stage 1 单表 / Generic 公开数据集 + 基线特征。"""
 
 import logging
 from dataclasses import dataclass
@@ -7,7 +7,7 @@ from typing import Optional
 
 import pandas as pd
 
-from knowfeat.config import KnowFeatConfig, PathConfig
+from knowfeat.config import KnowFeatConfig, PathConfig, PublicDatasetConfig
 
 logger = logging.getLogger(__name__)
 
@@ -224,3 +224,50 @@ def load_stage1(cfg: Optional[KnowFeatConfig] = None,
 def get_label_series_stage1(data: Stage1Data) -> pd.Series:
     """从 Stage 1 df 中提取标签列。"""
     return data.df[data.label_col].astype(int)
+
+
+# ---------------------------------------------------------------------------
+# Generic 公开数据集加载
+# ---------------------------------------------------------------------------
+
+def load_public_dataset(pub_cfg: PublicDatasetConfig) -> Stage1Data:
+    """加载公开数据集为 Stage1Data 格式。
+
+    Parameters
+    ----------
+    pub_cfg : PublicDatasetConfig
+        公开数据集配置（csv_path, target_col, id_col 等）。
+
+    Returns
+    -------
+    Stage1Data
+        复用 Stage1Data 容器，id_col 默认为 "row_id"。
+    """
+    csv_path = pub_cfg.csv_path
+    target_col = pub_cfg.target_col
+    id_col = pub_cfg.id_col
+
+    logger.info("Loading public dataset from %s (target=%s)", csv_path, target_col)
+    df = pd.read_csv(csv_path)
+    logger.info("Public dataset loaded: %d rows, %d cols", *df.shape)
+
+    if id_col == "row_id" and "row_id" not in df.columns:
+        df.insert(0, "row_id", range(len(df)))
+
+    if target_col not in df.columns:
+        raise ValueError(f"Target column '{target_col}' not found in {csv_path}")
+
+    feature_cols = [
+        c for c in df.columns
+        if c not in (id_col, target_col)
+    ]
+
+    baseline_features = df[feature_cols].copy()
+
+    return Stage1Data(
+        df=df,
+        baseline_features=baseline_features,
+        label_col=target_col,
+        id_col=id_col,
+        feature_cols=feature_cols,
+    )

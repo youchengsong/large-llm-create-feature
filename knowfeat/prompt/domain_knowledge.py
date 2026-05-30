@@ -11,7 +11,7 @@ from typing import Optional
 
 import pandas as pd
 
-from knowfeat.config import KnowFeatConfig, PathConfig
+from knowfeat.config import KnowFeatConfig, PathConfig, PublicDatasetConfig
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +50,19 @@ class TransactionPattern:
 
 
 @dataclass
+class PublicDatasetKnowledge:
+    """公开数据集的结构化领域知识（从 JSON 加载）。"""
+    dataset_name: str = ""
+    domain: str = ""
+    task: str = ""
+    target: str = ""
+    indicators: list[dict] = field(default_factory=list)
+    rules: list[dict] = field(default_factory=list)
+    expert_consensus: list[dict] = field(default_factory=list)
+    field_reference: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
 class DomainKnowledge:
     """Stage 2 全部领域知识容器。"""
     risk_indicators: list[RiskIndicator] = field(default_factory=list)
@@ -62,6 +75,9 @@ class DomainKnowledge:
 
     # Stage 2 裁判文书提取的风险因子
     court_doc_risk_factors: list[dict] = field(default_factory=list)
+
+    # 公开数据集领域知识
+    public_knowledge: Optional[PublicDatasetKnowledge] = None
 
     # ID → 原文内容的反查注册表（load_domain_knowledge 后自动构建）
     knowledge_registry: dict[str, str] = field(default_factory=dict)
@@ -747,7 +763,108 @@ def format_court_doc_risk_factors(factors: list[dict]) -> str:
     return "\n".join(lines)
 
 
-# ── 6. 知识 ID 注册表 ────────────────────────────────────────────────────
+# ── 6. 公开数据集领域知识 ──────────────────────────────────────────────────
+
+def load_public_domain_knowledge(json_path: Path) -> PublicDatasetKnowledge:
+    """从 JSON 文件加载公开数据集的结构化领域知识。"""
+    if not json_path.exists():
+        logger.warning("公开数据集知识文件不存在: %s", json_path)
+        return PublicDatasetKnowledge()
+
+    with open(json_path, encoding="utf-8") as f:
+        data = json.load(f)
+
+    pk = PublicDatasetKnowledge(
+        dataset_name=data.get("dataset", ""),
+        domain=data.get("domain", ""),
+        task=data.get("task", ""),
+        target=data.get("target", ""),
+        indicators=data.get("indicators", []),
+        rules=data.get("rules", []),
+        expert_consensus=data.get("expert_consensus", []),
+        field_reference=data.get("field_reference", {}),
+    )
+    logger.info(
+        "Loaded public knowledge for %s: %d indicators, %d rules, %d expert",
+        pk.dataset_name, len(pk.indicators), len(pk.rules), len(pk.expert_consensus),
+    )
+    return pk
+
+
+def format_public_domain_knowledge(pk: PublicDatasetKnowledge) -> str:
+    """将公开数据集领域知识格式化为 Markdown 文本。"""
+    lines = [f"# 领域知识 — {pk.domain}（{pk.dataset_name}）\n"]
+
+    if pk.indicators:
+        lines.append(f"## 诊断/风险指标（{len(pk.indicators)} 项）\n")
+        for ind in pk.indicators:
+            ind_id = ind.get("id", "")
+            name = ind.get("name", "")
+            field_name = ind.get("field", "")
+            direction = ind.get("direction", "")
+            threshold = ind.get("threshold", "")
+            rationale = ind.get("rationale", "")
+            lines.append(f"### [{ind_id}] {name}")
+            lines.append(f"- 字段: `{field_name}`")
+            lines.append(f"- 方向: {direction}")
+            if threshold:
+                lines.append(f"- 阈值: {threshold}")
+            if rationale:
+                lines.append(f"- 依据: {rationale}")
+            lines.append("")
+
+    if pk.rules:
+        lines.append(f"## 检测/诊断规则（{len(pk.rules)} 条）\n")
+        for rule in pk.rules:
+            rule_id = rule.get("id", "")
+            name = rule.get("name", "")
+            desc = rule.get("description", "")
+            logic = rule.get("logic", "")
+            fields = rule.get("fields", [])
+            lines.append(f"### [{rule_id}] {name}")
+            lines.append(f"- 描述: {desc}")
+            lines.append(f"- 逻辑: `{logic}`")
+            if fields:
+                lines.append(f"- 字段: {', '.join(fields)}")
+            lines.append("")
+
+    if pk.expert_consensus:
+        lines.append(f"## 专家共识（{len(pk.expert_consensus)} 条）\n")
+        for exp in pk.expert_consensus:
+            exp_id = exp.get("id", "")
+            content = exp.get("content", "")
+            lines.append(f"[{exp_id}] {content}\n")
+
+    return "\n".join(lines)
+
+
+def build_public_knowledge_registry(pk: PublicDatasetKnowledge) -> dict[str, str]:
+    """从公开数据集知识构建 ID → 原文内容 的反查注册表。"""
+    registry: dict[str, str] = {}
+
+    for ind in pk.indicators:
+        ind_id = ind.get("id", "")
+        name = ind.get("name", "")
+        direction = ind.get("direction", "")
+        content = f"{name}: {direction}"
+        if ind.get("rationale"):
+            content += f" ({ind['rationale'][:100]})"
+        registry[ind_id] = content
+
+    for rule in pk.rules:
+        rule_id = rule.get("id", "")
+        desc = rule.get("description", "")
+        registry[rule_id] = desc
+
+    for exp in pk.expert_consensus:
+        exp_id = exp.get("id", "")
+        content = exp.get("content", "")
+        registry[exp_id] = content
+
+    return registry
+
+
+# ── 7. 知识 ID 注册表 ────────────────────────────────────────────────────
 
 def build_knowledge_registry(dk: "DomainKnowledge") -> dict[str, str]:
     """从 DomainKnowledge 构建 ID → 原文内容 的反查注册表。"""
@@ -847,6 +964,17 @@ def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
     DomainKnowledge
         领域知识容器。
     """
+    if cfg.stage == "generic":
+        dk = DomainKnowledge()
+        pk = load_public_domain_knowledge(cfg.public_dataset.domain_knowledge_path)
+        dk.public_knowledge = pk
+        dk.knowledge_registry = build_public_knowledge_registry(pk)
+        logger.info(
+            "Public domain knowledge loaded for %s: registry=%d entries",
+            pk.dataset_name, len(dk.knowledge_registry),
+        )
+        return dk
+
     paths = cfg.paths
 
     dk = DomainKnowledge(
@@ -885,13 +1013,18 @@ def format_domain_knowledge(dk: DomainKnowledge, stage: str = "stage2") -> str:
     dk : DomainKnowledge
         领域知识容器。
     stage : str
-        "stage1" 或 "stage2"，控制输出内容。
+        "stage1", "stage2", 或 "generic"，控制输出内容。
 
     Returns
     -------
     str
         格式化的领域知识 Markdown 文本。
     """
+    if stage == "generic" and dk.public_knowledge is not None:
+        text = format_public_domain_knowledge(dk.public_knowledge)
+        logger.info("Formatted public domain knowledge: %d chars", len(text))
+        return text
+
     sections: list[str] = ["# 领域知识\n"]
 
     if stage == "stage2":
