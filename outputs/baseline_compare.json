@@ -1,0 +1,43 @@
+{
+  "parquet_shape": [
+    1384512,
+    106
+  ],
+  "label_col": "is_laundering",
+  "pos_count": 4484,
+  "neg_count": 1380028,
+  "full_feature_count": 105,
+  "slim_feature_count": 95,
+  "excluded_features": [
+    "1H_frequency_From",
+    "1H_frequency_To",
+    "Max_Sent",
+    "Min_Received",
+    "Min_Sent",
+    "S_dst_counterparty_index",
+    "S_src_counterparty_index",
+    "Timestamp_Hour",
+    "min_inactive_period_From",
+    "wallets_per_cert_From"
+  ],
+  "full_baseline": {
+    "recall": 0.97390806657111,
+    "precision": 0.9780988539905582,
+    "f1": 0.975980025613833,
+    "auc": 0.9999842379808139,
+    "recall_std": 0.004488439214176581,
+    "precision_std": 0.006364132920960116,
+    "f1_std": 0.0034353573681697555,
+    "auc_std": 6.07569042723254e-06
+  },
+  "slim_baseline": {
+    "recall": 0.9538349558050646,
+    "precision": 0.9402281114437846,
+    "f1": 0.9469690840858214,
+    "auc": 0.9997834913509778,
+    "recall_std": 0.005674976926097384,
+    "precision_std": 0.004378994577232069,
+    "f1_std": 0.0035684408282791583,
+    "auc_std": 0.00013691140768556261
+  }
+}

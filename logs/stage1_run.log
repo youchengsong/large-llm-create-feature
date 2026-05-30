@@ -1,0 +1,1333 @@
+2026-05-30 16:54:15,751 [__main__] INFO: KnowFeat 启动 (stage=stage1)
+2026-05-30 16:54:15,751 [__main__] INFO: Key-clue Extraction 缓存已存在 (/root/大模型提取特征/inputs/stage1_knowledge/risk_factors)，跳过提取
+2026-05-30 16:54:15,751 [knowfeat.data.loader] INFO: Loading BABD-13 from /root/autodl-tmp/archive/BABD-13.csv
+2026-05-30 16:54:26,103 [knowfeat.data.loader] INFO: BABD-13 loaded: 544462 rows, 151 cols
+2026-05-30 16:54:27,143 [knowfeat.data.loader] INFO: Binary label: illicit=140274 (25.76%), licit=404188
+2026-05-30 16:54:27,635 [knowfeat.prompt.domain_knowledge] INFO: Loaded 38 risk indicators from 风险分类表_38指标.xlsx
+2026-05-30 16:54:27,660 [knowfeat.prompt.domain_knowledge] INFO: Loaded 15 detection rules from 检测规则_15条.xlsx
+2026-05-30 16:54:27,709 [knowfeat.prompt.domain_knowledge] INFO: Loaded expert opinion: 2190 chars from 邮储专家访谈_数币洗钱模式.docx
+2026-05-30 16:54:27,709 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 01_洪湖抢红包虚拟币洗钱案.json (6 factors)
+2026-05-30 16:54:27,710 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 02_陈某枝比特币洗钱案.json (6 factors)
+2026-05-30 16:54:27,710 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 03_最高检惩治洗钱犯罪典型案例.json (9 factors)
+2026-05-30 16:54:27,710 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 04_上海警方严打跑分洗钱.json (7 factors)
+2026-05-30 16:54:27,710 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 05_江苏检察院涉虚拟货币犯罪办案要点.json (4 factors)
+2026-05-30 16:54:27,710 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 06_湖南衡阳特大虚拟币洗钱案.json (5 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 07_北京8亿虚拟币地下钱庄案.json (4 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 08_四川USDT黄金跨境洗钱案.json (5 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 09_反洗钱法2024修订版.json (4 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 10_八部门虚拟货币风险通知2026.json (7 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 11_广东区块链异常交易团体标准.json (10 factors)
+2026-05-30 16:54:27,711 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 12_慢雾2024区块链安全与反洗钱报告.json (9 factors)
+2026-05-30 16:54:27,712 [knowfeat.prompt.domain_knowledge] INFO: Loaded stage1 risk factor: 13_Beosin2025虚拟资产反洗钱报告.json (12 factors)
+2026-05-30 16:54:27,712 [knowfeat.prompt.domain_knowledge] INFO: Total stage1 risk factor files: 13
+2026-05-30 16:54:27,712 [knowfeat.prompt.domain_knowledge] INFO: Domain knowledge loaded: 38 indicators, 15 rules, 8 patterns, expert=2190 chars, stage1_factors=13 files, court_doc_factors=0 files
+2026-05-30 16:54:30,134 [knowfeat.data.schema_stats] INFO: Generated Stage 1 schema text: 18973 chars
+2026-05-30 16:54:30,134 [__main__] INFO: 噪声校准开始 (n_random=100) ...
+2026-05-30 16:54:40,834 [knowfeat.verification.statistics] INFO: 噪声校准完成: IV p95=0.0002 (threshold=0.0200), KS p95=0.0043 (threshold=0.0200)
+2026-05-30 16:54:41,351 [__main__] INFO: ============================================================
+2026-05-30 16:54:41,351 [__main__] INFO: Round 1/5 开始 (已接受=0, 候选=0)
+2026-05-30 16:54:41,353 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 16:54:41,353 [knowfeat.prompt.builder] INFO: System prompt assembled: 26299 chars, 4 sections (stage=stage1)
+2026-05-30 16:54:41,353 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 1 (generated=0, budget=3)
+2026-05-30 16:54:41,968 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+2026-05-30 16:54:55,172 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 2 (generated=0, budget=3)
+2026-05-30 16:54:55,621 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+S fields: ['SW', 'S1-1', 'S1-2', 'S1-3', 'S1-4', 'S1-5', 'S1-6', 'S2-1', 'S2-2', 'S2-3', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9']
+2026-05-30 16:54:57,811 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 3 (generated=0, budget=3)
+2026-05-30 16:54:58,153 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.1070, median: 0.0000
+2026-05-30 16:55:08,567 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 4 (generated=0, budget=3)
+2026-05-30 16:55:08,827 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.0385, median: 0.0000
+2026-05-30 16:55:19,866 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 5 (generated=0, budget=3)
+2026-05-30 16:55:20,305 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 11.7660, median: 0.0000
+2026-05-30 16:55:31,123 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 6 (generated=0, budget=3)
+2026-05-30 16:55:31,609 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal >0: 99.2%, >1: 5.1%
+2026-05-30 16:55:43,627 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 7 (generated=0, budget=3)
+2026-05-30 16:55:44,025 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal >0: 42.3%
+2026-05-30 16:55:57,897 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 8 (generated=0, budget=3)
+2026-05-30 16:55:58,222 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 16:56:33,821 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 9 (generated=0, budget=3)
+2026-05-30 16:56:34,257 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal 0.99: 17.2605
+2026-05-30 16:56:41,701 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 10 (generated=0, budget=3)
+2026-05-30 16:56:42,153 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 1.1625, median: 0.0000
+2026-05-30 16:56:52,476 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 11 (generated=0, budget=3)
+2026-05-30 16:56:52,856 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 1759925898.6688, median: 1.0000
+2026-05-30 16:57:02,580 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 12 (generated=0, budget=3)
+2026-05-30 16:57:03,006 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 16:57:08,288 [knowfeat.agent.tools] INFO: 特征已注册: freq_amount_ratio_log (维度=['金额频次'])
+2026-05-30 16:57:08,288 [knowfeat.agent.react_agent] INFO: 特征已注册: freq_amount_ratio_log
+2026-05-30 16:57:08,288 [knowfeat.agent.react_agent] INFO: 自动触发验证: freq_amount_ratio_log
+2026-05-30 16:57:11,875 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_freq_amount_ratio_log, 输出 shape=(544462, 2)
+2026-05-30 16:57:13,514 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.7784 KS=0.2196 缺失率=0.00% 冗余度=0.0000
+2026-05-30 16:59:40,341 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9814 new_recall=0.9812 delta_recall=-0.0002 precision=0.9434 delta_f1=-0.0003 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 16:59:40,380 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: freq_amount_ratio_log (delta_recall=-0.0002 <= 0.0)
+2026-05-30 16:59:40,381 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 13 (generated=1, budget=3)
+2026-05-30 16:59:40,814 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  CI2a23-2: 6.26x
+2026-05-30 16:59:48,206 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 14 (generated=1, budget=3)
+2026-05-30 16:59:48,550 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 61.2254, median: 0.0000
+2026-05-30 16:59:56,343 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 15 (generated=1, budget=3)
+2026-05-30 16:59:56,769 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal >0: 90.41%
+2026-05-30 17:00:05,656 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 16 (generated=1, budget=3)
+2026-05-30 17:00:05,981 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 892650290.5217, median: 54601.0000
+2026-05-30 17:00:14,304 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 17 (generated=1, budget=3)
+2026-05-30 17:00:14,775 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:00:19,678 [knowfeat.agent.tools] INFO: 特征已注册: conc_disp_ratio_recv (维度=['金额频次'])
+2026-05-30 17:00:19,678 [knowfeat.agent.react_agent] INFO: 特征已注册: conc_disp_ratio_recv
+2026-05-30 17:00:19,678 [knowfeat.agent.react_agent] INFO: 自动触发验证: conc_disp_ratio_recv
+2026-05-30 17:00:23,083 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_conc_disp_ratio_recv, 输出 shape=(544462, 2)
+2026-05-30 17:00:24,811 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.8961 KS=0.3158 缺失率=0.00% 冗余度=0.0000
+2026-05-30 17:02:37,155 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9814 new_recall=0.9815 delta_recall=+0.0001 precision=0.9434 delta_f1=-0.0002
+2026-05-30 17:02:37,207 [knowfeat.agent.tools] INFO: L3 通过 → 已接受: conc_disp_ratio_recv (delta_recall=+0.0001)
+2026-05-30 17:02:37,207 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 18 (generated=2, budget=3)
+2026-05-30 17:02:37,544 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:02:43,345 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 19 (generated=2, budget=3)
+2026-05-30 17:02:43,667 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa15-1 和 PTIa41-2 相关性: -0.0041
+2026-05-30 17:02:47,659 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 20 (generated=2, budget=3)
+2026-05-30 17:02:47,956 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.0618, median: 0.0000
+2026-05-30 17:02:55,858 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 21 (generated=2, budget=3)
+2026-05-30 17:02:56,123 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.014179, median: 0.000000
+2026-05-30 17:03:05,236 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 22 (generated=2, budget=3)
+2026-05-30 17:03:05,574 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.3056, median: 0.0000
+2026-05-30 17:03:14,079 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 23 (generated=2, budget=3)
+2026-05-30 17:03:14,519 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 21.3363, median: 0.0000
+2026-05-30 17:03:22,543 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 24 (generated=2, budget=3)
+2026-05-30 17:03:22,889 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.1247, median: 0.0037
+2026-05-30 17:03:30,780 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 25 (generated=2, budget=3)
+2026-05-30 17:03:31,155 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:03:35,504 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 26 (generated=2, budget=3)
+2026-05-30 17:03:35,823 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  vs PAIa14-R4: 0.9008
+2026-05-30 17:03:41,421 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 27 (generated=2, budget=3)
+2026-05-30 17:03:41,771 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 12.3990, median: 0.0000
+2026-05-30 17:03:51,528 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 28 (generated=2, budget=3)
+2026-05-30 17:03:51,884 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  normal mean: 0.7501, median: 0.6931
+2026-05-30 17:03:59,739 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 29 (generated=2, budget=3)
+2026-05-30 17:04:00,041 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:04:04,127 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 30 (generated=2, budget=3)
+2026-05-30 17:04:04,621 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  vs PAIa13: 0.0001
+2026-05-30 17:04:11,076 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 — step 31 (generated=2, budget=3)
+2026-05-30 17:04:11,446 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:04:16,412 [knowfeat.agent.tools] INFO: 特征已注册: flow_speed_log (维度=['金额频次'])
+2026-05-30 17:04:16,413 [knowfeat.agent.react_agent] INFO: 特征已注册: flow_speed_log
+2026-05-30 17:04:16,413 [knowfeat.agent.react_agent] INFO: 自动触发验证: flow_speed_log
+2026-05-30 17:04:19,835 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_flow_speed_log, 输出 shape=(544462, 2)
+2026-05-30 17:04:21,546 [knowfeat.verification.statistics] INFO: L2 统计验证 未通过: IV=0.6794 KS=0.3266 缺失率=0.00% 冗余度=0.8529 | 原因: 冗余度=0.8529 > 0.7
+2026-05-30 17:04:21,546 [knowfeat.agent.tools] INFO: L2 统计失败: flow_speed_log
+2026-05-30 17:04:21,547 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=3, validated=3, budget=3)
+2026-05-30 17:04:21,547 [knowfeat.agent.react_agent] INFO: Round 1 / 金额频次 完成: generated=3, accepted=1, candidates=1, rejected=1, steps=31, reason=budget_exhausted
+2026-05-30 17:04:21,549 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 17:04:21,550 [knowfeat.prompt.builder] INFO: System prompt assembled: 26911 chars, 5 sections (stage=stage1)
+2026-05-30 17:04:21,550 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 1 (generated=0, budget=3)
+2026-05-30 17:04:21,812 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+          CI3a31-1  CI3a31-2  CI3a32-1  ...  CI3a32-4  CI3a33-1  CI3a33-2
+CI3a31-1     1.000     0.009     0.890  ...     0.014     0.399     0.009
+CI3a31-2     0.009     1.000     0.004  ...     0.464     0.015     0.630
+CI3a32-1     0.890     0.004     1.000  ...    -0.000     0.003    -0.001
+CI3a32-2     0.284     0.016     0.158  ...     0.334     0.558     0.054
+CI3a32-3     0.005     0.713     0.005  ...     0.116    -0.000     0.005
+CI3a32-4     0.014     0.464    -0.000  ...     1.000     0.078     0.762
+CI3a33-1     0.399     0.015     0.003  ...     0.078     1.000     0.034
+CI3a33-2     0.009     0.630    -0.001  ...     0.762     0.034     1.000
+
+[8 rows x 8 columns]
+2026-05-30 17:04:27,266 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 2 (generated=0, budget=3)
+2026-05-30 17:04:27,511 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+2026-05-30 17:04:35,475 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 3 (generated=0, budget=3)
+2026-05-30 17:04:35,908 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  p99: illicit=-0.0628, normal=-0.1081
+2026-05-30 17:04:41,593 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 4 (generated=0, budget=3)
+2026-05-30 17:04:41,911 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+          PAIa11-1  PAIa13  CI2a32-2  ...  CI2a23-2  PTIa41-2  CI2a12-2
+CI3a31-1     0.006    -0.0     0.004  ...     0.001    -0.013     0.004
+CI3a31-2     0.006     0.0     0.003  ...    -0.000    -0.025     0.004
+CI3a32-1    -0.000    -0.0     0.000  ...     0.000    -0.007    -0.000
+CI3a32-2     0.252    -0.0     0.166  ...     0.006    -0.014     0.143
+CI3a32-3    -0.000    -0.0    -0.000  ...    -0.000    -0.010    -0.000
+CI3a32-4     0.253     0.0     0.152  ...     0.006    -0.026     0.146
+CI3a33-1     0.039    -0.0     0.029  ...     0.001    -0.018     0.023
+CI3a33-2     0.024     0.0     0.013  ...     0.000    -0.029     0.015
+
+[8 rows x 8 columns]
+2026-05-30 17:04:45,859 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 5 (generated=0, budget=3)
+2026-05-30 17:04:46,128 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:04:50,264 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 6 (generated=0, budget=3)
+2026-05-30 17:04:50,518 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit mean=-0.2112, normal mean=-0.2672
+2026-05-30 17:04:55,627 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 7 (generated=0, budget=3)
+2026-05-30 17:04:55,880 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:05:01,933 [knowfeat.agent.tools] INFO: 特征已注册: time_interval_volatility_product (维度=['时间地域'])
+2026-05-30 17:05:01,934 [knowfeat.agent.react_agent] INFO: 特征已注册: time_interval_volatility_product
+2026-05-30 17:05:01,934 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_interval_volatility_product
+2026-05-30 17:05:05,231 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_interval_volatility_product, 输出 shape=(544462, 2)
+2026-05-30 17:05:06,888 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.1947 KS=0.1952 缺失率=0.00% 冗余度=0.2036
+2026-05-30 17:07:23,927 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9815 new_recall=0.9811 delta_recall=-0.0004 precision=0.9445 delta_f1=+0.0004 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 17:07:23,971 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_interval_volatility_product (delta_recall=-0.0004 <= 0.0)
+2026-05-30 17:07:23,971 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 8 (generated=1, budget=3)
+2026-05-30 17:07:24,367 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit >0: 0.9%, normal >0: 7.3%
+2026-05-30 17:07:30,979 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 9 (generated=1, budget=3)
+2026-05-30 17:07:31,309 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  S1-6 vs CI3a31-2: -0.0593
+2026-05-30 17:07:35,305 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 10 (generated=1, budget=3)
+2026-05-30 17:07:35,522 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:07:41,510 [knowfeat.agent.tools] INFO: 特征已注册: time_entropy_irregularity_score (维度=['时间地域'])
+2026-05-30 17:07:41,510 [knowfeat.agent.react_agent] INFO: 特征已注册: time_entropy_irregularity_score
+2026-05-30 17:07:41,511 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_entropy_irregularity_score
+2026-05-30 17:07:45,510 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_entropy_irregularity_score, 输出 shape=(544462, 2)
+2026-05-30 17:07:47,188 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.1051 KS=0.1953 缺失率=0.00% 冗余度=0.1556
+2026-05-30 17:09:59,127 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9815 new_recall=0.9813 delta_recall=-0.0002 precision=0.9438 delta_f1=+0.0001 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:09:59,165 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_entropy_irregularity_score (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:09:59,165 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 11 (generated=2, budget=3)
+2026-05-30 17:09:59,547 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:10:05,440 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 12 (generated=2, budget=3)
+2026-05-30 17:10:05,769 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S3 vs PDIa13: -0.0014
+2026-05-30 17:10:10,241 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 13 (generated=2, budget=3)
+2026-05-30 17:10:10,519 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  p99: illicit=177.8730, normal=101.5885
+2026-05-30 17:10:17,596 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 14 (generated=2, budget=3)
+2026-05-30 17:10:17,915 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  S3 vs CI2a12-2: -0.0014
+2026-05-30 17:10:21,787 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 — step 15 (generated=2, budget=3)
+2026-05-30 17:10:22,078 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:10:27,854 [knowfeat.agent.tools] INFO: 特征已注册: time_autocorr_recv_min_ratio (维度=['时间地域'])
+2026-05-30 17:10:27,854 [knowfeat.agent.react_agent] INFO: 特征已注册: time_autocorr_recv_min_ratio
+2026-05-30 17:10:27,854 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_autocorr_recv_min_ratio
+2026-05-30 17:10:31,225 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_autocorr_recv_min_ratio, 输出 shape=(544462, 2)
+2026-05-30 17:10:32,855 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.5035 KS=0.1892 缺失率=0.00% 冗余度=0.2299
+2026-05-30 17:12:37,909 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9815 new_recall=0.9812 delta_recall=-0.0003 precision=0.9440 delta_f1=+0.0002 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 17:12:37,954 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_autocorr_recv_min_ratio (delta_recall=-0.0003 <= 0.0)
+2026-05-30 17:12:37,954 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=3, validated=3, budget=3)
+2026-05-30 17:12:37,954 [knowfeat.agent.react_agent] INFO: Round 1 / 时间地域 完成: generated=3, accepted=0, candidates=3, rejected=0, steps=15, reason=budget_exhausted
+2026-05-30 17:12:37,955 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 17:12:37,956 [knowfeat.prompt.builder] INFO: System prompt assembled: 26911 chars, 5 sections (stage=stage1)
+2026-05-30 17:12:37,956 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 1 (generated=0, budget=3)
+2026-05-30 17:12:38,172 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S5             : 正常中位数=2.1931, 异常中位数=2.8272
+2026-05-30 17:12:44,917 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 2 (generated=0, budget=3)
+2026-05-30 17:12:45,198 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=21.0567, median=0.3333
+2026-05-30 17:12:57,262 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 3 (generated=0, budget=3)
+2026-05-30 17:12:57,602 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.053999, median=0.010417
+2026-05-30 17:13:07,990 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 4 (generated=0, budget=3)
+2026-05-30 17:13:08,190 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa41-2 vs CI2a12-2       : -0.0011
+2026-05-30 17:13:18,477 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 5 (generated=0, budget=3)
+2026-05-30 17:13:18,726 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+asym vs PTIa41-3       : -0.0643
+2026-05-30 17:13:25,805 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 6 (generated=0, budget=3)
+2026-05-30 17:13:26,006 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  正常 1%: 75.4909, 异常 1%: 144.9783
+2026-05-30 17:13:37,340 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 7 (generated=0, budget=3)
+2026-05-30 17:13:37,551 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:13:45,561 [knowfeat.agent.tools] INFO: 特征已注册: recv_send_interval_symmetry (维度=['行为序列', '时间地域'])
+2026-05-30 17:13:45,562 [knowfeat.agent.react_agent] INFO: 特征已注册: recv_send_interval_symmetry
+2026-05-30 17:13:45,562 [knowfeat.agent.react_agent] INFO: 自动触发验证: recv_send_interval_symmetry
+2026-05-30 17:13:49,134 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_recv_send_interval_symmetry, 输出 shape=(544462, 2)
+2026-05-30 17:13:50,922 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.8561 KS=0.3781 缺失率=0.00% 冗余度=0.3329
+2026-05-30 17:16:06,019 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9815 new_recall=0.9811 delta_recall=-0.0003 precision=0.9438 delta_f1=+0.0001 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 17:16:06,061 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: recv_send_interval_symmetry (delta_recall=-0.0003 <= 0.0)
+2026-05-30 17:16:06,062 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 8 (generated=1, budget=3)
+2026-05-30 17:16:06,445 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+comp vs S5             : 0.3143
+2026-05-30 17:16:16,522 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 9 (generated=1, budget=3)
+2026-05-30 17:16:16,820 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+s5s6 vs S6             : 0.8412
+2026-05-30 17:16:22,759 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 10 (generated=1, budget=3)
+2026-05-30 17:16:23,073 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+conc_ratio vs PAIa22-2       : -0.0030
+2026-05-30 17:16:32,305 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 11 (generated=1, budget=3)
+2026-05-30 17:16:32,648 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vol_conc vs CI3a31-2       : 0.1317
+2026-05-30 17:16:37,761 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 12 (generated=1, budget=3)
+2026-05-30 17:16:38,147 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vol_send_conc vs CI3a31-2       : 0.9923
+2026-05-30 17:16:44,476 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 13 (generated=1, budget=3)
+2026-05-30 17:16:44,824 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+path_per_tx vs PDIa1-3        : -0.0219
+2026-05-30 17:16:54,105 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 14 (generated=1, budget=3)
+2026-05-30 17:16:54,424 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2979, p = 0.00e+00
+2026-05-30 17:17:00,649 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 15 (generated=1, budget=3)
+2026-05-30 17:17:00,979 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:17:08,211 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 16 (generated=1, budget=3)
+2026-05-30 17:17:08,540 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1862
+2026-05-30 17:17:17,431 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 17 (generated=1, budget=3)
+2026-05-30 17:17:17,802 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:17:25,652 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 18 (generated=1, budget=3)
+2026-05-30 17:17:25,986 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.0838
+2026-05-30 17:17:35,978 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 19 (generated=1, budget=3)
+2026-05-30 17:17:36,430 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:17:44,356 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 20 (generated=1, budget=3)
+2026-05-30 17:17:44,720 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.3344
+2026-05-30 17:17:50,943 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 21 (generated=1, budget=3)
+2026-05-30 17:17:51,311 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:17:57,893 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 22 (generated=1, budget=3)
+2026-05-30 17:17:58,272 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2944
+2026-05-30 17:18:05,931 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 23 (generated=1, budget=3)
+2026-05-30 17:18:06,305 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2659
+2026-05-30 17:18:16,521 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 24 (generated=1, budget=3)
+2026-05-30 17:18:17,005 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1952
+2026-05-30 17:18:26,658 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 25 (generated=1, budget=3)
+2026-05-30 17:18:27,063 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:18:35,270 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 26 (generated=1, budget=3)
+2026-05-30 17:18:35,651 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1952
+2026-05-30 17:18:41,895 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 27 (generated=1, budget=3)
+2026-05-30 17:18:42,430 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1739
+2026-05-30 17:18:51,593 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 28 (generated=1, budget=3)
+2026-05-30 17:18:51,936 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2643
+2026-05-30 17:19:02,709 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 29 (generated=1, budget=3)
+2026-05-30 17:19:03,131 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.3167
+2026-05-30 17:19:10,274 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 30 (generated=1, budget=3)
+2026-05-30 17:19:10,897 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.3632
+2026-05-30 17:19:21,424 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 31 (generated=1, budget=3)
+2026-05-30 17:19:21,915 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.3621
+2026-05-30 17:19:27,881 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 32 (generated=1, budget=3)
+2026-05-30 17:19:28,352 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:19:34,357 [knowfeat.agent.tools] INFO: 特征已注册: path_complexity_network_ratio (维度=['行为序列'])
+2026-05-30 17:19:34,357 [knowfeat.agent.react_agent] INFO: 特征已注册: path_complexity_network_ratio
+2026-05-30 17:19:34,357 [knowfeat.agent.react_agent] INFO: 自动触发验证: path_complexity_network_ratio
+2026-05-30 17:19:37,822 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_path_complexity_network_ratio, 输出 shape=(544462, 2)
+2026-05-30 17:19:39,566 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.2469 KS=0.3621 缺失率=0.00% 冗余度=0.0937
+2026-05-30 17:21:58,576 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9815 new_recall=0.9816 delta_recall=+0.0002 precision=0.9445 delta_f1=+0.0007
+2026-05-30 17:21:58,619 [knowfeat.agent.tools] INFO: L3 通过 → 已接受: path_complexity_network_ratio (delta_recall=+0.0002)
+2026-05-30 17:21:58,620 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 33 (generated=2, budget=3)
+2026-05-30 17:21:59,082 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1360
+2026-05-30 17:22:07,310 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 34 (generated=2, budget=3)
+2026-05-30 17:22:07,900 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.0894
+2026-05-30 17:22:17,055 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 35 (generated=2, budget=3)
+2026-05-30 17:22:17,548 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2305
+2026-05-30 17:22:27,305 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 36 (generated=2, budget=3)
+2026-05-30 17:22:27,760 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1952
+2026-05-30 17:22:37,292 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 37 (generated=2, budget=3)
+2026-05-30 17:22:37,748 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1274
+2026-05-30 17:22:46,786 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 38 (generated=2, budget=3)
+2026-05-30 17:22:47,296 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2521
+2026-05-30 17:22:55,464 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 39 (generated=2, budget=3)
+2026-05-30 17:22:55,936 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.1513
+2026-05-30 17:23:04,981 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 40 (generated=2, budget=3)
+2026-05-30 17:23:05,458 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2811
+2026-05-30 17:23:15,189 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 41 (generated=2, budget=3)
+2026-05-30 17:23:15,614 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS = 0.2785
+2026-05-30 17:23:25,782 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 42 (generated=2, budget=3)
+2026-05-30 17:23:26,204 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+IV = 0.8134
+2026-05-30 17:23:31,225 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 — step 43 (generated=2, budget=3)
+2026-05-30 17:23:31,784 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:23:37,376 [knowfeat.agent.tools] INFO: 特征已注册: recv_concentration_activity_rank (维度=['行为序列'])
+2026-05-30 17:23:37,376 [knowfeat.agent.react_agent] INFO: 特征已注册: recv_concentration_activity_rank
+2026-05-30 17:23:37,376 [knowfeat.agent.react_agent] INFO: 自动触发验证: recv_concentration_activity_rank
+2026-05-30 17:23:41,950 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_recv_concentration_activity_rank, 输出 shape=(544462, 2)
+2026-05-30 17:23:43,690 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.7728 KS=0.2785 缺失率=0.00% 冗余度=0.1206
+2026-05-30 17:25:53,335 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9816 new_recall=0.9813 delta_recall=-0.0004 precision=0.9444 delta_f1=-0.0002 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 17:25:53,379 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: recv_concentration_activity_rank (delta_recall=-0.0004 <= 0.0)
+2026-05-30 17:25:53,379 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=3, validated=3, budget=3)
+2026-05-30 17:25:53,379 [knowfeat.agent.react_agent] INFO: Round 1 / 行为序列 完成: generated=3, accepted=1, candidates=2, rejected=0, steps=43, reason=budget_exhausted
+2026-05-30 17:25:53,381 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 17:25:53,381 [knowfeat.prompt.builder] INFO: System prompt assembled: 27658 chars, 5 sections (stage=stage1)
+2026-05-30 17:25:53,381 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 1 (generated=0, budget=3)
+2026-05-30 17:25:53,770 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:25:58,652 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 2 (generated=0, budget=3)
+2026-05-30 17:25:58,936 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.8973303257128644
+2026-05-30 17:26:04,539 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 3 (generated=0, budget=3)
+2026-05-30 17:26:04,757 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:26:09,817 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 4 (generated=0, budget=3)
+2026-05-30 17:26:10,076 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit mean: 0.15345892415395407, median: 0.0
+2026-05-30 17:26:16,024 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 5 (generated=0, budget=3)
+2026-05-30 17:26:16,290 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:26:22,309 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 6 (generated=0, budget=3)
+2026-05-30 17:26:22,591 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+licit: 11.819934127382629, illicit: 18.35178047882002, ratio: 1.5526127541020218
+2026-05-30 17:26:28,285 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 7 (generated=0, budget=3)
+2026-05-30 17:26:28,547 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:26:33,257 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 8 (generated=0, budget=3)
+2026-05-30 17:26:33,634 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+licit: 8.0092065140159, illicit: 15.338451806799391, ratio: 1.9151025485430428
+2026-05-30 17:26:38,192 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 9 (generated=0, budget=3)
+2026-05-30 17:26:38,425 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit S5*S6 vs S2-2 corr: -0.5293
+2026-05-30 17:26:43,295 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 10 (generated=0, budget=3)
+2026-05-30 17:26:43,606 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:26:50,179 [knowfeat.agent.tools] INFO: 特征已注册: network_centrality_density (维度=['主体关联'])
+2026-05-30 17:26:50,179 [knowfeat.agent.react_agent] INFO: 特征已注册: network_centrality_density
+2026-05-30 17:26:50,179 [knowfeat.agent.react_agent] INFO: 自动触发验证: network_centrality_density
+2026-05-30 17:26:53,633 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_network_centrality_density, 输出 shape=(544462, 2)
+2026-05-30 17:26:55,393 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.7153 KS=0.4840 缺失率=0.00% 冗余度=0.1101
+2026-05-30 17:29:26,362 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9816 new_recall=0.9814 delta_recall=-0.0002 precision=0.9443 delta_f1=-0.0002 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:29:26,415 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: network_centrality_density (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:29:26,416 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 11 (generated=1, budget=3)
+2026-05-30 17:29:26,791 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.5884
+2026-05-30 17:29:34,064 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 12 (generated=1, budget=3)
+2026-05-30 17:29:34,311 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.0341
+2026-05-30 17:29:40,645 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 13 (generated=1, budget=3)
+2026-05-30 17:29:40,909 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 22.6444
+2026-05-30 17:29:47,563 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 14 (generated=1, budget=3)
+2026-05-30 17:29:47,863 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.1792
+2026-05-30 17:29:54,833 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 15 (generated=1, budget=3)
+2026-05-30 17:29:55,067 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 4.3259
+2026-05-30 17:30:01,011 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 16 (generated=1, budget=3)
+2026-05-30 17:30:01,240 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:30:06,530 [knowfeat.agent.tools] INFO: 特征已注册: network_flow_efficiency (维度=['主体关联', '时间地域'])
+2026-05-30 17:30:06,531 [knowfeat.agent.react_agent] INFO: 特征已注册: network_flow_efficiency
+2026-05-30 17:30:06,531 [knowfeat.agent.react_agent] INFO: 自动触发验证: network_flow_efficiency
+2026-05-30 17:30:10,328 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_network_flow_efficiency, 输出 shape=(544462, 2)
+2026-05-30 17:30:12,308 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.4911 KS=0.4839 缺失率=0.00% 冗余度=0.1489
+2026-05-30 17:33:09,333 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9816 new_recall=0.9813 delta_recall=-0.0003 precision=0.9442 delta_f1=-0.0003 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 17:33:09,405 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: network_flow_efficiency (delta_recall=-0.0003 <= 0.0)
+2026-05-30 17:33:09,406 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 17 (generated=2, budget=3)
+2026-05-30 17:33:09,882 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit: mean=1.3045, median=0.0000
+2026-05-30 17:33:18,152 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 18 (generated=2, budget=3)
+2026-05-30 17:33:18,451 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 9.9260
+2026-05-30 17:33:24,478 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 19 (generated=2, budget=3)
+2026-05-30 17:33:24,858 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.2514
+2026-05-30 17:33:31,168 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 20 (generated=2, budget=3)
+2026-05-30 17:33:31,683 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 0.9063
+2026-05-30 17:33:38,109 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 21 (generated=2, budget=3)
+2026-05-30 17:33:38,427 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 3.5105
+2026-05-30 17:33:44,500 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 22 (generated=2, budget=3)
+2026-05-30 17:33:44,927 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 3.4147
+2026-05-30 17:33:51,859 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 23 (generated=2, budget=3)
+2026-05-30 17:33:52,196 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+CI3a23-2 vs S2-2: -0.0053
+2026-05-30 17:33:58,749 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 24 (generated=2, budget=3)
+2026-05-30 17:33:59,245 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit mean rank: 0.6172
+2026-05-30 17:34:05,188 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 25 (generated=2, budget=3)
+2026-05-30 17:34:05,561 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 0.4840
+2026-05-30 17:34:10,813 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 26 (generated=2, budget=3)
+2026-05-30 17:34:11,146 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.3043
+2026-05-30 17:34:17,309 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 27 (generated=2, budget=3)
+2026-05-30 17:34:17,695 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 3.3461
+2026-05-30 17:34:23,366 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 28 (generated=2, budget=3)
+2026-05-30 17:34:23,705 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio: 1.6256
+2026-05-30 17:34:29,133 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 — step 29 (generated=2, budget=3)
+2026-05-30 17:34:29,622 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:34:35,273 [knowfeat.agent.tools] INFO: 特征已注册: counterparty_diversity_centrality (维度=['主体关联'])
+2026-05-30 17:34:35,273 [knowfeat.agent.react_agent] INFO: 特征已注册: counterparty_diversity_centrality
+2026-05-30 17:34:35,274 [knowfeat.agent.react_agent] INFO: 自动触发验证: counterparty_diversity_centrality
+2026-05-30 17:34:39,808 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_counterparty_diversity_centrality, 输出 shape=(544462, 2)
+2026-05-30 17:34:41,990 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.6019 KS=0.3473 缺失率=0.00% 冗余度=0.2067
+2026-05-30 17:37:16,691 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9816 new_recall=0.9818 delta_recall=+0.0001 precision=0.9447 delta_f1=+0.0002
+2026-05-30 17:37:16,743 [knowfeat.agent.tools] INFO: L3 通过 → 已接受: counterparty_diversity_centrality (delta_recall=+0.0001)
+2026-05-30 17:37:16,744 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=3, validated=3, budget=3)
+2026-05-30 17:37:16,744 [knowfeat.agent.react_agent] INFO: Round 1 / 主体关联 完成: generated=3, accepted=1, candidates=2, rejected=0, steps=29, reason=budget_exhausted
+2026-05-30 17:37:16,744 [__main__] INFO: 前向选择: 8 个候选特征
+2026-05-30 17:37:17,881 [knowfeat.search.forward_selection] INFO: 前向选择开始: 8 个候选特征
+2026-05-30 17:39:39,338 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9439 delta_f1=-0.0005 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:39:39,382 [knowfeat.search.forward_selection] INFO: 前向选择 [1/8] freq_amount_ratio_log → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:41:54,327 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9442 delta_f1=-0.0003 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:41:54,381 [knowfeat.search.forward_selection] INFO: 前向选择 [2/8] time_interval_volatility_product → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:44:08,580 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9815 delta_recall=-0.0003 precision=0.9442 delta_f1=-0.0004 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 17:44:08,632 [knowfeat.search.forward_selection] INFO: 前向选择 [3/8] time_entropy_irregularity_score → 拒绝 (delta_recall=-0.0003 <= 0.0)
+2026-05-30 17:46:21,029 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9814 delta_recall=-0.0004 precision=0.9442 delta_f1=-0.0004 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 17:46:21,094 [knowfeat.search.forward_selection] INFO: 前向选择 [4/8] time_autocorr_recv_min_ratio → 拒绝 (delta_recall=-0.0004 <= 0.0)
+2026-05-30 17:48:36,436 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9812 delta_recall=-0.0006 precision=0.9439 delta_f1=-0.0007 | 原因: delta_recall=-0.0006 <= 0.0
+2026-05-30 17:48:36,499 [knowfeat.search.forward_selection] INFO: 前向选择 [5/8] recv_send_interval_symmetry → 拒绝 (delta_recall=-0.0006 <= 0.0)
+2026-05-30 17:50:52,378 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9446 delta_f1=-0.0001 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:50:52,437 [knowfeat.search.forward_selection] INFO: 前向选择 [6/8] recv_concentration_activity_rank → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:53:06,054 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9437 delta_f1=-0.0006 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:53:06,113 [knowfeat.search.forward_selection] INFO: 前向选择 [7/8] network_centrality_density → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:55:23,352 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9442 delta_f1=-0.0003 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 17:55:23,407 [knowfeat.search.forward_selection] INFO: 前向选择 [8/8] network_flow_efficiency → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 17:55:23,407 [knowfeat.search.forward_selection] INFO: 前向选择完成: 0 接受, 8 拒绝 (共 8 候选)
+2026-05-30 17:57:17,431 [knowfeat.search.shap_feedback] INFO: SHAP 反馈: 152 特征, 维度贡献={'金额频次': '0.0685', '时间地域': '0.0000', '行为序列': '0.1690', '主体关联': '0.0194'}
+2026-05-30 17:57:17,431 [knowfeat.search.cross_dim] INFO: 跨维度传播: 更新 3/3 特征的 SHAP 排名
+2026-05-30 17:57:17,431 [knowfeat.search.dimension_manager] INFO: SHAP 反比预算分配: {'金额频次': 1, '时间地域': 9, '行为序列': 1, '主体关联': 1} (总预算=12)
+2026-05-30 17:57:17,431 [__main__] INFO: SHAP 反馈:
+## 当前特征 SHAP 重要性反馈
+
+### 维度贡献分布
+- 行为序列: 0.1690
+- 金额频次: 0.0685
+- 主体关联: 0.0194
+- 时间地域: 0.0000
+
+### 特征重要性排名（Top 10）
+| 排名 | 特征名 | SHAP值 | 维度 | 复合分 |
+|------|--------|--------|------|--------|
+| 1 | S1-6 | 1.0289 | - | 0.5000 |
+| 2 | S7 | 0.8945 | - | 0.3500 |
+| 3 | S6 | 0.3501 | - | 0.3000 |
+| 4 | PTIa41-2 | 0.2859 | - | 0.2750 |
+| 5 | PAIa14-3 | 0.2760 | - | 0.2600 |
+| 6 | SW | 0.2694 | - | 0.2500 |
+| 7 | S8 | 0.2515 | - | 0.2429 |
+| 8 | PTIa41-3 | 0.2023 | - | 0.2375 |
+| 9 | S9 | 0.2004 | - | 0.2333 |
+| 10 | S2-1 | 0.1773 | - | 0.2300 |
+2026-05-30 17:57:17,431 [__main__] INFO: Round 1 完成: +3 特征, 总计 3/30
+2026-05-30 17:57:17,431 [__main__] INFO: 维度状态:
+维度 | 预算 | 已生成 | 已接受 | 候选 | 拒绝 | SHAP贡献
+--- | --- | --- | --- | --- | --- | ---
+金额频次 | 1 | 3 | 1 | 1 | 1 | 0.0685
+时间地域 | 9 | 3 | 0 | 3 | 0 | 0.0000
+行为序列 | 1 | 3 | 1 | 2 | 0 | 0.1690
+主体关联 | 1 | 3 | 1 | 2 | 0 | 0.0194
+2026-05-30 17:57:17,431 [__main__] INFO: ============================================================
+2026-05-30 17:57:17,431 [__main__] INFO: Round 2/5 开始 (已接受=3, 候选=0)
+2026-05-30 17:57:17,432 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 17:57:17,432 [knowfeat.prompt.builder] INFO: System prompt assembled: 31983 chars, 7 sections (stage=stage1)
+2026-05-30 17:57:17,432 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 1 (generated=0, budget=1)
+2026-05-30 17:57:17,782 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa22-2: -0.0834
+2026-05-30 17:57:22,672 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 2 (generated=0, budget=1)
+2026-05-30 17:57:22,895 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常中位数: 24.0000
+2026-05-30 17:57:30,725 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 3 (generated=0, budget=1)
+2026-05-30 17:57:31,009 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常中位数: 1.0000
+2026-05-30 17:57:39,689 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 4 (generated=0, budget=1)
+2026-05-30 17:57:40,001 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常中位数: 30000000000.0000
+2026-05-30 17:57:47,906 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 5 (generated=0, budget=1)
+2026-05-30 17:57:48,118 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa11-1: -0.0017
+2026-05-30 17:57:51,521 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 6 (generated=0, budget=1)
+2026-05-30 17:57:51,931 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常中位数: 10.0000
+2026-05-30 17:58:01,275 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 7 (generated=0, budget=1)
+2026-05-30 17:58:01,512 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa22-1: -0.1509
+2026-05-30 17:58:04,981 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 8 (generated=0, budget=1)
+2026-05-30 17:58:05,269 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与 PTIa41-2 相关性: -0.0011
+2026-05-30 17:58:13,025 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 9 (generated=0, budget=1)
+2026-05-30 17:58:13,669 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa22-1: -0.5607
+2026-05-30 17:58:20,788 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 10 (generated=0, budget=1)
+2026-05-30 17:58:21,625 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常中位数: 0.0000
+2026-05-30 17:58:28,374 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 11 (generated=0, budget=1)
+2026-05-30 17:58:28,688 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa14-R4: 0.1368
+2026-05-30 17:58:34,576 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 12 (generated=0, budget=1)
+2026-05-30 17:58:34,969 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa1: 0.2987
+2026-05-30 17:58:40,364 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 13 (generated=0, budget=1)
+2026-05-30 17:58:40,697 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S6: 0.3049
+2026-05-30 17:58:47,488 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 14 (generated=0, budget=1)
+2026-05-30 17:58:47,889 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa1: 0.2987
+2026-05-30 17:58:54,604 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 15 (generated=0, budget=1)
+2026-05-30 17:58:54,897 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S1-2: 0.2485
+2026-05-30 17:59:03,202 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 16 (generated=0, budget=1)
+2026-05-30 17:59:03,849 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+缺失率: 0.00%
+2026-05-30 17:59:09,997 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 — step 17 (generated=0, budget=1)
+2026-05-30 17:59:10,460 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 17:59:16,863 [knowfeat.agent.tools] INFO: 特征已注册: small_recv_high_freq_ratio (维度=['金额频次'])
+2026-05-30 17:59:16,863 [knowfeat.agent.react_agent] INFO: 特征已注册: small_recv_high_freq_ratio
+2026-05-30 17:59:16,863 [knowfeat.agent.react_agent] INFO: 自动触发验证: small_recv_high_freq_ratio
+2026-05-30 17:59:20,266 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_small_recv_high_freq_ratio, 输出 shape=(544462, 2)
+2026-05-30 17:59:21,940 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.5417 KS=0.3158 缺失率=0.00% 冗余度=0.2372
+2026-05-30 18:01:47,786 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9813 delta_recall=-0.0005 precision=0.9442 delta_f1=-0.0005 | 原因: delta_recall=-0.0005 <= 0.0
+2026-05-30 18:01:47,832 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: small_recv_high_freq_ratio (delta_recall=-0.0005 <= 0.0)
+2026-05-30 18:01:47,832 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=1, validated=1, budget=1)
+2026-05-30 18:01:47,832 [knowfeat.agent.react_agent] INFO: Round 2 / 金额频次 完成: generated=1, accepted=0, candidates=1, rejected=0, steps=17, reason=budget_exhausted
+2026-05-30 18:01:47,833 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 18:01:47,833 [knowfeat.prompt.builder] INFO: System prompt assembled: 32559 chars, 7 sections (stage=stage1)
+2026-05-30 18:01:47,834 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 1 (generated=0, budget=9)
+2026-05-30 18:01:48,165 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+CI3a33-2: 异常均值=28.6697, 正常均值=12.3990, 均值比=2.3123x | 异常中位数=0.0000, 正常中位数=0.0000, 中位数比=infx
+2026-05-30 18:01:53,473 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 2 (generated=0, budget=9)
+2026-05-30 18:01:53,737 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+              S1-6        S3        S7  ...  CI3a33-2  CI3a32-1  CI3a32-4
+S1-6      1.000000 -0.777525 -0.086845  ... -0.072939 -0.004066 -0.061844
+S3       -0.777525  1.000000 -0.045030  ...  0.059720  0.005705  0.049830
+S7       -0.086845 -0.045030  1.000000  ...  0.163514 -0.002860  0.221300
+CI3a31-2 -0.059290  0.048711  0.064970  ...  0.630246  0.003650  0.464447
+CI3a32-3 -0.022374  0.018579 -0.001507  ...  0.005155  0.005067  0.115534
+CI3a33-2 -0.072939  0.059720  0.163514  ...  1.000000 -0.000706  0.762207
+CI3a32-1 -0.004066  0.005705 -0.002860  ... -0.000706  1.000000 -0.000473
+CI3a32-4 -0.061844  0.049830  0.221300  ...  0.762207 -0.000473  1.000000
+
+[8 rows x 8 columns]
+2026-05-30 18:01:58,368 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 3 (generated=0, budget=9)
+2026-05-30 18:01:58,690 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa21-1/PAIa21-2: 异常=0.8984, 正常=0.7961, 比值=1.1284x
+2026-05-30 18:02:06,991 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 4 (generated=0, budget=9)
+2026-05-30 18:02:07,322 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=0.5629, 正常均值=0.2388, 比值=2.3573x
+2026-05-30 18:02:17,682 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 5 (generated=0, budget=9)
+2026-05-30 18:02:17,949 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=86053208643.4025, 正常均值=10914686089.2579, 比值=7.8842x
+2026-05-30 18:02:29,484 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 6 (generated=0, budget=9)
+2026-05-30 18:02:29,813 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+候选6 与 S7 相关性: -0.0664
+2026-05-30 18:02:35,566 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 7 (generated=0, budget=9)
+2026-05-30 18:02:35,815 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+候选6(PAIa21-3-PAIa21-4) 最大相关性: PAIa16-2 = 1.0000
+2026-05-30 18:02:47,826 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 8 (generated=0, budget=9)
+2026-05-30 18:02:48,201 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:02:55,073 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 9 (generated=0, budget=9)
+2026-05-30 18:02:55,469 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=9.5540, 正常均值=3.8875, 比值=2.4576x
+2026-05-30 18:03:10,175 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 10 (generated=0, budget=9)
+2026-05-30 18:03:10,492 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:03:18,430 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 11 (generated=0, budget=9)
+2026-05-30 18:03:18,750 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=25.4850, 正常均值=9.2321, 比值=2.7605x
+2026-05-30 18:03:35,174 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 12 (generated=0, budget=9)
+2026-05-30 18:03:35,919 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:03:44,228 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 13 (generated=0, budget=9)
+2026-05-30 18:03:44,689 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=8682022.6813, 正常均值=35598534.6554, 比值=0.2439x
+2026-05-30 18:04:02,068 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 14 (generated=0, budget=9)
+2026-05-30 18:04:03,862 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:04:09,965 [knowfeat.agent.tools] INFO: 特征已注册: time_entropy_autocorr_ratio (维度=['时间地域'])
+2026-05-30 18:04:09,965 [knowfeat.agent.react_agent] INFO: 特征已注册: time_entropy_autocorr_ratio
+2026-05-30 18:04:09,965 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_entropy_autocorr_ratio
+2026-05-30 18:04:13,387 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_entropy_autocorr_ratio, 输出 shape=(544462, 2)
+2026-05-30 18:04:15,143 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.4090 KS=0.4184 缺失率=0.00% 冗余度=0.0035
+2026-05-30 18:06:40,401 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9815 delta_recall=-0.0003 precision=0.9450 delta_f1=+0.0000 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 18:06:40,444 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_entropy_autocorr_ratio (delta_recall=-0.0003 <= 0.0)
+2026-05-30 18:06:40,444 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 15 (generated=1, budget=9)
+2026-05-30 18:06:41,298 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:06:45,784 [knowfeat.agent.tools] INFO: 特征已注册: time_entropy_ratio (维度=['时间地域'])
+2026-05-30 18:06:45,784 [knowfeat.agent.react_agent] INFO: 特征已注册: time_entropy_ratio
+2026-05-30 18:06:45,785 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_entropy_ratio
+2026-05-30 18:06:49,018 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_entropy_ratio, 输出 shape=(544462, 2)
+2026-05-30 18:06:50,644 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.3885 KS=0.4996 缺失率=0.00% 冗余度=0.0269
+2026-05-30 18:09:04,111 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9817 delta_recall=-0.0001 precision=0.9463 delta_f1=+0.0008 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 18:09:04,152 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_entropy_ratio (delta_recall=-0.0001 <= 0.0)
+2026-05-30 18:09:04,152 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 16 (generated=2, budget=9)
+2026-05-30 18:09:04,538 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=0.000707, 正常均值=0.000670
+2026-05-30 18:09:11,187 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 17 (generated=2, budget=9)
+2026-05-30 18:09:11,595 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:09:17,833 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 18 (generated=2, budget=9)
+2026-05-30 18:09:18,258 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=33052466316.6940, 正常均值=10024271064.1186, 比值=3.2972x
+2026-05-30 18:09:31,911 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 19 (generated=2, budget=9)
+2026-05-30 18:09:32,282 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:09:36,884 [knowfeat.agent.tools] INFO: 特征已注册: recv_interval_volatility_ratio (维度=['时间地域'])
+2026-05-30 18:09:36,884 [knowfeat.agent.react_agent] INFO: 特征已注册: recv_interval_volatility_ratio
+2026-05-30 18:09:36,884 [knowfeat.agent.react_agent] INFO: 自动触发验证: recv_interval_volatility_ratio
+2026-05-30 18:09:40,321 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_recv_interval_volatility_ratio, 输出 shape=(544462, 2)
+2026-05-30 18:09:41,984 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.3870 KS=0.2328 缺失率=0.00% 冗余度=0.0891
+2026-05-30 18:12:04,410 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9440 delta_f1=-0.0004 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 18:12:04,459 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: recv_interval_volatility_ratio (delta_recall=-0.0002 <= 0.0)
+2026-05-30 18:12:04,460 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 20 (generated=3, budget=9)
+2026-05-30 18:12:04,855 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:12:11,187 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 21 (generated=3, budget=9)
+2026-05-30 18:12:11,582 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=27.8531, 正常均值=5.3513, 比值=5.2050x
+2026-05-30 18:12:26,356 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 22 (generated=3, budget=9)
+2026-05-30 18:12:26,884 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:12:33,641 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 23 (generated=3, budget=9)
+2026-05-30 18:12:34,008 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=-0.0587, 正常均值=-0.1744, 比值=0.3365x
+2026-05-30 18:12:47,768 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 24 (generated=3, budget=9)
+2026-05-30 18:12:48,165 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: 0.5254
+2026-05-30 18:12:54,380 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 25 (generated=3, budget=9)
+2026-05-30 18:12:54,976 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:12:59,476 [knowfeat.agent.tools] INFO: 特征已注册: time_entropy_diff_signal (维度=['时间地域'])
+2026-05-30 18:12:59,476 [knowfeat.agent.react_agent] INFO: 特征已注册: time_entropy_diff_signal
+2026-05-30 18:12:59,476 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_entropy_diff_signal
+2026-05-30 18:13:02,841 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_entropy_diff_signal, 输出 shape=(544462, 2)
+2026-05-30 18:13:04,568 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.7219 KS=0.4818 缺失率=0.00% 冗余度=0.0881
+2026-05-30 18:15:26,918 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9817 delta_recall=-0.0001 precision=0.9462 delta_f1=+0.0007 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 18:15:26,968 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_entropy_diff_signal (delta_recall=-0.0001 <= 0.0)
+2026-05-30 18:15:26,968 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 26 (generated=4, budget=9)
+2026-05-30 18:15:27,360 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:15:33,263 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 27 (generated=4, budget=9)
+2026-05-30 18:15:33,645 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=762.5344, 正常均值=2379.3850, 比值=0.3205x
+2026-05-30 18:15:47,108 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 28 (generated=4, budget=9)
+2026-05-30 18:15:47,556 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:15:53,911 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 29 (generated=4, budget=9)
+2026-05-30 18:15:54,363 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=-0.0810, 正常均值=-0.1402, 比值=0.5781x
+2026-05-30 18:16:07,343 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 30 (generated=4, budget=9)
+2026-05-30 18:16:07,823 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:16:14,038 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 31 (generated=4, budget=9)
+2026-05-30 18:16:14,451 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=16422982.9811, 正常均值=49838865.9587, 比值=0.3295x
+2026-05-30 18:16:26,608 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 32 (generated=4, budget=9)
+2026-05-30 18:16:27,640 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:16:31,163 [knowfeat.agent.tools] INFO: 特征已注册: recv_interval_variance_log (维度=['时间地域'])
+2026-05-30 18:16:31,164 [knowfeat.agent.react_agent] INFO: 特征已注册: recv_interval_variance_log
+2026-05-30 18:16:31,164 [knowfeat.agent.react_agent] INFO: 自动触发验证: recv_interval_variance_log
+2026-05-30 18:16:34,591 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_recv_interval_variance_log, 输出 shape=(544462, 2)
+2026-05-30 18:16:36,299 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.1077 KS=0.1953 缺失率=0.00% 冗余度=0.1979
+2026-05-30 18:18:56,960 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9818 delta_recall=+0.0000 precision=0.9447 delta_f1=+0.0000 | 原因: delta_recall=+0.0000 <= 0.0
+2026-05-30 18:18:57,012 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: recv_interval_variance_log (delta_recall=+0.0000 <= 0.0)
+2026-05-30 18:18:57,012 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 33 (generated=5, budget=9)
+2026-05-30 18:18:57,670 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:19:02,141 [knowfeat.agent.tools] INFO: 特征已注册: time_concentration_regularity_ratio (维度=['时间地域'])
+2026-05-30 18:19:02,142 [knowfeat.agent.react_agent] INFO: 特征已注册: time_concentration_regularity_ratio
+2026-05-30 18:19:02,142 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_concentration_regularity_ratio
+2026-05-30 18:19:05,303 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_concentration_regularity_ratio, 输出 shape=(544462, 2)
+2026-05-30 18:19:06,434 [knowfeat.verification.statistics] INFO: L2 统计验证 未通过: IV=2.3627 KS=0.5251 缺失率=0.00% 冗余度=0.8958 | 原因: 冗余度=0.8958 > 0.7
+2026-05-30 18:19:06,434 [knowfeat.agent.tools] INFO: L2 统计失败: time_concentration_regularity_ratio
+2026-05-30 18:19:06,435 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 34 (generated=6, budget=9)
+2026-05-30 18:19:07,039 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:19:13,165 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 35 (generated=6, budget=9)
+2026-05-30 18:19:13,578 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=-0.0869, 正常均值=-0.2217, 比值=0.3920x
+2026-05-30 18:19:27,465 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 36 (generated=6, budget=9)
+2026-05-30 18:19:28,043 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:19:34,865 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 37 (generated=6, budget=9)
+2026-05-30 18:19:35,342 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=0.2184, 正常均值=0.3101, 比值=0.7043x
+2026-05-30 18:19:49,574 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 38 (generated=6, budget=9)
+2026-05-30 18:19:50,111 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:19:55,027 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 39 (generated=6, budget=9)
+2026-05-30 18:19:55,528 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=-0.025816, 正常均值=-0.008370
+2026-05-30 18:20:07,565 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 40 (generated=6, budget=9)
+2026-05-30 18:20:08,927 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:20:14,078 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 41 (generated=6, budget=9)
+2026-05-30 18:20:14,496 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=-0.008380, 正常均值=-0.002720, 比值=3.081061x
+2026-05-30 18:20:24,583 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 42 (generated=6, budget=9)
+2026-05-30 18:20:25,091 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:20:29,206 [knowfeat.agent.tools] INFO: 特征已注册: time_entropy_robust_diff (维度=['时间地域'])
+2026-05-30 18:20:29,206 [knowfeat.agent.react_agent] INFO: 特征已注册: time_entropy_robust_diff
+2026-05-30 18:20:29,206 [knowfeat.agent.react_agent] INFO: 自动触发验证: time_entropy_robust_diff
+2026-05-30 18:20:32,439 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_time_entropy_robust_diff, 输出 shape=(544462, 2)
+2026-05-30 18:20:34,066 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.0455 KS=0.8028 缺失率=0.00% 冗余度=0.1291
+2026-05-30 18:22:45,392 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9439 delta_f1=-0.0005 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 18:22:45,444 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: time_entropy_robust_diff (delta_recall=-0.0002 <= 0.0)
+2026-05-30 18:22:45,445 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 43 (generated=7, budget=9)
+2026-05-30 18:22:45,933 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:22:51,051 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 44 (generated=7, budget=9)
+2026-05-30 18:22:51,646 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=0.2971, 正常均值=0.0855, 比值=3.4740x
+2026-05-30 18:23:03,278 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 45 (generated=7, budget=9)
+2026-05-30 18:23:03,888 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:23:09,105 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 46 (generated=7, budget=9)
+2026-05-30 18:23:09,628 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=0.5127, 正常均值=0.2761, 比值=1.8568x
+2026-05-30 18:23:22,136 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 47 (generated=7, budget=9)
+2026-05-30 18:23:22,664 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:23:26,666 [knowfeat.agent.tools] INFO: 特征已注册: active_days_interval_concentration (维度=['时间地域'])
+2026-05-30 18:23:26,666 [knowfeat.agent.react_agent] INFO: 特征已注册: active_days_interval_concentration
+2026-05-30 18:23:26,667 [knowfeat.agent.react_agent] INFO: 自动触发验证: active_days_interval_concentration
+2026-05-30 18:23:29,990 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_active_days_interval_concentration, 输出 shape=(544462, 2)
+2026-05-30 18:23:31,708 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.5872 KS=0.3236 缺失率=0.00% 冗余度=0.0269
+2026-05-30 18:25:47,781 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9816 delta_recall=-0.0002 precision=0.9441 delta_f1=-0.0004 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 18:25:47,831 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: active_days_interval_concentration (delta_recall=-0.0002 <= 0.0)
+2026-05-30 18:25:47,832 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 48 (generated=8, budget=9)
+2026-05-30 18:25:48,387 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:25:53,792 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 49 (generated=8, budget=9)
+2026-05-30 18:25:54,255 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常均值=7.0823, 正常均值=3.3742, 比值=2.0990x
+2026-05-30 18:26:06,828 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 — step 50 (generated=8, budget=9)
+2026-05-30 18:26:07,374 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:26:11,605 [knowfeat.agent.tools] INFO: 特征已注册: send_recv_interval_asymmetry (维度=['时间地域'])
+2026-05-30 18:26:11,605 [knowfeat.agent.react_agent] INFO: 特征已注册: send_recv_interval_asymmetry
+2026-05-30 18:26:11,605 [knowfeat.agent.react_agent] INFO: 自动触发验证: send_recv_interval_asymmetry
+2026-05-30 18:26:15,013 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_send_recv_interval_asymmetry, 输出 shape=(544462, 2)
+2026-05-30 18:26:16,750 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.1913 KS=0.3129 缺失率=0.00% 冗余度=0.3396
+2026-05-30 18:28:38,102 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9815 delta_recall=-0.0003 precision=0.9439 delta_f1=-0.0005 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 18:28:38,153 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: send_recv_interval_asymmetry (delta_recall=-0.0003 <= 0.0)
+2026-05-30 18:28:38,153 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=9, validated=9, budget=9)
+2026-05-30 18:28:38,154 [knowfeat.agent.react_agent] INFO: Round 2 / 时间地域 完成: generated=9, accepted=0, candidates=8, rejected=1, steps=50, reason=budget_exhausted
+2026-05-30 18:28:38,155 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 18:28:38,155 [knowfeat.prompt.builder] INFO: System prompt assembled: 31797 chars, 7 sections (stage=stage1)
+2026-05-30 18:28:38,155 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 1 (generated=0, budget=1)
+2026-05-30 18:28:38,504 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S1-6: 异常均值=0.2230, 正常均值=0.5896, 均值比=0.38x, 中位数比=0.14x
+2026-05-30 18:28:43,653 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 2 (generated=0, budget=1)
+2026-05-30 18:28:43,889 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常样本中两者都=0的比例: 0.42849455058387914
+2026-05-30 18:28:47,728 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 3 (generated=0, budget=1)
+2026-05-30 18:28:48,023 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:28:52,817 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 4 (generated=0, budget=1)
+2026-05-30 18:28:53,163 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI3a32-3 的相关系数: 0.1501
+2026-05-30 18:28:59,443 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 5 (generated=0, budget=1)
+2026-05-30 18:28:59,739 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 0.83x
+2026-05-30 18:29:10,652 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 6 (generated=0, budget=1)
+2026-05-30 18:29:11,565 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI2a32-2 的相关系数: 0.0850
+2026-05-30 18:29:21,008 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 7 (generated=0, budget=1)
+2026-05-30 18:29:21,336 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: -0.0004
+2026-05-30 18:29:31,311 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 8 (generated=0, budget=1)
+2026-05-30 18:29:31,554 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: -0.0755
+2026-05-30 18:29:42,541 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 9 (generated=0, budget=1)
+2026-05-30 18:29:42,788 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 PAIa14-3 的相关系数: -0.0028
+2026-05-30 18:29:53,020 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 10 (generated=0, budget=1)
+2026-05-30 18:29:53,651 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 0.66x
+2026-05-30 18:30:02,650 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 11 (generated=0, budget=1)
+2026-05-30 18:30:03,889 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:30:12,335 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 12 (generated=0, budget=1)
+2026-05-30 18:30:12,702 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI3a32-3 的相关系数: 0.1930
+2026-05-30 18:30:20,447 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 13 (generated=0, budget=1)
+2026-05-30 18:30:20,728 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 0.90x
+2026-05-30 18:30:30,484 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 14 (generated=0, budget=1)
+2026-05-30 18:30:31,341 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:30:39,995 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 15 (generated=0, budget=1)
+2026-05-30 18:30:40,262 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 1.11x
+2026-05-30 18:30:49,884 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 16 (generated=0, budget=1)
+2026-05-30 18:30:50,330 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 3.36x
+2026-05-30 18:30:58,940 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 17 (generated=0, budget=1)
+2026-05-30 18:30:59,256 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.7445
+2026-05-30 18:31:08,769 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 18 (generated=0, budget=1)
+2026-05-30 18:31:09,141 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 0.83x
+2026-05-30 18:31:19,703 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 19 (generated=0, budget=1)
+2026-05-30 18:31:19,999 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.2901
+2026-05-30 18:31:29,294 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 20 (generated=0, budget=1)
+2026-05-30 18:31:30,166 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI3a33-2 的相关系数: 0.4931
+2026-05-30 18:31:40,010 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 21 (generated=0, budget=1)
+2026-05-30 18:31:40,387 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI3a32-3 的相关系数: 0.1469
+2026-05-30 18:31:49,917 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 22 (generated=0, budget=1)
+2026-05-30 18:31:50,219 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.0528
+2026-05-30 18:31:59,521 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 23 (generated=0, budget=1)
+2026-05-30 18:31:59,840 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.7064
+2026-05-30 18:32:09,117 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 24 (generated=0, budget=1)
+2026-05-30 18:32:09,461 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI2a23-1 的相关系数: -0.0012
+2026-05-30 18:32:18,996 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 25 (generated=0, budget=1)
+2026-05-30 18:32:19,475 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:32:27,316 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 26 (generated=0, budget=1)
+2026-05-30 18:32:27,678 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:32:35,227 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 27 (generated=0, budget=1)
+2026-05-30 18:32:35,557 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.6673
+2026-05-30 18:32:43,605 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 28 (generated=0, budget=1)
+2026-05-30 18:32:44,052 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:32:50,235 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 29 (generated=0, budget=1)
+2026-05-30 18:32:50,685 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 CI2a23-1 的相关系数: -0.0026
+2026-05-30 18:32:59,706 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 30 (generated=0, budget=1)
+2026-05-30 18:33:00,092 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:33:06,365 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 31 (generated=0, budget=1)
+2026-05-30 18:33:06,872 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:33:12,393 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 32 (generated=0, budget=1)
+2026-05-30 18:33:12,855 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:33:18,318 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 33 (generated=0, budget=1)
+2026-05-30 18:33:18,645 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:33:23,680 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 34 (generated=0, budget=1)
+2026-05-30 18:33:24,494 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  与 S5 的相关系数: 0.6974
+2026-05-30 18:33:27,859 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 35 (generated=0, budget=1)
+2026-05-30 18:33:28,337 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+均值比: 1.36x
+2026-05-30 18:33:35,364 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 36 (generated=0, budget=1)
+2026-05-30 18:33:35,801 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS p值: 0.000000
+2026-05-30 18:33:54,130 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 — step 37 (generated=0, budget=1)
+2026-05-30 18:33:54,974 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:34:00,241 [knowfeat.agent.tools] INFO: 特征已注册: path_activity_harmonic_rank (维度=['行为序列'])
+2026-05-30 18:34:00,241 [knowfeat.agent.react_agent] INFO: 特征已注册: path_activity_harmonic_rank
+2026-05-30 18:34:00,242 [knowfeat.agent.react_agent] INFO: 自动触发验证: path_activity_harmonic_rank
+2026-05-30 18:34:04,597 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_path_activity_harmonic_rank, 输出 shape=(544462, 2)
+2026-05-30 18:34:05,758 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.9202 KS=0.3342 缺失率=0.00% 冗余度=0.3119
+2026-05-30 18:36:20,105 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9818 new_recall=0.9814 delta_recall=-0.0004 precision=0.9439 delta_f1=-0.0006 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 18:36:20,153 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: path_activity_harmonic_rank (delta_recall=-0.0004 <= 0.0)
+2026-05-30 18:36:20,153 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=1, validated=1, budget=1)
+2026-05-30 18:36:20,153 [knowfeat.agent.react_agent] INFO: Round 2 / 行为序列 完成: generated=1, accepted=0, candidates=1, rejected=0, steps=37, reason=budget_exhausted
+2026-05-30 18:36:20,155 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 18:36:20,155 [knowfeat.prompt.builder] INFO: System prompt assembled: 31797 chars, 7 sections (stage=stage1)
+2026-05-30 18:36:20,155 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 1 (generated=0, budget=1)
+2026-05-30 18:36:20,479 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PDIa1-3 (总度): count    544462.000000
+mean         17.315552
+std        1281.158560
+min           1.000000
+25%           2.000000
+50%           2.000000
+75%           6.000000
+max      522656.000000
+Name: PDIa1-3, dtype: float64
+2026-05-30 18:36:25,413 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 2 (generated=0, budget=1)
+2026-05-30 18:36:25,754 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+count    140274.000000
+mean          0.027595
+std           0.109176
+min           0.000333
+25%           0.001810
+50%           0.004930
+75%           0.013558
+max           2.621508
+Name: complexity_per_interact, dtype: float64
+2026-05-30 18:36:32,442 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 3 (generated=0, budget=1)
+2026-05-30 18:36:32,780 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常组均值: 1.1328245269316362
+2026-05-30 18:36:40,003 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 4 (generated=0, budget=1)
+2026-05-30 18:36:40,382 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+差异倍数: 2.110465925250465
+2026-05-30 18:36:51,038 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 5 (generated=0, budget=1)
+2026-05-30 18:36:51,390 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+KS统计量: 0.4840, p值: 0.00e+00
+2026-05-30 18:36:59,434 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 6 (generated=0, budget=1)
+2026-05-30 18:37:00,469 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与 PAIa14-3: 0.0450
+2026-05-30 18:37:14,650 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 7 (generated=0, budget=1)
+2026-05-30 18:37:15,482 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与 PAIa14-3: 0.1369
+2026-05-30 18:37:30,493 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 8 (generated=0, budget=1)
+2026-05-30 18:37:31,398 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:37:39,247 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 9 (generated=0, budget=1)
+2026-05-30 18:37:39,582 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与 PAIa14-3: 0.1190
+2026-05-30 18:37:47,914 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 10 (generated=0, budget=1)
+2026-05-30 18:37:48,351 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:37:59,326 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 11 (generated=0, budget=1)
+2026-05-30 18:37:59,667 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与 PAIa14-3: -0.0197
+2026-05-30 18:38:12,125 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 12 (generated=0, budget=1)
+2026-05-30 18:38:12,539 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+
+最大相关系数: 0.6554 (与 S1-6)
+2026-05-30 18:38:36,420 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 — step 13 (generated=0, budget=1)
+2026-05-30 18:38:37,173 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 18:38:43,002 [knowfeat.agent.tools] INFO: 特征已注册: send_ratio_centrality (维度=['主体关联'])
+2026-05-30 18:38:43,002 [knowfeat.agent.react_agent] INFO: 特征已注册: send_ratio_centrality
+2026-05-30 18:38:43,002 [knowfeat.agent.react_agent] INFO: 自动触发验证: send_ratio_centrality
+2026-05-30 18:38:46,412 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_send_ratio_centrality, 输出 shape=(544462, 2)
+2026-05-30 18:38:48,137 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.7073 KS=0.5713 缺失率=0.00% 冗余度=0.2548
+2026-05-30 18:41:04,682 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9818 new_recall=0.9821 delta_recall=+0.0003 precision=0.9449 delta_f1=+0.0003
+2026-05-30 18:41:04,736 [knowfeat.agent.tools] INFO: L3 通过 → 已接受: send_ratio_centrality (delta_recall=+0.0003)
+2026-05-30 18:41:04,737 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=1, validated=1, budget=1)
+2026-05-30 18:41:04,737 [knowfeat.agent.react_agent] INFO: Round 2 / 主体关联 完成: generated=1, accepted=1, candidates=0, rejected=0, steps=13, reason=budget_exhausted
+2026-05-30 18:41:04,737 [__main__] INFO: 前向选择: 10 个候选特征
+2026-05-30 18:41:05,734 [knowfeat.search.forward_selection] INFO: 前向选择开始: 10 个候选特征
+2026-05-30 18:43:18,714 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9821 new_recall=0.9817 delta_recall=-0.0004 precision=0.9453 delta_f1=-0.0000 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 18:43:18,753 [knowfeat.search.forward_selection] INFO: 前向选择 [1/10] small_recv_high_freq_ratio → 拒绝 (delta_recall=-0.0004 <= 0.0)
+2026-05-30 18:45:30,082 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9821 new_recall=0.9822 delta_recall=+0.0001 precision=0.9454 delta_f1=+0.0003
+2026-05-30 18:45:30,139 [knowfeat.search.forward_selection] INFO: 前向选择 [2/10] time_entropy_autocorr_ratio → 接受 (delta_recall=+0.0001)
+2026-05-30 18:47:45,724 [knowfeat.verification.model_eval] INFO: L3 模型验证 通过: baseline_recall=0.9822 new_recall=0.9828 delta_recall=+0.0006 precision=0.9465 delta_f1=+0.0008
+2026-05-30 18:47:45,770 [knowfeat.search.forward_selection] INFO: 前向选择 [3/10] time_entropy_ratio → 接受 (delta_recall=+0.0006)
+2026-05-30 18:49:55,108 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9827 delta_recall=-0.0001 precision=0.9468 delta_f1=+0.0001 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 18:49:55,184 [knowfeat.search.forward_selection] INFO: 前向选择 [4/10] recv_interval_volatility_ratio → 拒绝 (delta_recall=-0.0001 <= 0.0)
+2026-05-30 18:52:10,085 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9470 delta_f1=+0.0002 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 18:52:10,138 [knowfeat.search.forward_selection] INFO: 前向选择 [5/10] time_entropy_diff_signal → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 18:54:32,068 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9828 delta_recall=+0.0000 precision=0.9465 delta_f1=+0.0000 | 原因: delta_recall=+0.0000 <= 0.0
+2026-05-30 18:54:32,119 [knowfeat.search.forward_selection] INFO: 前向选择 [6/10] recv_interval_variance_log → 拒绝 (delta_recall=+0.0000 <= 0.0)
+2026-05-30 18:56:52,059 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9827 delta_recall=-0.0001 precision=0.9467 delta_f1=+0.0001 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 18:56:52,107 [knowfeat.search.forward_selection] INFO: 前向选择 [7/10] time_entropy_robust_diff → 拒绝 (delta_recall=-0.0001 <= 0.0)
+2026-05-30 18:59:03,371 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9824 delta_recall=-0.0003 precision=0.9468 delta_f1=-0.0000 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 18:59:03,426 [knowfeat.search.forward_selection] INFO: 前向选择 [8/10] active_days_interval_concentration → 拒绝 (delta_recall=-0.0003 <= 0.0)
+2026-05-30 19:01:11,394 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9825 delta_recall=-0.0002 precision=0.9465 delta_f1=-0.0001 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:01:11,468 [knowfeat.search.forward_selection] INFO: 前向选择 [9/10] send_recv_interval_asymmetry → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:03:18,567 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9823 delta_recall=-0.0005 precision=0.9464 delta_f1=-0.0003 | 原因: delta_recall=-0.0005 <= 0.0
+2026-05-30 19:03:18,617 [knowfeat.search.forward_selection] INFO: 前向选择 [10/10] path_activity_harmonic_rank → 拒绝 (delta_recall=-0.0005 <= 0.0)
+2026-05-30 19:03:18,617 [knowfeat.search.forward_selection] INFO: 前向选择完成: 2 接受, 8 拒绝 (共 10 候选)
+2026-05-30 19:05:01,591 [knowfeat.search.shap_feedback] INFO: SHAP 反馈: 155 特征, 维度贡献={'金额频次': '0.1677', '时间地域': '0.4520', '行为序列': '0.1697', '主体关联': '1.0896'}
+2026-05-30 19:05:01,591 [knowfeat.search.cross_dim] INFO: 跨维度传播: 更新 6/6 特征的 SHAP 排名
+2026-05-30 19:05:01,591 [knowfeat.search.dimension_manager] INFO: SHAP 反比预算分配: {'金额频次': 4, '时间地域': 2, '行为序列': 4, '主体关联': 2} (总预算=12)
+2026-05-30 19:05:01,591 [__main__] INFO: SHAP 反馈:
+## 当前特征 SHAP 重要性反馈
+
+### 维度贡献分布
+- 主体关联: 1.0896
+- 时间地域: 0.4520
+- 行为序列: 0.1697
+- 金额频次: 0.1677
+
+### 特征重要性排名（Top 10）
+| 排名 | 特征名 | SHAP值 | 维度 | 复合分 |
+|------|--------|--------|------|--------|
+| 1 | send_ratio_centrality | 1.0767 | 主体关联 | 0.5000 |
+| 2 | S7 | 0.8149 | - | 0.3500 |
+| 3 | S1-6 | 0.3515 | - | 0.3000 |
+| 4 | time_entropy_ratio | 0.3096 | 时间地域 | 0.2750 |
+| 5 | PAIa14-3 | 0.2962 | - | 0.2600 |
+| 6 | SW | 0.2813 | - | 0.2500 |
+| 7 | S8 | 0.2705 | - | 0.2429 |
+| 8 | PTIa41-2 | 0.2581 | - | 0.2375 |
+| 9 | S6 | 0.2548 | - | 0.2333 |
+| 10 | S9 | 0.1707 | - | 0.2300 |
+2026-05-30 19:05:01,591 [__main__] INFO: Round 2 完成: +3 特征, 总计 6/30
+2026-05-30 19:05:01,591 [__main__] INFO: 维度状态:
+维度 | 预算 | 已生成 | 已接受 | 候选 | 拒绝 | SHAP贡献
+--- | --- | --- | --- | --- | --- | ---
+金额频次 | 4 | 4 | 1 | 2 | 1 | 0.1677
+时间地域 | 2 | 12 | 0 | 11 | 1 | 0.4520
+行为序列 | 4 | 4 | 1 | 3 | 0 | 0.1697
+主体关联 | 2 | 4 | 2 | 2 | 0 | 1.0896
+2026-05-30 19:05:01,591 [__main__] INFO: ============================================================
+2026-05-30 19:05:01,591 [__main__] INFO: Round 3/5 开始 (已接受=6, 候选=0)
+2026-05-30 19:05:01,592 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 19:05:01,593 [knowfeat.prompt.builder] INFO: System prompt assembled: 34620 chars, 7 sections (stage=stage1)
+2026-05-30 19:05:01,593 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 1 (generated=0, budget=4)
+2026-05-30 19:05:01,920 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa2: ratio=0.611x, licit_mean=5.5239, illicit_mean=3.3773
+2026-05-30 19:05:07,880 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 2 (generated=0, budget=4)
+2026-05-30 19:05:08,089 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:05:13,959 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 3 (generated=0, budget=4)
+2026-05-30 19:05:14,264 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit: mean=0.000707, median=0.000333
+2026-05-30 19:05:20,511 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 4 (generated=0, budget=4)
+2026-05-30 19:05:20,721 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:05:29,302 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 5 (generated=0, budget=4)
+2026-05-30 19:05:29,521 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit: mean=11188903.4472, median=0.0000
+2026-05-30 19:05:36,841 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 6 (generated=0, budget=4)
+2026-05-30 19:05:37,104 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit: mean=0.2582, median=0.0000
+2026-05-30 19:05:45,421 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 7 (generated=0, budget=4)
+2026-05-30 19:05:45,665 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+illicit: mean=3383.2716, median=15.5397
+2026-05-30 19:05:55,327 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 8 (generated=0, budget=4)
+2026-05-30 19:05:55,694 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  ratio2 vs S2-3: 0.1531
+2026-05-30 19:06:02,755 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 9 (generated=0, budget=4)
+2026-05-30 19:06:03,779 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PAIa11-1 / PAIa13 IV: 0.9403
+2026-05-30 19:06:11,538 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 10 (generated=0, budget=4)
+2026-05-30 19:06:11,861 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+log1p(PTIa41-2 * PTIa41-3) vs time_entropy_ratio: 0.0834
+2026-05-30 19:06:17,502 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 11 (generated=0, budget=4)
+2026-05-30 19:06:17,723 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:06:24,585 [knowfeat.agent.tools] INFO: 特征已注册: send_recv_amount_ratio (维度=['金额频次'])
+2026-05-30 19:06:24,586 [knowfeat.agent.react_agent] INFO: 特征已注册: send_recv_amount_ratio
+2026-05-30 19:06:24,586 [knowfeat.agent.react_agent] INFO: 自动触发验证: send_recv_amount_ratio
+2026-05-30 19:06:27,882 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_send_recv_amount_ratio, 输出 shape=(544462, 2)
+2026-05-30 19:06:29,569 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.7784 KS=0.2196 缺失率=0.00% 冗余度=0.0024
+2026-05-30 19:08:46,764 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0001 precision=0.9466 delta_f1=-0.0000 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 19:08:46,805 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: send_recv_amount_ratio (delta_recall=-0.0001 <= 0.0)
+2026-05-30 19:08:46,806 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 12 (generated=1, budget=4)
+2026-05-30 19:08:47,173 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:08:51,299 [knowfeat.agent.tools] INFO: 特征已注册: send_recv_amount_ratio_log (维度=['金额频次'])
+2026-05-30 19:08:51,299 [knowfeat.agent.react_agent] INFO: 特征已注册: send_recv_amount_ratio_log
+2026-05-30 19:08:51,299 [knowfeat.agent.react_agent] INFO: 自动触发验证: send_recv_amount_ratio_log
+2026-05-30 19:08:54,168 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_send_recv_amount_ratio_log, 输出 shape=(544462, 2)
+2026-05-30 19:08:55,347 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.7784 KS=0.2196 缺失率=0.00% 冗余度=0.1831
+2026-05-30 19:11:10,175 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0001 precision=0.9466 delta_f1=-0.0000 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 19:11:10,224 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: send_recv_amount_ratio_log (delta_recall=-0.0001 <= 0.0)
+2026-05-30 19:11:10,225 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 13 (generated=2, budget=4)
+2026-05-30 19:11:10,786 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:11:16,297 [knowfeat.agent.tools] INFO: 特征已注册: small_recv_dominance (维度=['金额频次'])
+2026-05-30 19:11:16,297 [knowfeat.agent.react_agent] INFO: 特征已注册: small_recv_dominance
+2026-05-30 19:11:16,297 [knowfeat.agent.react_agent] INFO: 自动触发验证: small_recv_dominance
+2026-05-30 19:11:19,396 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_small_recv_dominance, 输出 shape=(544462, 2)
+2026-05-30 19:11:21,032 [knowfeat.verification.statistics] INFO: L2 统计验证 未通过: IV=0.1699 KS=0.5107 缺失率=0.00% 冗余度=0.7997 | 原因: 冗余度=0.7997 > 0.7
+2026-05-30 19:11:21,032 [knowfeat.agent.tools] INFO: L2 统计失败: small_recv_dominance
+2026-05-30 19:11:21,033 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 — step 14 (generated=3, budget=4)
+2026-05-30 19:11:21,484 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:11:26,549 [knowfeat.agent.tools] INFO: 特征已注册: total_tx_activity_log (维度=['金额频次'])
+2026-05-30 19:11:26,549 [knowfeat.agent.react_agent] INFO: 特征已注册: total_tx_activity_log
+2026-05-30 19:11:26,549 [knowfeat.agent.react_agent] INFO: 自动触发验证: total_tx_activity_log
+2026-05-30 19:11:29,408 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_total_tx_activity_log, 输出 shape=(544462, 2)
+2026-05-30 19:11:31,019 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.8064 KS=0.3612 缺失率=0.00% 冗余度=0.3221
+2026-05-30 19:13:47,084 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9467 delta_f1=+0.0000 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:13:47,130 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: total_tx_activity_log (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:13:47,130 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=4, validated=4, budget=4)
+2026-05-30 19:13:47,130 [knowfeat.agent.react_agent] INFO: Round 3 / 金额频次 完成: generated=4, accepted=0, candidates=3, rejected=1, steps=14, reason=budget_exhausted
+2026-05-30 19:13:47,131 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 19:13:47,132 [knowfeat.prompt.builder] INFO: System prompt assembled: 33741 chars, 7 sections (stage=stage1)
+2026-05-30 19:13:47,132 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 1 (generated=0, budget=2)
+2026-05-30 19:13:47,570 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa43               | 正常均值=   12.8574 | 异常均值=    6.9354 | 倍数=    0.54x | 正常中位=    0.0000 | 异常中位=    0.0000
+2026-05-30 19:13:51,445 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 2 (generated=0, budget=2)
+2026-05-30 19:13:51,709 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  CI3a31-2             vs CI3a32-3            : 0.7133
+2026-05-30 19:13:56,372 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 3 (generated=0, budget=2)
+2026-05-30 19:13:56,715 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:14:02,245 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 4 (generated=0, budget=2)
+2026-05-30 19:14:03,732 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+CI3a31-2 vs PTIa41-2 相关性: -0.0246
+2026-05-30 19:14:10,368 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 5 (generated=0, budget=2)
+2026-05-30 19:14:10,682 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.4176, median=0.0000
+2026-05-30 19:14:17,022 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 6 (generated=0, budget=2)
+2026-05-30 19:14:17,561 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+ratio3 vs S1-6 相关性: -0.8321
+2026-05-30 19:14:24,076 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 7 (generated=0, budget=2)
+2026-05-30 19:14:24,344 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+featD vs S7 相关性: -0.1185
+2026-05-30 19:14:34,823 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 8 (generated=0, budget=2)
+2026-05-30 19:14:35,102 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S1-6: -0.0879
+2026-05-30 19:14:44,323 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 9 (generated=0, budget=2)
+2026-05-30 19:14:44,706 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:14:52,690 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 10 (generated=0, budget=2)
+2026-05-30 19:14:53,011 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: 0.4424
+2026-05-30 19:14:58,228 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 11 (generated=0, budget=2)
+2026-05-30 19:14:58,626 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: 0.3505
+2026-05-30 19:15:08,464 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 12 (generated=0, budget=2)
+2026-05-30 19:15:08,763 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: -0.1092
+2026-05-30 19:15:17,110 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 13 (generated=0, budget=2)
+2026-05-30 19:15:17,503 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: -0.0004
+2026-05-30 19:15:25,797 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 14 (generated=0, budget=2)
+2026-05-30 19:15:26,094 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+特征2 vs PAIa14-3: -0.0030
+2026-05-30 19:15:31,306 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 15 (generated=0, budget=2)
+2026-05-30 19:15:31,638 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+feat1 vs feat3: -0.0255
+2026-05-30 19:15:39,110 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 16 (generated=0, budget=2)
+2026-05-30 19:15:39,412 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: 0.2156
+2026-05-30 19:15:48,217 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 17 (generated=0, budget=2)
+2026-05-30 19:15:48,673 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: -0.0009
+2026-05-30 19:15:58,891 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 18 (generated=0, budget=2)
+2026-05-30 19:15:59,237 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S7: 0.3668
+2026-05-30 19:16:07,735 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 19 (generated=0, budget=2)
+2026-05-30 19:16:08,123 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.1577, median=0.1196, p90=0.3640
+2026-05-30 19:16:13,988 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 20 (generated=0, budget=2)
+2026-05-30 19:16:14,475 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.1577, median=0.1196
+2026-05-30 19:16:20,457 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 21 (generated=0, budget=2)
+2026-05-30 19:16:20,878 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:16:26,032 [knowfeat.agent.tools] INFO: 特征已注册: active_time_concentration_ratio (维度=['时间地域'])
+2026-05-30 19:16:26,033 [knowfeat.agent.react_agent] INFO: 特征已注册: active_time_concentration_ratio
+2026-05-30 19:16:26,033 [knowfeat.agent.react_agent] INFO: 自动触发验证: active_time_concentration_ratio
+2026-05-30 19:16:29,533 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_active_time_concentration_ratio, 输出 shape=(544462, 2)
+2026-05-30 19:16:31,392 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.9773 KS=0.3803 缺失率=0.00% 冗余度=0.4211
+2026-05-30 19:18:55,851 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9472 delta_f1=+0.0003 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:18:55,894 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: active_time_concentration_ratio (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:18:55,894 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 22 (generated=1, budget=2)
+2026-05-30 19:18:56,370 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+vs S1-6: -0.3876
+2026-05-30 19:19:02,348 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 — step 23 (generated=1, budget=2)
+2026-05-30 19:19:03,870 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:19:08,496 [knowfeat.agent.tools] INFO: 特征已注册: active_time_concentration_ratio_v2 (维度=['时间地域'])
+2026-05-30 19:19:08,496 [knowfeat.agent.react_agent] INFO: 特征已注册: active_time_concentration_ratio_v2
+2026-05-30 19:19:08,496 [knowfeat.agent.react_agent] INFO: 自动触发验证: active_time_concentration_ratio_v2
+2026-05-30 19:19:11,967 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_active_time_concentration_ratio_v2, 输出 shape=(544462, 2)
+2026-05-30 19:19:13,635 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.2375 KS=0.3950 缺失率=0.00% 冗余度=0.4909
+2026-05-30 19:21:30,495 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9467 delta_f1=+0.0000 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:21:30,547 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: active_time_concentration_ratio_v2 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:21:30,562 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=2, validated=2, budget=2)
+2026-05-30 19:21:30,562 [knowfeat.agent.react_agent] INFO: Round 3 / 时间地域 完成: generated=2, accepted=0, candidates=2, rejected=0, steps=23, reason=budget_exhausted
+2026-05-30 19:21:30,563 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 19:21:30,563 [knowfeat.prompt.builder] INFO: System prompt assembled: 34434 chars, 7 sections (stage=stage1)
+2026-05-30 19:21:30,563 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 1 (generated=0, budget=4)
+2026-05-30 19:21:31,222 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa43               12.8574      6.9354       0.5394     0.0000       0.0000      
+2026-05-30 19:21:36,608 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 2 (generated=0, budget=4)
+2026-05-30 19:21:36,914 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常地址 - PTIa41-3 > 0 比例: 0.9549
+2026-05-30 19:21:45,067 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 3 (generated=0, budget=4)
+2026-05-30 19:21:45,344 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常(>0)均值: 1558.8153, 中位: 1.0000
+2026-05-30 19:21:54,148 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 4 (generated=0, budget=4)
+2026-05-30 19:21:54,450 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+差异倍数(均值): 1.7282
+2026-05-30 19:22:03,110 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 5 (generated=0, budget=4)
+2026-05-30 19:22:03,407 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+差异倍数: 3.4682
+2026-05-30 19:22:11,667 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 6 (generated=0, budget=4)
+2026-05-30 19:22:11,985 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+PTIa41-3 vs PTIa41-3: 0.8582
+2026-05-30 19:22:15,908 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 7 (generated=0, budget=4)
+2026-05-30 19:22:16,259 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+差异倍数: 1.3859
+2026-05-30 19:22:23,334 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 8 (generated=0, budget=4)
+2026-05-30 19:22:23,677 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常(>0)均值: 1.7889, 中位: 0.0573
+2026-05-30 19:22:32,611 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 9 (generated=0, budget=4)
+2026-05-30 19:22:32,893 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=1.3471, median=1.0601, std=1.3685
+2026-05-30 19:22:40,712 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 10 (generated=0, budget=4)
+2026-05-30 19:22:41,030 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+counterparty_diversity_centrality: 0.4051
+2026-05-30 19:22:48,579 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 11 (generated=0, budget=4)
+2026-05-30 19:22:48,858 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:22:55,158 [knowfeat.agent.tools] INFO: 特征已注册: short_window_path_complexity (维度=['行为序列'])
+2026-05-30 19:22:55,158 [knowfeat.agent.react_agent] INFO: 特征已注册: short_window_path_complexity
+2026-05-30 19:22:55,159 [knowfeat.agent.react_agent] INFO: 自动触发验证: short_window_path_complexity
+2026-05-30 19:22:58,557 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_short_window_path_complexity, 输出 shape=(544462, 2)
+2026-05-30 19:23:00,354 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.2003 KS=0.4321 缺失率=0.00% 冗余度=0.4051
+2026-05-30 19:25:23,500 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9825 delta_recall=-0.0003 precision=0.9470 delta_f1=+0.0001 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 19:25:23,557 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: short_window_path_complexity (delta_recall=-0.0003 <= 0.0)
+2026-05-30 19:25:23,558 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 12 (generated=1, budget=4)
+2026-05-30 19:25:24,336 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常均值: 0.0900, 异常均值: 0.2155
+2026-05-30 19:25:35,958 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 13 (generated=1, budget=4)
+2026-05-30 19:25:36,509 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.4361, median=0.4844
+2026-05-30 19:25:45,884 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 14 (generated=1, budget=4)
+2026-05-30 19:25:46,220 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与counterparty_diversity_centrality: 0.3836
+2026-05-30 19:25:56,020 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 15 (generated=1, budget=4)
+2026-05-30 19:25:56,448 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+S1-6: -0.6057
+2026-05-30 19:26:03,446 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 16 (generated=1, budget=4)
+2026-05-30 19:26:04,446 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:26:10,266 [knowfeat.agent.tools] INFO: 特征已注册: counterparty_interval_time_entropy_ratio (维度=['行为序列'])
+2026-05-30 19:26:10,266 [knowfeat.agent.react_agent] INFO: 特征已注册: counterparty_interval_time_entropy_ratio
+2026-05-30 19:26:10,266 [knowfeat.agent.react_agent] INFO: 自动触发验证: counterparty_interval_time_entropy_ratio
+2026-05-30 19:26:13,644 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_counterparty_interval_time_entropy_ratio, 输出 shape=(544462, 2)
+2026-05-30 19:26:15,430 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.3046 KS=0.4591 缺失率=0.00% 冗余度=0.5551
+2026-05-30 19:28:35,461 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9823 delta_recall=-0.0004 precision=0.9465 delta_f1=-0.0002 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 19:28:35,518 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: counterparty_interval_time_entropy_ratio (delta_recall=-0.0004 <= 0.0)
+2026-05-30 19:28:35,519 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 17 (generated=2, budget=4)
+2026-05-30 19:28:36,040 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+与counterparty_diversity_centrality: 0.1641
+2026-05-30 19:28:48,015 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 18 (generated=2, budget=4)
+2026-05-30 19:28:48,410 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+P95 - 正常: 3.2854, 异常: 3.7075
+2026-05-30 19:28:56,784 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 19 (generated=2, budget=4)
+2026-05-30 19:28:57,292 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:29:02,100 [knowfeat.agent.tools] INFO: 特征已注册: active_days_path_per_send (维度=['行为序列'])
+2026-05-30 19:29:02,101 [knowfeat.agent.react_agent] INFO: 特征已注册: active_days_path_per_send
+2026-05-30 19:29:02,101 [knowfeat.agent.react_agent] INFO: 自动触发验证: active_days_path_per_send
+2026-05-30 19:29:05,690 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_active_days_path_per_send, 输出 shape=(544462, 2)
+2026-05-30 19:29:07,408 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.8915 KS=0.3815 缺失率=0.00% 冗余度=0.4403
+2026-05-30 19:31:29,329 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9822 delta_recall=-0.0006 precision=0.9461 delta_f1=-0.0005 | 原因: delta_recall=-0.0006 <= 0.0
+2026-05-30 19:31:29,385 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: active_days_path_per_send (delta_recall=-0.0006 <= 0.0)
+2026-05-30 19:31:29,385 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 20 (generated=3, budget=4)
+2026-05-30 19:31:29,873 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+CI3a33-2: max_corr=0.1042
+2026-05-30 19:31:52,877 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 21 (generated=3, budget=4)
+2026-05-30 19:31:53,371 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+异常: mean=0.1057, median=0.0000
+2026-05-30 19:32:01,441 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 22 (generated=3, budget=4)
+2026-05-30 19:32:01,900 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+  counterparty_diversity_centrality: 0.0984
+2026-05-30 19:32:09,707 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 — step 23 (generated=3, budget=4)
+2026-05-30 19:32:10,050 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:32:14,770 [knowfeat.agent.tools] INFO: 特征已注册: chain_length_interval_ratio (维度=['行为序列'])
+2026-05-30 19:32:14,770 [knowfeat.agent.react_agent] INFO: 特征已注册: chain_length_interval_ratio
+2026-05-30 19:32:14,770 [knowfeat.agent.react_agent] INFO: 自动触发验证: chain_length_interval_ratio
+2026-05-30 19:32:18,238 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_chain_length_interval_ratio, 输出 shape=(544462, 2)
+2026-05-30 19:32:20,069 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=0.2770 KS=0.2433 缺失率=0.00% 冗余度=0.2979
+2026-05-30 19:34:34,172 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9825 delta_recall=-0.0003 precision=0.9460 delta_f1=-0.0003 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 19:34:34,223 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: chain_length_interval_ratio (delta_recall=-0.0003 <= 0.0)
+2026-05-30 19:34:34,224 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=4, validated=4, budget=4)
+2026-05-30 19:34:34,224 [knowfeat.agent.react_agent] INFO: Round 3 / 行为序列 完成: generated=4, accepted=0, candidates=4, rejected=0, steps=23, reason=budget_exhausted
+2026-05-30 19:34:34,225 [knowfeat.prompt.domain_knowledge] INFO: Formatted domain knowledge: 6027 chars (stage=stage1)
+2026-05-30 19:34:34,225 [knowfeat.prompt.builder] INFO: System prompt assembled: 33725 chars, 7 sections (stage=stage1)
+2026-05-30 19:34:34,225 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 1 (generated=0, budget=2)
+2026-05-30 19:34:34,924 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: mean=0.0598, median=0.0014
+2026-05-30 19:34:43,182 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 2 (generated=0, budget=2)
+2026-05-30 19:34:43,438 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: mean=3.2206, median=3.3263
+2026-05-30 19:34:53,369 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 3 (generated=0, budget=2)
+2026-05-30 19:34:53,766 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: mean=-0.2014, median=0.0000
+2026-05-30 19:35:03,883 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 4 (generated=0, budget=2)
+2026-05-30 19:35:04,199 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: mean=0.4391, median=0.5000
+2026-05-30 19:35:14,859 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 5 (generated=0, budget=2)
+2026-05-30 19:35:15,116 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+正常: 25%=0.5000, 50%=0.5000, 75%=0.5000
+2026-05-30 19:35:24,625 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 6 (generated=0, budget=2)
+2026-05-30 19:35:24,935 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+特征2 KS: 0.3237
+2026-05-30 19:35:32,945 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 7 (generated=0, budget=2)
+2026-05-30 19:35:33,223 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+特征1与特征2的相关系数: -0.0028
+2026-05-30 19:35:38,054 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 8 (generated=0, budget=2)
+2026-05-30 19:35:38,347 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:35:44,603 [knowfeat.agent.tools] INFO: 特征已注册: network_centrality_concentration (维度=['主体关联'])
+2026-05-30 19:35:44,603 [knowfeat.agent.react_agent] INFO: 特征已注册: network_centrality_concentration
+2026-05-30 19:35:44,603 [knowfeat.agent.react_agent] INFO: 自动触发验证: network_centrality_concentration
+2026-05-30 19:35:48,004 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_network_centrality_concentration, 输出 shape=(544462, 2)
+2026-05-30 19:35:49,709 [knowfeat.verification.statistics] INFO: L2 统计验证 通过: IV=1.5798 KS=0.5212 缺失率=0.00% 冗余度=0.0058
+2026-05-30 19:38:03,810 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0001 precision=0.9466 delta_f1=+0.0000 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 19:38:03,864 [knowfeat.agent.tools] INFO: L3 未通过 → 候选池: network_centrality_concentration (delta_recall=-0.0001 <= 0.0)
+2026-05-30 19:38:03,864 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 — step 9 (generated=1, budget=2)
+2026-05-30 19:38:04,255 [httpx] INFO: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-05-30 19:38:09,928 [knowfeat.agent.tools] INFO: 特征已注册: recv_small_centrality_score (维度=['主体关联', '金额频次'])
+2026-05-30 19:38:09,928 [knowfeat.agent.react_agent] INFO: 特征已注册: recv_small_centrality_score
+2026-05-30 19:38:09,929 [knowfeat.agent.react_agent] INFO: 自动触发验证: recv_small_centrality_score
+2026-05-30 19:38:12,803 [knowfeat.verification.sandbox] INFO: L1 沙盒通过 (Stage 1): feature_recv_small_centrality_score, 输出 shape=(544462, 2)
+2026-05-30 19:38:14,515 [knowfeat.verification.statistics] INFO: L2 统计验证 未通过: IV=0.6227 KS=0.3237 缺失率=0.00% 冗余度=0.7624 | 原因: 冗余度=0.7624 > 0.7
+2026-05-30 19:38:14,515 [knowfeat.agent.tools] INFO: L2 统计失败: recv_small_centrality_score
+2026-05-30 19:38:14,515 [knowfeat.agent.react_agent] INFO: 预算用完 (generated=2, validated=2, budget=2)
+2026-05-30 19:38:14,515 [knowfeat.agent.react_agent] INFO: Round 3 / 主体关联 完成: generated=2, accepted=0, candidates=1, rejected=1, steps=9, reason=budget_exhausted
+2026-05-30 19:38:14,516 [__main__] INFO: 前向选择: 10 个候选特征
+2026-05-30 19:38:15,703 [knowfeat.search.forward_selection] INFO: 前向选择开始: 10 个候选特征
+2026-05-30 19:40:23,438 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0001 precision=0.9466 delta_f1=-0.0000 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 19:40:23,483 [knowfeat.search.forward_selection] INFO: 前向选择 [1/10] send_recv_amount_ratio → 拒绝 (delta_recall=-0.0001 <= 0.0)
+2026-05-30 19:42:34,560 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0001 precision=0.9466 delta_f1=-0.0000 | 原因: delta_recall=-0.0001 <= 0.0
+2026-05-30 19:42:34,608 [knowfeat.search.forward_selection] INFO: 前向选择 [2/10] send_recv_amount_ratio_log → 拒绝 (delta_recall=-0.0001 <= 0.0)
+2026-05-30 19:44:45,731 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9467 delta_f1=+0.0000 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:44:45,781 [knowfeat.search.forward_selection] INFO: 前向选择 [3/10] total_tx_activity_log → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:47:04,133 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9472 delta_f1=+0.0003 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:47:04,184 [knowfeat.search.forward_selection] INFO: 前向选择 [4/10] active_time_concentration_ratio → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:49:13,202 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9826 delta_recall=-0.0002 precision=0.9467 delta_f1=+0.0000 | 原因: delta_recall=-0.0002 <= 0.0
+2026-05-30 19:49:13,250 [knowfeat.search.forward_selection] INFO: 前向选择 [5/10] active_time_concentration_ratio_v2 → 拒绝 (delta_recall=-0.0002 <= 0.0)
+2026-05-30 19:51:30,826 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9825 delta_recall=-0.0003 precision=0.9470 delta_f1=+0.0001 | 原因: delta_recall=-0.0003 <= 0.0
+2026-05-30 19:51:30,877 [knowfeat.search.forward_selection] INFO: 前向选择 [6/10] short_window_path_complexity → 拒绝 (delta_recall=-0.0003 <= 0.0)
+2026-05-30 19:53:40,415 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9823 delta_recall=-0.0004 precision=0.9465 delta_f1=-0.0002 | 原因: delta_recall=-0.0004 <= 0.0
+2026-05-30 19:53:40,467 [knowfeat.search.forward_selection] INFO: 前向选择 [7/10] counterparty_interval_time_entropy_ratio → 拒绝 (delta_recall=-0.0004 <= 0.0)
+2026-05-30 19:55:50,636 [knowfeat.verification.model_eval] INFO: L3 模型验证 未通过: baseline_recall=0.9828 new_recall=0.9822 delta_recall=-0.0006 precision=0.9461 delta_f1=-0.0005 | 原因: delta_recall=-0.0006 <= 0.0
+2026-05-30 19:55:50,690 [knowfeat.search.forward_selection] INFO: 前向选择 [8/10] active_days_path_per_send → 拒绝 (delta_recall=-0.0006 <= 0.0)

@@ -1,0 +1,54 @@
+============================================================
+加载 baseline_cache.parquet ...
+数据: 1384512 行, 106 列
+标签列: is_laundering, 正样本: 4484, 负样本: 1380028
+
+============================================================
+实验 3: 精简特征 (95) + KnowFeat 18 新特征
+============================================================
+加载 Stage 2 特征代码...
+加载原始交易数据...
+  accounts: (100000, 16), transactions: (1384512, 20), close: (500, 6)
+  Join key: src from tx_df, unique wallets: 43142
+  [OK] small_test_round_amount_ratio (43142 wallets)
+  [OK] amount_concentration_entropy (43142 wallets)
+  [OK] top3_hour_concentration (43142 wallets)
+  [OK] fan_in_fan_out_ratio (43142 wallets)
+  [OK] mode_transition_entropy (43142 wallets)
+  [OK] new_counterparty_concentration (43142 wallets)
+  [OK] counterparty_level_diversity_risk (43142 wallets)
+  [OK] amount_range_ratio_risk (43138 wallets)
+  [OK] high_risk_region_off_hour_ratio (43142 wallets)
+  [OK] rhythm_stability_risk (43142 wallets)
+  [OK] net_flow_direction_risk (43856 wallets)
+  [OK] enterprise_counterparty_concentration (43142 wallets)
+  [OK] first_small_test_ratio (43142 wallets)
+  [FAIL] night_amount_short_term_risk: operation 'sub' not supported for dtype 'str' with dtype 'str'
+  [OK] amount_bin_skew_index (43142 wallets)
+  [OK] counterparty_type_amount_divergence (43138 wallets)
+  [OK] tiny_amount_concentration (43142 wallets)
+  [OK] time_concentration_risk_index (43142 wallets)
+
+成功加载 17/18 个 KnowFeat 特征
+最终特征矩阵: (1384512, 112)
+  Fold 1: recall=0.9610 prec=0.9380 CR@0.1%=0.3077 CR@0.2%=0.6165 CR@0.3%=0.9164 CR@0.5%=0.9922 CR@1%=0.9989 CR@3%=1.0000 CR@5%=1.0000
+  Fold 2: recall=0.9554 prec=0.9325 CR@0.1%=0.3077 CR@0.2%=0.6165 CR@0.3%=0.9119 CR@0.5%=0.9777 CR@1%=0.9900 CR@3%=0.9955 CR@5%=0.9978
+  Fold 3: recall=0.9621 prec=0.9515 CR@0.1%=0.3077 CR@0.2%=0.6165 CR@0.3%=0.9208 CR@0.5%=0.9855 CR@1%=0.9978 CR@3%=0.9989 CR@5%=1.0000
+  Fold 4: recall=0.9420 prec=0.9368 CR@0.1%=0.3077 CR@0.2%=0.6165 CR@0.3%=0.9052 CR@0.5%=0.9755 CR@1%=0.9933 CR@3%=0.9989 CR@5%=1.0000
+  Fold 5: recall=0.9475 prec=0.9454 CR@0.1%=0.3080 CR@0.2%=0.6172 CR@0.3%=0.9085 CR@0.5%=0.9810 CR@1%=0.9900 CR@3%=0.9955 CR@5%=0.9989
+
+汇总: {
+  "recall": "0.9536\u00b10.0078",
+  "precision": "0.9408\u00b10.0068",
+  "f1": "0.9472\u00b10.0058",
+  "auc": "0.9998\u00b10.0002",
+  "CR@0.1%": "0.3078\u00b10.0001",
+  "CR@0.2%": "0.6166\u00b10.0003",
+  "CR@0.3%": "0.9126\u00b10.0055",
+  "CR@0.5%": "0.9824\u00b10.0060",
+  "CR@1%": "0.9940\u00b10.0038",
+  "CR@3%": "0.9978\u00b10.0019",
+  "CR@5%": "0.9993\u00b10.0009"
+}
+
+结果已保存到 /root/大模型提取特征/outputs/crk_results_exp3.json
