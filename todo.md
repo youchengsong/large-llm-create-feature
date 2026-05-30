@@ -71,7 +71,7 @@
 - **前置条件**: 
   - [x] 上传 BABD-13 数据到 `/root/autodl-tmp/archive/BABD-13.csv`
   - [x] 实现 13→binary 标签映射: Illicit={0,2,6,7,8,9,11}
-  - [ ] 适配 Stage 1 数据加载器 (单表 → `def feature_xxx(df)`)
+  - [x] 适配 Stage 1 数据加载器 (单表 → `def feature_xxx(df)`) ✅
   - [x] 确认 scale_pos_weight=2.88 (140274/404188)
 - **需要记录**: 每轮接受特征数、总耗时、最终 recall/precision/f1/auc
 - **输出文件**: `outputs/stage1_summary.json`, `outputs/stage1_features.json`
@@ -400,7 +400,7 @@ Stage 2 总耗时 34,065.8s，需要分解为：
 
 - [x] **T1.1** 上传 BABD-13 数据到 `/root/autodl-tmp/archive/BABD-13.csv` ✅
 - [x] **T1.2** 实现 BABD-13 标签映射 (13-class → binary): Illicit={0,2,6,7,8,9,11} ✅
-- [ ] **T1.3** 适配 Stage 1 数据加载器
+- [x] **T1.3** 适配 Stage 1 数据加载器 (Stage1Data + load_stage1 + sandbox_stage1 + ToolContext) ✅
 - [x] **T1.4** 在 BABD-13 上跑基线 (149 特征, scale_pos_weight=2.88): recall=0.9814, prec=0.9439 ✅
 - [ ] **T1.5** 安装 baseline 工具: `pip install openfe featuretools autofeat caafe`
 
