@@ -29,12 +29,20 @@ class ProvenanceCard:
     data_fields_used: list[str]
     knowledge_ids: list[str] = field(default_factory=list)
     computation_logic: str = ""
+    knowledge_resolved: list[dict[str, str]] = field(default_factory=list)
     code: str = ""
     code_hash: str = ""
 
     def __post_init__(self) -> None:
         if self.code and not self.code_hash:
             self.code_hash = hashlib.sha256(self.code.encode()).hexdigest()[:16]
+
+    def resolve_knowledge(self, registry: dict[str, str]) -> None:
+        """用知识注册表解析 knowledge_ids 为 [{id, content}]。"""
+        self.knowledge_resolved = [
+            {"id": kid, "content": registry.get(kid, "(未找到)")}
+            for kid in self.knowledge_ids
+        ]
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -51,14 +59,24 @@ class ProvenanceCard:
             "",
             f"**设计推理**: {self.reasoning}",
             "",
-            f"**知识来源**: {self.knowledge_source}",
-            "",
-            f"**知识溯源ID**: {', '.join(self.knowledge_ids) if self.knowledge_ids else '未指定'}",
-            "",
-            f"**计算逻辑**: {self.computation_logic if self.computation_logic else '未指定'}",
-            "",
-            f"**数据字段**: {', '.join(self.data_fields_used) if self.data_fields_used else '未指定'}",
         ]
+        if self.knowledge_resolved:
+            lines.append("**知识溯源**:")
+            lines.append("")
+            for item in self.knowledge_resolved:
+                lines.append(f"- `{item['id']}`: {item['content']}")
+            lines.append("")
+        elif self.knowledge_ids:
+            lines.append(f"**知识溯源ID**: {', '.join(self.knowledge_ids)}")
+            lines.append("")
+        else:
+            lines.append("**知识溯源ID**: 未指定")
+            lines.append("")
+
+        lines.append(f"**计算逻辑**: {self.computation_logic if self.computation_logic else '未指定'}")
+        lines.append("")
+        lines.append(f"**数据字段**: {', '.join(self.data_fields_used) if self.data_fields_used else '未指定'}")
+
         if self.code_hash:
             lines.extend(["", f"**代码哈希**: `{self.code_hash}`"])
         return "\n".join(lines)
@@ -74,8 +92,9 @@ def build_card(
     data_fields_used: list[str],
     knowledge_ids: Optional[list[str]] = None,
     computation_logic: str = "",
+    registry: Optional[dict[str, str]] = None,
 ) -> ProvenanceCard:
-    return ProvenanceCard(
+    card = ProvenanceCard(
         feature_name=feature_name,
         dimensions=dimensions,
         explanation=explanation,
@@ -86,6 +105,9 @@ def build_card(
         computation_logic=computation_logic,
         code=code,
     )
+    if registry:
+        card.resolve_knowledge(registry)
+    return card
 
 
 def build_card_from_candidate(candidate: Any) -> ProvenanceCard:
@@ -177,6 +199,7 @@ def load_provenance_json(path: Path) -> list[ProvenanceCard]:
             data_fields_used=item.get("data_fields_used", []),
             knowledge_ids=item.get("knowledge_ids", []),
             computation_logic=item.get("computation_logic", ""),
+            knowledge_resolved=item.get("knowledge_resolved", []),
             code_hash=item.get("code_hash", ""),
         ))
     return cards

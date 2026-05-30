@@ -94,7 +94,12 @@ GENERATE_FEATURE_SPEC = ToolSpec(
             },
             "reasoning": {
                 "type": "string",
-                "description": "设计推理过程",
+                "description": (
+                    "设计推理过程：逐条引用知识ID，说明每个ID如何映射到特征计算步骤。"
+                    "格式示例: 'RULE_002(休眠账户激活) → 用 wallet_open_date 计算账龄; "
+                    "IND_05(大额交易频率) → 按 amount>10000 过滤 tx_df 统计频次; "
+                    "两者交叉得到 dormant_large_tx_ratio'"
+                ),
             },
             "knowledge_source": {
                 "type": "string",
@@ -210,7 +215,12 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
             },
             "reasoning": {
                 "type": "string",
-                "description": "设计推理过程",
+                "description": (
+                    "设计推理过程：逐条引用知识ID，说明每个ID如何映射到特征计算步骤。"
+                    "格式示例: 'RF_S1_01_002(分层转移) → 用 PAIa14-R3 衡量资金集中度; "
+                    "RF_S1_03_001(快进快出) → 用 PTI1-R2/PTI1-R1 计算进出时间比; "
+                    "两者乘积得到 layered_speed_score'"
+                ),
             },
             "knowledge_source": {
                 "type": "string",

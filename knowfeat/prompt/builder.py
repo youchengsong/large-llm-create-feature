@@ -132,6 +132,7 @@ _ROLE_STAGE2 = """\
 - 每个特征必须有明确的领域知识依据和可追溯的设计逻辑
 - **溯源要求**：必须在 knowledge_ids 中填写具体的知识资产ID（如 RULE_002, IND_05, EXP_03, PAT_A02, RF_S2_100_001），不要用笼统描述
 - **计算逻辑**：必须在 computation_logic 中说明用了哪些字段、经过什么变换得到最终值
+- **设计推理**：必须在 reasoning 中逐条引用知识ID，说明每个ID如何映射到计算步骤（格式: ID(含义) → 对应的计算操作）
 - 特征代码必须可执行，签名为 `def feature_xxx(open_df, tx_df, close_df) -> pd.DataFrame`
 - 输出 DataFrame 必须包含 `wallet_id` 或 `tx_id` 列作为主键
 
@@ -171,6 +172,7 @@ Gov Criminal Blacklist, Money Laundering, Ponzi Scheme, Tumbler}。
 - 每个特征必须有明确的知识溯源（来自哪个案例/风险因子）
 - **溯源要求**：必须在 knowledge_ids 中填写具体的知识资产ID（如 RF_S1_01_002），不要用笼统描述
 - **计算逻辑**：必须在 computation_logic 中说明用了哪些基线特征字段、经过什么变换得到最终值
+- **设计推理**：必须在 reasoning 中逐条引用知识ID，说明每个ID如何映射到计算步骤（格式: ID(含义) → 对应的计算操作）
 - 特征代码必须可执行，签名为 `def feature_xxx(df) -> pd.DataFrame`
 - 输入 df 是 BABD-13 完整数据表（含 account, 149 个特征列, label, is_illicit）
 - 输出 DataFrame 必须包含 `account` 列作为主键 + 一个特征值列

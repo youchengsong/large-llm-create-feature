@@ -63,6 +63,9 @@ class DomainKnowledge:
     # Stage 2 裁判文书提取的风险因子
     court_doc_risk_factors: list[dict] = field(default_factory=list)
 
+    # ID → 原文内容的反查注册表（load_domain_knowledge 后自动构建）
+    knowledge_registry: dict[str, str] = field(default_factory=dict)
+
 
 # ── 1. 风险分类表 38 指标 ──────────────────────────────────────────────────
 
@@ -744,7 +747,92 @@ def format_court_doc_risk_factors(factors: list[dict]) -> str:
     return "\n".join(lines)
 
 
-# ── 6. 顶层加载 ──────────────────────────────────────────────────────────
+# ── 6. 知识 ID 注册表 ────────────────────────────────────────────────────
+
+def build_knowledge_registry(dk: "DomainKnowledge") -> dict[str, str]:
+    """从 DomainKnowledge 构建 ID → 原文内容 的反查注册表。"""
+    registry: dict[str, str] = {}
+
+    # IND_01 ~ IND_38
+    for ind in dk.risk_indicators:
+        ind_id = f"IND_{ind.index:02d}"
+        content = f"{ind.data_field}"
+        if ind.direction:
+            content += f" → {ind.direction}"
+        registry[ind_id] = content
+
+    # RULE_001 ~ RULE_015
+    for rule in dk.detection_rules:
+        registry[rule.rule_id] = rule.description
+
+    # PAT_N01~N03, PAT_A01~A05
+    normal_i, abnormal_i = 0, 0
+    for pat in dk.transaction_patterns:
+        if pat.category == "normal":
+            normal_i += 1
+            pat_id = f"PAT_N{normal_i:02d}"
+        else:
+            abnormal_i += 1
+            pat_id = f"PAT_A{abnormal_i:02d}"
+        registry[pat_id] = f"{pat.name}: {pat.description}"
+
+    # EXP_01 ~ EXP_N
+    if dk.expert_opinion:
+        paragraphs = [p.strip() for p in dk.expert_opinion.split("\n") if p.strip()]
+        for i, para in enumerate(paragraphs, 1):
+            registry[f"EXP_{i:02d}"] = para
+
+    # RF_S1_FF_NNN
+    for doc in dk.stage1_risk_factors:
+        source = doc.get("source", "")
+        file_num = source[:2] if len(source) >= 2 and source[:2].isdigit() else "00"
+        for j, rf in enumerate(doc.get("risk_factors", []), 1):
+            rf_id = f"RF_S1_{file_num}_{j:03d}"
+            pattern = rf.get("pattern", "").strip()
+            signals = rf.get("observable_signals", [])
+            content = pattern
+            if signals:
+                content += f"（信号: {'; '.join(signals[:3])}）"
+            registry[rf_id] = content
+
+    # RF_S2_FFF_NNN
+    for doc in dk.court_doc_risk_factors:
+        source = doc.get("source", "")
+        file_num_str = ""
+        for ch in source:
+            if ch.isdigit():
+                file_num_str += ch
+            else:
+                break
+        file_num = file_num_str[:3].zfill(3) if file_num_str else "000"
+        for j, rf in enumerate(doc.get("risk_factors", []), 1):
+            rf_id = f"RF_S2_{file_num}_{j:03d}"
+            pattern = rf.get("pattern", "").strip()
+            signals = rf.get("observable_signals", [])
+            content = pattern
+            if signals:
+                content += f"（信号: {'; '.join(signals[:3])}）"
+            registry[rf_id] = content
+
+    return registry
+
+
+def resolve_knowledge_ids(
+    knowledge_ids: list[str],
+    registry: dict[str, str],
+) -> list[dict[str, str]]:
+    """将知识 ID 列表解析为 [{id, content}] 列表。
+
+    未找到的 ID 会标记 content 为 "(未找到)"。
+    """
+    resolved = []
+    for kid in knowledge_ids:
+        content = registry.get(kid, "(未找到)")
+        resolved.append({"id": kid, "content": content})
+    return resolved
+
+
+# ── 7. 顶层加载 ──────────────────────────────────────────────────────────
 
 def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
     """加载全部领域知识。
@@ -774,12 +862,17 @@ def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
     if cfg.stage == "stage2":
         dk.court_doc_risk_factors = load_stage1_risk_factors(paths.stage2_risk_factors_dir)
 
+    # 构建 ID → 原文 反查注册表
+    dk.knowledge_registry = build_knowledge_registry(dk)
+
     logger.info(
         "Domain knowledge loaded: %d indicators, %d rules, %d patterns, "
-        "expert=%d chars, stage1_factors=%d files, court_doc_factors=%d files",
+        "expert=%d chars, stage1_factors=%d files, court_doc_factors=%d files, "
+        "registry=%d entries",
         len(dk.risk_indicators), len(dk.detection_rules),
         len(dk.transaction_patterns), len(dk.expert_opinion),
         len(dk.stage1_risk_factors), len(dk.court_doc_risk_factors),
+        len(dk.knowledge_registry),
     )
     return dk
 
