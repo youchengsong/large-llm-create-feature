@@ -27,6 +27,8 @@ class ProvenanceCard:
     reasoning: str
     knowledge_source: str
     data_fields_used: list[str]
+    knowledge_ids: list[str] = field(default_factory=list)
+    computation_logic: str = ""
     code: str = ""
     code_hash: str = ""
 
@@ -51,6 +53,10 @@ class ProvenanceCard:
             "",
             f"**知识来源**: {self.knowledge_source}",
             "",
+            f"**知识溯源ID**: {', '.join(self.knowledge_ids) if self.knowledge_ids else '未指定'}",
+            "",
+            f"**计算逻辑**: {self.computation_logic if self.computation_logic else '未指定'}",
+            "",
             f"**数据字段**: {', '.join(self.data_fields_used) if self.data_fields_used else '未指定'}",
         ]
         if self.code_hash:
@@ -66,6 +72,8 @@ def build_card(
     reasoning: str,
     knowledge_source: str,
     data_fields_used: list[str],
+    knowledge_ids: Optional[list[str]] = None,
+    computation_logic: str = "",
 ) -> ProvenanceCard:
     return ProvenanceCard(
         feature_name=feature_name,
@@ -74,6 +82,8 @@ def build_card(
         reasoning=reasoning,
         knowledge_source=knowledge_source,
         data_fields_used=data_fields_used,
+        knowledge_ids=knowledge_ids or [],
+        computation_logic=computation_logic,
         code=code,
     )
 
@@ -93,6 +103,8 @@ def build_card_from_candidate(candidate: Any) -> ProvenanceCard:
         reasoning=getattr(candidate, "reasoning", ""),
         knowledge_source=getattr(candidate, "knowledge_source", ""),
         data_fields_used=getattr(candidate, "data_fields_used", []),
+        knowledge_ids=getattr(candidate, "knowledge_ids", []),
+        computation_logic=getattr(candidate, "computation_logic", ""),
         code=getattr(candidate, "code", ""),
     )
 
@@ -163,6 +175,8 @@ def load_provenance_json(path: Path) -> list[ProvenanceCard]:
             reasoning=item.get("reasoning", ""),
             knowledge_source=item.get("knowledge_source", ""),
             data_fields_used=item.get("data_fields_used", []),
+            knowledge_ids=item.get("knowledge_ids", []),
+            computation_logic=item.get("computation_logic", ""),
             code_hash=item.get("code_hash", ""),
         ))
     return cards

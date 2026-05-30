@@ -24,6 +24,8 @@ class CandidateFeature:
     reasoning: str = ""
     knowledge_source: str = ""
     data_fields_used: list[str] = field(default_factory=list)
+    knowledge_ids: list[str] = field(default_factory=list)
+    computation_logic: str = ""
 
 
 @dataclass

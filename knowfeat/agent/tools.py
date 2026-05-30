@@ -98,12 +98,30 @@ GENERATE_FEATURE_SPEC = ToolSpec(
             },
             "knowledge_source": {
                 "type": "string",
-                "description": "知识溯源（来自哪个案例/规则/专家意见）",
+                "description": "知识溯源的自然语言描述",
+            },
+            "knowledge_ids": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "引用的知识资产ID列表，必须从领域知识中精确引用。"
+                    "格式: RULE_001~015(检测规则), IND_01~38(风险指标), "
+                    "EXP_01~N(专家意见段落), PAT_A01~05/PAT_N01~03(交易模式), "
+                    "RF_S1_FF_NNN(Stage1风险因子), RF_S2_FFF_NNN(裁判文书风险因子)"
+                ),
+            },
+            "computation_logic": {
+                "type": "string",
+                "description": (
+                    "特征的计算逻辑说明：用了哪些基线特征/原始字段，"
+                    "经过什么变换（如比值、对数、乘积、分组聚合等）得到最终值。"
+                    "示例: 'PAIa14-R3(集中度) / PAIa22-1(分散度)，取log1p变换'"
+                ),
             },
             "data_fields_used": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "使用的原始数据字段列表",
+                "description": "使用的原始数据字段/基线特征列名列表",
             },
         },
         "required": [
@@ -113,6 +131,8 @@ GENERATE_FEATURE_SPEC = ToolSpec(
             "explanation",
             "reasoning",
             "knowledge_source",
+            "knowledge_ids",
+            "computation_logic",
             "data_fields_used",
         ],
     },
@@ -194,12 +214,28 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
             },
             "knowledge_source": {
                 "type": "string",
-                "description": "知识溯源（来自哪个案例/风险因子）",
+                "description": "知识溯源的自然语言描述",
+            },
+            "knowledge_ids": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "引用的知识资产ID列表，必须从领域知识中精确引用。"
+                    "格式: RF_S1_FF_NNN(风险因子，FF=文件编号，NNN=因子序号)"
+                ),
+            },
+            "computation_logic": {
+                "type": "string",
+                "description": (
+                    "特征的计算逻辑说明：用了哪些基线特征/原始字段，"
+                    "经过什么变换（如比值、对数、乘积等）得到最终值。"
+                    "示例: 'PAIa14-R3(集中度) / PAIa22-1(分散度)，取log1p变换'"
+                ),
             },
             "data_fields_used": {
                 "type": "array",
                 "items": {"type": "string"},
-                "description": "使用的原始数据字段列表",
+                "description": "使用的原始数据字段/基线特征列名列表",
             },
         },
         "required": [
@@ -209,6 +245,8 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
             "explanation",
             "reasoning",
             "knowledge_source",
+            "knowledge_ids",
+            "computation_logic",
             "data_fields_used",
         ],
     },
@@ -232,6 +270,8 @@ class RegisteredFeature:
     reasoning: str
     knowledge_source: str
     data_fields_used: list[str]
+    knowledge_ids: list[str] = field(default_factory=list)
+    computation_logic: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -364,6 +404,10 @@ class ToolContext:
         if isinstance(dimension, str):
             dimension = [dimension]
 
+        knowledge_ids = args.get("knowledge_ids", [])
+        if isinstance(knowledge_ids, str):
+            knowledge_ids = [knowledge_ids]
+
         reg = RegisteredFeature(
             feature_name=feature_name,
             dimension=dimension,
@@ -372,6 +416,8 @@ class ToolContext:
             reasoning=args.get("reasoning", ""),
             knowledge_source=args.get("knowledge_source", ""),
             data_fields_used=args.get("data_fields_used", []),
+            knowledge_ids=knowledge_ids,
+            computation_logic=args.get("computation_logic", ""),
         )
         self.registered[feature_name] = reg
 
@@ -540,6 +586,8 @@ class ToolContext:
             reasoning=reg.reasoning,
             knowledge_source=reg.knowledge_source,
             data_fields_used=reg.data_fields_used,
+            knowledge_ids=reg.knowledge_ids,
+            computation_logic=reg.computation_logic,
         )
 
     @staticmethod

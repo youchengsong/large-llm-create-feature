@@ -132,7 +132,8 @@ def format_risk_indicators(indicators: list[RiskIndicator]) -> str:
         for cls, items in classes.items():
             lines.append(f"\n**{cls}**")
             for it in items:
-                parts = [f"- [{it.index}] {it.data_field}"]
+                ind_id = f"IND_{it.index:02d}"
+                parts = [f"- [{ind_id}] {it.data_field}"]
                 if it.direction:
                     parts.append(f"  → {it.direction}")
                 lines.append("".join(parts))
@@ -396,15 +397,17 @@ def format_transaction_patterns(patterns: list[TransactionPattern]) -> str:
     lines = [f"## 交易模式知识（{len(patterns)} 种）\n"]
 
     lines.append(f"### 正常交易模式（{len(normal)} 种）\n")
-    for p in normal:
-        lines.append(f"**{p.name}**: {p.description}")
+    for i, p in enumerate(normal, 1):
+        pat_id = f"PAT_N{i:02d}"
+        lines.append(f"[{pat_id}] **{p.name}**: {p.description}")
         if p.signals:
             lines.append("- 信号: " + " | ".join(p.signals))
         lines.append("")
 
     lines.append(f"### 异常交易模式（{len(abnormal)} 种）\n")
-    for p in abnormal:
-        lines.append(f"**{p.name}**: {p.description}")
+    for i, p in enumerate(abnormal, 1):
+        pat_id = f"PAT_A{i:02d}"
+        lines.append(f"[{pat_id}] **{p.name}**: {p.description}")
         if p.signals:
             lines.append("- 信号: " + " | ".join(p.signals))
         lines.append("")
@@ -434,10 +437,14 @@ def load_expert_opinion(docx_path: Path) -> str:
 
 
 def format_expert_opinion(text: str) -> str:
-    """将专家意见格式化为 Markdown 段落。"""
+    """将专家意见格式化为带 ID 的 Markdown 段落。"""
     if not text:
         return "## 专家意见: 未加载\n"
-    return f"## 银行风控专家意见（邮储银行数币洗钱模式）\n\n{text}\n"
+    paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
+    lines = [f"## 专家意见（{len(paragraphs)} 段）\n"]
+    for i, para in enumerate(paragraphs, 1):
+        lines.append(f"[EXP_{i:02d}] {para}\n")
+    return "\n".join(lines)
 
 
 # ── 5. Stage 1 风险因子 ───────────────────────────────────────────────────
@@ -520,6 +527,20 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
         clusters.sort(key=lambda x: -x[1])
         return clusters[:max_clusters]
 
+    # 给每个因子分配唯一 ID: RF_S1_FF_NNN (文件编号_因子序号)
+    factor_id_map: dict[str, list[tuple[str, str]]] = {}  # dim -> [(id, pattern)]
+    global_id_counter = 0
+    for doc in factors:
+        source = doc.get("source", "")
+        file_num = source[:2] if len(source) >= 2 and source[:2].isdigit() else "00"
+        for j, rf in enumerate(doc.get("risk_factors", []), 1):
+            pattern = rf.get("pattern", "").strip()
+            dims = rf.get("dimension", []) or ["其他"]
+            rf_id = f"RF_S1_{file_num}_{j:03d}"
+            global_id_counter += 1
+            for dim in dims:
+                factor_id_map.setdefault(dim, []).append((rf_id, pattern))
+
     dim_order = ["金额频次", "时间地域", "行为序列", "主体关联"]
     lines = [
         f"## 加密货币洗钱风险因子摘要"
@@ -535,10 +556,22 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
 
         lines.append(f"### {dim}（{len(pats)} 个因子）\n")
 
+        # 展示带 ID 的因子列表（去重后保留代表性因子）
         clusters = _cluster_patterns(pats)
+        id_entries = factor_id_map.get(dim, [])
         lines.append("**典型模式**:")
+        shown_ids: set[str] = set()
         for rep, cnt in clusters:
-            lines.append(f"- {rep}（{cnt} 源）")
+            matched_id = ""
+            for rf_id, pat in id_entries:
+                if pat == rep and rf_id not in shown_ids:
+                    matched_id = rf_id
+                    shown_ids.add(rf_id)
+                    break
+            if matched_id:
+                lines.append(f"- [{matched_id}] {rep}（{cnt} 源）")
+            else:
+                lines.append(f"- {rep}（{cnt} 源）")
 
         if sigs:
             sig_list = sorted(sigs)
@@ -557,9 +590,20 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
     for dim in sorted(remaining):
         pats = dim_patterns[dim]
         lines.append(f"### {dim}（{len(pats)} 个因子）\n")
+        id_entries = factor_id_map.get(dim, [])
         clusters = _cluster_patterns(pats, max_clusters=5)
+        shown_ids_r: set[str] = set()
         for rep, cnt in clusters:
-            lines.append(f"- {rep}（{cnt} 源）")
+            matched_id = ""
+            for rf_id, pat in id_entries:
+                if pat == rep and rf_id not in shown_ids_r:
+                    matched_id = rf_id
+                    shown_ids_r.add(rf_id)
+                    break
+            if matched_id:
+                lines.append(f"- [{matched_id}] {rep}（{cnt} 源）")
+            else:
+                lines.append(f"- {rep}（{cnt} 源）")
         lines.append("")
 
     return "\n".join(lines)
@@ -614,6 +658,25 @@ def format_court_doc_risk_factors(factors: list[dict]) -> str:
         clusters.sort(key=lambda x: -x[1])
         return clusters[:max_clusters]
 
+    # 给每个因子分配唯一 ID: RF_S2_FFF_NNN (文件编号_因子序号)
+    factor_id_map: dict[str, list[tuple[str, str]]] = {}  # dim -> [(id, pattern)]
+    for doc in factors:
+        source = doc.get("source", "")
+        # 提取文件名开头的数字作为编号
+        file_num_str = ""
+        for ch in source:
+            if ch.isdigit():
+                file_num_str += ch
+            else:
+                break
+        file_num = file_num_str[:3].zfill(3) if file_num_str else "000"
+        for j, rf in enumerate(doc.get("risk_factors", []), 1):
+            pattern = rf.get("pattern", "").strip()
+            dims = rf.get("dimension", []) or ["其他"]
+            rf_id = f"RF_S2_{file_num}_{j:03d}"
+            for dim in dims:
+                factor_id_map.setdefault(dim, []).append((rf_id, pattern))
+
     dim_order = ["金额频次", "时间地域", "行为序列", "主体关联"]
     lines = [
         f"## 裁判文书洗钱风险因子摘要"
@@ -630,9 +693,20 @@ def format_court_doc_risk_factors(factors: list[dict]) -> str:
         lines.append(f"### {dim}（{len(pats)} 个因子）\n")
 
         clusters = _cluster_patterns(pats)
+        id_entries = factor_id_map.get(dim, [])
         lines.append("**典型模式**:")
+        shown_ids: set[str] = set()
         for rep, cnt in clusters:
-            lines.append(f"- {rep}（{cnt} 案）")
+            matched_id = ""
+            for rf_id, pat in id_entries:
+                if pat == rep and rf_id not in shown_ids:
+                    matched_id = rf_id
+                    shown_ids.add(rf_id)
+                    break
+            if matched_id:
+                lines.append(f"- [{matched_id}] {rep}（{cnt} 案）")
+            else:
+                lines.append(f"- {rep}（{cnt} 案）")
 
         if sigs:
             sig_list = sorted(sigs)
@@ -651,9 +725,20 @@ def format_court_doc_risk_factors(factors: list[dict]) -> str:
     for dim in sorted(remaining):
         pats = dim_patterns[dim]
         lines.append(f"### {dim}（{len(pats)} 个因子）\n")
+        id_entries = factor_id_map.get(dim, [])
         clusters = _cluster_patterns(pats, max_clusters=5)
+        shown_ids_r: set[str] = set()
         for rep, cnt in clusters:
-            lines.append(f"- {rep}（{cnt} 案）")
+            matched_id = ""
+            for rf_id, pat in id_entries:
+                if pat == rep and rf_id not in shown_ids_r:
+                    matched_id = rf_id
+                    shown_ids_r.add(rf_id)
+                    break
+            if matched_id:
+                lines.append(f"- [{matched_id}] {rep}（{cnt} 案）")
+            else:
+                lines.append(f"- {rep}（{cnt} 案）")
         lines.append("")
 
     return "\n".join(lines)
