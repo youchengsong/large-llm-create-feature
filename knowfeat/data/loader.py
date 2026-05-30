@@ -197,10 +197,11 @@ def load_stage1(cfg: Optional[KnowFeatConfig] = None,
     logger.info("BABD-13 loaded: %d rows, %d cols", *df.shape)
 
     # SW 列是类别型 (SA/WA)，编码为 0/1
-    if "SW" in df.columns and df["SW"].dtype == object:
+    if "SW" in df.columns and not pd.api.types.is_numeric_dtype(df["SW"]):
         df["SW"] = (df["SW"] == "WA").astype(int)
 
-    # 13-class → binary
+    # 13-class → binary (use loc to avoid fragmentation warning)
+    df = df.copy()
     df["is_illicit"] = df["label"].isin(BABD13_ILLICIT_LABELS).astype(int)
     n_pos = df["is_illicit"].sum()
     n_neg = len(df) - n_pos
