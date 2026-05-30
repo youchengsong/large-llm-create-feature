@@ -117,74 +117,200 @@
 ## Phase 2: Exp 2 — 知识消融 (Knowledge Ablation)
 
 > 仅在数字人民币上运行，量化每种知识资产的边际贡献
+> 结果存放: `outputs/eval_results/simecny_KnowFeat-*.json` + `outputs/ablation/`
 
-- [ ] **T2.1** KnowFeat-Full（全部知识）— ✅ 已有数据
-- [ ] **T2.2** KnowFeat-Rules（仅 RULE_001~015）
-- [ ] **T2.3** KnowFeat-Indicators（仅 IND_01~38）
-- [ ] **T2.4** KnowFeat-Expert（仅 EXP_01~26）
+### T2.0 实现知识过滤机制
+
+- [ ] **T2.0** 在 `knowfeat/prompt/domain_knowledge.py` 的 `format_domain_knowledge()` 中添加 `knowledge_filter` 参数
+  - 函数签名: `format_domain_knowledge(dk, stage="stage2", knowledge_filter=None)`
+  - `knowledge_filter` 取值: `"rules"`, `"indicators"`, `"expert"`, `"court"`, `"schema_only"`, `None`(=全部)
+  - 实现方式: 根据 filter 值只格式化对应知识类型的内容
+    - `"rules"`: 只输出 `dk.detection_rules`（RULE_001~015）
+    - `"indicators"`: 只输出 `dk.risk_indicators`（IND_01~38）
+    - `"expert"`: 只输出 `dk.expert_opinion`（EXP_01~26）
+    - `"court"`: 只输出 `dk.court_doc_risk_factors`（RF_S2_*）
+    - `"schema_only"`: 返回空字符串（不输出任何知识，仅保留 schema）
+    - `None`: 保持原有行为，输出全部知识
+  - 在 `build_system_prompt()` 中透传 `knowledge_filter` 参数
+  - 在 `knowfeat/main.py` 的 CLI 添加 `--knowledge-filter` 参数
+  - 运行测试: `.venv/bin/python -m pytest tests/ -x`
+
+### T2.1~T2.6 运行消融实验
+
+> 每个配置运行 KnowFeat Stage2，生成特征后用 `evaluate.py` 评估
+> 输出目录: `outputs/ablation/<config_name>/`（含 stage2_features.json, stage2_provenance.json, stage2_summary.json）
+
+- [ ] **T2.1** KnowFeat-Full（全部知识）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30`
+  - 复制输出到: `outputs/ablation/full/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Full --features-csv outputs/ablation/full/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Full.json`
+
+- [ ] **T2.2** KnowFeat-Rules（仅检测规则）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30 --knowledge-filter rules`
+  - 复制输出到: `outputs/ablation/rules/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Rules --features-csv outputs/ablation/rules/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Rules.json`
+
+- [ ] **T2.3** KnowFeat-Indicators（仅风险指标）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30 --knowledge-filter indicators`
+  - 复制输出到: `outputs/ablation/indicators/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Indicators --features-csv outputs/ablation/indicators/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Indicators.json`
+
+- [ ] **T2.4** KnowFeat-Expert（仅专家意见）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30 --knowledge-filter expert`
+  - 复制输出到: `outputs/ablation/expert/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Expert --features-csv outputs/ablation/expert/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Expert.json`
+
 - [ ] **T2.5** KnowFeat-Court（仅裁判文书风险因子）
-- [ ] **T2.6** KnowFeat-Schema（仅数据 Schema，无领域知识）
-- [ ] **T2.7** 生成 Table 3 + Figure 1（各知识类型边际贡献条形图）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30 --knowledge-filter court`
+  - 复制输出到: `outputs/ablation/court/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Court --features-csv outputs/ablation/court/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Court.json`
 
-实现方式：在 `prompt/builder.py` 中控制 `format_domain_knowledge()` 只加载指定知识类型。
+- [ ] **T2.6** KnowFeat-Schema（仅数据 Schema，无领域知识）
+  - 运行: `.venv/bin/python -m knowfeat.main --stage stage2 --max-features 30 --knowledge-filter schema_only`
+  - 复制输出到: `outputs/ablation/schema_only/`
+  - 评估: `.venv/bin/python scripts/evaluate.py --dataset simecny --method KnowFeat-Schema --features-csv outputs/ablation/schema_only/stage2_features.csv`
+  - 结果: `outputs/eval_results/simecny_KnowFeat-Schema.json`
+
+### T2.7 汇总
+
+- [ ] **T2.7** 从 `outputs/eval_results/simecny_KnowFeat-*.json` 汇总生成结果
+  - 写脚本 `scripts/gen_table3.py`，读取 6 个 JSON，输出:
+    - `outputs/tables/table3_ablation.csv`（Table 3: 各知识配置的 Recall/F1/AUC + 通过率）
+    - `outputs/figures/figure1_ablation.png`（Figure 1: 条形图，各知识类型的边际贡献 = Full - 去掉该类型后的性能差）
+  - 通过率计算: 从 `outputs/ablation/<config>/stage2_summary.json` 读取 `total_accepted / (total_accepted + total_rejected)`
 
 ---
 
 ## Phase 3: Exp 3 — 溯源完整性评估 (Traceability Metrics)
 
 > 仅在数字人民币上，对比 CAAFE / FeatLLM / KnowFeat 的可解释性
+> 依赖: Phase 1 中 CAAFE、FeatLLM、KnowFeat 的运行产物
+> 结果存放: `outputs/eval_results/traceability_metrics.json` + `outputs/tables/table4_traceability.csv`
 
-- [ ] **T3.1** 每个方法生成 20 个特征，收集其解释/溯源信息
-  - KnowFeat: 从 provenance card 提取
-  - CAAFE: 从代码注释提取
-  - FeatLLM: 从因果描述提取
+### T3.1 收集溯源数据
 
-- [ ] **T3.2** 实现 4 个溯源指标的自动计算脚本
-  - 知识引用率 (Knowledge Citation Rate)
-  - 知识可验证率 (Knowledge Verifiability Rate)
-  - 推理步骤覆盖率 (Reasoning Coverage)
-  - 字段溯源率 (Field Traceability Rate)
+- [ ] **T3.1** 收集三个方法各 20 个特征的解释/溯源信息
+  - KnowFeat: 从 `outputs/stage2_provenance.json` 提取（已有字段: explanation, reasoning, knowledge_source, data_fields_used, knowledge_ids, computation_steps）
+  - CAAFE: 从 `baselines/CAAFE/` 运行输出中提取代码注释和特征描述，保存到 `outputs/traceability/caafe_explanations.json`
+  - FeatLLM: 从 `baselines/FeatLLM/` 运行输出中提取因果描述，保存到 `outputs/traceability/featllm_explanations.json`
+  - 统一格式: `[{"name": "feat_name", "explanation": "...", "code": "...", "knowledge_refs": [...], "reasoning_steps": [...], "data_fields": [...]}]`
 
-- [ ] **T3.3** 生成 Table 4（溯源完整性指标对比）
+### T3.2 实现溯源指标计算脚本
+
+- [ ] **T3.2** 编写 `scripts/compute_traceability.py`
+  - 输入: `--knowfeat-provenance outputs/stage2_provenance.json --caafe-explanations outputs/traceability/caafe_explanations.json --featllm-explanations outputs/traceability/featllm_explanations.json`
+  - 计算 4 个指标:
+    - **知识引用率** (Knowledge Citation Rate): 特征解释中包含具体知识 ID（如 RULE_*, IND_*, EXP_*）的特征占比
+    - **知识可验证率** (Knowledge Verifiability Rate): 引用的知识 ID 能在 `knowledge_registry` 中找到原文的比例
+    - **推理步骤覆盖率** (Reasoning Coverage): `computation_steps` 或 `reasoning` 中有 "因为/because/由于" 等因果词的步骤占比
+    - **字段溯源率** (Field Traceability Rate): 代码中引用的 DataFrame 列名在 `data_fields_used` 中出现的比例
+  - 输出: `outputs/eval_results/traceability_metrics.json`
+    ```json
+    {
+      "KnowFeat": {"citation_rate": 0.95, "verifiability_rate": 0.90, "reasoning_coverage": 0.85, "field_traceability": 0.92},
+      "CAAFE": {"citation_rate": 0.10, ...},
+      "FeatLLM": {"citation_rate": 0.15, ...}
+    }
+    ```
+
+### T3.3 生成表格
+
+- [ ] **T3.3** 从 `outputs/eval_results/traceability_metrics.json` 生成 Table 4
+  - 在 `scripts/compute_traceability.py` 中加入 `--output-table` 参数
+  - 输出: `outputs/tables/table4_traceability.csv`（3行×4列: 方法 × 4个溯源指标）
 
 ---
 
 ## Phase 4: Exp 4 — 专家打分 (Expert Evaluation)
 
 > 人工评估，需要找 3-5 名反洗钱专家
+> 结果存放: `outputs/expert_eval/`
 
-- [ ] **T4.1** 准备评估材料
-  - 从 CAAFE, FeatLLM, KnowFeat 各抽取 10-15 个特征
-  - 匿名化（去除方法名，随机打乱）
-  - 制作评分表（领域合理性 / 解释充分性 / 可审计性，1-5分）
+### T4.1 准备评估材料
 
-- [ ] **T4.2** 联系专家进行评分（人工任务）
+- [ ] **T4.1** 编写 `scripts/prepare_expert_eval.py`，自动生成评估材料
+  - 输入: 三个方法的特征及解释
+    - KnowFeat: `outputs/stage2_provenance.json`（取前 15 个特征）
+    - CAAFE: `outputs/traceability/caafe_explanations.json`（取前 15 个特征）
+    - FeatLLM: `outputs/traceability/featllm_explanations.json`（取前 15 个特征）
+  - 处理:
+    - 匿名化: 去除方法名，替换为 "方法A/B/C"（随机分配）
+    - 随机打乱所有特征顺序（固定 seed=42 保证可复现）
+    - 生成评分表模板（Excel/CSV），每行一个特征，列: 特征ID, 特征名, 解释内容, 领域合理性(1-5), 解释充分性(1-5), 可审计性(1-5)
+  - 输出:
+    - `outputs/expert_eval/eval_form.xlsx`（评分表，发给专家填写）
+    - `outputs/expert_eval/method_mapping.json`（方法A/B/C → 真实方法名映射，评分完成后用于汇总）
+    - `outputs/expert_eval/eval_materials.md`（Markdown 格式评估材料，备用）
 
-- [ ] **T4.3** 汇总评分，生成 Table 5 + Figure 2（雷达图）
+### T4.2 专家评分（人工任务）
+
+- [ ] **T4.2** 联系 3-5 名反洗钱专家，发送 `outputs/expert_eval/eval_form.xlsx`
+  - ⚠️ 这是人工任务，loop 模式跳过
+  - 收回后将评分结果放到 `outputs/expert_eval/scores/expert_1.csv`, `expert_2.csv`, ...
+
+### T4.3 汇总评分
+
+- [ ] **T4.3** 编写 `scripts/summarize_expert_eval.py`
+  - 输入: `outputs/expert_eval/scores/expert_*.csv` + `outputs/expert_eval/method_mapping.json`
+  - 计算: 按方法分组，计算三个维度的均值和标准差
+  - 输出:
+    - `outputs/tables/table5_expert_eval.csv`（Table 5: 3方法 × 3维度的 mean±std）
+    - `outputs/figures/figure2_radar.png`（Figure 2: 雷达图，matplotlib 绘制）
 
 ---
 
 ## Phase 5: Exp 5 — Case Study
 
 > 定性展示溯源卡片 vs 其他方法解释的差异
+> 依赖: Phase 1 中三个方法的运行产物
+> 结果存放: `outputs/case_study/`
 
-- [ ] **T5.1** 挑选 2-3 个代表性特征（如"休眠账户激活风险"、"分散转入集中转出比率"）
-- [ ] **T5.2** 收集 CAAFE 和 FeatLLM 对同类特征的解释
-- [ ] **T5.3** 制作并排对比图（Figure 3），展示溯源卡片的完整性优势
+- [ ] **T5.1** 编写 `scripts/gen_case_study.py`，自动提取对比材料
+  - 从 `outputs/stage2_provenance.json` 中挑选 2-3 个代表性特征:
+    - 标准: knowledge_ids 数量多（≥3）、computation_steps 步骤完整、explanation 长度适中
+    - 候选: "休眠账户激活风险"、"分散转入集中转出比率" 等（按 knowledge_ids 数量排序取 top 3）
+  - 从 CAAFE/FeatLLM 输出中找到功能最接近的特征（按特征名或 explanation 语义匹配）
+  - 输出:
+    - `outputs/case_study/case_study.json`（结构化数据: 每个 case 包含三个方法的特征名、代码、解释、溯源信息）
+    - `outputs/case_study/case_study.md`（Markdown 格式并排对比，可直接用于论文）
+
+- [ ] **T5.2** 制作 Figure 3（并排对比图）
+  - 在 `scripts/gen_case_study.py` 中加入 `--plot` 参数
+  - 用 matplotlib 或手动排版生成对比图
+  - 输出: `outputs/figures/figure3_case_study.png`
+  - 格式参考 `docs/experiment_design.md` 中的对比框图
 
 ---
 
 ## Phase 6: Exp 6 — 效率对比 (Efficiency)
 
 > 在数字人民币上对比各方法的计算成本
+> 结果存放: `outputs/tables/table6_efficiency.csv`
 
-- [ ] **T6.1** 记录各方法的运行指标
-  - 总运行时间
-  - LLM API 调用次数（仅 LLM-based 方法）
-  - API 费用估算
-  - 生成特征数 / 通过特征数
+- [ ] **T6.1** 编写 `scripts/gen_efficiency_table.py`，汇总各方法的运行指标
+  - 数据来源:
+    - KnowFeat: 从 `outputs/stage2_summary.json` 读取 `elapsed_sec`, `total_accepted`, `total_rejected`, `total_candidates`
+    - CAAFE: 从 `baselines/CAAFE/` 运行日志中提取（运行时用 `time` 命令计时）
+    - FeatLLM: 从 `baselines/FeatLLM/` 运行日志中提取
+    - OpenFE/AutoFeat: 从运行日志中提取（无 API 调用）
+  - 收集指标:
+    - 总运行时间（秒）
+    - LLM API 调用次数（仅 CAAFE, FeatLLM, KnowFeat）
+    - API 费用估算（调用次数 × 单价，DeepSeek: ~¥0.001/1K tokens）
+    - 生成特征数（total_candidates）
+    - 通过特征数（total_accepted）
+    - 通过率（total_accepted / total_candidates）
+  - 输出: `outputs/tables/table6_efficiency.csv`
+  - 格式: 6行（方法）× 6列（上述指标）
 
-- [ ] **T6.2** 生成 Table 6（效率对比表）
+- [ ] **T6.2** 如果运行时间数据不完整，补充运行缺失方法并计时
+  - 对每个 LLM-based 方法，运行时在命令前加 `time`
+  - 将计时结果写入 `outputs/efficiency/<method>_timing.txt`
 
 ---
 
