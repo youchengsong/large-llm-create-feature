@@ -28,7 +28,7 @@ class ProvenanceCard:
     knowledge_source: str
     data_fields_used: list[str]
     knowledge_ids: list[str] = field(default_factory=list)
-    computation_logic: str = ""
+    computation_steps: str = ""
     knowledge_resolved: list[dict[str, str]] = field(default_factory=list)
     code: str = ""
     code_hash: str = ""
@@ -73,7 +73,7 @@ class ProvenanceCard:
             lines.append("**知识溯源ID**: 未指定")
             lines.append("")
 
-        lines.append(f"**计算逻辑**: {self.computation_logic if self.computation_logic else '未指定'}")
+        lines.append(f"**计算步骤**: {self.computation_steps if self.computation_steps else '未指定'}")
         lines.append("")
         lines.append(f"**数据字段**: {', '.join(self.data_fields_used) if self.data_fields_used else '未指定'}")
 
@@ -91,7 +91,7 @@ def build_card(
     knowledge_source: str,
     data_fields_used: list[str],
     knowledge_ids: Optional[list[str]] = None,
-    computation_logic: str = "",
+    computation_steps: str = "",
     registry: Optional[dict[str, str]] = None,
 ) -> ProvenanceCard:
     card = ProvenanceCard(
@@ -102,7 +102,7 @@ def build_card(
         knowledge_source=knowledge_source,
         data_fields_used=data_fields_used,
         knowledge_ids=knowledge_ids or [],
-        computation_logic=computation_logic,
+        computation_steps=computation_steps,
         code=code,
     )
     if registry:
@@ -126,7 +126,7 @@ def build_card_from_candidate(candidate: Any) -> ProvenanceCard:
         knowledge_source=getattr(candidate, "knowledge_source", ""),
         data_fields_used=getattr(candidate, "data_fields_used", []),
         knowledge_ids=getattr(candidate, "knowledge_ids", []),
-        computation_logic=getattr(candidate, "computation_logic", ""),
+        computation_steps=getattr(candidate, "computation_steps", ""),
         code=getattr(candidate, "code", ""),
     )
 
@@ -198,7 +198,7 @@ def load_provenance_json(path: Path) -> list[ProvenanceCard]:
             knowledge_source=item.get("knowledge_source", ""),
             data_fields_used=item.get("data_fields_used", []),
             knowledge_ids=item.get("knowledge_ids", []),
-            computation_logic=item.get("computation_logic", ""),
+            computation_steps=item.get("computation_steps", ""),
             knowledge_resolved=item.get("knowledge_resolved", []),
             code_hash=item.get("code_hash", ""),
         ))

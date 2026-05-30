@@ -35,7 +35,8 @@ system_prompt = f"""你是一个数字人民币反洗钱特征工程专家。
 - 特征函数签名: def feature_xxx(open_df, tx_df, close_df) -> pd.DataFrame
 - 输出必须含 wallet_id 列
 - **溯源要求**：必须在 knowledge_ids 中填写具体的知识资产ID（如 RULE_002, IND_05, EXP_03, PAT_A02, RF_S2_100_001），不要用笼统描述
-- **计算逻辑**：必须在 computation_logic 中说明用了哪些字段、经过什么变换得到最终值
+- **计算步骤**：必须在 computation_steps 中逐步描述从原始字段到最终特征值的每一步变换
+- **设计推理**：必须在 reasoning 中按计算步骤逐步解释，每一步先说明知识依据（因为），再说明计算操作（所以）
 
 ## 可用数据
 - open_df: 账户信息表（wallet_id, wallet_type, wallet_level, region_code, wallet_open_date 等）
@@ -100,9 +101,9 @@ if knowledge_ids:
 else:
     print("  (空！LLM 未填写)")
 
-print(f"\n--- 计算逻辑 ---")
-computation_logic = args.get('computation_logic', '')
-print(f"  {computation_logic if computation_logic else '(空！LLM 未填写)'}")
+print(f"\n--- 计算步骤 ---")
+computation_steps = args.get('computation_steps', '')
+print(f"  {computation_steps if computation_steps else '(空！LLM 未填写)'}")
 
 print(f"\n--- 使用的数据字段 ---")
 data_fields = args.get('data_fields_used', [])
@@ -115,7 +116,7 @@ print(f"  {args.get('knowledge_source', 'N/A')}")
 print(f"\n--- 特征解释 ---")
 print(f"  {args.get('explanation', 'N/A')}")
 
-print(f"\n--- 设计推理 ---")
+print(f"\n--- 设计推理（按步骤解释为什么） ---")
 print(f"  {args.get('reasoning', 'N/A')}")
 
 print(f"\n--- 特征代码 ---")
@@ -139,10 +140,10 @@ if knowledge_ids:
 else:
     checks.append("❌ knowledge_ids 为空")
 
-if computation_logic:
-    checks.append(f"✅ computation_logic 已填写 ({len(computation_logic)} 字符)")
+if computation_steps:
+    checks.append(f"✅ computation_steps 已填写 ({len(computation_steps)} 字符)")
 else:
-    checks.append("❌ computation_logic 为空")
+    checks.append("❌ computation_steps 为空")
 
 if data_fields:
     checks.append(f"✅ data_fields_used 已填写 ({len(data_fields)} 个字段)")

@@ -95,10 +95,13 @@ GENERATE_FEATURE_SPEC = ToolSpec(
             "reasoning": {
                 "type": "string",
                 "description": (
-                    "设计推理过程：逐条引用知识ID，说明每个ID如何映射到特征计算步骤。"
-                    "格式示例: 'RULE_002(休眠账户激活) → 用 wallet_open_date 计算账龄; "
-                    "IND_05(大额交易频率) → 按 amount>10000 过滤 tx_df 统计频次; "
-                    "两者交叉得到 dormant_large_tx_ratio'"
+                    "设计推理过程：按计算步骤逐步解释，每一步先说明知识依据（因为），再说明计算操作（所以）。"
+                    "格式示例: '步骤1: 因为RULE_002指出休眠账户(开户后≥3个月无交易)突然激活是洗钱预警信号，"
+                    "所以计算dormant_days=(first_tx_time-wallet_open_date).days来量化休眠时长; "
+                    "步骤2: 因为IND_04(高金额交易)和IND_05(金额偏离历史均值)表明激活后突然出现大额交易是异常模式，"
+                    "所以筛选amount>10000的交易计算大额占比来捕捉这一信号; "
+                    "步骤3: 因为RULE_002描述的完整模式是\"休眠+激活后大额频繁\"的复合特征，"
+                    "所以将休眠天数与大额占比相乘得到dormant_large_tx_ratio，综合捕捉复合风险'"
                 ),
             },
             "knowledge_source": {
@@ -115,12 +118,13 @@ GENERATE_FEATURE_SPEC = ToolSpec(
                     "RF_S1_FF_NNN(Stage1风险因子), RF_S2_FFF_NNN(裁判文书风险因子)"
                 ),
             },
-            "computation_logic": {
+            "computation_steps": {
                 "type": "string",
                 "description": (
-                    "特征的计算逻辑说明：用了哪些基线特征/原始字段，"
-                    "经过什么变换（如比值、对数、乘积、分组聚合等）得到最终值。"
-                    "示例: 'PAIa14-R3(集中度) / PAIa22-1(分散度)，取log1p变换'"
+                    "特征的计算步骤说明：逐步描述从原始字段/基线特征到最终特征值的每一步变换。"
+                    "示例: '步骤1: 按src分组统计tx_df中amount>10000的笔数; "
+                    "步骤2: 除以该src的总交易笔数得到大额占比; "
+                    "步骤3: 取log1p变换稳定分布'"
                 ),
             },
             "data_fields_used": {
@@ -137,7 +141,7 @@ GENERATE_FEATURE_SPEC = ToolSpec(
             "reasoning",
             "knowledge_source",
             "knowledge_ids",
-            "computation_logic",
+            "computation_steps",
             "data_fields_used",
         ],
     },
@@ -216,10 +220,11 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
             "reasoning": {
                 "type": "string",
                 "description": (
-                    "设计推理过程：逐条引用知识ID，说明每个ID如何映射到特征计算步骤。"
-                    "格式示例: 'RF_S1_01_002(分层转移) → 用 PAIa14-R3 衡量资金集中度; "
-                    "RF_S1_03_001(快进快出) → 用 PTI1-R2/PTI1-R1 计算进出时间比; "
-                    "两者乘积得到 layered_speed_score'"
+                    "设计推理过程：按计算步骤逐步解释，每一步先说明知识依据（因为），再说明计算操作（所以）。"
+                    "格式示例: '步骤1: 因为RF_S1_01_002指出洗钱地址资金集中在少数大额交易中，"
+                    "所以计算PAIa14-R3/PAIa22-1得到集中分散比来量化这一模式; "
+                    "步骤2: 因为原始比值存在极端长尾分布，"
+                    "所以取log1p变换稳定分布，便于后续建模'"
                 ),
             },
             "knowledge_source": {
@@ -234,12 +239,13 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
                     "格式: RF_S1_FF_NNN(风险因子，FF=文件编号，NNN=因子序号)"
                 ),
             },
-            "computation_logic": {
+            "computation_steps": {
                 "type": "string",
                 "description": (
-                    "特征的计算逻辑说明：用了哪些基线特征/原始字段，"
-                    "经过什么变换（如比值、对数、乘积等）得到最终值。"
-                    "示例: 'PAIa14-R3(集中度) / PAIa22-1(分散度)，取log1p变换'"
+                    "特征的计算步骤说明：逐步描述从原始字段/基线特征到最终特征值的每一步变换。"
+                    "示例: '步骤1: 取PAIa14-R3(集中度)和PAIa22-1(分散度); "
+                    "步骤2: 计算比值ratio=PAIa14-R3/PAIa22-1; "
+                    "步骤3: log1p变换稳定分布'"
                 ),
             },
             "data_fields_used": {
@@ -256,7 +262,7 @@ GENERATE_FEATURE_SPEC_STAGE1 = ToolSpec(
             "reasoning",
             "knowledge_source",
             "knowledge_ids",
-            "computation_logic",
+            "computation_steps",
             "data_fields_used",
         ],
     },
@@ -281,7 +287,7 @@ class RegisteredFeature:
     knowledge_source: str
     data_fields_used: list[str]
     knowledge_ids: list[str] = field(default_factory=list)
-    computation_logic: str = ""
+    computation_steps: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -427,7 +433,7 @@ class ToolContext:
             knowledge_source=args.get("knowledge_source", ""),
             data_fields_used=args.get("data_fields_used", []),
             knowledge_ids=knowledge_ids,
-            computation_logic=args.get("computation_logic", ""),
+            computation_steps=args.get("computation_steps", ""),
         )
         self.registered[feature_name] = reg
 
@@ -597,7 +603,7 @@ class ToolContext:
             knowledge_source=reg.knowledge_source,
             data_fields_used=reg.data_fields_used,
             knowledge_ids=reg.knowledge_ids,
-            computation_logic=reg.computation_logic,
+            computation_steps=reg.computation_steps,
         )
 
     @staticmethod
