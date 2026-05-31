@@ -2,7 +2,7 @@
 
 > KnowFeat: Knowledge-Traceable Feature Engineering
 >
-> **最后更新：2026-05-31 16:45 UTC**
+> **最后更新：2026-05-31 16:50 UTC**
 
 ---
 
@@ -127,7 +127,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: LLM 方法 🔄 CAAFE ✅×3, FeatLLM ✅×3, KnowFeat 运行中（credit_g API调用中, diabetes+blood_transfusion 待运行）
+- [ ] **T1.5** 机器B: LLM 方法 🔄 CAAFE ✅×3, FeatLLM ✅×3(eval confirmed), KnowFeat 运行中（credit_g round4+ 活跃API调用, diabetes+blood_transfusion 自动排队）
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
