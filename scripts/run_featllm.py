@@ -80,7 +80,12 @@ _VERSION = "\n\n---VERSION---\n\n"
 def load_dataset(name: str) -> pd.DataFrame:
     reg = DATASET_REGISTRY[name]
     if name == "simecny":
-        return pd.read_parquet(PROJECT_ROOT / "outputs" / "baseline_cache.parquet")
+        df = pd.read_parquet(PROJECT_ROOT / "outputs" / "baseline_cache.parquet")
+        baseline_exclude = {"Min_Received", "Min_Sent", "S_src_counterparty_index",
+                            "Timestamp_Hour", "S_dst_counterparty_index",
+                            "1H_frequency_From", "1H_frequency_To",
+                            "wallets_per_cert_From", "min_inactive_period_From", "Max_Sent"}
+        return df.drop(columns=[c for c in baseline_exclude if c in df.columns], errors="ignore")
     return pd.read_csv(reg["csv"])
 
 

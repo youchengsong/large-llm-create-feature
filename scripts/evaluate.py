@@ -102,7 +102,11 @@ def prepare_features(
     """准备特征矩阵和标签。"""
     if feature_cols is None:
         exclude = {target, "row_id", "wallet_id", "tx_id", "account",
-                   "src", "dst", "is_laundering", "is_risk", "label", "is_illicit"}
+                   "src", "dst", "is_laundering", "is_risk", "label", "is_illicit",
+                   "Min_Received", "Min_Sent", "S_src_counterparty_index",
+                   "Timestamp_Hour", "S_dst_counterparty_index",
+                   "1H_frequency_From", "1H_frequency_To",
+                   "wallets_per_cert_From", "min_inactive_period_From", "Max_Sent"}
         feature_cols = [c for c in df.columns if c not in exclude]
 
     X = df[feature_cols].copy()

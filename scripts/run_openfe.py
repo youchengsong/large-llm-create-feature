@@ -53,6 +53,11 @@ def main():
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
     df, target = load_dataset(args.dataset)
+    baseline_exclude = {"Min_Received", "Min_Sent", "S_src_counterparty_index",
+                        "Timestamp_Hour", "S_dst_counterparty_index",
+                        "1H_frequency_From", "1H_frequency_To",
+                        "wallets_per_cert_From", "min_inactive_period_From", "Max_Sent"}
+    df = df.drop(columns=[c for c in baseline_exclude if c in df.columns], errors="ignore")
     y = df[target]
     X = df.drop(columns=[target])
 
