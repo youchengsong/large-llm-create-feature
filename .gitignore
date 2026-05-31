@@ -1,5 +1,6 @@
 # Large data files (use .gz version for git)
 data/transactions.csv
+data/full_backup/
 
 # Large output files
 output/full_baseline_features.csv

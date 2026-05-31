@@ -97,9 +97,13 @@ def forward_select(
         if result.passed:
             accepted.append(cand)
             current_X[cand.name] = feat.values
+            if result.accept_metric == "auc":
+                delta_str = f"delta_auc={result.delta_auc:+.4f}"
+            else:
+                delta_str = f"delta_recall={result.delta_recall:+.4f}"
             logger.info(
-                "前向选择 [%d/%d] %s → 接受 (delta_recall=%+.4f)",
-                i + 1, len(candidates), cand.name, result.delta_recall,
+                "前向选择 [%d/%d] %s → 接受 (%s)",
+                i + 1, len(candidates), cand.name, delta_str,
             )
         else:
             rejected.append(cand)

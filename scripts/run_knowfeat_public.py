@@ -86,6 +86,7 @@ def build_config(dataset_name: str, max_features: int = 20) -> KnowFeatConfig:
 
     cfg = load_config(stage="generic")
     cfg.public_dataset = pub_cfg
+    cfg.verification.accept_metric = "auc"
     cfg.search.dimensions = reg["dimensions"]
     cfg.search.max_features = max_features
     cfg.search.initial_budget_per_dim = max(2, max_features // len(reg["dimensions"]))
@@ -122,13 +123,16 @@ def main():
     dk = load_domain_knowledge(cfg)
     logger.info("Knowledge loaded: registry=%d entries", len(dk.knowledge_registry))
 
-    # 构建 prompt
-    from knowfeat.prompt.builder import build_system_prompt
-    system_prompt = build_system_prompt(cfg=cfg, domain_knowledge=dk, data=data)
-    logger.info("System prompt: %d chars", len(system_prompt))
+    # 运行 Agent 循环
+    from knowfeat.main import run_stage, save_results
+    result = run_stage(cfg, data, dk)
+    save_results(result, cfg.paths.output_dir / args.dataset)
 
-    # TODO: 在 loop 模式中对接 ReAct Agent 循环
-    logger.info("基础设施就绪。请通过 knowfeat.agent.react_agent 启动特征生成循环。")
+    print(
+        f"\n完成: {result.total_accepted} 特征, "
+        f"{result.total_rounds} 轮, "
+        f"{result.convergence_reason}"
+    )
 
 
 if __name__ == "__main__":

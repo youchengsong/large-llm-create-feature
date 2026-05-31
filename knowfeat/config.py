@@ -87,6 +87,8 @@ class VerificationConfig:
     cv_folds: int = 5
     precision_min: float = 0.90
     delta_recall_min: float = 0.0
+    accept_metric: str = "recall"  # "recall" (AML) or "auc" (公开数据集)
+    delta_auc_min: float = 0.0
 
 
 # ---------------------------------------------------------------------------

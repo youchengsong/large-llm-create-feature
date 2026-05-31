@@ -1005,7 +1005,14 @@ def load_domain_knowledge(cfg: KnowFeatConfig) -> DomainKnowledge:
     return dk
 
 
-def format_domain_knowledge(dk: DomainKnowledge, stage: str = "stage2") -> str:
+KNOWLEDGE_FILTERS = {"rules", "indicators", "expert", "court", "schema_only"}
+
+
+def format_domain_knowledge(
+    dk: DomainKnowledge,
+    stage: str = "stage2",
+    knowledge_filter: Optional[str] = None,
+) -> str:
     """将 DomainKnowledge 格式化为完整 Markdown 文本，供 prompt 注入。
 
     Parameters
@@ -1014,29 +1021,51 @@ def format_domain_knowledge(dk: DomainKnowledge, stage: str = "stage2") -> str:
         领域知识容器。
     stage : str
         "stage1", "stage2", 或 "generic"，控制输出内容。
+    knowledge_filter : str, optional
+        消融实验用：只输出指定类型的知识。
+        取值: "rules" / "indicators" / "expert" / "court" / "schema_only" / None(全部)。
 
     Returns
     -------
     str
         格式化的领域知识 Markdown 文本。
     """
+    if knowledge_filter and knowledge_filter not in KNOWLEDGE_FILTERS:
+        raise ValueError(
+            f"knowledge_filter={knowledge_filter!r} 不合法，"
+            f"可选值: {KNOWLEDGE_FILTERS}"
+        )
+
     if stage == "generic" and dk.public_knowledge is not None:
         text = format_public_domain_knowledge(dk.public_knowledge)
         logger.info("Formatted public domain knowledge: %d chars", len(text))
         return text
 
+    if knowledge_filter == "schema_only":
+        logger.info("Knowledge filter=schema_only: 不输出任何领域知识")
+        return ""
+
     sections: list[str] = ["# 领域知识\n"]
 
     if stage == "stage2":
-        sections.append(format_risk_indicators(dk.risk_indicators))
-        sections.append(format_detection_rules(dk.detection_rules))
-        sections.append(format_transaction_patterns(dk.transaction_patterns))
-        sections.append(format_expert_opinion(dk.expert_opinion))
-        if dk.court_doc_risk_factors:
-            sections.append(format_court_doc_risk_factors(dk.court_doc_risk_factors))
+        if knowledge_filter is None or knowledge_filter == "indicators":
+            sections.append(format_risk_indicators(dk.risk_indicators))
+        if knowledge_filter is None or knowledge_filter == "rules":
+            sections.append(format_detection_rules(dk.detection_rules))
+        if knowledge_filter is None:
+            sections.append(format_transaction_patterns(dk.transaction_patterns))
+        if knowledge_filter is None or knowledge_filter == "expert":
+            sections.append(format_expert_opinion(dk.expert_opinion))
+        if knowledge_filter is None or knowledge_filter == "court":
+            if dk.court_doc_risk_factors:
+                sections.append(format_court_doc_risk_factors(dk.court_doc_risk_factors))
     elif stage == "stage1":
         sections.append(format_stage1_risk_factors(dk.stage1_risk_factors))
 
-    text = "\n\n".join(sections)
-    logger.info("Formatted domain knowledge: %d chars (stage=%s)", len(text), stage)
+    text = "\n\n".join(s for s in sections if s.strip())
+    filter_label = knowledge_filter or "full"
+    logger.info(
+        "Formatted domain knowledge: %d chars (stage=%s, filter=%s)",
+        len(text), stage, filter_label,
+    )
     return text

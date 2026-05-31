@@ -83,34 +83,35 @@ class TestComputeMetrics:
 # ---- _cv_evaluate ----
 
 class TestCVEvaluate:
-    def test_returns_three_floats(self):
+    def test_returns_cv_metrics(self):
         baseline_X, label = _make_dataset(n=500, pos_rate=0.1)
-        r, p, f = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
-        assert isinstance(r, float)
-        assert isinstance(p, float)
-        assert isinstance(f, float)
+        m = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
+        assert isinstance(m.recall, float)
+        assert isinstance(m.precision, float)
+        assert isinstance(m.f1, float)
+        assert isinstance(m.auc, float)
 
     def test_metrics_in_valid_range(self):
         baseline_X, label = _make_dataset(n=500, pos_rate=0.1)
-        r, p, f = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
-        for val in (r, p, f):
+        m = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
+        for val in (m.recall, m.precision, m.f1, m.auc):
             assert 0.0 <= val <= 1.0
 
     def test_deterministic_with_seed(self):
         baseline_X, label = _make_dataset(n=500, pos_rate=0.1)
-        r1, p1, f1 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
-        r2, p2, f2 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
-        assert r1 == r2
-        assert p1 == p2
-        assert f1 == f2
+        m1 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
+        m2 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
+        assert m1.recall == m2.recall
+        assert m1.precision == m2.precision
+        assert m1.f1 == m2.f1
+        assert m1.auc == m2.auc
 
     def test_different_seeds_may_differ(self):
         baseline_X, label = _make_dataset(n=500, pos_rate=0.1)
-        r1, _, _ = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
-        r2, _, _ = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=99)
-        # They may or may not differ, just check they both run without error
-        assert 0.0 <= r1 <= 1.0
-        assert 0.0 <= r2 <= 1.0
+        m1 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=42)
+        m2 = _cv_evaluate(baseline_X, label.values, n_folds=3, seed=99)
+        assert 0.0 <= m1.recall <= 1.0
+        assert 0.0 <= m2.recall <= 1.0
 
 
 # ---- evaluate_feature ----

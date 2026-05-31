@@ -333,6 +333,7 @@ def build_system_prompt(
     shap_feedback: Optional[ShapFeedback] = None,
     failure_records: Optional[list[FailureRecord]] = None,
     cross_dim_examples: Optional[list[CrossDimExample]] = None,
+    knowledge_filter: Optional[str] = None,
 ) -> str:
     """组装完整的 System Prompt。
 
@@ -373,8 +374,10 @@ def build_system_prompt(
     else:
         sections.append(_ROLE_STAGE1)
 
-    # 2. 领域知识（静态）
-    sections.append(format_domain_knowledge(domain_knowledge, stage=stage))
+    # 2. 领域知识（静态，可按 knowledge_filter 过滤用于消融实验）
+    sections.append(format_domain_knowledge(
+        domain_knowledge, stage=stage, knowledge_filter=knowledge_filter,
+    ))
 
     # 3. 数据 Schema + 分布差异（静态）
     if schema_text is not None:
@@ -426,6 +429,7 @@ def build_full_prompt(
     budget: int = 5,
     n_accepted: int = 0,
     n_candidates: int = 0,
+    knowledge_filter: Optional[str] = None,
 ) -> tuple[str, str]:
     """组装 system prompt + 当前轮次的 user message。
 
@@ -442,6 +446,7 @@ def build_full_prompt(
         shap_feedback=shap_feedback,
         failure_records=failure_records,
         cross_dim_examples=cross_dim_examples,
+        knowledge_filter=knowledge_filter,
     )
 
     user = build_round_instruction(

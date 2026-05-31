@@ -110,6 +110,7 @@ def run_stage(
     data: Stage2Data | Stage1Data,
     domain_knowledge: DomainKnowledge,
     noise_thresholds: Optional[NoiseThresholds] = None,
+    knowledge_filter: Optional[str] = None,
 ) -> StageResult:
     """Run one stage of KnowFeat feature generation.
 
@@ -161,6 +162,7 @@ def run_stage(
     agent = ReactAgent(
         llm=llm, tool_ctx=tool_ctx, cfg=cfg,
         domain_knowledge=domain_knowledge, schema_text=schema_text,
+        knowledge_filter=knowledge_filter,
     )
 
     prompt_shap: Optional[PromptShapFeedback] = None
@@ -468,12 +470,17 @@ def _ensure_knowledge_extracted(cfg: KnowFeatConfig) -> None:
 # Public entry point
 # ---------------------------------------------------------------------------
 
-def run(stage: str = "stage2", **config_overrides) -> StageResult:
+def run(
+    stage: str = "stage2",
+    knowledge_filter: Optional[str] = None,
+    **config_overrides,
+) -> StageResult:
     """KnowFeat main entry point.
 
     Parameters
     ----------
     stage : "stage1" or "stage2"
+    knowledge_filter : optional, for ablation experiments.
     **config_overrides : forwarded to :func:`load_config`.
 
     Returns
@@ -487,7 +494,7 @@ def run(stage: str = "stage2", **config_overrides) -> StageResult:
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
         force=True,
     )
-    logger.info("KnowFeat 启动 (stage=%s)", stage)
+    logger.info("KnowFeat 启动 (stage=%s, knowledge_filter=%s)", stage, knowledge_filter)
 
     # -- Key-clue Extraction（首次运行时自动提取，有缓存则跳过）--------
     _ensure_knowledge_extracted(cfg)
@@ -497,7 +504,7 @@ def run(stage: str = "stage2", **config_overrides) -> StageResult:
     else:
         data = load_stage2(cfg=cfg)
     domain_knowledge = load_domain_knowledge(cfg)
-    result = run_stage(cfg, data, domain_knowledge)
+    result = run_stage(cfg, data, domain_knowledge, knowledge_filter=knowledge_filter)
     save_results(result, cfg.paths.output_dir)
 
     return result
@@ -519,6 +526,11 @@ def main() -> None:
     parser.add_argument(
         "--quiet", action="store_true", help="suppress verbose logging",
     )
+    parser.add_argument(
+        "--knowledge-filter", default=None,
+        choices=["rules", "indicators", "expert", "court", "schema_only"],
+        help="消融实验: 只注入指定类型的领域知识",
+    )
     args = parser.parse_args()
 
     overrides: dict = {}
@@ -529,7 +541,11 @@ def main() -> None:
     if args.quiet:
         overrides["verbose"] = False
 
-    result = run(stage=args.stage, **overrides)
+    result = run(
+        stage=args.stage,
+        knowledge_filter=args.knowledge_filter,
+        **overrides,
+    )
     print(
         f"\n完成: {result.total_accepted} 特征, "
         f"{result.total_rounds} 轮, "

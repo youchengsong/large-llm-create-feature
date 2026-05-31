@@ -580,14 +580,23 @@ class ToolContext:
             cand = self._make_candidate(reg, feature_aligned)
             self.accepted_features[reg.feature_name] = cand
             self.baseline_X[reg.feature_name] = feature_aligned.values
-            pr.summary = (
-                f"L3 通过 — 已接受! delta_recall={l3.delta_recall:+.4f}, "
-                f"precision={l3.new_precision:.4f}"
-            )
-            logger.info(
-                "L3 通过 → 已接受: %s (delta_recall=%+.4f)",
-                reg.feature_name, l3.delta_recall,
-            )
+            if l3.accept_metric == "auc":
+                pr.summary = (
+                    f"L3 通过 — 已接受! delta_auc={l3.delta_auc:+.4f}"
+                )
+                logger.info(
+                    "L3 通过 → 已接受: %s (delta_auc=%+.4f)",
+                    reg.feature_name, l3.delta_auc,
+                )
+            else:
+                pr.summary = (
+                    f"L3 通过 — 已接受! delta_recall={l3.delta_recall:+.4f}, "
+                    f"precision={l3.new_precision:.4f}"
+                )
+                logger.info(
+                    "L3 通过 → 已接受: %s (delta_recall=%+.4f)",
+                    reg.feature_name, l3.delta_recall,
+                )
         else:
             # L3 未通过 → 加入候选池等待前向选择
             pr.added_to_candidates = True
@@ -666,15 +675,20 @@ class ToolContext:
 
         if pr.l3_result is not None:
             l3 = pr.l3_result
-            result["L3_model_eval"] = {
+            l3_dict = {
                 "passed": l3.passed,
+                "accept_metric": l3.accept_metric,
                 "baseline_recall": round(l3.baseline_recall, 4),
                 "new_recall": round(l3.new_recall, 4),
                 "delta_recall": round(l3.delta_recall, 4),
                 "new_precision": round(l3.new_precision, 4),
+                "baseline_auc": round(l3.baseline_auc, 4),
+                "new_auc": round(l3.new_auc, 4),
+                "delta_auc": round(l3.delta_auc, 4),
                 "delta_f1": round(l3.delta_f1, 4),
                 "reject_reasons": l3.reject_reasons or None,
             }
+            result["L3_model_eval"] = l3_dict
 
         if pr.added_to_candidates:
             result["note"] = "特征已加入候选池，将在前向选择阶段评估组合效应"

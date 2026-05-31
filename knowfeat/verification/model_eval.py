@@ -1,4 +1,4 @@
-"""L3 模型效果验证：XGBoost 5-fold StratifiedKFold CV delta-recall。"""
+"""L3 模型效果验证：XGBoost 5-fold StratifiedKFold CV，支持 delta-recall (AML) / delta-AUC (公开数据集)。"""
 
 import logging
 from dataclasses import dataclass
@@ -27,6 +27,10 @@ class ModelEvalResult:
     new_precision: float
     reject_reasons: list[str]
     cr_at_k: dict[str, float] | None = None
+    baseline_auc: float = 0.0
+    new_auc: float = 0.0
+    delta_auc: float = 0.0
+    accept_metric: str = "recall"
 
 
 def _compute_metrics(
@@ -64,17 +68,28 @@ def capture_rate_at_k(
     return results
 
 
+@dataclass
+class _CVMetrics:
+    recall: float
+    precision: float
+    f1: float
+    auc: float
+    cr_at_k: dict[str, float] | None = None
+
+
 def _cv_evaluate(
     X: pd.DataFrame,
     y: np.ndarray,
     n_folds: int = 5,
     seed: int = 42,
     compute_cr: bool = False,
-) -> tuple[float, float, float] | tuple[float, float, float, dict[str, float]]:
-    """XGBoost StratifiedKFold CV，返回 (mean_recall, mean_precision, mean_f1[, cr@k])。"""
+) -> _CVMetrics:
+    """XGBoost StratifiedKFold CV，返回 recall/precision/f1/auc。"""
+    from sklearn.metrics import roc_auc_score
+
     skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=seed)
 
-    recalls, precisions, f1s = [], [], []
+    recalls, precisions, f1s, aucs = [], [], [], []
     cr_accum: dict[str, list[float]] = {}
 
     for train_idx, val_idx in skf.split(X, y):
@@ -93,27 +108,26 @@ def _cv_evaluate(
         )
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_val)
+        y_prob = clf.predict_proba(X_val)[:, 1]
 
         r, p, f = _compute_metrics(y_val, y_pred)
         recalls.append(r)
         precisions.append(p)
         f1s.append(f)
+        aucs.append(float(roc_auc_score(y_val, y_prob)))
 
         if compute_cr:
-            y_prob = clf.predict_proba(X_val)[:, 1]
             cr = capture_rate_at_k(y_val, y_prob)
             for k, v in cr.items():
                 cr_accum.setdefault(k, []).append(v)
 
-    base = (
-        float(np.mean(recalls)),
-        float(np.mean(precisions)),
-        float(np.mean(f1s)),
+    return _CVMetrics(
+        recall=float(np.mean(recalls)),
+        precision=float(np.mean(precisions)),
+        f1=float(np.mean(f1s)),
+        auc=float(np.mean(aucs)),
+        cr_at_k={k: float(np.mean(v)) for k, v in cr_accum.items()} if compute_cr else None,
     )
-    if compute_cr:
-        cr_mean = {k: float(np.mean(v)) for k, v in cr_accum.items()}
-        return (*base, cr_mean)
-    return base
 
 
 def evaluate_feature(
@@ -162,46 +176,68 @@ def evaluate_feature(
     augmented_X[feat_name] = new_col.values
 
     if baseline_X_clean.shape[1] == 0:
-        b_recall, b_precision, b_f1 = 0.0, 0.0, 0.0
+        base_m = _CVMetrics(recall=0.0, precision=0.0, f1=0.0, auc=0.0)
     else:
-        b_recall, b_precision, b_f1 = _cv_evaluate(
+        base_m = _cv_evaluate(
             baseline_X_clean, y, n_folds=vcfg.cv_folds, seed=seed,
         )
-    n_recall, n_precision, n_f1 = _cv_evaluate(
+    new_m = _cv_evaluate(
         augmented_X, y, n_folds=vcfg.cv_folds, seed=seed,
     )
 
-    delta_recall = n_recall - b_recall
-    delta_f1 = n_f1 - b_f1
+    delta_recall = new_m.recall - base_m.recall
+    delta_f1 = new_m.f1 - base_m.f1
+    delta_auc = new_m.auc - base_m.auc
 
     reasons = []
-    if delta_recall <= vcfg.delta_recall_min:
-        reasons.append(
-            f"delta_recall={delta_recall:+.4f} <= {vcfg.delta_recall_min}"
-        )
-    if n_precision < vcfg.precision_min:
-        reasons.append(
-            f"precision={n_precision:.4f} < {vcfg.precision_min}"
-        )
+    metric = vcfg.accept_metric
+
+    if metric == "auc":
+        if delta_auc <= vcfg.delta_auc_min:
+            reasons.append(
+                f"delta_auc={delta_auc:+.4f} <= {vcfg.delta_auc_min}"
+            )
+    else:
+        if delta_recall <= vcfg.delta_recall_min:
+            reasons.append(
+                f"delta_recall={delta_recall:+.4f} <= {vcfg.delta_recall_min}"
+            )
+        if new_m.precision < vcfg.precision_min:
+            reasons.append(
+                f"precision={new_m.precision:.4f} < {vcfg.precision_min}"
+            )
 
     passed = len(reasons) == 0
 
-    logger.info(
-        "L3 模型验证 %s: baseline_recall=%.4f new_recall=%.4f "
-        "delta_recall=%+.4f precision=%.4f delta_f1=%+.4f%s",
-        "通过" if passed else "未通过",
-        b_recall, n_recall, delta_recall, n_precision, delta_f1,
-        "" if passed else f" | 原因: {'; '.join(reasons)}",
-    )
+    if metric == "auc":
+        logger.info(
+            "L3 模型验证 %s [metric=auc]: baseline_auc=%.4f new_auc=%.4f "
+            "delta_auc=%+.4f delta_f1=%+.4f%s",
+            "通过" if passed else "未通过",
+            base_m.auc, new_m.auc, delta_auc, delta_f1,
+            "" if passed else f" | 原因: {'; '.join(reasons)}",
+        )
+    else:
+        logger.info(
+            "L3 模型验证 %s [metric=recall]: baseline_recall=%.4f new_recall=%.4f "
+            "delta_recall=%+.4f precision=%.4f delta_f1=%+.4f%s",
+            "通过" if passed else "未通过",
+            base_m.recall, new_m.recall, delta_recall, new_m.precision, delta_f1,
+            "" if passed else f" | 原因: {'; '.join(reasons)}",
+        )
 
     return ModelEvalResult(
         passed=passed,
-        baseline_recall=b_recall,
-        new_recall=n_recall,
+        baseline_recall=base_m.recall,
+        new_recall=new_m.recall,
         delta_recall=delta_recall,
-        baseline_f1=b_f1,
-        new_f1=n_f1,
+        baseline_f1=base_m.f1,
+        new_f1=new_m.f1,
         delta_f1=delta_f1,
-        new_precision=n_precision,
+        new_precision=new_m.precision,
         reject_reasons=reasons,
+        baseline_auc=base_m.auc,
+        new_auc=new_m.auc,
+        delta_auc=delta_auc,
+        accept_metric=metric,
     )

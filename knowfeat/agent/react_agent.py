@@ -68,12 +68,14 @@ class ReactAgent:
         cfg: KnowFeatConfig,
         domain_knowledge: DomainKnowledge,
         schema_text: Optional[str] = None,
+        knowledge_filter: Optional[str] = None,
     ):
         self.llm = llm
         self.tool_ctx = tool_ctx
         self.cfg = cfg
         self.domain_knowledge = domain_knowledge
         self.schema_text = schema_text
+        self.knowledge_filter = knowledge_filter
 
     def run_round(
         self,
@@ -113,6 +115,7 @@ class ReactAgent:
             budget=budget,
             n_accepted=len(self.tool_ctx.accepted_features),
             n_candidates=len(self.tool_ctx.candidate_pool),
+            knowledge_filter=self.knowledge_filter,
         )
 
         messages: list[dict[str, Any]] = [
