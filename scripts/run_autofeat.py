@@ -34,9 +34,12 @@ def load_dataset(name: str):
         df = pd.read_csv(PROJECT_ROOT / reg["csv"])
 
     for col in df.columns:
-        if col != target and (df[col].dtype == "object" or pd.api.types.is_string_dtype(df[col])):
+        if df[col].dtype == "object" or pd.api.types.is_string_dtype(df[col]):
             df[col] = df[col].astype("category").cat.codes
     df = df.fillna(-999)
+    for col in df.columns:
+        if pd.api.types.is_extension_array_dtype(df[col]):
+            df[col] = df[col].to_numpy(dtype="float64", na_value=-999)
     return df, target
 
 
