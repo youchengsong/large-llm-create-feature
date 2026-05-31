@@ -48,10 +48,11 @@ def load_dataset(name: str):
     for col in df.columns:
         if df[col].dtype == "object" or pd.api.types.is_string_dtype(df[col]):
             df[col] = df[col].astype("category").cat.codes
-    df = df.fillna(-999)
+    df = df.fillna(0)
     for col in df.columns:
         if pd.api.types.is_extension_array_dtype(df[col]):
-            df[col] = df[col].to_numpy(dtype="float64", na_value=-999)
+            df[col] = df[col].to_numpy(dtype="float64", na_value=0)
+    df = df.replace([np.inf, -np.inf], 0)
     return df, target
 
 
