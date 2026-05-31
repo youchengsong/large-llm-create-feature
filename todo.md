@@ -2,7 +2,7 @@
 
 > KnowFeat: Knowledge-Traceable Feature Engineering
 >
-> **最后更新：2026-05-31 14:50 UTC**
+> **最后更新：2026-05-31 15:55 UTC**
 
 ---
 
@@ -127,7 +127,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（credit_g → diabetes → blood_transfusion）⚠️ CPU评估已完成（credit_g/diabetes 各3项, blood_transfusion No-FE+OpenFE; blood_transfusion AutoFeat无新特征=同No-FE），LLM方法因API key失效被阻塞
+- [ ] **T1.5** 机器B: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（credit_g → diabetes → blood_transfusion）⚠️ CPU评估全部完成（credit_g 3项, diabetes 3项, blood_transfusion No-FE+OpenFE; AutoFeat无新特征=同No-FE）。LLM方法(CAAFE)已尝试但因API key失效(401)失败退出，无输出。需要新API key后重新启动LLM方法
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -135,7 +135,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in credit_g diabetes blood_transfusion; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.5_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.6** 机器C: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（heart → bank_marketing → breast_w）🔄 CPU评估部分完成（heart OpenFE ✅ AUC=0.9417, bank_marketing OpenFE ✅ AUC=0.9374, breast_w OpenFE ✅ AUC=0.9944, heart AutoFeat ✅ AUC=0.9340）。bank_marketing/breast_w AutoFeat待完成后再评估。LLM方法因API key失效被阻塞
+- [ ] **T1.6** 机器C: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（heart → bank_marketing → breast_w）🔄 CPU评估进展：heart全部完成（No-FE/OpenFE/AutoFeat），bank_marketing/breast_w OpenFE评估完成，bank_marketing AutoFeat仍在运行中(45K行,已跑~2h)，breast_w AutoFeat排队中。LLM方法需等API key修复后启动
   ```bash
   # C: 评估已完成的CPU方法
   sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in heart bank_marketing breast_w; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -267,9 +267,9 @@ Phase 0.9 (服务器部署) ✅ 完成
   ├── No-FE ✅ 全部完成, OpenFE ✅ B/C完成 A运行中
   │
   ├── 每台机器独立: AutoFeat完成 → 评估CPU方法 → 启动LLM方法
-  │   ├── B: AutoFeat ✅ → T1.5 CPU评估 ✅ → LLM ⚠️ API key失效
-  │   ├── C: AutoFeat 🔄(bank_marketing运行中) → T1.6 CPU评估 🔄(heart OpenFE ✅, 其余运行中)
-  │   └── A: OpenFE+AutoFeat 🔄 → T1.4 (待CPU方法完成)
+  │   ├── B: AutoFeat ✅ → T1.5 CPU评估 ✅ → LLM ❌ API key失效(CAAFE已失败退出)
+  │   ├── C: AutoFeat 🔄(bank_marketing运行中,breast_w排队) → T1.6 CPU评估 🔄(heart全部✅,其余待AutoFeat)
+  │   └── A: OpenFE+AutoFeat 🔄(simecny,仍在运行) → T1.4 (待CPU方法完成)
   │
   │     ↓ 等所有完成
   ├── T1.7 (拉取结果) → T1.8 (生成Table 1&2)
