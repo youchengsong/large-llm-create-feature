@@ -15,6 +15,14 @@ from sklearn.model_selection import train_test_split
 if not hasattr(pd.Series, "ravel"):
     pd.Series.ravel = lambda self, order="C": self.to_numpy().ravel(order)
 
+import sklearn.utils.validation as _skval
+_orig_check_array = _skval.check_array
+def _patched_check_array(*args, **kwargs):
+    if "force_all_finite" in kwargs:
+        kwargs["ensure_all_finite"] = kwargs.pop("force_all_finite")
+    return _orig_check_array(*args, **kwargs)
+_skval.check_array = _patched_check_array
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
