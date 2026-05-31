@@ -8,11 +8,16 @@
 
 ## Loop 模式执行规则
 
-1. 从上到下找到第一个未完成的 `- [ ]` 任务，执行它
-2. 可并行的任务（标注了"可并行"）同时启动，用 nohup 后台运行，定期检查完成状态
-3. 完成后勾选 `- [x]`，commit + push，然后继续下一个任务
-4. **所有远程命令必须用 nohup/后台运行，不要在前台阻塞**
-5. 如果某个任务失败，记录错误信息到日志，跳过继续下一个，最后汇报失败项
+1. **检查进度**：用 `ps aux | grep python` 和 `ls outputs/` 判断每台机器的状态
+2. **独立推进**：每台机器独立判断 — 某台的AutoFeat完成就立即推进该机器的评估+LLM方法
+3. **完成标记**：完成后勾选 `- [x]`，commit + push，然后继续
+4. **后台运行**：所有远程命令必须用 nohup/后台运行，不要在前台阻塞
+5. **失败处理**：失败时记录错误并尝试修复，修复后重启任务
+6. **判断完成标准**：
+   - AutoFeat完成 = `outputs/autofeat/<dataset>_features.csv` 存在 或 进程不在但日志显示"No new features"
+   - OpenFE完成 = `outputs/openfe/<dataset>_features.csv` 存在
+   - 评估完成 = `outputs/eval_results/<dataset>_<method>.json` 存在
+   - LLM方法完成 = 特征CSV + eval_results JSON 都存在
 
 ---
 
@@ -80,44 +85,43 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 > 目标：7个数据集 × 6种方法 → 两张性能对比表
 > 结果存放: 各机器 `/root/knowfeat/outputs/eval_results/<dataset>_<method>.json`
 
-### 步骤 1.1: 三台机器并行启动 No-FE + CPU方法（可并行）
+### 步骤 1.1: 三台机器 CPU 方法（No-FE + OpenFE + AutoFeat）
 
-> 以下任务在3台机器上**同时**启动
-
-- [ ] **T1.1** 机器A: simecny No-FE + OpenFE + AutoFeat（3个CPU任务可并行）
+- [x] **T1.1a** 机器A: simecny No-FE ✅
+- [ ] **T1.1b** 机器A: simecny OpenFE 🔄 运行中（logs/t1.1_openfe.log）
+- [ ] **T1.1c** 机器A: simecny AutoFeat 🔄 运行中（nohup，无日志重定向）
   ```bash
-  # A: No-FE
-  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup python scripts/evaluate.py --dataset simecny --method No-FE --baseline > logs/t1.1_nfe.log 2>&1 &"
-  # A: OpenFE
-  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup python scripts/run_openfe.py --dataset simecny --n-features 30 > logs/t1.1_openfe.log 2>&1 &"
-  # A: AutoFeat
-  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup python scripts/run_autofeat.py --dataset simecny > logs/t1.1_autofeat.log 2>&1 &"
+  # 检查A的进程
+  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ps aux | grep 'python.*scripts' | grep -v grep"
+  # 检查A的输出文件
+  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ls -la /root/knowfeat/outputs/openfe/ /root/knowfeat/outputs/autofeat/"
   ```
 
-- [ ] **T1.2** 机器B: credit_g + diabetes + blood_transfusion 的 No-FE + OpenFE + AutoFeat
+- [x] **T1.2a** 机器B: credit_g/diabetes/blood_transfusion No-FE ✅×3
+- [x] **T1.2b** 机器B: credit_g/diabetes/blood_transfusion OpenFE ✅×3
+- [ ] **T1.2c** 机器B: credit_g/diabetes/blood_transfusion AutoFeat 🔄 运行中（刚修复force_all_finite bug并重启）
   ```bash
-  # B: 3个数据集的 No-FE
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && python scripts/evaluate.py --dataset credit_g --method No-FE --baseline > logs/t1.2_nfe_credit.log 2>&1 && python scripts/evaluate.py --dataset diabetes --method No-FE --baseline > logs/t1.2_nfe_diabetes.log 2>&1 && python scripts/evaluate.py --dataset blood_transfusion --method No-FE --baseline > logs/t1.2_nfe_blood.log 2>&1 &"
-  # B: 3个数据集的 OpenFE（串行，避免内存争抢）
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup bash -c 'python scripts/run_openfe.py --dataset credit_g && python scripts/run_openfe.py --dataset diabetes && python scripts/run_openfe.py --dataset blood_transfusion' > logs/t1.2_openfe.log 2>&1 &"
-  # B: 3个数据集的 AutoFeat
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup bash -c 'python scripts/run_autofeat.py --dataset credit_g && python scripts/run_autofeat.py --dataset diabetes && python scripts/run_autofeat.py --dataset blood_transfusion' > logs/t1.2_autofeat.log 2>&1 &"
+  # 检查B的进程和AutoFeat日志
+  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ps aux | grep 'python.*scripts' | grep -v grep; echo '---'; tail -5 /root/knowfeat/logs/t1.2_autofeat.log"
+  # 检查B的AutoFeat输出
+  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ls -la /root/knowfeat/outputs/autofeat/"
   ```
 
-- [ ] **T1.3** 机器C: heart + bank_marketing + breast_w 的 No-FE + OpenFE + AutoFeat
+- [x] **T1.3a** 机器C: heart/bank_marketing/breast_w No-FE ✅×3
+- [x] **T1.3b** 机器C: heart/bank_marketing/breast_w OpenFE ✅×3
+- [ ] **T1.3c** 机器C: heart/bank_marketing/breast_w AutoFeat 🔄 运行中（heart ✅, bank_marketing 运行中, breast_w 待运行）
   ```bash
-  # C: 3个数据集的 No-FE
-  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && python scripts/evaluate.py --dataset heart --method No-FE --baseline > logs/t1.3_nfe_heart.log 2>&1 && python scripts/evaluate.py --dataset bank_marketing --method No-FE --baseline > logs/t1.3_nfe_bank.log 2>&1 && python scripts/evaluate.py --dataset breast_w --method No-FE --baseline > logs/t1.3_nfe_breast.log 2>&1 &"
-  # C: 3个数据集的 OpenFE
-  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup bash -c 'python scripts/run_openfe.py --dataset heart && python scripts/run_openfe.py --dataset bank_marketing && python scripts/run_openfe.py --dataset breast_w' > logs/t1.3_openfe.log 2>&1 &"
-  # C: 3个数据集的 AutoFeat
-  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && nohup bash -c 'python scripts/run_autofeat.py --dataset heart && python scripts/run_autofeat.py --dataset bank_marketing && python scripts/run_autofeat.py --dataset breast_w' > logs/t1.3_autofeat.log 2>&1 &"
+  # 检查C的进程和AutoFeat日志
+  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "ps aux | grep 'python.*scripts' | grep -v grep; echo '---'; tail -5 /root/knowfeat/logs/t1.3_autofeat.log"
+  # 检查C的AutoFeat输出
+  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "ls -la /root/knowfeat/outputs/autofeat/"
   ```
 
-### 步骤 1.2: CPU方法完成后，评估CPU方法 + 启动LLM方法
+### 步骤 1.2: CPU方法完成后 → 评估CPU方法 + 启动LLM方法
 
-> 等 T1.1~T1.3 的 OpenFE/AutoFeat 完成后执行
+> **每台机器独立判断**：某台机器的AutoFeat完成后，立即执行该机器的评估+LLM方法，不需要等其他机器
 > LLM方法（CAAFE、FeatLLM、KnowFeat）必须**串行**执行（避免API限速）
+> **注意**：3台机器可以同时跑LLM方法（实际API并发低，不会限速）
 
 - [ ] **T1.4** 机器A: 评估 OpenFE/AutoFeat 结果 + 串行跑 CAAFE → FeatLLM → KnowFeat
   ```bash
@@ -266,9 +270,13 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 ```
 Phase 0.9 (服务器部署) ✅ 完成
   │
-  ├── T1.1 + T1.2 + T1.3 (3台机器并行: No-FE + CPU方法)
-  │     ↓ 等CPU方法完成
-  ├── T1.4 + T1.5 + T1.6 (3台机器并行: 评估CPU + LLM方法串行)
+  ├── No-FE ✅ 全部完成, OpenFE ✅ B/C完成 A运行中
+  │
+  ├── 每台机器独立: AutoFeat完成 → 评估CPU方法 → 启动LLM方法
+  │   ├── B: AutoFeat 🔄 → T1.5 (评估+LLM)
+  │   ├── C: AutoFeat 🔄 → T1.6 (评估+LLM)
+  │   └── A: OpenFE+AutoFeat 🔄 → T1.4 (评估+LLM)
+  │
   │     ↓ 等所有完成
   ├── T1.7 (拉取结果) → T1.8 (生成Table 1&2)
   │
