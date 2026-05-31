@@ -2,7 +2,7 @@
 
 > KnowFeat: Knowledge-Traceable Feature Engineering
 >
-> **最后更新：2026-05-31 16:00 UTC**
+> **最后更新：2026-05-31 16:15 UTC**
 
 ---
 
@@ -127,7 +127,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: LLM 方法 🔄 运行中（CAAFE bug修复后重启：ds[0]=None→dataset_name, 编码Arrow string, tabpfn stub实现）
+- [ ] **T1.5** 机器B: LLM 方法 🔄 CAAFE ✅完成, FeatLLM+KnowFeat 修复后重跑中（FeatLLM模板占位符bug [TASK]→{task}, KnowFeat Arrow string .mean() bug）
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -267,7 +267,7 @@ Phase 0.9 (服务器部署) ✅ 完成
   ├── No-FE ✅ 全部完成, OpenFE ✅ B/C完成 A运行中
   │
   ├── 每台机器独立: AutoFeat完成 → 评估CPU方法 → 启动LLM方法
-  │   ├── B: AutoFeat ✅ → CPU评估 ✅ → LLM 🔄 CAAFE修复后运行中(credit_g进行中)
+  │   ├── B: AutoFeat ✅ → CPU评估 ✅ → CAAFE ✅ → FeatLLM+KnowFeat 🔄 bug修复后重跑中
   │   ├── C: AutoFeat 🔄(bank_marketing运行中,breast_w排队) → T1.6 待AutoFeat完成
   │   └── A: OpenFE+AutoFeat 🔄(simecny,仍在运行) → T1.4 待CPU方法完成
   │

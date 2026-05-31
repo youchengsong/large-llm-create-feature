@@ -114,9 +114,10 @@ def main():
     # 加载数据
     from knowfeat.data.loader import load_public_dataset
     data = load_public_dataset(cfg.public_dataset)
+    label_series = pd.to_numeric(data.df[data.label_col], errors='coerce')
+    pos_rate = label_series.mean() * 100 if not label_series.isna().all() else 0.0
     logger.info("Data loaded: %d rows, %d features, label=%s (pos_rate=%.2f%%)",
-                len(data.df), len(data.feature_cols), data.label_col,
-                data.df[data.label_col].mean() * 100)
+                len(data.df), len(data.feature_cols), data.label_col, pos_rate)
 
     # 加载领域知识
     from knowfeat.prompt.domain_knowledge import load_domain_knowledge

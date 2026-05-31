@@ -257,6 +257,12 @@ def load_public_dataset(pub_cfg: PublicDatasetConfig) -> Stage1Data:
     if target_col not in df.columns:
         raise ValueError(f"Target column '{target_col}' not found in {csv_path}")
 
+    if not pd.api.types.is_numeric_dtype(df[target_col]):
+        from sklearn.preprocessing import LabelEncoder
+        le = LabelEncoder()
+        df[target_col] = le.fit_transform(df[target_col].astype(str))
+        logger.info("Label-encoded '%s': %s", target_col, dict(zip(le.classes_, le.transform(le.classes_))))
+
     feature_cols = [
         c for c in df.columns
         if c not in (id_col, target_col)

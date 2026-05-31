@@ -188,9 +188,9 @@ def main():
             )
             examples_str += row_str + "\n"
 
-        prompt = prompt_template.replace("{task}", task_str)
-        prompt = prompt.replace("{features}", feature_desc)
-        prompt = prompt.replace("{examples}", examples_str.strip())
+        prompt = prompt_template.replace("[TASK]", task_str)
+        prompt = prompt.replace("[FEATURES]", feature_desc)
+        prompt = prompt.replace("[EXAMPLES]", examples_str.strip())
         n_rules = 10
         label_str = ", ".join([str(l) for l in label_list])
 
@@ -198,7 +198,7 @@ def main():
         for label in label_list:
             response_format += f'{n_rules} different conditions for class "{label}":\n- [Condition]\n...\n\n'
 
-        prompt = prompt.replace("{response_format}", response_format.strip())
+        prompt = prompt.replace("[FORMAT]", response_format.strip())
         templates.append(prompt)
 
     # Step 2: Query LLM for rules
