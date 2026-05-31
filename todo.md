@@ -2,7 +2,7 @@
 
 > KnowFeat: Knowledge-Traceable Feature Engineering
 >
-> **最后更新：2026-05-31 15:55 UTC**
+> **最后更新：2026-05-31 16:00 UTC**
 
 ---
 
@@ -62,7 +62,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - **项目目录**: `/root/knowfeat/`
 - **Python**: `/root/miniconda3/bin/python`（PATH已配置在~/.bashrc）
-- **DeepSeek API Key**: `sk-982bd9c91d20435bb093094e819de0d2` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，备用 key `sk-d8df...a413` 也已失效，需要用户提供新 key！**
+- **DeepSeek API Key**: `sk-982bd9c91d20435bb093094e819de0d2` ✅ API key 正常工作
 - **DeepSeek Base URL**: `https://api.deepseek.com/v1`
 - **DeepSeek Model**: `deepseek-chat`
 - 3 台机器共用 1 个 DeepSeek 账号（实际并发低，不会限速）
@@ -127,7 +127,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: LLM 方法 🔄 运行中（新API key已启动，CAAFE credit_g无新特征→跳到diabetes，diabetes CAAFE运行中）
+- [ ] **T1.5** 机器B: LLM 方法 🔄 运行中（CAAFE bug修复后重启：ds[0]=None→dataset_name, 编码Arrow string, tabpfn stub实现）
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -267,9 +267,9 @@ Phase 0.9 (服务器部署) ✅ 完成
   ├── No-FE ✅ 全部完成, OpenFE ✅ B/C完成 A运行中
   │
   ├── 每台机器独立: AutoFeat完成 → 评估CPU方法 → 启动LLM方法
-  │   ├── B: AutoFeat ✅ → T1.5 CPU评估 ✅ → LLM ❌ API key失效(CAAFE已失败退出)
-  │   ├── C: AutoFeat 🔄(bank_marketing运行中,breast_w排队) → T1.6 CPU评估 🔄(heart全部✅,其余待AutoFeat)
-  │   └── A: OpenFE+AutoFeat 🔄(simecny,仍在运行) → T1.4 (待CPU方法完成)
+  │   ├── B: AutoFeat ✅ → CPU评估 ✅ → LLM 🔄 CAAFE修复后运行中(credit_g进行中)
+  │   ├── C: AutoFeat 🔄(bank_marketing运行中,breast_w排队) → T1.6 待AutoFeat完成
+  │   └── A: OpenFE+AutoFeat 🔄(simecny,仍在运行) → T1.4 待CPU方法完成
   │
   │     ↓ 等所有完成
   ├── T1.7 (拉取结果) → T1.8 (生成Table 1&2)
