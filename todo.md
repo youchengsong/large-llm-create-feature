@@ -2,7 +2,7 @@
 
 > KnowFeat: Knowledge-Traceable Feature Engineering
 >
-> **最后更新：2026-05-31 17:38 UTC (Round 23)**
+> **最后更新：2026-05-31 18:10 UTC (Round 24)**
 
 ---
 
@@ -127,9 +127,8 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: LLM 方法 🔄 CAAFE ✅×3, FeatLLM ✅×3(re-eval完成), KnowFeat: credit_g ✅(AUC=0.7762), diabetes ✅rerun2完成(AUC=0.8027=No-FE baseline,无新特征通过L3), blood_transfusion 🔄rerun2 Round3/RFM特征 step28 (3 accepted features, AUC: 0.6990→0.7054)
-  > **修复**: KnowFeat输出generic_features.json而非stage2_features.csv，已部署knowfeat_to_csv.py转换脚本到3台服务器
-  > **rerun2**: 重新运行KnowFeat全部3个数据集，credit_g已完成，diabetes运行中，blood_transfusion排队
+- [x] **T1.5** 机器B: LLM 方法 ✅ 全部完成
+  > CAAFE ✅×3, FeatLLM ✅×3, KnowFeat ✅×3 (credit_g AUC=0.7762, diabetes=No-FE无新特征, blood_transfusion AUC=0.6727 4个新特征)
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -137,7 +136,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in credit_g diabetes blood_transfusion; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.5_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.6** 机器C: AutoFeat 🔄 bank_marketing运行中(6h+,45K行) → breast_w排队 → 完成后启动LLM方法
+- [ ] **T1.6** 机器C: AutoFeat 🔄 bank_marketing运行中(7h+,45K行,CPU 101%) → breast_w排队 → 完成后启动LLM方法
   ```bash
   # C: 评估已完成的CPU方法
   sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in heart bank_marketing breast_w; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
@@ -269,7 +268,7 @@ Phase 0.9 (服务器部署) ✅ 完成
   ├── No-FE ✅ 全部完成, OpenFE ✅ B/C完成 A运行中
   │
   ├── 每台机器独立: AutoFeat完成 → 评估CPU方法 → 启动LLM方法
-  │   ├── B: AutoFeat ✅ → CPU评估 ✅ → CAAFE ✅ → FeatLLM ✅ → KnowFeat rerun2: credit_g ✅(AUC=0.7762), diabetes ✅(AUC=0.8027=No-FE), blood_transfusion 🔄Round3/RFM特征 step28 (3 accepted, AUC 0.7054)
+  │   ├── B: ✅ 全部完成 (6方法×3数据集=18个eval_results)
   │   ├── C: AutoFeat 🔄(bank_marketing运行中6h+,breast_w排队) → T1.6 待AutoFeat完成
   │   └── A: OpenFE+AutoFeat 🔄(simecny,仍在运行) → T1.4 待CPU方法完成
   │
