@@ -83,10 +83,12 @@ def main():
 
     from autofeat import AutoFeatClassifier
 
+    steps = 1 if X.shape[1] > 50 or len(df) > 50000 else 2
     afc = AutoFeatClassifier(
-        feateng_steps=2,
+        feateng_steps=steps,
         verbose=0,
     )
+    print(f"  feateng_steps={steps} (cols={X.shape[1]}, rows={len(df)})")
     X_train_new = afc.fit_transform(X_train, y_train)
     X_test_new = afc.transform(X_test)
 
