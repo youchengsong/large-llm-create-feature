@@ -55,6 +55,7 @@
 ## Phase 0.9: 服务器部署准备
 
 > 3 台 AutoDL 服务器并行跑实验，共享 1 个 DeepSeek API 账号
+> **由本机 Claude Code 通过 SSH 统一控制 3 台服务器**
 
 ### 服务器配置建议
 
@@ -63,9 +64,20 @@
 - **内存**: ≥16GB
 - **选区**: 网络好的区（需调 DeepSeek API）
 
-### 部署脚本（每台机器执行）
+### SSH 连接信息（用户提供后填入）
+
+```
+机器A (simecny): ssh <user>@<host_a> -p <port_a>
+机器B (公开数据集前3): ssh <user>@<host_b> -p <port_b>
+机器C (公开数据集后3): ssh <user>@<host_c> -p <port_c>
+```
+
+### 部署流程（loop 模式通过 SSH 在每台机器上执行）
+
+对每台机器依次执行：
 
 ```bash
+# 通过 SSH 执行以下命令
 # 1. clone 代码
 git clone git@github.com:youchengsong/large-llm-create-feature.git
 cd large-llm-create-feature
@@ -79,31 +91,38 @@ pip install -r requirements.txt
 pip install openfe autofeat openml
 pip install torch --index-url https://download.pytorch.org/whl/cpu
 
-# 4. 设环境变量（写入 ~/.bashrc 或每次 export）
-export KNOWFEAT_API_KEY="你的DeepSeek API Key"
-export KNOWFEAT_BASE_URL="https://api.deepseek.com/v1"
+# 4. 设环境变量（写入 ~/.bashrc）
+echo 'export KNOWFEAT_API_KEY="<key>"' >> ~/.bashrc
+echo 'export KNOWFEAT_BASE_URL="https://api.deepseek.com/v1"' >> ~/.bashrc
+source ~/.bashrc
+
+# 5. 创建日志目录
+mkdir -p logs
 ```
 
 ### 任务分配
 
 > 3 台机器，LLM 方法串行（避免 API 限速），CPU 方法可并行
-> 每个任务用 nohup 运行，输出重定向到日志文件
+> 所有实验命令通过 `ssh <机器> "cd large-llm-create-feature && nohup ... &"` 远程启动
+> 用 `ssh <机器> "tail -f large-llm-create-feature/logs/xxx.log"` 检查进度
 
 - [x] **P0.9a** 生成 `requirements.txt` ✅
   - 已生成精简版 `requirements.txt`（直接依赖）+ `requirements-lock.txt`（完整 freeze）
 
-- [ ] **P0.9b** 验证 3 台服务器环境就绪
-  - 每台服务器执行部署脚本
-  - 验证: `python -c "import openfe; import autofeat; import xgboost; import openai; print('OK')"`
-  - 验证: `python scripts/evaluate.py --dataset breast_w --method No-FE`（应输出 AUC≈0.99）
+- [ ] **P0.9b** 部署 3 台服务器环境（通过 SSH）
+  - 用户提供 SSH 信息后，逐台 SSH 执行部署脚本
+  - 每台验证: `ssh <机器> "cd large-llm-create-feature && .venv/bin/python -c 'import openfe; import autofeat; import xgboost; import openai; print(\"OK\")'"`
+  - 每台验证: `ssh <机器> "cd large-llm-create-feature && .venv/bin/python scripts/evaluate.py --dataset breast_w --method No-FE --baseline"`（应输出 AUC≈0.99）
 
 ---
 
 ## Phase 1: Exp 1 — 主性能对比 (Performance Comparison)
 
 > 目标：7个数据集 × 6种方法 → 两张性能对比表
+> **执行方式**: 所有命令通过 SSH 远程执行，格式: `ssh <机器X> "cd large-llm-create-feature && <命令>"`
 > 评估命令: `.venv/bin/python scripts/evaluate.py --dataset <name> --method <method> [--features-csv <path>]`
 > 结果存放: `outputs/eval_results/<dataset>_<method>.json`
+> 结果回收: 实验完成后用 `scp` 将 3 台机器的 `outputs/eval_results/*.json` 拉回本机汇总
 
 ### 机器 A: 数字人民币 (simecny) — 全部 6 方法
 
