@@ -106,10 +106,14 @@ def prepare_features(
         feature_cols = [c for c in df.columns if c not in exclude]
 
     X = df[feature_cols].copy()
-    y = df[target].astype(int)
+    y = df[target]
+    if y.dtype == "object" or not pd.api.types.is_numeric_dtype(y):
+        from sklearn.preprocessing import LabelEncoder
+        y = pd.Series(LabelEncoder().fit_transform(y), index=y.index)
+    y = y.astype(int)
 
     for col in X.columns:
-        if X[col].dtype == "object" or hasattr(X[col], "cat"):
+        if not pd.api.types.is_numeric_dtype(X[col]):
             X[col] = X[col].astype("category").cat.codes
 
     X = X.fillna(-999)
