@@ -40,10 +40,10 @@ sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.
 
 ```bash
 # 执行远程命令（短命令）
-sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyChecking=no root@<主机> "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && <命令>"
+sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyChecking=no root@<主机> "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && <命令>"
 
 # 执行远程后台任务（长时间运行）
-sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyChecking=no root@<主机> "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup <命令> > logs/<日志名>.log 2>&1 &"
+sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyChecking=no root@<主机> "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup <命令> > logs/<日志名>.log 2>&1 &"
 
 # 检查后台任务是否完成
 sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyChecking=no root@<主机> "ps aux | grep python | grep -v grep"
@@ -62,7 +62,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - **项目目录**: `/root/knowfeat/`
 - **Python**: `/root/miniconda3/bin/python`（PATH已配置在~/.bashrc）
-- **DeepSeek API Key**: `sk-2e921b3293694512bfc088f0b9251900` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，备用 key `sk-d8df...a413` 也已失效，需要用户提供新 key！**
+- **DeepSeek API Key**: `sk-982bd9c91d20435bb093094e819de0d2` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，备用 key `sk-d8df...a413` 也已失效，需要用户提供新 key！**
 - **DeepSeek Base URL**: `https://api.deepseek.com/v1`
 - **DeepSeek Model**: `deepseek-chat`
 - 3 台机器共用 1 个 DeepSeek 账号（实际并发低，不会限速）
@@ -124,7 +124,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   # A: 评估 AutoFeat
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && python scripts/evaluate.py --dataset simecny --method AutoFeat --features-csv outputs/autofeat/simecny_features.csv"
   # A: 串行跑3个LLM方法
-  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
+  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
 - [ ] **T1.5** 机器B: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（credit_g → diabetes → blood_transfusion）⚠️ CPU评估全部完成（credit_g 3项, diabetes 3项, blood_transfusion No-FE+OpenFE; AutoFeat无新特征=同No-FE）。LLM方法(CAAFE)已尝试但因API key失效(401)失败退出，无输出。需要新API key后重新启动LLM方法
@@ -132,7 +132,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
   # B: 串行跑LLM方法
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in credit_g diabetes blood_transfusion; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.5_llm.log 2>&1 &"
+  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in credit_g diabetes blood_transfusion; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.5_llm.log 2>&1 &"
   ```
 
 - [ ] **T1.6** 机器C: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（heart → bank_marketing → breast_w）🔄 CPU评估进展：heart全部完成（No-FE/OpenFE/AutoFeat），bank_marketing/breast_w OpenFE评估完成，bank_marketing AutoFeat仍在运行中(45K行,已跑~2h)，breast_w AutoFeat排队中。LLM方法需等API key修复后启动
@@ -140,7 +140,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   # C: 评估已完成的CPU方法
   sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in heart bank_marketing breast_w; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
   # C: 串行跑LLM方法
-  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in heart bank_marketing breast_w; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.6_llm.log 2>&1 &"
+  sshpass -p 'IAo8KtG1J4H9' ssh -p 33982 -o StrictHostKeyChecking=no root@connect.bjb1.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'for ds in heart bank_marketing breast_w; do python scripts/run_caafe.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method CAAFE --features-csv outputs/caafe/\${ds}_features.csv && python scripts/run_featllm.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method FeatLLM --features-csv outputs/featllm/\${ds}_features.csv && python scripts/run_knowfeat_public.py --dataset \$ds && python scripts/evaluate.py --dataset \$ds --method KnowFeat --features-csv outputs/\${ds}/stage2_features.csv; done' > logs/t1.6_llm.log 2>&1 &"
   ```
 
 ### 步骤 1.3: 回收结果并汇总
@@ -172,7 +172,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - [ ] **T2.1** 机器A: 串行跑 6 个消融配置
   ```bash
-  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c '
+  sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-982bd9c91d20435bb093094e819de0d2 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c '
   # Full knowledge
   python -m knowfeat.main --stage stage2 --max-features 30 2>&1 | tee logs/t2_full.log
   mkdir -p outputs/ablation/full && cp outputs/stage2_features.csv outputs/ablation/full/

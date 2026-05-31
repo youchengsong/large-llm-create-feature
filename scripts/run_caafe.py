@@ -88,7 +88,7 @@ def build_ds_tuple(df: pd.DataFrame, target: str, description: str):
     cat_indices = []
     attr_names = list(feature_cols) + [target]
 
-    return (None, None, cat_indices, attr_names, description)
+    return (None, None, None, cat_indices, attr_names, description)
 
 
 def main():
