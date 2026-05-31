@@ -62,7 +62,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - **项目目录**: `/root/knowfeat/`
 - **Python**: `/root/miniconda3/bin/python`（PATH已配置在~/.bashrc）
-- **DeepSeek API Key**: `sk-2e921b3293694512bfc088f0b9251900`
+- **DeepSeek API Key**: `sk-2e921b3293694512bfc088f0b9251900` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，需要更新！**
 - **DeepSeek Base URL**: `https://api.deepseek.com/v1`
 - **DeepSeek Model**: `deepseek-chat`
 - 3 台机器共用 1 个 DeepSeek 账号（实际并发低，不会限速）
@@ -99,13 +99,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - [x] **T1.2a** 机器B: credit_g/diabetes/blood_transfusion No-FE ✅×3
 - [x] **T1.2b** 机器B: credit_g/diabetes/blood_transfusion OpenFE ✅×3
-- [ ] **T1.2c** 机器B: credit_g/diabetes/blood_transfusion AutoFeat 🔄 运行中（刚修复force_all_finite bug并重启）
-  ```bash
-  # 检查B的进程和AutoFeat日志
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ps aux | grep 'python.*scripts' | grep -v grep; echo '---'; tail -5 /root/knowfeat/logs/t1.2_autofeat.log"
-  # 检查B的AutoFeat输出
-  sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "ls -la /root/knowfeat/outputs/autofeat/"
-  ```
+- [x] **T1.2c** 机器B: credit_g/diabetes/blood_transfusion AutoFeat ✅（credit_g 3特征, diabetes 5特征, blood_transfusion 无新特征）
 
 - [x] **T1.3a** 机器C: heart/bank_marketing/breast_w No-FE ✅×3
 - [x] **T1.3b** 机器C: heart/bank_marketing/breast_w OpenFE ✅×3
@@ -133,7 +127,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
   sshpass -p '1LT29DbqKjKY' ssh -p 52881 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && export KNOWFEAT_API_KEY=sk-2e921b3293694512bfc088f0b9251900 && export KNOWFEAT_BASE_URL=https://api.deepseek.com/v1 && cd /root/knowfeat && nohup bash -c 'python scripts/run_caafe.py --dataset simecny --iterations 10 && python scripts/evaluate.py --dataset simecny --method CAAFE --features-csv outputs/caafe/simecny_features.csv && python scripts/run_featllm.py --dataset simecny && python scripts/evaluate.py --dataset simecny --method FeatLLM --features-csv outputs/featllm/simecny_features.csv && python -m knowfeat.main --stage stage2 --max-features 30 && python scripts/evaluate.py --dataset simecny --method KnowFeat --features-csv outputs/stage2_features.csv' > logs/t1.4_llm.log 2>&1 &"
   ```
 
-- [ ] **T1.5** 机器B: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（credit_g → diabetes → blood_transfusion）
+- [ ] **T1.5** 机器B: 评估 OpenFE/AutoFeat + 串行跑 LLM 方法（credit_g → diabetes → blood_transfusion）⚠️ CPU评估已完成，LLM方法因API key失效被阻塞
   ```bash
   # B: 评估已完成的CPU方法
   sshpass -p 'M7juUy9FhtmM' ssh -p 34431 -o StrictHostKeyChecking=no root@connect.westc.seetacloud.com "export PATH=/root/miniconda3/bin:\$PATH && cd /root/knowfeat && for ds in credit_g diabetes blood_transfusion; do python scripts/evaluate.py --dataset \$ds --method OpenFE --features-csv outputs/openfe/\${ds}_features.csv; python scripts/evaluate.py --dataset \$ds --method AutoFeat --features-csv outputs/autofeat/\${ds}_features.csv; done"
