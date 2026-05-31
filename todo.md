@@ -62,7 +62,7 @@ cat <本地文件> | sshpass -p '<密码>' ssh -p <端口> -o StrictHostKeyCheck
 
 - **项目目录**: `/root/knowfeat/`
 - **Python**: `/root/miniconda3/bin/python`（PATH已配置在~/.bashrc）
-- **DeepSeek API Key**: `sk-2e921b3293694512bfc088f0b9251900` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，需要更新！**
+- **DeepSeek API Key**: `sk-2e921b3293694512bfc088f0b9251900` ⚠️ **2026-05-31: 此 key 已失效 (401 invalid)，备用 key `sk-d8df...a413` 也已失效，需要用户提供新 key！**
 - **DeepSeek Base URL**: `https://api.deepseek.com/v1`
 - **DeepSeek Model**: `deepseek-chat`
 - 3 台机器共用 1 个 DeepSeek 账号（实际并发低，不会限速）
