@@ -117,6 +117,8 @@ def prepare_features(
             X[col] = X[col].astype("category").cat.codes
 
     X = X.fillna(-999)
+    import re
+    X.columns = [re.sub(r'[\[\]<>]', '_', c) for c in X.columns]
 
     return X, y
 
