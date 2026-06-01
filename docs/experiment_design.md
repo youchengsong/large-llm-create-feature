@@ -185,17 +185,30 @@
 
 ---
 
-## 五、论文结构（草案）
+## 五、Contributions
 
-1. **Introduction** — 金融合规要求可解释性 → 现有 AutoFE 缺乏知识溯源 → KnowFeat
-2. **Related Work** — AutoFE (OpenFE, CAAFE) + XAI in finance + LLM for tabular data
-3. **System Design** — 知识资产体系 + LLM Agent + 三级验证 + 溯源卡片
+- **C1: Knowledge-Traceable Feature Engineering Framework.** We propose KnowFeat, a feature engineering framework where every generated feature carries full provenance — each feature is linked to specific domain knowledge entries (indicators, rules, expert opinions) with explicit reasoning chains via Provenance Cards (knowledge_source + reasoning + data_fields_used). Unlike existing LLM-based methods (CAAFE, FeatLLM, LLM-FE) that treat feature generation as a black box, KnowFeat makes the design rationale of each feature auditable, meeting the interpretability requirements of regulated domains such as anti-money laundering.
+
+- **C2: Structured Domain Knowledge Injection Mechanism.** We design a knowledge processing pipeline that transforms heterogeneous, unstructured expert knowledge into a unified structured schema to guide LLM-based feature generation. A Key-clue Extractor converts diverse sources — 38 risk indicators, 15 detection rules, 26 expert opinions, and 309 court documents — into structured risk factors (pattern / dimension / observable_signals / data_hint). These are organized by thematic dimensions and injected into the LLM prompt alongside data schema and distribution statistics, providing targeted domain context that goes far beyond the simple dataset descriptions used by CAAFE or FeatLLM.
+
+- **C3: Three-Level Verification Pipeline with Feedback-Driven Search.** We introduce an iterative feature generation pipeline with three levels of verification: L1 sandbox execution (code correctness), L2 statistical quality with noise-calibrated thresholds (IV/KS against random baselines), and L3 model-level evaluation (delta-metric on held-out data). Failed features are recorded in a FailureMemory to prevent repeated mistakes. A SHAP-guided budget allocation mechanism dynamically redistributes generation budgets to under-represented dimensions, and a forward selection step recovers features that are individually weak but effective in combination.
+
+## 六、论文结构（草案）
+
+1. **Introduction** — 金融合规要求可解释性 → 现有 AutoFE 缺乏知识溯源 → KnowFeat → 三个贡献
+2. **Related Work** — AutoFE (OpenFE, CAAFE, LLM-FE) + XAI in finance + LLM for tabular data
+3. **Methodology**
+   - 3.1 Overview — 系统总览图（知识注入 → Agent生成 → 三级验证 → 溯源卡片）
+   - 3.2 Knowledge Injection (C2) — Key-clue Extractor + 多源知识融合 + 维度化组织
+   - 3.3 Feature Generation with Provenance (C1) — Agent工具箱 + Provenance Card结构
+   - 3.4 Three-Level Verification (C3) — L1/L2/L3 + FailureMemory + SHAP反馈 + 前向选择
 4. **Experiments**
-   - 4.1 Performance Comparison (Exp 1)
-   - 4.2 Knowledge Ablation (Exp 2)
-   - 4.3 Traceability Evaluation (Exp 3 + 4)
-   - 4.4 Case Study (Exp 5)
-   - 4.5 Efficiency (Exp 6)
+   - 4.1 Setup — 数据集、Baseline、评估协议
+   - 4.2 Performance Comparison (Exp 1) — 主表结果
+   - 4.3 Knowledge Ablation (Exp 2) — 知识消融
+   - 4.4 Traceability Evaluation (Exp 3 + 4) — 自动化指标 + 专家评估
+   - 4.5 Case Study (Exp 5) — 溯源卡片对比
+   - 4.6 Efficiency (Exp 6) — 效率对比
 5. **Discussion** — 局限性 + 未来工作
 6. **Conclusion**
 
