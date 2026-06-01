@@ -102,6 +102,8 @@ def main():
     parser.add_argument("--max-features", type=int, default=20)
     parser.add_argument("--max-rounds", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--knowledge-filter", default=None,
+                        choices=["schema_only", "indicators", "rules", "expert"])
     args = parser.parse_args()
 
     cfg = build_config(args.dataset, args.max_features)
@@ -128,8 +130,9 @@ def main():
 
     # 运行 Agent 循环
     from knowfeat.main import run_stage, save_results
-    result = run_stage(cfg, data, dk)
-    save_results(result, cfg.paths.output_dir / args.dataset)
+    result = run_stage(cfg, data, dk, knowledge_filter=args.knowledge_filter)
+    suffix = f"_{args.knowledge_filter}" if args.knowledge_filter else ""
+    save_results(result, cfg.paths.output_dir / (args.dataset + suffix))
 
     print(
         f"\n完成: {result.total_accepted} 特征, "
