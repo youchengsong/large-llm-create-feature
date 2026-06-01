@@ -187,15 +187,23 @@ CAAFE/FeatLLM/KnowFeat 的 simecny 结果还在跑。如果 KnowFeat 在 Recall 
 - 正在 B 和 C 上并行跑 (4进程×2台机器)
 - 预期结论: 完整知识 > 部分知识 > 仅Schema
 
-#### RQ3: KnowFeat 生成的特征是否可追溯？
-- Provenance cards 分析
-- 每个特征 → 知识条目 (IND_xx/RULE_xx/EXP_xx) 的映射
-- 特征数量 vs 性能的 Pareto 分析
+#### RQ3: KnowFeat 生成的特征是否可追溯？(Exp 3 + 4)
+- **自动化指标** (Exp 3): 知识引用率、知识可验证率、推理步骤覆盖率、字段溯源率
+- Provenance cards: 每个特征 → 知识条目 (IND_xx/RULE_xx/EXP_xx) 的映射
+- **专家评估** (Exp 4): 3-5名AML/风控专家盲评，1-5分
+  - 维度: 领域合理性 / 解释充分性 / 可审计性
+  - 每个方法(CAAFE, FeatLLM, KnowFeat) 各10-15个特征，匿名打乱
+  - 这是Applied Track reviewer最看重的部分，必须做好
+  - **状态**: 待实施，需要联系领域专家
 
-#### RQ4: KnowFeat 的效率如何？
+#### RQ4: KnowFeat 的效率如何？(Exp 6)
 - 运行时间对比 (从日志提取)
 - API 调用次数
 - 特征数量/性能比
+
+#### Case Study (Exp 5)
+- 选2-3个代表性特征，并排展示 CAAFE/FeatLLM/KnowFeat 的解释差异
+- 展示完整链路: 领域知识 → 特征设计推理 → 代码 → 预测贡献(SHAP)
 
 ### 关键句式模板
 
