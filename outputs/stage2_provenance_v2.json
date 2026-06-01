@@ -1,0 +1,149 @@
+[
+  {
+    "feature_name": "small_test_round_amount_ratio",
+    "dimensions": ["金额频次"],
+    "knowledge_ids": ["RULE_002", "RULE_015", "IND_07", "IND_21", "EXP_15", "EXP_21", "PAT_A02", "PAT_A03", "RF_S2_112_005", "RF_S2_177_005"],
+    "explanation": "组合特征：小额测试交易比例(≤5元) × (1 + 整数金额交易比例(100整数倍))。异常账户small_tx_ratio是正常的6倍，round_100_ratio是正常的3.64倍。",
+    "reasoning": "RULE_002描述休眠账户先小额测试后大额交易，RULE_015描述网络赌博资金100元整数倍。RF_S2_112_005和RF_S2_177_005裁判文书记录了小额测试交易后大额资金快速进出的真实案例。EXP_15专家指出线下跑分使用四类匿名钱包，EXP_21指出线上跑分金额300-5000元。两个信号组合可放大异常检测效果。",
+    "data_fields_used": ["src", "amount", "transaction_motif"]
+  },
+  {
+    "feature_name": "amount_concentration_entropy",
+    "dimensions": ["金额频次"],
+    "knowledge_ids": ["RULE_012", "RULE_015", "IND_05", "IND_06", "EXP_21", "PAT_A04", "RF_S2_104_008"],
+    "explanation": "Top3金额占比×(1-归一化熵)，衡量金额集中度。异常账户Top3金额占比59.8%（正常33.5%），金额熵2.39（正常3.90）。",
+    "reasoning": "RULE_012指出信用卡套现整数金额占比≥0.8，RULE_015指出赌博资金100元整数倍。PAT_A04商户跑分整数金额5000/10000元。洗钱账户在特定金额区间反复交易导致金额多样性低。",
+    "data_fields_used": ["src", "amount"]
+  },
+  {
+    "feature_name": "top3_hour_concentration",
+    "dimensions": ["时间地域"],
+    "knowledge_ids": ["RULE_011", "RULE_015", "IND_08", "IND_09", "EXP_15", "PAT_A03", "PAT_A04", "RF_S2_210_004", "RF_S2_075_007"],
+    "explanation": "交易最集中的3个小时的交易占比。异常钱包0.7632，正常0.6183。",
+    "reasoning": "IND_08指出凌晨/深夜频繁交易为异常信号。RULE_011和RULE_015均涉及夜间交易特征。EXP_15专家指出跑分车队凌晨操作。PAT_A03线上跑分凌晨12点后操作。裁判文书RF_S2_210_004和RF_S2_075_007记录了凌晨和深夜频繁交易的案例。",
+    "data_fields_used": ["hour", "src"]
+  },
+  {
+    "feature_name": "fan_in_fan_out_ratio",
+    "dimensions": ["行为序列"],
+    "knowledge_ids": ["RULE_006", "RULE_015", "IND_24", "EXP_26", "PAT_A03", "RF_S2_011_002", "RF_S2_104_008", "RF_S2_100_002"],
+    "explanation": "fan_in/fan_out比值×(1+异常模式总占比)。异常src fan_in占比12.94%（正常1.40%），many_to_many占比5.96%（正常~0%）。",
+    "reasoning": "RULE_006描述地下钱庄分散转入集中转出模式。IND_24指出多账户交叉转账形成异常网络。RF_S2_011_002裁判文书记录使用多个钱包分散收款规避冻结。RF_S2_104_008记录分散转入集中转出的资金归集模式。洗钱账户同时存在资金归集和分散行为。",
+    "data_fields_used": ["src", "transaction_mode"]
+  },
+  {
+    "feature_name": "mode_transition_entropy",
+    "dimensions": ["行为序列"],
+    "knowledge_ids": ["RULE_006", "IND_19", "EXP_15", "EXP_26", "PAT_A02", "PAT_A03", "PAT_A04", "RF_S2_011_002"],
+    "explanation": "1-归一化交易模式熵，值越高模式越单一（越异常）。异常src 2.19种模式（正常2.99），熵0.8755（正常1.0112）。",
+    "reasoning": "EXP_26专家总结四种洗钱模式各有固定交易模式。PAT_A02线下跑分以single（ATM取现）为主，PAT_A03线上跑分以fan_out为主，PAT_A04商户跑分以fan_in为主。洗钱账户交易模式高度单一，与正常账户多样化形成对比。",
+    "data_fields_used": ["src", "transaction_mode"]
+  },
+  {
+    "feature_name": "new_counterparty_concentration",
+    "dimensions": ["主体关联"],
+    "knowledge_ids": ["IND_18", "IND_23", "EXP_21", "EXP_26", "PAT_A01", "RF_S2_011_002", "RF_S2_019_001"],
+    "explanation": "新交易对手比例/(交易对手数+1)。异常钱包新对手比例0.88（正常0.75），对手数6.91（正常13.88）。",
+    "reasoning": "IND_18指出频繁更换陌生交易对手为风险信号。IND_23指出高风险陌生主体无合理交易背景。RF_S2_011_002和RF_S2_019_001裁判文书记录使用多个钱包分散收款。洗钱账户与大量一次性对手交易。",
+    "data_fields_used": ["src", "dst"]
+  },
+  {
+    "feature_name": "counterparty_level_diversity_risk",
+    "dimensions": ["主体关联"],
+    "knowledge_ids": ["RULE_001", "IND_16", "IND_17", "IND_26", "EXP_14", "EXP_15", "EXP_17", "PAT_A02", "PAT_A03", "RF_S2_011_002"],
+    "explanation": "(1-diversity/4)×(1+level_risk)。异常钱包dst_level_diversity 2.61（正常3.25），src_wallet_level 1.91（正常2.36）。",
+    "reasoning": "RULE_001四类匿名钱包短时间大额取现。EXP_14规则模型检测同一设备多手机号开四类钱包。EXP_15线下跑分使用四类匿名钱包。EXP_17不法分子收购多个钱包。低等级钱包+低多样性是跑分典型特征。",
+    "data_fields_used": ["src", "dst_wallet_level", "src_wallet_level"],
+    "selection_method": "forward_selection"
+  },
+  {
+    "feature_name": "amount_range_ratio_risk",
+    "dimensions": ["金额频次"],
+    "knowledge_ids": ["RULE_002", "IND_05", "IND_06", "IND_21", "EXP_21", "PAT_A02", "RF_S2_101_003", "RF_S2_112_005"],
+    "explanation": "log1p(最大正金额/最小正金额)。异常钱包range_ratio均值是正常的6.07倍。",
+    "reasoning": "RULE_002休眠账户先小额测试再大额交易。IND_05和IND_06指出金额波动剧烈为异常。PAT_A02线下跑分金额从0到20万。RF_S2_101_003跑分团伙验卡测试后大额转账。直接捕捉先测试后大额的核心模式。",
+    "data_fields_used": ["src", "amount"]
+  },
+  {
+    "feature_name": "high_risk_region_off_hour_ratio",
+    "dimensions": ["时间地域"],
+    "knowledge_ids": ["RULE_014", "IND_08", "IND_11", "IND_14", "EXP_19", "RF_S2_100_006", "RF_S2_151_003"],
+    "explanation": "高风险地区标志(540000西藏/650000新疆)×非工作时间(18-8时)交易占比。组合后差异43倍。",
+    "reasoning": "RULE_014高风险地区小额频繁交易（恐怖融资特征）。EXP_19专家指出涉恐资金主要涉及新疆和西藏，会考虑新疆籍/西藏籍职工在试点地区交易。IND_14交易地域与常用地不符为风险信号。",
+    "data_fields_used": ["region_code", "hour", "src", "tx_id"]
+  },
+  {
+    "feature_name": "rhythm_stability_risk",
+    "dimensions": ["行为序列"],
+    "knowledge_ids": ["RULE_006", "IND_03", "IND_10", "EXP_15", "EXP_21", "PAT_A03", "PAT_A04"],
+    "explanation": "长间隔比例(>300s)×节奏稳定性(1/(1+CV))。异常钱包CV 1.08（正常2.28），长间隔比例0.47（正常0.25）。",
+    "reasoning": "IND_03短期高频转账为洗钱信号。IND_10交易时间间隔异常。RULE_006日交易≥20笔。EXP_15跑分车队有组织取现。EXP_21线上跑分每日达限额持续10-30天。跑分/商户跑分的交易节奏高度规律。",
+    "data_fields_used": ["src", "interval"]
+  },
+  {
+    "feature_name": "net_flow_direction_risk",
+    "dimensions": ["行为序列"],
+    "knowledge_ids": ["RULE_006", "RULE_003", "RULE_008", "IND_04", "EXP_21", "PAT_A03", "RF_S2_135_003", "RF_S2_148_004"],
+    "explanation": "|净流量比例|×(1-方向切换比例)。异常钱包净流量比例0.87（正常0.57），方向切换0.21（正常0.33）。",
+    "reasoning": "RULE_003资金快进快出留存率≤0.1。RULE_008诈骗资金1h内转出。RULE_006分散转入集中转出。RF_S2_135_003单向流入大额资金。RF_S2_148_004大额快进快出。洗钱账户资金单向流动且交替少。",
+    "data_fields_used": ["src", "dst", "timestamp", "amount"]
+  },
+  {
+    "feature_name": "enterprise_counterparty_concentration",
+    "dimensions": ["主体关联"],
+    "knowledge_ids": ["RULE_004", "IND_33", "IND_35", "EXP_26", "PAT_A03", "PAT_A04", "RF_S2_100_001", "RF_S2_111_004"],
+    "explanation": "企业钱包(type=2)对手占比×(1-归一化类型熵)。异常src企业对手占比0.5427（正常0.4328），类型熵1.0111（正常1.2509）。",
+    "reasoning": "RULE_004商户账户异常大额交易。IND_33和IND_35指出交易场景与用途不符/缺乏真实贸易背景。PAT_A04商户收款码跑分勾结商户。RF_S2_111_004通过实体商户POS机套现。",
+    "data_fields_used": ["src", "dst", "wallet_type"]
+  },
+  {
+    "feature_name": "first_small_test_ratio",
+    "dimensions": ["行为序列"],
+    "knowledge_ids": ["RULE_002", "IND_21", "IND_22", "EXP_15", "EXP_17", "PAT_A02", "RF_S2_101_003", "RF_S2_112_005", "RF_S2_177_005"],
+    "explanation": "首笔交易是否为小额测试(≤5元)，二元特征。异常钱包41.5%（正常4.7%），差异8.8倍。",
+    "reasoning": "RULE_002沉睡期异常：先小额测试后大额交易。IND_21/IND_22休眠账户激活后大额交易。RF_S2_101_003跑分团伙验卡测试后大额转账。RF_S2_112_005/RF_S2_177_005小额测试后大额进出的真实案例。EXP_15/EXP_17专家确认跑分团伙验卡测试行为。",
+    "data_fields_used": ["src", "timestamp", "amount"],
+    "selection_method": "forward_selection"
+  },
+  {
+    "feature_name": "night_amount_short_term_risk",
+    "dimensions": ["时间地域"],
+    "knowledge_ids": ["RULE_015", "IND_08", "IND_16", "EXP_15", "EXP_21", "PAT_A03", "PAT_A04", "RF_S2_210_004", "RF_S2_129_002"],
+    "explanation": "深夜交易金额占比(22-6时)×时间跨度风险(1/(天数+1))。组合后差异6.16倍。",
+    "reasoning": "IND_08凌晨/深夜交易异常。RULE_015网络赌博深夜交易。EXP_15跑分车队凌晨操作，钱包存活时间短。EXP_21线上跑分持续10-30天。RF_S2_210_004凌晨频繁转账取现。深夜高金额+短存活时间=高洗钱风险。",
+    "data_fields_used": ["src", "hour", "amount", "timestamp"]
+  },
+  {
+    "feature_name": "amount_bin_skew_index",
+    "dimensions": ["金额频次"],
+    "knowledge_ids": ["RULE_002", "IND_07", "EXP_15", "EXP_21", "PAT_A02", "RF_S2_112_005", "RF_S2_177_005"],
+    "explanation": "极小额(≤1元)占比/(中等金额(1000-50000)+大额(≥50000)占比+0.01)。L型偏态差异15倍+。",
+    "reasoning": "极小额占比异常是正常的18.49倍，中等和大额占比偏低。RULE_002先小额测试后大额交易。EXP_15跑分测试确认可用性。RF_S2_112_005/RF_S2_177_005记录小额测试后大额进出。衡量金额分布偏态而非集中度。",
+    "data_fields_used": ["src", "amount"]
+  },
+  {
+    "feature_name": "counterparty_type_amount_divergence",
+    "dimensions": ["主体关联", "金额频次"],
+    "knowledge_ids": ["IND_19", "IND_33", "EXP_26", "PAT_A03", "PAT_N01", "RF_S2_100_001"],
+    "explanation": "向个人钱包(type=1)金额占比-向商户钱包(type=3)金额占比。异常背离度0.210（正常0.134），差异1.56倍。",
+    "reasoning": "IND_19交易用途与账户属性偏离。PAT_A03线上跑分资金流向个人钱包。PAT_N01正常消费流向商户。RF_S2_100_001利用钱包和银行账户进行资金转移。洗钱资金偏向个人钱包，正常消费偏向商户。",
+    "data_fields_used": ["src", "dst", "amount", "wallet_type"]
+  },
+  {
+    "feature_name": "tiny_amount_concentration",
+    "dimensions": ["金额频次"],
+    "knowledge_ids": ["RULE_002", "IND_07", "EXP_15", "EXP_17", "RF_S2_101_003", "RF_S2_177_005"],
+    "explanation": "金额≤1元交易中最常见金额值的出现占比。异常0.1885（正常0.0487），差异3.87倍。",
+    "reasoning": "RULE_002先小额测试后大额交易。EXP_15/EXP_17跑分团伙验卡测试。RF_S2_101_003验卡测试确认可用性。测试金额高度集中在0.1/0.4/0.5/1.0元等固定值。衡量极小额内部的结构集中度。",
+    "data_fields_used": ["src", "amount"],
+    "selection_method": "forward_selection"
+  },
+  {
+    "feature_name": "time_concentration_risk_index",
+    "dimensions": ["时间地域"],
+    "knowledge_ids": ["RULE_006", "IND_08", "IND_10", "EXP_21", "EXP_15", "PAT_A03", "PAT_A04", "RF_S2_075_007"],
+    "explanation": "最大小时交易占比/活跃小时数。异常0.2710（正常0.0856），差异3.17倍。",
+    "reasoning": "RULE_006日交易≥20笔集中在短时间内。IND_08/IND_10交易时间异常。EXP_21线上跑分每日达限额。EXP_15跑分车队短时间集中取现。RF_S2_075_007交易时间集中在深夜或非正常工作时间。",
+    "data_fields_used": ["hour", "src"]
+  }
+]

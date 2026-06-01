@@ -1591,10 +1591,988 @@ budget[dim] = clamp(budget[dim], min=1, max=5)</code></pre>
 </div>
 
 
+<!-- ====== 实验结果：18个特征知识溯源卡片 ====== -->
+<div class="section" id="sec-results">
+  <h2><span class="num">R</span> 实验结果：simecny 18个特征知识溯源卡片</h2>
+  <p>以下是 KnowFeat 在数字人民币反洗钱(simecny)数据集上生成的18个有效特征。每个特征附带完整的<strong>知识溯源卡片</strong>（Provenance Card），精确引用了领域知识资产编号（IND_xx 风险指标 / RULE_xxx 检测规则 / EXP_xx 专家意见 / PAT_Axx 交易模式 / RF_S2_xxx 裁判文书风险因子），以及完整的 Python 实现代码。</p>
+  <p>这18个特征的增量效果：基线 Recall 0.9538 &rarr; 最终 0.9737 (<strong>+2.09%</strong>)，基线 Precision 0.9402 &rarr; 最终 0.9621 (<strong>+2.33%</strong>)。</p>
+
+  <div style="margin: 24px 0;">
+    <h3>知识覆盖统计</h3>
+    <table>
+      <tr><th>知识类型</th><th>总数</th><th>被引用数</th><th>引用率</th></tr>
+      <tr><td>IND_xx (风险指标)</td><td>38</td><td>22</td><td>57.9%</td></tr>
+      <tr><td>RULE_xxx (检测规则)</td><td>15</td><td>10</td><td>66.7%</td></tr>
+      <tr><td>EXP_xx (专家意见)</td><td>26</td><td>10</td><td>38.5%</td></tr>
+      <tr><td>PAT_Axx (异常交易模式)</td><td>5</td><td>5</td><td>100%</td></tr>
+      <tr><td>RF_S2_xxx (裁判文书风险因子)</td><td>~1920</td><td>18</td><td>~0.9%</td></tr>
+    </table>
+  </div>
+
+  <!-- ===== Feature 1 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F01</span> small_test_round_amount_ratio
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 金额频次</span>
+    </h3>
+    <p><strong>含义</strong>: 小额测试交易比例(&le;5元) &times; (1 + 整数金额交易比例(100整数倍))。异常账户 small_tx_ratio 是正常的6倍，round_100_ratio 是正常的3.64倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_002</code></td><td>检测规则</td><td>休眠账户激活后先小额测试再大额交易</td></tr>
+      <tr><td><code>RULE_015</code></td><td>检测规则</td><td>网络赌博资金100元整数倍，深夜交易</td></tr>
+      <tr><td><code>IND_07</code></td><td>风险指标</td><td>多账户小额分散转账，拆分交易规避监管</td></tr>
+      <tr><td><code>IND_21</code></td><td>风险指标</td><td>休眠账户突然激活并发生大额交易</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>线下跑分：四类匿名钱包ATM取现，上游开立数币钱包后发账号密码给下游取现</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分每日交易量达限额上限，持续10-30天</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分（ATM取现）：休眠&rarr;突然激活，取现金额整数</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分（钱包互转）：跑分金额300-5000元</td></tr>
+      <tr><td><code>RF_S2_112_005</code></td><td>裁判文书</td><td>小额测试交易后大额资金快速进出</td></tr>
+      <tr><td><code>RF_S2_177_005</code></td><td>裁判文书</td><td>卡主在短时间内收到多笔小额测试交易后出现大额资金流入</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_002描述休眠账户先小额测试后大额交易，RULE_015描述网络赌博资金100元整数倍特征。RF_S2_112_005和RF_S2_177_005裁判文书记录了小额测试交易后大额资金快速进出的真实案例。将两者乘积组合可放大异常检测效果。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>amount</code>, <code>transaction_motif</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_small_test_round_amount_ratio(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['amount_abs'] = tx['amount'].abs()
+
+    src_features = tx.groupby('src').agg(
+        tx_count=('amount', 'count'),
+        small_tx_count=('amount_abs', lambda x: (x &lt;= 5).sum()),
+        round_100_count=('amount_abs', lambda x: (x % 100 == 0).sum()),
+    ).reset_index()
+
+    src_features['small_tx_ratio'] = src_features['small_tx_count'] / (src_features['tx_count'] + 1e-10)
+    src_features['round_100_ratio'] = src_features['round_100_count'] / (src_features['tx_count'] + 1e-10)
+
+    # 组合特征：小额测试比例 &times; (1 + 整数金额比例)
+    src_features['small_test_round_amount_ratio'] = (
+        src_features['small_tx_ratio'] * (1 + src_features['round_100_ratio'])
+    )
+
+    result = src_features[['src', 'small_test_round_amount_ratio']].copy()
+    result.columns = ['wallet_id', 'small_test_round_amount_ratio']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 2 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F02</span> amount_concentration_entropy
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 金额频次</span>
+    </h3>
+    <p><strong>含义</strong>: Top3金额占比&times;(1-归一化熵)，衡量金额集中度。异常账户Top3金额占比59.8%（正常33.5%），金额熵2.39（正常3.90）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_012</code></td><td>检测规则</td><td>信用卡套现：整数金额占比&ge;0.8</td></tr>
+      <tr><td><code>RULE_015</code></td><td>检测规则</td><td>网络赌博：100元整数倍，分散转入分散转出</td></tr>
+      <tr><td><code>IND_05</code></td><td>风险指标</td><td>交易金额历史均值偏离过大</td></tr>
+      <tr><td><code>IND_06</code></td><td>风险指标</td><td>交易金额波动幅度</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分每日交易量达限额上限</td></tr>
+      <tr><td><code>PAT_A04</code></td><td>交易模式</td><td>商户收款码跑分：整数金额5000/10000元，24小时不间断</td></tr>
+      <tr><td><code>RF_S2_104_008</code></td><td>裁判文书</td><td>&ldquo;分散转入、集中转出&rdquo;的资金归集模式</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 洗钱账户在特定金额区间反复交易导致金额多样性低。RULE_012指出套现整数金额占比&ge;0.8，PAT_A04商户跑分整数金额5000/10000元。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_amount_concentration_entropy(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['amount_abs'] = tx['amount'].abs()
+
+    def calc_top3_ratio(x):
+        counts = x.value_counts()
+        if len(counts) == 0: return 0.0
+        return counts.head(3).sum() / len(x)
+
+    def calc_entropy(x):
+        counts = x.value_counts()
+        probs = counts / len(x)
+        return -np.sum(probs * np.log2(probs + 1e-10))
+
+    src_features = tx.groupby('src')['amount_abs'].agg([
+        ('amount_top3_ratio', calc_top3_ratio),
+        ('amount_entropy', calc_entropy),
+        ('tx_count', 'count')
+    ]).reset_index()
+
+    max_entropy = np.log2(src_features['tx_count'].clip(lower=2))
+    src_features['norm_entropy'] = src_features['amount_entropy'] / (max_entropy + 1e-10)
+
+    src_features['amount_concentration_entropy'] = (
+        src_features['amount_top3_ratio'] * (1 - src_features['norm_entropy'].clip(0, 1))
+    )
+
+    result = src_features[['src', 'amount_concentration_entropy']].copy()
+    result.columns = ['wallet_id', 'amount_concentration_entropy']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 3 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F03</span> top3_hour_concentration
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 时间地域</span>
+    </h3>
+    <p><strong>含义</strong>: 交易最集中的3个小时的交易占比。异常钱包0.7632，正常0.6183，差异23%。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_011</code></td><td>检测规则</td><td>毒品交易资金特征：ATM为主，夜间交易占比高</td></tr>
+      <tr><td><code>RULE_015</code></td><td>检测规则</td><td>网络赌博：深夜进行网银交易</td></tr>
+      <tr><td><code>IND_08</code></td><td>风险指标</td><td>非日常交易时段（凌晨、深夜频繁发起交易）</td></tr>
+      <tr><td><code>IND_09</code></td><td>风险指标</td><td>交易时间与账户历史交易时段的匹配度</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>线下跑分：跑分车队凌晨操作</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：常见凌晨12点后操作</td></tr>
+      <tr><td><code>RF_S2_210_004</code></td><td>裁判文书</td><td>凌晨时段进行频繁转账和取现操作</td></tr>
+      <tr><td><code>RF_S2_075_007</code></td><td>裁判文书</td><td>交易时间集中在深夜或非正常工作时间</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: IND_08指出凌晨/深夜频繁交易为异常信号。EXP_15专家指出跑分车队凌晨操作。裁判文书RF_S2_210_004和RF_S2_075_007记录了凌晨和深夜频繁交易的案例。</p>
+
+    <p><strong>数据字段</strong>: <code>hour</code>, <code>src</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_top3_hour_concentration(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['hour'] = tx['hour'].astype(int)
+
+    def calc_top3_hour_ratio(group):
+        counts = group.value_counts()
+        if len(counts) == 0: return 0.0
+        return counts.head(3).sum() / len(group)
+
+    result = tx.groupby('src')['hour'].apply(calc_top3_hour_ratio).reset_index()
+    result.columns = ['wallet_id', 'top3_hour_concentration']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 4 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F04</span> fan_in_fan_out_ratio
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 行为序列</span>
+    </h3>
+    <p><strong>含义</strong>: fan_in/fan_out比值&times;(1+异常模式总占比)。异常src fan_in占比12.94%（正常1.40%，差异9.2倍）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_006</code></td><td>检测规则</td><td>地下钱庄&ldquo;分散转入集中转出&rdquo;模式</td></tr>
+      <tr><td><code>RULE_015</code></td><td>检测规则</td><td>网络赌博&ldquo;分散转入分散转出&rdquo;模式</td></tr>
+      <tr><td><code>IND_24</code></td><td>风险指标</td><td>多账户交叉转账形成异常交易网络</td></tr>
+      <tr><td><code>EXP_26</code></td><td>专家意见</td><td>细化为薅羊毛、线下跑分、线上跑分、商户跑分四类</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：匿名&rarr;实名&rarr;银行账户链式转账</td></tr>
+      <tr><td><code>RF_S2_011_002</code></td><td>裁判文书</td><td>使用多个钱包分散收款规避账户冻结</td></tr>
+      <tr><td><code>RF_S2_104_008</code></td><td>裁判文书</td><td>&ldquo;分散转入、集中转出&rdquo;的资金归集模式</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_006描述地下钱庄分散转入集中转出模式。RF_S2_011_002记录使用多个钱包分散收款。洗钱账户同时存在资金归集和分散行为，形成完整洗钱链路。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>transaction_mode</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_fan_in_fan_out_ratio(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+
+    def calc_mode_ratios(group):
+        total = len(group)
+        return pd.Series({
+            'fan_in_ratio': (group == 'fan_in').sum() / total,
+            'fan_out_ratio': (group == 'fan_out').sum() / total,
+            'many_to_many_ratio': (group == 'many_to_many').sum() / total,
+            'one_to_many_ratio': (group == 'one_to_many').sum() / total,
+        })
+
+    mode_stats = tx.groupby('src')['transaction_mode'].apply(calc_mode_ratios).unstack()
+
+    mode_stats['fan_in_fan_out_ratio'] = (
+        mode_stats['fan_in_ratio'] / (mode_stats['fan_out_ratio'] + 1e-10)
+    )
+    mode_stats['abnormal_mode_ratio'] = (
+        mode_stats['fan_in_ratio'] +
+        mode_stats['many_to_many_ratio'] +
+        mode_stats['one_to_many_ratio']
+    )
+    result_val = mode_stats['fan_in_fan_out_ratio'] * (1 + mode_stats['abnormal_mode_ratio'])
+
+    result = pd.DataFrame({
+        'wallet_id': mode_stats.index,
+        'fan_in_fan_out_ratio': result_val.values
+    })
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 5 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F05</span> mode_transition_entropy
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 行为序列</span>
+    </h3>
+    <p><strong>含义</strong>: 1-归一化交易模式熵，值越高模式越单一（越异常）。异常src使用2.19种模式（正常2.99），熵0.8755（正常1.0112）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_006</code></td><td>检测规则</td><td>分散转入集中转出，日交易&ge;20笔</td></tr>
+      <tr><td><code>IND_19</code></td><td>风险指标</td><td>交易用途与账户属性偏离</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>线下跑分：四类匿名钱包ATM取现（single模式为主）</td></tr>
+      <tr><td><code>EXP_26</code></td><td>专家意见</td><td>四种洗钱模式各有固定交易模式</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分以single（ATM取现）为主</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分以fan_out（分散转出）为主</td></tr>
+      <tr><td><code>PAT_A04</code></td><td>交易模式</td><td>商户跑分以fan_in（收款）为主</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: EXP_26专家总结四种洗钱模式各有固定交易模式。洗钱账户交易模式高度单一，与正常账户多样化形成对比。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>transaction_mode</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_mode_transition_entropy(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+
+    def calc_normalized_entropy(group):
+        counts = group.value_counts()
+        probs = counts / len(group)
+        entropy = -np.sum(probs * np.log2(probs + 1e-10))
+        max_entropy = np.log2(len(counts)) if len(counts) &gt; 1 else 1.0
+        return entropy / max_entropy
+
+    src_entropy = tx.groupby('src')['transaction_mode'].apply(
+        calc_normalized_entropy
+    ).reset_index()
+    src_entropy.columns = ['wallet_id', 'mode_transition_entropy']
+
+    # 1 - 熵：分数越高表示越异常（模式越单一）
+    src_entropy['mode_transition_entropy'] = 1.0 - src_entropy['mode_transition_entropy']
+    return src_entropy</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 6 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F06</span> new_counterparty_concentration
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 主体关联</span>
+    </h3>
+    <p><strong>含义</strong>: 新交易对手比例/(交易对手数+1)。异常钱包新对手比例0.88（正常0.75），对手数6.91（正常13.88）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>IND_18</code></td><td>风险指标</td><td>频繁更换陌生交易对手</td></tr>
+      <tr><td><code>IND_23</code></td><td>风险指标</td><td>交易对手为高风险陌生主体且无合理交易背景</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分持续10-30天，每日交易量达限额上限</td></tr>
+      <tr><td><code>EXP_26</code></td><td>专家意见</td><td>跑分团伙使用大量钱包进行短期交易</td></tr>
+      <tr><td><code>PAT_A01</code></td><td>交易模式</td><td>薅羊毛：短期内大量钱包在同一商户消费</td></tr>
+      <tr><td><code>RF_S2_011_002</code></td><td>裁判文书</td><td>使用多个钱包分散收款规避冻结</td></tr>
+      <tr><td><code>RF_S2_019_001</code></td><td>裁判文书</td><td>通过多个钱包分散收款规避冻结</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: IND_18指出频繁更换陌生交易对手为风险信号。洗钱账户与大量一次性对手交易，且对手数量有限。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>dst</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_new_counterparty_concentration(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    pair_counts = tx_df.groupby(['src', 'dst']).size().reset_index()
+    pair_counts.columns = ['src', 'dst', 'pair_count']
+
+    src_stats = pair_counts.groupby('src').agg(
+        total_counterparties=('dst', 'count'),
+        new_counterparties=('pair_count', lambda x: (x == 1).sum())
+    ).reset_index()
+
+    src_stats['new_counterparty_ratio'] = (
+        src_stats['new_counterparties'] / (src_stats['total_counterparties'] + 1e-10)
+    )
+    src_stats['new_counterparty_concentration'] = (
+        src_stats['new_counterparty_ratio'] / (src_stats['total_counterparties'] + 1.0)
+    )
+
+    result = src_stats[['src', 'new_counterparty_concentration']].copy()
+    result.columns = ['wallet_id', 'new_counterparty_concentration']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 7 ===== -->
+  <div style="border:2px solid var(--primary); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #e1effe 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--primary); font-size:1.2em;">
+      <span class="badge" style="background:var(--primary-light);color:var(--primary);">F07</span> counterparty_level_diversity_risk
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 主体关联 | 前向选择</span>
+    </h3>
+    <p><strong>含义</strong>: (1-diversity/4)&times;(1+level_risk)。异常钱包dst_level_diversity 2.61（正常3.25），src_wallet_level 1.91（正常2.36）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_001</code></td><td>检测规则</td><td>四类匿名钱包短时间大额取现异常</td></tr>
+      <tr><td><code>IND_17</code></td><td>风险指标</td><td>认证等级（是否完成实名/大额交易认证）</td></tr>
+      <tr><td><code>EXP_14</code></td><td>专家意见</td><td>规则：同一设备24h内3个不同手机号开立四类钱包</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>线下跑分使用四类匿名钱包ATM取现</td></tr>
+      <tr><td><code>EXP_17</code></td><td>专家意见</td><td>不法分子收购多个数币钱包，邮储已关闭匿名钱包ATM取现</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分：四类钱包，休眠&rarr;突然激活</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：匿名&rarr;实名&rarr;银行账户链</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_001四类匿名钱包短时间大额取现。EXP_14/EXP_15/EXP_17专家确认跑分使用四类匿名钱包。低等级钱包+低多样性是跑分典型特征。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>dst_wallet_level</code>, <code>src_wallet_level</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_counterparty_level_diversity_risk(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    level_diversity = tx_df.groupby('src')['dst_wallet_level'].nunique().reset_index()
+    level_diversity.columns = ['wallet_id', 'dst_level_diversity']
+
+    src_self_level = tx_df.groupby('src')['src_wallet_level'].first().reset_index()
+    src_self_level.columns = ['wallet_id', 'self_wallet_level']
+
+    result = level_diversity.merge(src_self_level, on='wallet_id', how='left')
+
+    diversity_risk = 1.0 - result['dst_level_diversity'] / 4.0
+    level_risk = 1.0 - result['self_wallet_level'] / 4.0
+    result['counterparty_level_diversity_risk'] = diversity_risk * (1.0 + level_risk)
+
+    return result[['wallet_id', 'counterparty_level_diversity_risk']]</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 8 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F08</span> amount_range_ratio_risk
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 金额频次</span>
+    </h3>
+    <p><strong>含义</strong>: log1p(最大正金额/最小正金额)。异常钱包range_ratio均值是正常的6.07倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_002</code></td><td>检测规则</td><td>休眠账户激活后先小额测试再大额交易</td></tr>
+      <tr><td><code>IND_05</code></td><td>风险指标</td><td>交易金额历史均值偏离过大</td></tr>
+      <tr><td><code>IND_06</code></td><td>风险指标</td><td>交易金额波动幅度</td></tr>
+      <tr><td><code>IND_21</code></td><td>风险指标</td><td>休眠账户突然激活并发生大额交易</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分：单次取现约20万元</td></tr>
+      <tr><td><code>RF_S2_101_003</code></td><td>裁判文书</td><td>验卡测试确认可用性后大额转账</td></tr>
+      <tr><td><code>RF_S2_112_005</code></td><td>裁判文书</td><td>小额测试交易后大额资金快速进出</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_002休眠账户先小额测试再大额交易。PAT_A02线下跑分金额从0到20万。RF_S2_101_003跑分团伙验卡测试后大额转账。直接捕捉先测试后大额的核心模式。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_amount_range_ratio_risk(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx_pos = tx_df[tx_df['amount'] &gt; 0].copy()
+    if len(tx_pos) == 0:
+        return pd.DataFrame({
+            'wallet_id': tx_df['src'].unique(),
+            'amount_range_ratio_risk': 0.0
+        })
+
+    range_stats = tx_pos.groupby('src').agg(
+        max_amount=('amount', 'max'),
+        min_positive=('amount', 'min'),
+        tx_count=('amount', 'count'),
+    ).reset_index()
+
+    range_stats['amount_range_ratio'] = (
+        range_stats['max_amount'] / (range_stats['min_positive'] + 1e-10)
+    )
+    range_stats['amount_range_ratio_risk'] = np.log1p(range_stats['amount_range_ratio'])
+    range_stats.loc[range_stats['tx_count'] &lt; 2, 'amount_range_ratio_risk'] = 0.0
+
+    result = range_stats[['src', 'amount_range_ratio_risk']].copy()
+    result.columns = ['wallet_id', 'amount_range_ratio_risk']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 9 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F09</span> high_risk_region_off_hour_ratio
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 时间地域</span>
+    </h3>
+    <p><strong>含义</strong>: 高风险地区标志(540000西藏/650000新疆)&times;非工作时间(18-8时)交易占比。组合后差异43倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_014</code></td><td>检测规则</td><td>高风险地区小额频繁交易（恐怖融资特征）</td></tr>
+      <tr><td><code>IND_08</code></td><td>风险指标</td><td>凌晨/深夜频繁发起交易</td></tr>
+      <tr><td><code>IND_11</code></td><td>风险指标</td><td>短期内跨多地域发起交易</td></tr>
+      <tr><td><code>IND_14</code></td><td>风险指标</td><td>交易地域与账户注册地或常用地严重不符</td></tr>
+      <tr><td><code>EXP_19</code></td><td>专家意见</td><td>涉恐主要涉及新疆和西藏，会考虑新疆籍、西藏籍职工在试点地区交易</td></tr>
+      <tr><td><code>RF_S2_100_006</code></td><td>裁判文书</td><td>涉及跨地域资金流转</td></tr>
+      <tr><td><code>RF_S2_151_003</code></td><td>裁判文书</td><td>夜间或凌晨时段进行资金流转以规避监控</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_014高风险地区恐怖融资特征。EXP_19专家确认新疆和西藏为涉恐高风险地区。IND_14交易地域与常用地不符为风险信号。组合后差异放大至43倍。</p>
+
+    <p><strong>数据字段</strong>: <code>region_code</code>, <code>hour</code>, <code>src</code>, <code>tx_id</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_high_risk_region_off_hour_ratio(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    high_risk_regions = [540000, 650000]
+    open_df = open_df.copy()
+    open_df['is_high_risk_region'] = open_df['region_code'].isin(high_risk_regions).astype(int)
+
+    tx = tx_df.copy()
+    tx['is_off_hour'] = ((tx['hour'] &gt;= 18) | (tx['hour'] &lt; 8)).astype(int)
+
+    tx_with_region = tx.merge(
+        open_df[['wallet_id', 'is_high_risk_region']],
+        left_on='src', right_on='wallet_id', how='left'
+    )
+
+    src_stats = tx_with_region.groupby('src').agg(
+        total_tx=('tx_id', 'count'),
+        off_hour_tx=('is_off_hour', 'sum'),
+        high_risk_flag=('is_high_risk_region', 'first')
+    ).reset_index()
+
+    src_stats['off_hour_ratio'] = src_stats['off_hour_tx'] / (src_stats['total_tx'] + 1e-10)
+    src_stats['high_risk_region_off_hour_ratio'] = (
+        src_stats['high_risk_flag'] * src_stats['off_hour_ratio']
+    )
+
+    result = src_stats[['src', 'high_risk_region_off_hour_ratio']].copy()
+    result.columns = ['wallet_id', 'high_risk_region_off_hour_ratio']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 10 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F10</span> rhythm_stability_risk
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 行为序列</span>
+    </h3>
+    <p><strong>含义</strong>: 长间隔比例(&gt;300s)&times;节奏稳定性(1/(1+CV))。异常钱包CV 1.08（正常2.28），长间隔比例0.47（正常0.25）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_006</code></td><td>检测规则</td><td>分散转入集中转出，日交易&ge;20笔</td></tr>
+      <tr><td><code>IND_03</code></td><td>风险指标</td><td>短期内大额高频转账</td></tr>
+      <tr><td><code>IND_10</code></td><td>风险指标</td><td>同一账户交易时间间隔异常</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>跑分车队有组织取现</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分每日达限额持续10-30天</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：日交易量达限额</td></tr>
+      <tr><td><code>PAT_A04</code></td><td>交易模式</td><td>商户跑分：24小时不间断</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 跑分/商户跑分等模式的交易节奏高度规律。IND_03/IND_10指出高频规律交易为异常。组合：long_ratio&times;(1/(1+CV))。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>interval</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_rhythm_stability_risk(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    src_stats = tx_df.groupby('src').agg(
+        interval_mean=('interval', 'mean'),
+        interval_std=('interval', 'std'),
+        long_ratio=('interval', lambda x: (x &gt; 300).mean()),
+    ).reset_index()
+
+    src_stats['interval_cv'] = (
+        src_stats['interval_std'] / (src_stats['interval_mean'] + 1e-10)
+    )
+    src_stats['rhythm_stability'] = 1.0 / (1.0 + src_stats['interval_cv'])
+    src_stats['rhythm_stability_risk'] = (
+        src_stats['long_ratio'] * src_stats['rhythm_stability']
+    )
+
+    result = src_stats[['src', 'rhythm_stability_risk']].copy()
+    result.columns = ['wallet_id', 'rhythm_stability_risk']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 11 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F11</span> net_flow_direction_risk
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 行为序列</span>
+    </h3>
+    <p><strong>含义</strong>: |净流量比例|&times;(1-方向切换比例)。异常钱包净流量0.87（正常0.57），方向切换0.21（正常0.33）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_003</code></td><td>检测规则</td><td>资金快进快出，余额留存率&le;0.1</td></tr>
+      <tr><td><code>RULE_006</code></td><td>检测规则</td><td>分散转入集中转出</td></tr>
+      <tr><td><code>RULE_008</code></td><td>检测规则</td><td>诈骗资金快速转移：1h内转出</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：链式转账（单向）</td></tr>
+      <tr><td><code>RF_S2_135_003</code></td><td>裁判文书</td><td>账户短期内单向流入大额资金</td></tr>
+      <tr><td><code>RF_S2_148_004</code></td><td>裁判文书</td><td>大额资金快进快出，单向流水金额巨大</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_003/RULE_008资金快进快出。RF_S2_135_003/RF_S2_148_004记录单向大额流动。洗钱账户资金单向流动且出入交替少。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>dst</code>, <code>timestamp</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_net_flow_direction_risk(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx_src = tx_df[['src', 'timestamp', 'amount']].copy()
+    tx_src.columns = ['wallet_id', 'timestamp', 'amount']
+    tx_src['direction'] = -1
+
+    tx_dst = tx_df[['dst', 'timestamp', 'amount']].copy()
+    tx_dst.columns = ['wallet_id', 'timestamp', 'amount']
+    tx_dst['direction'] = 1
+
+    all_tx = pd.concat([tx_src, tx_dst]).sort_values(['wallet_id', 'timestamp'])
+
+    def calc_flow_pattern(group):
+        if len(group) &lt; 2:
+            return pd.Series({'net_flow_ratio': 0.0, 'switch_ratio': 0.0})
+        directions = group['direction'].values
+        amounts = group['amount'].abs().values * directions
+        total_in = amounts[amounts &gt; 0].sum()
+        total_out = abs(amounts[amounts &lt; 0].sum())
+        total = total_in + total_out
+        net_flow_ratio = (total_in - total_out) / total if total &gt; 0 else 0.0
+        switches = (directions[1:] != directions[:-1]).sum()
+        switch_ratio = switches / (len(directions) - 1)
+        return pd.Series({'net_flow_ratio': net_flow_ratio, 'switch_ratio': switch_ratio})
+
+    flow = all_tx.groupby('wallet_id').apply(calc_flow_pattern).reset_index()
+    flow['net_flow_direction_risk'] = flow['net_flow_ratio'].abs() * (1.0 - flow['switch_ratio'])
+
+    return flow[['wallet_id', 'net_flow_direction_risk']]</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 12 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F12</span> enterprise_counterparty_concentration
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 主体关联</span>
+    </h3>
+    <p><strong>含义</strong>: 企业钱包(type=2)对手占比&times;(1-归一化类型熵)。异常src企业对手占比0.5427（正常0.4328）。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_004</code></td><td>检测规则</td><td>商户账户异常大额交易：1h内单商户收款&ge;10万</td></tr>
+      <tr><td><code>IND_33</code></td><td>风险指标</td><td>交易场景与账户用途严重不符</td></tr>
+      <tr><td><code>IND_35</code></td><td>风险指标</td><td>缺乏真实贸易背景的虚假交易</td></tr>
+      <tr><td><code>PAT_A04</code></td><td>交易模式</td><td>商户收款码跑分：与商户勾结，日百万元</td></tr>
+      <tr><td><code>RF_S2_100_001</code></td><td>裁判文书</td><td>利用钱包和银行账户为上游犯罪提供资金转移通道</td></tr>
+      <tr><td><code>RF_S2_111_004</code></td><td>裁判文书</td><td>通过实体商户POS机套现</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_004商户账户异常大额交易。PAT_A04商户收款码跑分勾结商户。RF_S2_111_004通过实体商户POS机套现。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>dst</code>, <code>wallet_type</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_enterprise_counterparty_concentration(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    wallet_type_map = open_df[['wallet_id', 'wallet_type']].set_index(
+        'wallet_id')['wallet_type'].to_dict()
+
+    tx = tx_df[['src', 'dst']].copy()
+    tx['dst_wtype'] = tx['dst'].map(wallet_type_map)
+    tx = tx.dropna(subset=['dst_wtype'])
+
+    def calc_enterprise_concentration(group):
+        counts = group.value_counts()
+        total = len(group)
+        enterprise_ratio = counts.get(2, 0) / total
+        probs = counts / total
+        entropy = -np.sum(probs * np.log2(probs + 1e-10))
+        max_entropy = np.log2(len(counts)) if len(counts) &gt; 1 else 1.0
+        norm_entropy = entropy / max_entropy
+        return enterprise_ratio * (1 - norm_entropy)
+
+    result = tx.groupby('src')['dst_wtype'].apply(
+        calc_enterprise_concentration
+    ).reset_index()
+    result.columns = ['wallet_id', 'enterprise_counterparty_concentration']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 13 ===== -->
+  <div style="border:2px solid var(--primary); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #e1effe 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--primary); font-size:1.2em;">
+      <span class="badge" style="background:var(--primary-light);color:var(--primary);">F13</span> first_small_test_ratio
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 行为序列 | 前向选择</span>
+    </h3>
+    <p><strong>含义</strong>: 首笔交易是否为小额测试(&le;5元)，二元特征。异常钱包41.5%（正常4.7%），差异8.8倍 &mdash; 最强信号之一。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_002</code></td><td>检测规则</td><td>休眠账户激活后先小额测试再大额交易（沉睡期异常）</td></tr>
+      <tr><td><code>IND_21</code></td><td>风险指标</td><td>休眠账户突然激活并发生大额交易</td></tr>
+      <tr><td><code>IND_22</code></td><td>风险指标</td><td>休眠账户大额交易</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>上游开立四类钱包后发账号密码给下游取现</td></tr>
+      <tr><td><code>EXP_17</code></td><td>专家意见</td><td>不法分子收购多个数字人民币钱包</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分：休眠&rarr;突然激活</td></tr>
+      <tr><td><code>RF_S2_101_003</code></td><td>裁判文书</td><td>跑分团伙验卡测试确认可用性后大额转账</td></tr>
+      <tr><td><code>RF_S2_112_005</code></td><td>裁判文书</td><td>小额测试交易后大额资金快速进出</td></tr>
+      <tr><td><code>RF_S2_177_005</code></td><td>裁判文书</td><td>多笔小额测试交易后大额资金流入</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: RULE_002沉睡期异常：先小额测试后大额交易。RF_S2_101_003跑分团伙验卡测试后大额转账。EXP_15/EXP_17专家确认跑分团伙验卡测试行为。差异8.8倍。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>timestamp</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_first_small_test_ratio(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx_sorted = tx_df.sort_values(['src', 'timestamp'])
+    first_tx = tx_sorted.groupby('src').first().reset_index()
+
+    first_tx['amount_abs'] = first_tx['amount'].abs()
+    first_tx['first_small_test'] = (first_tx['amount_abs'] &lt;= 5).astype(int)
+
+    result = first_tx[['src', 'first_small_test']].copy()
+    result.columns = ['wallet_id', 'first_small_test_ratio']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 14 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F14</span> night_amount_short_term_risk
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 时间地域</span>
+    </h3>
+    <p><strong>含义</strong>: 深夜交易金额占比(22-6时)&times;时间跨度风险(1/(天数+1))。组合后差异6.16倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_015</code></td><td>检测规则</td><td>网络赌博：深夜交易</td></tr>
+      <tr><td><code>IND_08</code></td><td>风险指标</td><td>凌晨/深夜频繁发起交易</td></tr>
+      <tr><td><code>IND_16</code></td><td>风险指标</td><td>账户注册时长（短期账户风险高）</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>跑分车队凌晨操作，钱包存活时间短</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分持续10-30天（短期）</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：凌晨密集转账，持续10-30天</td></tr>
+      <tr><td><code>RF_S2_210_004</code></td><td>裁判文书</td><td>凌晨频繁转账和取现</td></tr>
+      <tr><td><code>RF_S2_129_002</code></td><td>裁判文书</td><td>凌晨时段异常交易</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 深夜高金额+短存活时间=高洗钱风险。IND_08/IND_16指出凌晨交易和短期账户为异常信号。组合后差异放大至6.16倍。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>hour</code>, <code>amount</code>, <code>timestamp</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_night_amount_short_term_risk(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['is_deep_night'] = (tx['hour'] &gt;= 22) | (tx['hour'] &lt; 6)
+    tx['amount_abs'] = tx['amount'].abs()
+
+    deep_night_amt = tx[tx['is_deep_night']].groupby('src')['amount_abs'].sum().reset_index()
+    deep_night_amt.columns = ['src', 'deep_night_amount']
+
+    total_amt = tx.groupby('src')['amount_abs'].sum().reset_index()
+    total_amt.columns = ['src', 'total_amount']
+
+    amt_ratio = total_amt.merge(deep_night_amt, on='src', how='left').fillna(0)
+    amt_ratio['deep_night_amt_ratio'] = (
+        amt_ratio['deep_night_amount'] / (amt_ratio['total_amount'] + 1e-10)
+    )
+
+    time_span = tx.groupby('src')['timestamp'].agg(['min', 'max']).reset_index()
+    time_span['time_span_days'] = (time_span['max'] - time_span['min']).dt.days
+
+    result = amt_ratio.merge(time_span[['src', 'time_span_days']], on='src')
+    result['night_amount_short_term_risk'] = (
+        result['deep_night_amt_ratio'] * (1.0 / (result['time_span_days'] + 1.0))
+    )
+
+    result = result[['src', 'night_amount_short_term_risk']].copy()
+    result.columns = ['wallet_id', 'night_amount_short_term_risk']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 15 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F15</span> amount_bin_skew_index
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 金额频次</span>
+    </h3>
+    <p><strong>含义</strong>: 极小额(&le;1元)占比 / (中等金额(1000-50000) + 大额(&ge;50000)占比 + 0.01)。L型偏态差异15倍+。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_002</code></td><td>检测规则</td><td>休眠账户激活后先小额测试交易</td></tr>
+      <tr><td><code>IND_07</code></td><td>风险指标</td><td>多账户小额分散转账</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>跑分团伙先小额测试确认可用性</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分300-5000元（中等金额区间）</td></tr>
+      <tr><td><code>PAT_A02</code></td><td>交易模式</td><td>线下跑分：金额从0到20万</td></tr>
+      <tr><td><code>RF_S2_112_005</code></td><td>裁判文书</td><td>小额测试交易后大额资金快速进出</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 异常钱包极小额占比是正常的18.49倍。与amount_concentration_entropy（集中度）和small_test_round_amount_ratio（比例）互补，本特征衡量金额分布的偏态。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_amount_bin_skew_index(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['amount_abs'] = tx['amount'].abs()
+
+    src_tiny = tx.groupby('src')['amount_abs'].apply(
+        lambda x: (x &lt;= 1).mean()
+    ).reset_index()
+    src_tiny.columns = ['src', 'ultra_tiny_ratio']
+
+    src_mid = tx.groupby('src')['amount_abs'].apply(
+        lambda x: ((x &gt;= 1000) &amp; (x &lt;= 50000)).mean()
+    ).reset_index()
+    src_mid.columns = ['src', 'mid_amount_ratio']
+
+    src_large = tx.groupby('src')['amount_abs'].apply(
+        lambda x: (x &gt;= 50000).mean()
+    ).reset_index()
+    src_large.columns = ['src', 'large_amount_ratio']
+
+    result = src_tiny.merge(src_mid, on='src').merge(src_large, on='src')
+    result['amount_bin_skew_index'] = (
+        result['ultra_tiny_ratio'] /
+        (result['mid_amount_ratio'] + result['large_amount_ratio'] + 0.01)
+    )
+
+    result = result[['src', 'amount_bin_skew_index']].copy()
+    result.columns = ['wallet_id', 'amount_bin_skew_index']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 16 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F16</span> counterparty_type_amount_divergence
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 主体关联 &times; 金额频次</span>
+    </h3>
+    <p><strong>含义</strong>: 向个人钱包金额占比 - 向商户钱包金额占比。异常背离度0.210（正常0.134），差异1.56倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>IND_19</code></td><td>风险指标</td><td>交易用途与账户属性偏离</td></tr>
+      <tr><td><code>IND_33</code></td><td>风险指标</td><td>交易场景与账户用途严重不符</td></tr>
+      <tr><td><code>EXP_26</code></td><td>专家意见</td><td>线上跑分：匿名&rarr;实名&rarr;银行账户链式转账</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：资金流向个人钱包</td></tr>
+      <tr><td><code>PAT_N01</code></td><td>交易模式</td><td>正常日常消费：个人钱包在商户消费</td></tr>
+      <tr><td><code>RF_S2_100_001</code></td><td>裁判文书</td><td>利用钱包和银行账户进行资金转移</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 洗钱资金偏向流向个人钱包（跑分），正常消费更多流向商户。PAT_A03 vs PAT_N01对比构成设计基础。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>dst</code>, <code>amount</code>, <code>wallet_type</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_counterparty_type_amount_divergence(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    wallet_type = open_df[['wallet_id', 'wallet_type']].set_index('wallet_id')
+    tx = tx_df.copy()
+    tx['dst_wallet_type'] = tx['dst'].map(wallet_type['wallet_type'])
+    tx_pos = tx[tx['amount'] &gt; 0].copy()
+
+    if len(tx_pos) == 0:
+        return pd.DataFrame({
+            'wallet_id': tx_df['src'].unique(),
+            'counterparty_type_amount_divergence': 0.0
+        })
+
+    total_amt = tx_pos.groupby('src')['amount'].sum().reset_index()
+    total_amt.columns = ['wallet_id', 'total_amount']
+
+    type1_amt = tx_pos[tx_pos['dst_wallet_type'] == 1].groupby(
+        'src')['amount'].sum().reset_index()
+    type1_amt.columns = ['wallet_id', 'amount_to_type1']
+
+    type3_amt = tx_pos[tx_pos['dst_wallet_type'] == 3].groupby(
+        'src')['amount'].sum().reset_index()
+    type3_amt.columns = ['wallet_id', 'amount_to_type3']
+
+    merged = pd.merge(total_amt, type1_amt, on='wallet_id', how='left').fillna(0)
+    merged = pd.merge(merged, type3_amt, on='wallet_id', how='left').fillna(0)
+
+    merged['type1_ratio'] = merged['amount_to_type1'] / (merged['total_amount'] + 1e-10)
+    merged['type3_ratio'] = merged['amount_to_type3'] / (merged['total_amount'] + 1e-10)
+    merged['counterparty_type_amount_divergence'] = merged['type1_ratio'] - merged['type3_ratio']
+
+    return merged[['wallet_id', 'counterparty_type_amount_divergence']]</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 17 ===== -->
+  <div style="border:2px solid var(--primary); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #e1effe 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--primary); font-size:1.2em;">
+      <span class="badge" style="background:var(--primary-light);color:var(--primary);">F17</span> tiny_amount_concentration
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 金额频次 | 前向选择</span>
+    </h3>
+    <p><strong>含义</strong>: 金额&le;1元交易中最常见金额值的出现占比。异常0.1885（正常0.0487），差异3.87倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_002</code></td><td>检测规则</td><td>休眠账户先小额测试后大额交易</td></tr>
+      <tr><td><code>IND_07</code></td><td>风险指标</td><td>多账户小额分散转账</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>跑分团伙先小额测试确认可用性</td></tr>
+      <tr><td><code>EXP_17</code></td><td>专家意见</td><td>不法分子收购多个数币钱包</td></tr>
+      <tr><td><code>RF_S2_101_003</code></td><td>裁判文书</td><td>验卡测试确认可用性后大额转账</td></tr>
+      <tr><td><code>RF_S2_177_005</code></td><td>裁判文书</td><td>多笔小额测试交易后大额资金流入</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 测试交易金额高度集中在0.1/0.4/0.5/1.0元等固定值。与small_test_round_amount_ratio（比例）角度不同，本特征衡量极小额内部的结构集中度。</p>
+
+    <p><strong>数据字段</strong>: <code>src</code>, <code>amount</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_tiny_amount_concentration(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    tx['amount_abs'] = tx['amount'].abs()
+
+    def calc_tiny_concentration(group):
+        tiny = group[group &lt;= 1]
+        if len(tiny) == 0: return 0.0
+        value_counts = tiny.value_counts()
+        if len(value_counts) == 0: return 0.0
+        return value_counts.iloc[0] / len(tiny)
+
+    result = tx.groupby('src')['amount_abs'].apply(
+        calc_tiny_concentration
+    ).reset_index()
+    result.columns = ['wallet_id', 'tiny_amount_concentration']
+    return result</code></pre>
+    </details>
+  </div>
+
+  <!-- ===== Feature 18 ===== -->
+  <div style="border:2px solid var(--agent); border-radius:14px; padding:28px; margin:28px 0; background:linear-gradient(135deg, #f0fdfa 0%, #fafbfc 100%);">
+    <h3 style="margin-top:0; color:var(--agent); font-size:1.2em;">
+      <span class="badge badge-agent">F18</span> time_concentration_risk_index
+      <span style="float:right; font-size:0.75em; color:var(--text-secondary);">维度: 时间地域</span>
+    </h3>
+    <p><strong>含义</strong>: 最大小时交易占比/活跃小时数。异常0.2710（正常0.0856），差异3.17倍。</p>
+
+    <p><strong>知识溯源</strong>:</p>
+    <table style="font-size:0.88em;">
+      <tr><th>知识ID</th><th>类型</th><th>内容摘要</th></tr>
+      <tr><td><code>RULE_006</code></td><td>检测规则</td><td>日交易&ge;20笔集中在短时间内</td></tr>
+      <tr><td><code>IND_08</code></td><td>风险指标</td><td>凌晨/深夜频繁交易</td></tr>
+      <tr><td><code>IND_10</code></td><td>风险指标</td><td>交易时间间隔异常</td></tr>
+      <tr><td><code>EXP_21</code></td><td>专家意见</td><td>线上跑分每日达限额</td></tr>
+      <tr><td><code>EXP_15</code></td><td>专家意见</td><td>跑分车队短时间集中取现</td></tr>
+      <tr><td><code>PAT_A03</code></td><td>交易模式</td><td>线上跑分：凌晨密集转账</td></tr>
+      <tr><td><code>PAT_A04</code></td><td>交易模式</td><td>商户跑分：24小时不间断</td></tr>
+      <tr><td><code>RF_S2_075_007</code></td><td>裁判文书</td><td>交易时间集中在深夜或非正常工作时间</td></tr>
+    </table>
+
+    <p><strong>设计推理</strong>: 异常钱包最大小时占比0.515（正常0.292），活跃小时数3.86（正常8.45）。与基线特征（activetime_From等衡量时间长度）角度不同，本特征衡量时间集中程度。</p>
+
+    <p><strong>数据字段</strong>: <code>hour</code>, <code>src</code></p>
+
+    <details><summary style="cursor:pointer; font-weight:600; color:var(--primary); margin:8px 0;">展开 Python 代码</summary>
+<pre><code>def feature_time_concentration_risk_index(open_df, tx_df, close_df):
+    import pandas as pd
+    import numpy as np
+
+    tx = tx_df.copy()
+    hour_counts = tx.groupby(['src', 'hour']).size().reset_index(name='count')
+    src_total = tx.groupby('src').size().reset_index(name='total')
+
+    hour_pct = hour_counts.merge(src_total, on='src')
+    hour_pct['pct'] = hour_pct['count'] / hour_pct['total']
+
+    max_hour_pct = hour_pct.groupby('src')['pct'].max().reset_index()
+    max_hour_pct.columns = ['src', 'max_hour_pct']
+
+    active_hours = tx.groupby('src')['hour'].nunique().reset_index()
+    active_hours.columns = ['src', 'active_hours']
+
+    result = max_hour_pct.merge(active_hours, on='src')
+    result['time_concentration_risk_index'] = (
+        result['max_hour_pct'] / (result['active_hours'] + 1e-10)
+    )
+
+    result = result[['src', 'time_concentration_risk_index']].copy()
+    result.columns = ['wallet_id', 'time_concentration_risk_index']
+    return result</code></pre>
+    </details>
+  </div>
+
+</div>
+
+
 <!-- ====== Footer ====== -->
 <div class="footer">
   <p>LLM Agent 自动特征工程系统 &mdash; 技术方案文档 v4</p>
-  <p style="margin-top:4px;">Generated: 2026-05-27</p>
+  <p style="margin-top:4px;">Generated: 2026-06-01</p>
 </div>
 
 </div>
