@@ -42,6 +42,68 @@
 
 ---
 
+## 1.5、与Baseline论文原始结果的对比
+
+### 关键发现：各论文实验设置差异很大，不能直接对比数值
+
+| 维度 | 我们的设置 | CAAFE论文 | FeatLLM论文 | OpenFE论文 |
+|------|-----------|----------|------------|-----------|
+| **分类器** | XGBoost | TabPFN | 线性模型(无bias) | LightGBM |
+| **划分比例** | 80/20 | 50/50 | Few-shot(4/8/16样本) | 未明确 |
+| **重复次数** | 5 seeds | 10 splits × 5 seeds | 3次 | 10次 |
+| **LLM** | DeepSeek | GPT-4 | GPT-3.5/4 | 不需要LLM |
+| **主指标** | AUC | ROC AUC | AUC | Accuracy |
+| **数据量** | 全量数据 | ≤2000样本 | 每类4-16样本 | 全量数据 |
+
+### CAAFE论文原始结果 (TabPFN, 50/50 split, GPT-4)
+
+| Dataset | CAAFE论文 No-FE | CAAFE论文 CAAFE | 我们 No-FE | 我们 CAAFE | 差异原因 |
+|---------|----------------|----------------|-----------|-----------|---------|
+| credit-g | 0.7824 | 0.7832 | 0.7670 | 0.7596 | TabPFN vs XGBoost, GPT-4 vs DeepSeek |
+| diabetes | 0.8427 | 0.8425 | 0.8027 | 0.8032 | TabPFN更强, 50/50 split |
+| breast-w | 0.9783 | 0.9809 | 0.9926 | 0.9924 | XGBoost在此数据集更强 |
+
+CAAFE论文未测试: blood-transfusion, heart, bank-marketing
+
+### FeatLLM论文原始结果 (线性模型, Few-shot 16样本)
+
+| Dataset | FeatLLM论文(16-shot) | 我们 FeatLLM(全量) | 差异原因 |
+|---------|---------------------|-------------------|---------|
+| credit-g | 0.5660 | 0.7604 | Few-shot vs 全量数据 |
+| diabetes | 0.8015 | 0.8096 | 接近，该数据集较小 |
+| blood | 0.7007 | 0.6805 | Few-shot反而更高 |
+| heart | 0.8371 | 0.9297 | 全量数据大幅提升 |
+| bank | 0.7841 | 0.9337 | 45K行全量 vs 16样本 |
+
+FeatLLM论文未测试: breast-w
+
+### OpenFE论文原始结果 (LightGBM, Accuracy)
+
+| Dataset | OpenFE论文 Accuracy | 我们 OpenFE AUC | 备注 |
+|---------|-------------------|-----------------|------|
+| credit-g | 0.747 | 0.7833(AUC) | 指标不同不可直接比 |
+| blood-transfusion | 0.800 | 0.6654(AUC) | AUC和Acc差异大 |
+| breast-w | 0.991 | 0.9944(AUC) | 都很高 |
+| bank-marketing | 0.913 | 0.9374(AUC) | 合理范围 |
+
+OpenFE论文未测试: diabetes, heart
+
+### 结论：我们的结果是合理可信的
+
+1. **数值差异完全可以用实验设置差异解释**：
+   - 分类器不同（XGBoost vs TabPFN vs LightGBM vs 线性模型）
+   - 数据量不同（FeatLLM用16个样本，我们用全量）
+   - LLM不同（我们用DeepSeek，论文用GPT-4）
+
+2. **公平性保证**：我们所有方法都在**完全相同的设置**下评估（同一XGBoost配置、同一80/20划分、同一5个seed），这是ML论文的标准做法
+
+3. **论文中如何写**：
+   > "For fair comparison, all methods are evaluated under the same protocol: XGBoost classifier with identical hyperparameters, 80/20 train/test split across 5 random seeds. We use DeepSeek-chat as the backbone LLM for all LLM-based methods (CAAFE, FeatLLM, KnowFeat) to eliminate the influence of LLM capability differences."
+
+4. **需要注意**：FeatLLM 原文是 few-shot 设计，我们在全量数据上用它。可以在论文中提一句："We adapt FeatLLM to the full-data setting for fair comparison."
+
+---
+
 ## 二、对我有利的实验发现
 
 ### 1. KnowFeat 在所有LLM方法中表现最好 (核心论点)
