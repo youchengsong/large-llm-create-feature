@@ -33,6 +33,7 @@ DATASET_REGISTRY = {
     "heart": {"csv": "data/public/heart.csv", "target": "HeartDisease"},
     "bank_marketing": {"csv": "data/public/bank_marketing.csv", "target": "y"},
     "breast_w": {"csv": "data/public/breast_w.csv", "target": "Class"},
+    "adult": {"csv": "data/public/adult.csv", "target": "class"},
     "simecny": {"csv": None, "target": "is_risk"},
 }
 

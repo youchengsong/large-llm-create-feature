@@ -123,6 +123,11 @@ DATASET_REGISTRY = {
         "target": "Class",
         "description": "Wisconsin breast cancer dataset. Classify tumors as benign or malignant based on cell nucleus features like clump thickness, uniformity, etc.",
     },
+    "adult": {
+        "csv": PROJECT_ROOT / "data" / "public" / "adult.csv",
+        "target": "class",
+        "description": "Adult census income dataset. Predict whether annual income exceeds $50K based on demographic attributes like age, education, occupation, marital status, etc.",
+    },
     "simecny": {
         "csv": None,
         "target": "is_risk",

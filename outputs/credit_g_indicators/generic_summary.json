@@ -1,0 +1,30 @@
+{
+  "stage": "generic",
+  "total_rounds": 7,
+  "total_accepted": 19,
+  "total_candidates": 0,
+  "total_rejected": 57,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3253.9,
+  "accepted_features": [
+    "financial_stability_score",
+    "purpose_risk_with_instability",
+    "deprivation_risk_count",
+    "checking_credit_risk_score",
+    "monthly_burden_risk",
+    "cashflow_savings_stability",
+    "credit_history_risk_score",
+    "credit_history_burden_interaction",
+    "duration_risk_score",
+    "purpose_amount_risk_divergence",
+    "living_stability_risk_score",
+    "installment_burden_with_external_debt",
+    "purpose_category_guarantor_risk",
+    "financial_distress_score",
+    "employment_savings_instability",
+    "amount_duration_ratio_risk",
+    "purpose_installment_risk_score",
+    "parties_amount_risk_interact",
+    "age_purpose_risk_profile"
+  ]
+}

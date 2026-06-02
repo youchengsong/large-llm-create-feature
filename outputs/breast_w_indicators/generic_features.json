@@ -1,0 +1,30 @@
+[
+  {
+    "name": "nuclear_composite_score",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_nuclear_composite_score(df):\n    \"\"\"\n    核复合评分：基于EXP_08和EXP_04，组合Bare_Nuclei, Bland_Chromatin, Normal_Nucleoli三个核特征。\n    核三联征(染色质模式+核仁突出度+核膜不规则性)构成大多数细胞学分级系统的基础。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 计算核复合评分 = Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli\n    result['nuclear_composite_score'] = (\n        df['Bare_Nuclei'] + \n        df['Bland_Chromatin'] + \n        df['Normal_Nucleoli']\n    )\n    \n    return result\n"
+  },
+  {
+    "name": "mitosis_size_interaction",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_mitosis_size_interaction(df):\n    \"\"\"\n    有丝分裂-细胞大小交互：基于RULE_006，Mitoses>=3 AND Cell_Size_Uniformity>=4 提示高级别恶性。\n    同时结合EXP_05，Mitoses是最偏态的特征，其诊断价值在于与其它特征组合。\n    使用乘法交互捕获协同效应。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 交互特征：Mitoses * Cell_Size_Uniformity\n    # 当两者都高时，乘积会显著放大信号\n    result['mitosis_size_interaction'] = df['Mitoses'] * df['Uniformity_of_Cell_Size']\n    \n    return result\n"
+  },
+  {
+    "name": "cell_composite_score",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_cell_composite_score(df):\n    \"\"\"\n    细胞复合评分：基于EXP_08，组合Clump_Thickness, Uniformity_of_Cell_Size, \n    Uniformity_of_Cell_Shape, Marginal_Adhesion四个细胞特征的总和。\n    这些特征共同捕获肿瘤架构、侵袭潜力和细胞异型性。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 计算细胞复合评分 = Clump_Thickness + Cell_Size + Cell_Shape + Marginal_Adhesion\n    result['cell_composite_score'] = (\n        df['Clump_Thickness'] + \n        df['Uniformity_of_Cell_Size'] + \n        df['Uniformity_of_Cell_Shape'] + \n        df['Marginal_Adhesion']\n    )\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_cytoplasmic_ratio_index",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_nuclear_cytoplasmic_ratio_index(df):\n    \"\"\"\n    核浆比指数：基于IND_10，通过Cell_Size_Uniformity（反映核大小变异）与\n    Single_Epithelial_Cell_Size（反映细胞整体大小）的比值来近似核浆比(N:C ratio)。\n    恶性细胞特征性地核浆比升高(>0.7)。使用比值而非求和能捕获相对变化——\n    当核增大快于细胞整体增大时比值升高，这是恶性转化的标志。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 核浆比近似 = Cell_Size_Uniformity / Single_Epithelial_Cell_Size\n    # 分子：核大小变异（核增大程度）\n    # 分母：细胞整体大小\n    # 比值高 = 核相对增大 = 高核浆比 = 恶性特征\n    size = df['Uniformity_of_Cell_Size'].values.astype(float)\n    epi = df['Single_Epithelial_Cell_Size'].values.astype(float)\n    \n    # 避免除零，加0.1平滑\n    ratio = size / (epi + 0.1)\n    \n    result['nuclear_cytoplasmic_ratio_index'] = ratio\n    \n    return result\n"
+  }
+]

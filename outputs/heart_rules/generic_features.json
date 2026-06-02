@@ -1,0 +1,101 @@
+[
+  {
+    "name": "hr_ratio",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "\nimport pandas as pd\nimport numpy as np\n\ndef feature_hr_ratio(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    # 计算年龄预测最大心率: 220 - Age\n    # 计算心率储备比: MaxHR / (220 - Age)\n    result['hr_ratio'] = df['MaxHR'] / (220 - df['Age'])\n    return result\n"
+  },
+  {
+    "name": "exercise_consistency_score",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "\nimport pandas as pd\nimport numpy as np\n\ndef feature_exercise_consistency_score(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 通道1: 血流动力学 - 变时性功能不全 (MaxHR < (220-Age)*0.85)\n    chronotropic_abnormal = (df['MaxHR'] < (220 - df['Age']) * 0.85).astype(int)\n    \n    # 通道2: ECG变化 - ST段压低 >= 1.0mm (IND_09)\n    ecg_abnormal = (df['Oldpeak'] >= 1.0).astype(int)\n    \n    # 通道3: 症状 - 运动诱发心绞痛 (IND_08)\n    symptom_abnormal = (df['ExerciseAngina'] == 'Y').astype(int)\n    \n    # 一致性评分: 三个通道异常数量之和 (0-3)\n    result['exercise_consistency_score'] = chronotropic_abnormal + ecg_abnormal + symptom_abnormal\n    \n    return result\n"
+  },
+  {
+    "name": "oldpeak_st_slope_interaction",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "\nimport pandas as pd\nimport numpy as np\n\ndef feature_oldpeak_st_slope_interaction(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 编码ST_Slope: Down=2, Flat=1, Up=0 (EXP_03建议)\n    st_slope_map = {'Down': 2, 'Flat': 1, 'Up': 0}\n    st_slope_enc = df['ST_Slope'].map(st_slope_map)\n    \n    # 交互特征: Oldpeak × ST_Slope_encoded\n    # 同样1.5mm的ST压低，下斜型(Down=2)得3.0，上斜型(Up=0)得0\n    result['oldpeak_st_slope_interaction'] = df['Oldpeak'] * st_slope_enc\n    \n    return result\n"
+  },
+  {
+    "name": "age_sex_symptom_composite",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "\nimport pandas as pd\nimport numpy as np\n\ndef feature_age_sex_symptom_composite(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # RULE_008: 男性+>=55岁+无症状+运动心绞痛 = 预测试概率>85%\n    # 但为了更精细，我们创建一个0-3分的复合评分\n    # 每个条件1分\n    score = pd.Series(0, index=df.index)\n    \n    # 条件1: 男性 (IND_02)\n    score += (df['Sex'] == 'M').astype(int)\n    \n    # 条件2: 年龄>=55 (IND_01 - 男性>=45, 但这里统一用>=55作为高风险阈值)\n    # 对于男性，>=45即为风险因素，但RULE_008使用>=55\n    score += (df['Age'] >= 55).astype(int)\n    \n    # 条件3: 无症状胸痛 (IND_06 - ASY悖论高风险)\n    score += (df['ChestPainType'] == 'ASY').astype(int)\n    \n    # 条件4: 运动诱发心绞痛 (IND_08)\n    score += (df['ExerciseAngina'] == 'Y').astype(int)\n    \n    result['age_sex_symptom_composite'] = score\n    \n    return result\n"
+  },
+  {
+    "name": "metabolic_syndrome_risk",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "\nimport pandas as pd\nimport numpy as np\n\ndef feature_metabolic_syndrome_risk(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 处理缺失值：Cholesterol=0为缺失值，按HeartDisease分层中位数插补 (EXP_06)\n    chol_median_0 = df.loc[df['HeartDisease']==0, 'Cholesterol'].median()  # 227\n    chol_median_1 = df.loc[df['HeartDisease']==1, 'Cholesterol'].median()  # 217\n    # 注意：实际应用中不能使用HeartDisease信息插补，但这里我们使用全局中位数\n    # 更合理：使用非零值的全局中位数\n    chol_nonzero_median = df.loc[df['Cholesterol']>0, 'Cholesterol'].median()\n    chol_imputed = df['Cholesterol'].replace(0, chol_nonzero_median)\n    \n    # 处理RestingBP=0的缺失值（仅1条）\n    bp_median = df.loc[df['RestingBP']>0, 'RestingBP'].median()\n    bp_imputed = df['RestingBP'].replace(0, bp_median)\n    \n    # RULE_006: 代谢综合征聚集 = 高血压(RestingBP>=130) + 高血糖(FastingBS==1) + 高胆固醇(Cholesterol>=200)\n    # 但为了更精细，使用连续值乘积形式 (EXP_01: 风险因素是乘法的而非加法的)\n    # 标准化各指标后相乘\n    # 高血压程度: bp_imputed / 120 (正常上限)\n    # 高血糖: 1 + FastingBS (0或1)\n    # 高胆固醇程度: chol_imputed / 200 (正常上限)\n    \n    bp_ratio = bp_imputed / 120.0\n    bs_factor = 1.0 + df['FastingBS'].astype(float)  # 1或2\n    chol_ratio = chol_imputed / 200.0\n    \n    # 乘法交互 (EXP_01: 风险因素的交互是乘法的而非加法的)\n    result['metabolic_syndrome_risk'] = bp_ratio * bs_factor * chol_ratio\n    \n    return result\n"
+  },
+  {
+    "name": "resting_ecg_st_slope_risk",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_resting_ecg_st_slope_risk(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 步骤1: 编码RestingECG为风险评分 (IND_11)\n    # ST异常或LVH为高风险，Normal为低风险\n    # 根据数据：ST阳性率65.7%，LVH阳性率56.4%，Normal阳性率51.6%\n    resting_ecg_map = {'ST': 2, 'LVH': 1, 'Normal': 0}\n    resting_risk = df['RestingECG'].map(resting_ecg_map)\n    \n    # 步骤2: 编码ST_Slope为风险评分 (IND_10)\n    # Down > Flat > Up (风险由高到低)\n    # 根据数据：Down阳性率77.8%，Flat阳性率82.8%，Up阳性率19.7%\n    # 注意：Flat的阳性率甚至高于Down，但Down的Oldpeak均值更高\n    st_slope_map = {'Down': 2, 'Flat': 1, 'Up': 0}\n    slope_risk = df['ST_Slope'].map(st_slope_map)\n    \n    # 步骤3: 创建组合风险评分 (EXP_03: Oldpeak与ST_Slope应一起使用)\n    # 但这里我们使用RestingECG和ST_Slope的交互\n    # 根据数据观察：\n    # RestingECG=ST + ST_Slope=Flat: 阳性率90.7% (最高组合)\n    # RestingECG=Normal + ST_Slope=Up: 阳性率14.5% (最低组合)\n    # 乘法交互能更好地捕获这种非线性关系 (EXP_01: 风险因素是乘法的)\n    \n    # 组合评分 = resting_risk * 3 + slope_risk\n    # 这样RestingECG=ST(2) + ST_Slope=Flat(1) = 2*3+1=7\n    # RestingECG=Normal(0) + ST_Slope=Up(0) = 0\n    result['resting_ecg_st_slope_risk'] = resting_risk * 3 + slope_risk\n    \n    return result"
+  },
+  {
+    "name": "oldpeak_st_slope_nonlinear",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_oldpeak_st_slope_nonlinear(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # EXP_03: Oldpeak与ST_Slope应一起使用\n    # 从数据发现：\n    # - ST_Slope=Flat + Oldpeak<=0: 阳性率92% (Flat本身就是强风险信号)\n    # - ST_Slope=Up + Oldpeak>=2.0: 阳性率90% (严重ST压低即使Up也高风险)\n    # - ST_Slope=Down + Oldpeak>=2.0: 阳性率85%\n    # 这些是非线性关系，不能用简单的线性乘积捕获\n    \n    # 步骤1: 编码ST_Slope (IND_10)\n    # 但根据数据，Flat的阳性率(82.8%) > Down(77.8%) > Up(19.7%)\n    # 所以风险排序应为: Flat > Down > Up\n    st_slope_map = {'Flat': 2, 'Down': 1, 'Up': 0}\n    slope_code = df['ST_Slope'].map(st_slope_map)\n    \n    # 步骤2: 创建非线性交互\n    # 当ST_Slope=Flat时，Oldpeak的负值或0值反而是高风险信号\n    # 当ST_Slope=Up时，需要很高的Oldpeak才表示风险\n    # 当ST_Slope=Down时，Oldpeak与风险正相关\n    \n    # 使用分段非线性变换\n    # 对于Flat: 风险 = 2 + sigmoid(Oldpeak-1)  (基础风险高，Oldpeak微调)\n    # 对于Down: 风险 = 1 + 2*sigmoid(Oldpeak-1) (Oldpeak放大效应)\n    # 对于Up: 风险 = 2*sigmoid(Oldpeak-2) (需要高Oldpeak才有风险)\n    \n    def sigmoid(x):\n        return 1 / (1 + np.exp(-x))\n    \n    flat_risk = 2.0 + sigmoid(df['Oldpeak'] - 1.0)\n    down_risk = 1.0 + 2.0 * sigmoid(df['Oldpeak'] - 1.0)\n    up_risk = 2.0 * sigmoid(df['Oldpeak'] - 2.0)\n    \n    # 根据ST_Slope选择对应的风险值\n    risk = np.where(df['ST_Slope'] == 'Flat', flat_risk,\n                    np.where(df['ST_Slope'] == 'Down', down_risk, up_risk))\n    \n    result['oldpeak_st_slope_nonlinear'] = risk\n    \n    return result"
+  },
+  {
+    "name": "resting_ecg_oldpeak_risk",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_resting_ecg_oldpeak_risk(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # RULE_007: 静息ECG异常 + Oldpeak>=2.0 + 下斜型ST = 极高风险(LR+>10)\n    # 但更一般地，RestingECG类型修饰Oldpeak的风险含义 (EXP_08)\n    \n    # 从数据发现：\n    # RestingECG=Normal: Oldpeak与HeartDisease相关系数=0.434 (最明确)\n    # RestingECG=LVH: Oldpeak与HeartDisease相关系数=0.333 (被掩盖)\n    # RestingECG=ST: Oldpeak与HeartDisease相关系数=0.385 (已有异常)\n    \n    # 步骤1: 编码RestingECG (IND_11)\n    # ST异常风险比最高\n    resting_map = {'ST': 2, 'LVH': 1, 'Normal': 0}\n    resting_code = df['RestingECG'].map(resting_map)\n    \n    # 步骤2: 创建RestingECG特异性Oldpeak阈值\n    # 对于RestingECG=Normal: Oldpeak>=1.0mm为明确缺血 (IND_09标准)\n    # 对于RestingECG=LVH: Oldpeak>=1.5mm为显著 (因基线异常可能掩盖)\n    # 对于RestingECG=ST: Oldpeak>=1.0mm为叠加缺血 (已有异常基础上)\n    \n    # 使用分段函数，不同RestingECG下Oldpeak的阈值和权重不同\n    # Normal: Oldpeak直接作为风险，阈值1.0mm\n    # LVH: Oldpeak需要更高阈值才有意义，阈值1.5mm\n    # ST: Oldpeak风险放大，阈值1.0mm但权重更高\n    \n    # 创建RestingECG特异性Oldpeak风险评分\n    oldpeak_risk = np.where(\n        df['RestingECG'] == 'Normal',\n        np.where(df['Oldpeak'] >= 1.0, 1 + (df['Oldpeak'] - 1.0) * 0.5,  # Normal: 线性增加\n                 np.where(df['Oldpeak'] > 0, df['Oldpeak'] * 0.5, 0)),  # 轻微压低\n        np.where(df['RestingECG'] == 'LVH',\n                 np.where(df['Oldpeak'] >= 1.5, 1 + (df['Oldpeak'] - 1.5) * 0.5,  # LVH: 更高阈值\n                          np.where(df['Oldpeak'] > 0, df['Oldpeak'] * 0.3, 0)),\n                 np.where(df['RestingECG'] == 'ST',\n                          np.where(df['Oldpeak'] >= 1.0, 1.5 + (df['Oldpeak'] - 1.0) * 0.6,  # ST: 更高权重\n                                   np.where(df['Oldpeak'] > 0, df['Oldpeak'] * 0.6, 0)),\n                          0))\n    )\n    \n    # 加上RestingECG本身的风险贡献\n    ecg_risk = resting_code * 0.5\n    \n    result['resting_ecg_oldpeak_risk'] = oldpeak_risk + ecg_risk\n    \n    return result"
+  },
+  {
+    "name": "diabetic_age_risk",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_diabetic_age_risk(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    糖尿病年龄风险评分：结合空腹高血糖(IND_05)和年龄-性别特异性阈值(IND_01)\n    \n    逻辑：\n    - 空腹血糖>120 mg/dL(FastingBS=1)与冠心病风险显著增加相关(IND_05)\n    - 2025 AHA自动将糖尿病患者归为高风险\n    - 年龄是最大的不可改变风险因素(IND_01)\n    - 两者交互产生乘法效应(EXP_01)\n    - 高血糖+高龄组合有83.6%的心脏病比例\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 步骤1: 空腹高血糖编码 (IND_05)\n    # FastingBS=1 表示空腹血糖>120 mg/dL\n    has_diabetes = df['FastingBS'].astype(int)\n    \n    # 步骤2: 年龄-性别特异性风险阈值 (IND_01)\n    # 男性>=45岁或女性>=55岁为独立风险因素\n    age_risk = ((df['Sex'] == 'M') & (df['Age'] >= 45) | \n                (df['Sex'] == 'F') & (df['Age'] >= 55)).astype(int)\n    \n    # 步骤3: 连续年龄风险 - 年龄超过阈值后的每岁增量\n    # 男性从45岁开始，女性从55岁开始，每增加1岁风险递增\n    age_threshold = np.where(df['Sex'] == 'M', 45, 55)\n    age_excess = (df['Age'] - age_threshold).clip(0)  # 超过阈值的年数\n    \n    # 步骤4: 创建糖尿病-年龄交互风险评分 (EXP_01: 乘法交互)\n    # 糖尿病是强风险因素(权重3)，年龄风险(权重2)，年龄增量(权重0.1)\n    # 糖尿病与年龄的交互项：糖尿病 * 年龄增量(权重0.2)\n    # 评分范围 0-10+\n    \n    diabetic_age_risk = (has_diabetes * 3 +          # 糖尿病基础分\n                         age_risk * 2 +               # 年龄阈值风险\n                         age_excess * 0.1 +           # 年龄连续增量\n                         has_diabetes * age_excess * 0.2)  # 糖尿病×年龄交互项(乘法效应)\n    \n    result['diabetic_age_risk'] = diabetic_age_risk\n    \n    return result\n"
+  },
+  {
+    "name": "severe_st_depression",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_severe_st_depression(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 步骤1: 识别严重ST段压低 (Oldpeak >= 2.0mm)\n    # IND_09: ST段压低>=2.0 mm为严重缺血\n    # 分布差异表中Oldpeak差异倍数最大(3.12x)，严重缺血阈值有强区分度\n    result['severe_st_depression'] = (df['Oldpeak'] >= 2.0).astype(int)\n    \n    return result\n"
+  },
+  {
+    "name": "exercise_discrete_risk_score",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_exercise_discrete_risk_score(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # 运动试验三个核心指标的离散化组合\n    # IND_07: 低最大心率(变时性功能不全)\n    # IND_09: ST段压低\n    # IND_08: 运动诱发心绞痛\n    \n    # 步骤1: Oldpeak离散分段 (IND_09)\n    # 根据临床阈值分段: <0(正常), 0-0.5(临界), 0.5-1.0(轻度), 1.0-2.0(中度), >=2.0(重度)\n    oldpeak_bins = pd.cut(df['Oldpeak'], \n                          bins=[-3, 0, 0.5, 1.0, 2.0, 7], \n                          labels=[0, 1, 2, 3, 4]).cat.codes.astype(int)\n    \n    # 步骤2: MaxHR离散分段 (IND_07)\n    # 根据临床阈值: <100(极低), 100-120(低), 120-140(中), 140-160(正常), >=160(良好)\n    maxhr_bins = pd.cut(df['MaxHR'], \n                        bins=[0, 100, 120, 140, 160, 210], \n                        labels=[4, 3, 2, 1, 0]).cat.codes.astype(int)\n    \n    # 步骤3: ExerciseAngina编码 (IND_08)\n    # Y=2 (有运动心绞痛=高风险)\n    angina_code = (df['ExerciseAngina'] == 'Y').astype(int) * 2\n    \n    # 步骤4: 组合离散评分\n    # 使用离散分段而非连续值，降低与已有连续特征的冗余\n    # 数据验证: 低分组39.5%心脏病率，高分组84.1%心脏病率\n    risk_score = oldpeak_bins + maxhr_bins + angina_code\n    \n    result['exercise_discrete_risk_score'] = risk_score\n    \n    return result"
+  },
+  {
+    "name": "chrono_age_composite_flag",
+    "dimensions": [
+      "运动试验",
+      "风险因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_chrono_age_composite_flag(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # RULE_009: 变时性功能不全 - 未达到年龄预测最大心率的85%\n    # IND_01: 高龄 - 年龄>=55岁为独立风险因素\n    # EXP_01: 风险因素的交互是乘法的而非加法的\n    # 两者同时存在时风险显著增加\n    \n    # 步骤1: 识别变时性功能不全 (RULE_009)\n    # MaxHR < (220 - Age) * 0.85\n    chrono_incompetence = (df['MaxHR'] < (220 - df['Age']) * 0.85)\n    \n    # 步骤2: 识别高龄风险 (IND_01)\n    # 年龄>=55岁为高风险阈值\n    age_high_risk = (df['Age'] >= 55)\n    \n    # 步骤3: 两者同时存在 = 高风险组合\n    # 数据验证: 13.4%正常人有此特征，40.0%心脏病患者有此特征\n    # 与已有特征相关性极低 (vs oldpeak_nonlinear: 0.2823, vs discrete_score: -0.0647)\n    combined = (chrono_incompetence & age_high_risk).astype(int)\n    \n    result['chrono_age_composite_flag'] = combined\n    \n    return result"
+  },
+  {
+    "name": "sex_bp_interaction_risk",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_sex_bp_interaction_risk(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # IND_02: 男性 = 更高风险(年轻时)\n    # IND_03: 高血压(RestingBP)是独立风险因素\n    # 数据探索: 男性+BP>=140: 67.7%阳性率; 女性+BP>=140: 41.0%阳性率\n    # 男性+BP>=120: 62.5%; 女性+BP>=120: 28.7%\n    # 说明BP对男性的风险影响远大于女性\n    \n    # 步骤1: 处理RestingBP=0缺失值\n    bp_median = df.loc[df['RestingBP'] > 0, 'RestingBP'].median()\n    bp_imputed = df['RestingBP'].replace(0, bp_median)\n    \n    # 步骤2: 编码性别 (IND_02)\n    is_male = (df['Sex'] == 'M').astype(float)\n    is_female = (df['Sex'] == 'F').astype(float)\n    \n    # 步骤3: 血压分段 (IND_03)\n    # 使用更细的血压分段\n    bp_very_high = (bp_imputed >= 150).astype(float)\n    bp_high = ((bp_imputed >= 140) & (bp_imputed < 150)).astype(float)\n    bp_elevated = ((bp_imputed >= 130) & (bp_imputed < 140)).astype(float)\n    bp_normal_high = ((bp_imputed >= 120) & (bp_imputed < 130)).astype(float)\n    bp_normal = (bp_imputed < 120).astype(float)\n    \n    # 步骤4: 创建性别-血压交互 (EXP_01: 乘法交互)\n    # 男性: 血压每升高一级风险显著增加\n    male_bp_risk = is_male * (\n        bp_very_high * 4.0 +\n        bp_high * 3.5 +\n        bp_elevated * 3.0 +\n        bp_normal_high * 2.5 +\n        bp_normal * 2.0\n    )\n    \n    # 女性: 血压对风险的影响较小 (EXP_02: 女性心脏病表现不同)\n    female_bp_risk = is_female * (\n        bp_very_high * 2.5 +\n        bp_high * 2.0 +\n        bp_elevated * 1.5 +\n        bp_normal_high * 1.0 +\n        bp_normal * 0.5\n    )\n    \n    result['sex_bp_interaction_risk'] = male_bp_risk + female_bp_risk\n    \n    return result"
+  },
+  {
+    "name": "restingbp_restingecg_joint_risk",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_restingbp_restingecg_joint_risk(df: pd.DataFrame) -> pd.DataFrame:\n    result = df[['row_id']].copy()\n    \n    # IND_03: 高血压(RestingBP)是独立风险因素\n    # IND_11: 异常静息心电图(ST或LVH)是独立预测因子\n    # 这两个特征与已有特征的相关性最低(RestingBP: 0.39, RestingECG: 0.19)\n    # 数据探索: BP>=140+ST: 78.2%; BP>=140+LVH: 70.6%; BP<120+Normal: 48.5%\n    \n    # 步骤1: 处理RestingBP=0缺失值\n    bp_median = df.loc[df['RestingBP'] > 0, 'RestingBP'].median()\n    bp_imputed = df['RestingBP'].replace(0, bp_median)\n    \n    # 步骤2: 血压分段 (IND_03)\n    bp_high = (bp_imputed >= 140).astype(float)\n    bp_elevated = ((bp_imputed >= 130) & (bp_imputed < 140)).astype(float)\n    bp_normal = (bp_imputed < 130).astype(float)\n    \n    # 步骤3: 编码RestingECG (IND_11)\n    ecg_st = (df['RestingECG'] == 'ST').astype(float)\n    ecg_lvh = (df['RestingECG'] == 'LVH').astype(float)\n    ecg_normal = (df['RestingECG'] == 'Normal').astype(float)\n    \n    # 步骤4: 创建BP-ECG联合风险 (使用简单加法而非复杂交互，降低冗余)\n    # 每个条件独立贡献风险分数\n    risk = (\n        bp_high * 2.0 +\n        bp_elevated * 1.0 +\n        ecg_st * 2.0 +\n        ecg_lvh * 1.0 +\n        ecg_normal * 0.0\n    )\n    \n    result['restingbp_restingecg_joint_risk'] = risk\n    \n    return result"
+  }
+]

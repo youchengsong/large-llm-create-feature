@@ -5,7 +5,6 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -89,6 +88,7 @@ class VerificationConfig:
     delta_recall_min: float = 0.0
     accept_metric: str = "recall"  # "recall" (AML) or "auc" (公开数据集)
     delta_auc_min: float = 0.0
+    spw_override: Optional[float] = None  # None=auto, 1.0=no balancing
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +97,7 @@ class VerificationConfig:
 @dataclass
 class SearchConfig:
     max_rounds: int = 10
-    max_features: int = 30
+    max_features: int = 9999
     convergence_rounds: int = 2
 
     # 四维度

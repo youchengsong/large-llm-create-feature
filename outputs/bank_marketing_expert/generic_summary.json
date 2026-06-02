@@ -1,0 +1,26 @@
+{
+  "stage": "generic",
+  "total_rounds": 7,
+  "total_accepted": 15,
+  "total_candidates": 0,
+  "total_rejected": 100,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3341.0,
+  "accepted_features": [
+    "customer_financial_health_score",
+    "age_job_lifecycle_stage",
+    "education_job_housing_social_grade",
+    "contact_history_quality_score",
+    "seasonal_contact_effectiveness",
+    "contact_fatigue_index",
+    "education_adjusted_balance_rank",
+    "month_job_financial_interaction",
+    "age_lifecycle_maturity_score",
+    "balance_lifecycle_ratio",
+    "age_education_housing_profile",
+    "campaign_seasonal_efficiency",
+    "job_education_economic_status",
+    "month_previous_breakthrough",
+    "month_distance_to_peak"
+  ]
+}

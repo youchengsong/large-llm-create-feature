@@ -1,0 +1,25 @@
+{
+  "stage": "generic",
+  "total_rounds": 7,
+  "total_accepted": 14,
+  "total_candidates": 0,
+  "total_rejected": 80,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 4627.0,
+  "accepted_features": [
+    "hr_ratio",
+    "exercise_consistency_score",
+    "oldpeak_st_slope_interaction",
+    "age_sex_symptom_composite",
+    "metabolic_syndrome_risk",
+    "resting_ecg_st_slope_risk",
+    "oldpeak_st_slope_nonlinear",
+    "resting_ecg_oldpeak_risk",
+    "diabetic_age_risk",
+    "severe_st_depression",
+    "exercise_discrete_risk_score",
+    "chrono_age_composite_flag",
+    "sex_bp_interaction_risk",
+    "restingbp_restingecg_joint_risk"
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "dataset": "adult",
+  "openml_id": 1590,
+  "domain": "收入预测",
+  "task": "二分类（年收入是否超过50K美元）",
+  "target": "class",
+  "features": 14,
+  "size": 48842,
+
+  "indicators": [
+    {
+      "id": "IND_01",
+      "name": "教育程度",
+      "field": "education-num",
+      "direction": "教育年限越长收入越高",
+      "threshold": ">= 13 (本科及以上) 高收入概率显著增加",
+      "rationale": "教育是人力资本的核心代理变量。美国劳工统计局数据显示本科学历者周收入中位数比高中学历者高约67%。教育回报率(Mincer方程)在13年以上存在明显拐点。"
+    },
+    {
+      "id": "IND_02",
+      "name": "年龄成熟度",
+      "field": "age",
+      "direction": "中年(35-55)收入最高，年轻和年老较低",
+      "threshold": "35-55岁为高收入高概率区间",
+      "rationale": "收入与年龄呈倒U型关系(生命周期假说)。职业早期积累经验，中年达到收入峰值，退休前后下降。"
+    },
+    {
+      "id": "IND_03",
+      "name": "每周工作时长",
+      "field": "hours-per-week",
+      "direction": "工时越长收入越高",
+      "threshold": ">40为过劳但高收入信号; <35为兼职低收入信号",
+      "rationale": "全职(40h)与兼职(< 35h)是收入分层的关键分界。超时工作者往往是管理层/专业人员或自雇者。"
+    },
+    {
+      "id": "IND_04",
+      "name": "资本收益",
+      "field": "capital-gain",
+      "direction": "有资本收益 = 高收入强信号",
+      "threshold": ">0 即为显著信号; >5000 为极强信号",
+      "rationale": "资本收益(股票/房产/投资回报)是财富积累的直接证据。只有约8%样本有非零值，但这部分人群>50K比例极高。"
+    },
+    {
+      "id": "IND_05",
+      "name": "资本损失",
+      "field": "capital-loss",
+      "direction": "有资本损失也可能是高收入信号（有投资行为）",
+      "threshold": ">0 为投资活跃信号",
+      "rationale": "能产生资本损失意味着有投资组合，本身就是财富和高收入的标志。约5%样本有非零值。"
+    },
+    {
+      "id": "IND_06",
+      "name": "职业类型",
+      "field": "occupation",
+      "direction": "管理/专业类职业收入高; 服务/农业类收入低",
+      "threshold": "Exec-managerial, Prof-specialty 高收入; Handlers-cleaners, Other-service 低收入",
+      "rationale": "职业直接决定收入水平和天花板。管理层和专业人员通常有更高的起薪和更快的薪资增长。"
+    },
+    {
+      "id": "IND_07",
+      "name": "婚姻状况",
+      "field": "marital-status",
+      "direction": "已婚(特别是配偶在场)高收入概率大",
+      "threshold": "Married-civ-spouse 为高收入最强信号之一",
+      "rationale": "婚姻溢价(marriage premium)是劳动经济学经典发现。已婚男性收入比未婚高约10-40%，可能反映选择效应和生产力效应。"
+    },
+    {
+      "id": "IND_08",
+      "name": "工作类型",
+      "field": "workclass",
+      "direction": "自雇(Self-emp-inc)和联邦政府(Federal-gov)收入较高",
+      "threshold": "Self-emp-inc, Federal-gov 为高收入信号; Private 中等; Without-pay, Never-worked 低",
+      "rationale": "自雇企业主(incorporated)代表成功的企业经营。联邦政府雇员薪资通常高于地方政府。"
+    },
+    {
+      "id": "IND_09",
+      "name": "种族",
+      "field": "race",
+      "direction": "White和Asian-Pac-Islander高收入比例较高",
+      "threshold": "统计相关但非因果",
+      "rationale": "反映美国收入不平等的结构性因素。作为预测特征有统计信息，但应结合教育和职业交互使用。"
+    },
+    {
+      "id": "IND_10",
+      "name": "性别",
+      "field": "sex",
+      "direction": "Male高收入比例显著高于Female",
+      "threshold": "Male > 50K约31%, Female约11%",
+      "rationale": "性别收入差距(gender pay gap)反映了职业分割、工时差异和历史歧视等复合因素。"
+    }
+  ],
+
+  "rules": [
+    {
+      "id": "RULE_001",
+      "name": "高学历+管理职业",
+      "description": "本科及以上学历且从事管理/专业类职业",
+      "fields": ["education-num", "occupation"],
+      "logic": "education-num >= 13 AND occupation IN ('Exec-managerial', 'Prof-specialty')",
+      "risk_level": "HIGH_INCOME"
+    },
+    {
+      "id": "RULE_002",
+      "name": "已婚+全职+中年",
+      "description": "已婚配偶在场，全职工作，年龄35-55",
+      "fields": ["marital-status", "hours-per-week", "age"],
+      "logic": "marital-status == 'Married-civ-spouse' AND hours-per-week >= 40 AND age BETWEEN 35 AND 55",
+      "risk_level": "HIGH_INCOME"
+    },
+    {
+      "id": "RULE_003",
+      "name": "资本收益+高学历",
+      "description": "有资本收益且学历在本科以上",
+      "fields": ["capital-gain", "education-num"],
+      "logic": "capital-gain > 0 AND education-num >= 13",
+      "risk_level": "HIGH_INCOME"
+    },
+    {
+      "id": "RULE_004",
+      "name": "年轻+低学历+兼职",
+      "description": "25岁以下，高中以下学历，每周工作不足35小时",
+      "fields": ["age", "education-num", "hours-per-week"],
+      "logic": "age < 25 AND education-num < 12 AND hours-per-week < 35",
+      "risk_level": "LOW_INCOME"
+    },
+    {
+      "id": "RULE_005",
+      "name": "自雇企业主+超时工作",
+      "description": "自雇(incorporated)且每周工作超过50小时",
+      "fields": ["workclass", "hours-per-week"],
+      "logic": "workclass == 'Self-emp-inc' AND hours-per-week > 50",
+      "risk_level": "HIGH_INCOME"
+    },
+    {
+      "id": "RULE_006",
+      "name": "教育投资回报",
+      "description": "教育年限与年龄的比值作为教育投资效率指标",
+      "fields": ["education-num", "age"],
+      "logic": "education-num / age 作为特征",
+      "risk_level": "DERIVED"
+    },
+    {
+      "id": "RULE_007",
+      "name": "净资本流动",
+      "description": "资本收益减去资本损失的净值",
+      "fields": ["capital-gain", "capital-loss"],
+      "logic": "capital-gain - capital-loss",
+      "risk_level": "DERIVED"
+    },
+    {
+      "id": "RULE_008",
+      "name": "资本活动标志",
+      "description": "是否有任何资本收益或损失(二元标志)",
+      "fields": ["capital-gain", "capital-loss"],
+      "logic": "(capital-gain > 0) OR (capital-loss > 0)",
+      "risk_level": "DERIVED"
+    }
+  ],
+
+  "expert_consensus": [
+    {
+      "id": "EXP_01",
+      "content": "婚姻状况是adult数据集中最强的单一预测因子之一，但其预测力很大程度上来自与性别的交互。Married-civ-spouse在男性中>50K比例约45%，但在女性中仅约15%。特征工程应构造 marital_sex 交互特征。"
+    },
+    {
+      "id": "EXP_02",
+      "content": "capital-gain和capital-loss是高度偏斜的特征（>90%为0），但非零值具有极强预测力。推荐构造二元特征 has_capital_gain, has_capital_loss 以及对数变换 log(1+capital_gain) 来捕获非线性。净资本 capital_gain - capital_loss 也是有效的复合特征。"
+    },
+    {
+      "id": "EXP_03",
+      "content": "教育的原始类别(education)和数值编码(education-num)高度冗余。但education-num与age的交互能捕获'教育回报随经验积累的复合效应'——高学历+中年是收入的乘法组合。education-num × hours-per-week 则捕获了人力资本密度。"
+    },
+    {
+      "id": "EXP_04",
+      "content": "hours-per-week的预测力在40小时附近存在非线性拐点。建议构造分段特征：part_time (<35h), full_time (35-45h), overtime (>45h)。overtime群体>50K比例约为part_time的4倍。"
+    },
+    {
+      "id": "EXP_05",
+      "content": "occupation和workclass存在层级交互。同一职业在不同workclass下收入差异显著（如Prof-specialty在Federal-gov vs Private下收入分布不同）。occupation × workclass 交互特征比单独使用更有信息量。"
+    },
+    {
+      "id": "EXP_06",
+      "content": "age与education-num的差值(age - education-num - 6)近似为工作经验年数。这个派生特征比原始age更直接地反映人力资本积累，在Mincer收入方程中是标准变量。"
+    }
+  ],
+
+  "field_reference": {
+    "age": "numeric (continuous)",
+    "workclass": ["Private", "Self-emp-not-inc", "Self-emp-inc", "Federal-gov", "Local-gov", "State-gov", "Without-pay", "Never-worked"],
+    "fnlwgt": "numeric (Census sampling weight)",
+    "education": ["Bachelors", "Some-college", "11th", "HS-grad", "Prof-school", "Assoc-acdm", "Assoc-voc", "9th", "7th-8th", "12th", "Masters", "1st-4th", "10th", "Doctorate", "5th-6th", "Preschool"],
+    "education-num": "numeric (years of education, 1-16)",
+    "marital-status": ["Married-civ-spouse", "Divorced", "Never-married", "Separated", "Widowed", "Married-spouse-absent", "Married-AF-spouse"],
+    "occupation": ["Tech-support", "Craft-repair", "Other-service", "Sales", "Exec-managerial", "Prof-specialty", "Handlers-cleaners", "Machine-op-inspct", "Adm-clerical", "Farming-fishing", "Transport-moving", "Priv-house-serv", "Protective-serv", "Armed-Forces"],
+    "relationship": ["Wife", "Own-child", "Husband", "Not-in-family", "Other-relative", "Unmarried"],
+    "race": ["White", "Asian-Pac-Islander", "Amer-Indian-Eskimo", "Other", "Black"],
+    "sex": ["Male", "Female"],
+    "capital-gain": "numeric (continuous, highly skewed)",
+    "capital-loss": "numeric (continuous, highly skewed)",
+    "hours-per-week": "numeric (continuous)",
+    "native-country": "categorical (41 countries)"
+  }
+}

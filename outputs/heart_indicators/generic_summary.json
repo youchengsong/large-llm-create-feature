@@ -1,0 +1,32 @@
+{
+  "stage": "generic",
+  "total_rounds": 8,
+  "total_accepted": 21,
+  "total_candidates": 0,
+  "total_rejected": 99,
+  "convergence_reason": "达到最大轮次 8",
+  "elapsed_sec": 5437.5,
+  "accepted_features": [
+    "hr_ratio",
+    "exercise_consistency_score",
+    "oldpeak_st_slope_interact",
+    "metabolic_syndrome_risk",
+    "age_sex_symptom_risk",
+    "hr_ecg_coupling_score",
+    "exercise_negative_predictor",
+    "st_abnormal_age_risk",
+    "oldpeak_binary_age_interact",
+    "weighted_risk_factor_score",
+    "metabolic_ecg_interaction_risk",
+    "framingham_log_linear_risk",
+    "age_bp_fbs_continuous_risk",
+    "angina_oldpeak_cubic_interaction",
+    "resting_ecg_chol_age_interaction",
+    "ecg_slope_combo_risk_score",
+    "exercise_op_hr_cross_risk",
+    "woe_weighted_risk_factor_score",
+    "maxhr_bp_interaction_risk",
+    "flat_st_slope_asy_chestpain_interaction",
+    "exercise_channel_chol_missing_risk"
+  ]
+}

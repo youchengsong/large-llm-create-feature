@@ -1,0 +1,73 @@
+[
+  {
+    "name": "nuclear_composite_score",
+    "dimensions": [
+      "细胞特征",
+      "核特征"
+    ],
+    "code": "def feature_nuclear_composite_score(df):\n    \"\"\"\n    核复合评分：Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli 之和\n    反映核质异常的综合程度\n    \"\"\"\n    result = df[['row_id']].copy()\n    result['nuclear_composite_score'] = (\n        df['Bare_Nuclei'].fillna(1) + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    )\n    return result"
+  },
+  {
+    "name": "nuclear_bare_clump_interact",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "def feature_nuclear_bare_clump_interact(df):\n    import pandas as pd\n    result = df[['row_id']].copy()\n    bare = df['Bare_Nuclei'].fillna(df['Bare_Nuclei'].median())\n    # Bare_Nuclei>=7 且 Clump_Thickness>=7 → 强烈恶性信号\n    result['nuclear_bare_clump_interact'] = (\n        (bare >= 7).astype(int) & \n        (df['Clump_Thickness'] >= 7).astype(int)\n    ).astype(int)\n    return result"
+  },
+  {
+    "name": "clump_size_ratio",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "def feature_clump_size_ratio(df):\n    \"\"\"\n    团块厚度与细胞大小比值：Clump_Thickness / (Uniformity_of_Cell_Size + 0.1)\n    \n    领域依据：\n    - IND_01: 团块厚度反映肿瘤细胞堆积层数，评分越高越恶性\n    - IND_02: 细胞大小均匀性反映细胞大小不等(anisocytosis)，评分越高越恶性\n    - 良性样本中：Clump_Thickness均值2.96，Cell_Size均值1.31，比值约2.26\n    - 恶性样本中：Clump_Thickness均值7.19，Cell_Size均值6.58，比值约1.09\n    - 比值在良恶性中方向相反，捕获肿瘤架构与细胞异型性的相对关系\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # 计算团块厚度与细胞大小的比值（加0.1避免除零）\n    result['clump_size_ratio'] = df['Clump_Thickness'] / (df['Uniformity_of_Cell_Size'] + 0.1)\n    \n    return result"
+  },
+  {
+    "name": "mitoses_epi_product",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_mitoses_epi_product(df):\n    \"\"\"\n    有丝分裂与单上皮细胞大小的乘积：Mitoses * Single_Epithelial_Cell_Size\n    捕获增殖活性与细胞肥大的联合信号\n    \n    领域依据：\n    - IND_05: 单上皮细胞大小反映细胞肥大，恶性细胞因核浆比增大而整体肥大\n    - IND_09: 有丝分裂反映细胞分裂率，>80%样本评分为1\n    - 两者组合捕获了增殖活跃且细胞肥大的恶性表型\n    - 与核三联征相关性最低(r~0.47)，提供高度互补信息\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # 计算有丝分裂与单上皮细胞大小的乘积\n    result['mitoses_epi_product'] = df['Mitoses'] * df['Single_Epithelial_Cell_Size']\n    \n    return result\n"
+  },
+  {
+    "name": "feature_rank_std",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_feature_rank_std(df):\n    \"\"\"\n    9个原始特征的百分位排名标准差\n    量化细胞学特征之间的离散程度，基于排名而非原始值\n    \n    领域依据：\n    - EXP_02: 9个特征之间存在强相关性，但恶性样本中不同特征受影响程度不同\n    - 良性样本中所有特征值集中在低分区域，排名差异小，标准差小\n    - 恶性样本中特征值分布更分散，排名差异大，标准差大\n    - 基于排名的方法对异常值更稳健\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    features = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 'Bare_Nuclei', \n                'Bland_Chromatin', 'Normal_Nucleoli', 'Mitoses']\n    \n    # 计算每个特征的百分位排名\n    rank_df = pd.DataFrame()\n    for f in features:\n        if f == 'Bare_Nuclei':\n            rank_df[f] = df['Bare_Nuclei'].fillna(df['Bare_Nuclei'].median()).rank(pct=True)\n        else:\n            rank_df[f] = df[f].rank(pct=True)\n    \n    # 计算排名的标准差\n    result['feature_rank_std'] = rank_df.std(axis=1)\n    \n    return result\n"
+  },
+  {
+    "name": "clump_grade",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "def feature_clump_grade(df):\n    \"\"\"\n    Clump_Thickness的3级临床分级\n    基于IND_01的临床阈值：<=4为低风险(0级)，5-6为中风险(1级)，>=7为高风险(2级)\n    \n    领域依据：\n    - IND_01: 团块厚度>=5提示恶性，>=7强烈恶性\n    - 良性均值2.96，恶性均值7.19，差异倍数2.43x\n    - 3级分段比原始值更接近临床决策逻辑\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # Clump_Thickness的3级临床分级\n    # 0级: <=4 (低风险，良性为主)\n    # 1级: 5-6 (中风险，可疑)\n    # 2级: >=7 (高风险，强烈恶性)\n    result['clump_grade'] = pd.cut(\n        df['Clump_Thickness'], \n        bins=[0, 4, 6, 10], \n        labels=[0, 1, 2]\n    ).astype(int)\n    \n    return result"
+  },
+  {
+    "name": "clump_5",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "def feature_clump_5(df):\n    \"\"\"\n    Clump_Thickness >= 5 的二元指示变量\n    基于IND_01的临床阈值：团块厚度>=5提示恶性\n    \n    领域依据：\n    - IND_01: 团块厚度>=5提示恶性，良性均值2.96，恶性均值7.19\n    - 数据中341/444良性样本Clump<5，208/239恶性样本Clump>=5\n    - 与核复合评分相关性仅0.566，提供高度独立的信号\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # Clump_Thickness >= 5 的二元指示\n    result['clump_5'] = (df['Clump_Thickness'] >= 5).astype(int)\n    \n    return result"
+  },
+  {
+    "name": "cell_median_min_ratio",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "def feature_cell_median_min_ratio(df):\n    \"\"\"\n    细胞特征中位数与最小值的比率：median(5个细胞特征) / min(5个细胞特征)\n    量化细胞学特征之间的不一致程度，捕获不同细胞异常维度的相对差异\n    \n    领域依据：\n    - EXP_02: 9个特征之间存在强相关性，但恶性样本中不同特征受影响程度不同\n    - 良性样本中所有细胞特征集中在低分区域(1-3)，中位数接近最小值，比率接近1\n    - 恶性样本中不同特征受影响程度不同，中位数明显高于最小值，比率>1\n    - 与Cell_Size相关性0.41，与Bare_Nuclei相关性0.31，提供高度互补信息\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    cell_features = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                     'Marginal_Adhesion', 'Single_Epithelial_Cell_Size']\n    \n    # 计算5个细胞特征的中位数和最小值\n    median_vals = df[cell_features].median(axis=1)\n    min_vals = df[cell_features].min(axis=1)\n    \n    # 计算中位数与最小值的比率（加小常数避免除零）\n    result['cell_median_min_ratio'] = median_vals / (min_vals + 0.001)\n    \n    return result"
+  },
+  {
+    "name": "nuclear_cellular_absdiff",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_nuclear_cellular_absdiff(df):\n    \"\"\"\n    核特征与细胞特征的原始分绝对值差：\n    |(Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli) - \n     (Clump_Thickness + Uniformity_of_Cell_Size + Uniformity_of_Cell_Shape + \n      Marginal_Adhesion + Single_Epithelial_Cell_Size + Mitoses)|\n    \n    量化核异常与细胞异常的不一致程度。当核特征显著高于细胞特征时，\n    提示核异型性为主导的恶性模式；反之则提示细胞架构异常为主导。\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # 核特征总分\n    nuclear_total = (df['Bare_Nuclei'].fillna(1) + \n                     df['Bland_Chromatin'] + \n                     df['Normal_Nucleoli'])\n    \n    # 细胞特征总分\n    cellular_total = (df['Clump_Thickness'] + \n                      df['Uniformity_of_Cell_Size'] + \n                      df['Uniformity_of_Cell_Shape'] + \n                      df['Marginal_Adhesion'] + \n                      df['Single_Epithelial_Cell_Size'] + \n                      df['Mitoses'])\n    \n    # 绝对值差\n    result['nuclear_cellular_absdiff'] = np.abs(nuclear_total - cellular_total)\n    \n    return result"
+  },
+  {
+    "name": "nuclear_cellular_ratio",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_nuclear_cellular_ratio(df):\n    \"\"\"\n    核特征与细胞特征的原始分比值：(Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli) / \n    (Clump_Thickness + Uniformity_of_Cell_Size + Uniformity_of_Cell_Shape + \n     Marginal_Adhesion + Single_Epithelial_Cell_Size + Mitoses + 0.1)\n    \n    量化核异常相对于细胞异常的相对强度。比值>1表示核异常占主导，\n    比值<1表示细胞异常占主导。恶性样本中核特征通常相对更突出。\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    result = df[['row_id']].copy()\n    \n    # 核特征总分\n    nuclear_total = (df['Bare_Nuclei'].fillna(1) + \n                     df['Bland_Chromatin'] + \n                     df['Normal_Nucleoli'])\n    \n    # 细胞特征总分（加0.1避免除零）\n    cellular_total = (df['Clump_Thickness'] + \n                      df['Uniformity_of_Cell_Size'] + \n                      df['Uniformity_of_Cell_Shape'] + \n                      df['Marginal_Adhesion'] + \n                      df['Single_Epithelial_Cell_Size'] + \n                      df['Mitoses'] + 0.1)\n    \n    # 比值\n    result['nuclear_cellular_ratio'] = nuclear_total / cellular_total\n    \n    return result"
+  }
+]

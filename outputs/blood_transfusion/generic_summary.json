@@ -1,0 +1,19 @@
+{
+  "stage": "generic",
+  "total_rounds": 4,
+  "total_accepted": 8,
+  "total_candidates": 0,
+  "total_rejected": 34,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 1220.7,
+  "accepted_features": [
+    "rf_ratio",
+    "avg_interval",
+    "rfm_best_segment",
+    "interval_regularity",
+    "freq_excess",
+    "freq_zscore_by_time",
+    "very_recent_active",
+    "active_donor_v2"
+  ]
+}

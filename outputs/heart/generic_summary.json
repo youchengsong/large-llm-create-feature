@@ -1,0 +1,24 @@
+{
+  "stage": "generic",
+  "total_rounds": 5,
+  "total_accepted": 13,
+  "total_candidates": 0,
+  "total_rejected": 64,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 5509.8,
+  "accepted_features": [
+    "consistency_score",
+    "hr_ratio",
+    "oldpeak_slope_interaction",
+    "metabolic_risk_score",
+    "exercise_low_risk_flag",
+    "ecg_slope_resting_risk_code",
+    "diamond_forrester_score",
+    "chol_missing_hyperglycemia_risk",
+    "bp_deviation_fbs_risk_score",
+    "exercise_paradox_patterns",
+    "exercise_cholesterol_missing_interaction",
+    "bp_age_sex_interaction",
+    "exercise_st_depression_angina_interaction"
+  ]
+}

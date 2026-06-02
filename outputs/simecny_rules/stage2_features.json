@@ -1,0 +1,9 @@
+[
+  {
+    "name": "log_amount_median",
+    "dimensions": [
+      "金额频次"
+    ],
+    "code": "def feature_log_amount_median(open_df, tx_df, close_df):\n    \"\"\"\n    金额中位数的对数变换特征：计算每个钱包交易金额绝对值的中位数，取log1p变换。\n    异常钱包金额中位数极低(均值76)，正常钱包较高(均值921)，差异显著。\n    \"\"\"\n    import numpy as np\n    \n    # 计算每个钱包金额绝对值的中位数\n    wallet_log_med = tx_df.groupby('src')['amount'].agg(\n        lambda x: np.log1p(x.abs()).median()\n    ).reset_index()\n    wallet_log_med.columns = ['wallet_id', 'log_amount_median']\n    \n    return wallet_log_med\n"
+  }
+]

@@ -1,0 +1,52 @@
+% related_work.tex
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Traditional Automated Feature Engineering}
+
+Automated feature engineering aims to reduce the manual effort of creating predictive features from raw data. Early approaches focus on exhaustive transformation search: Deep Feature Synthesis~\cite{kanter2015deep} recursively applies aggregation and transformation primitives along relational paths, while ExploreKit~\cite{katz2016explorekit} enumerates unary, binary, and higher-order operators over existing features and uses meta-learning to rank candidates. AutoFeat~\cite{horn2020set} constructs features through polynomial and interaction terms, then applies L1 regularization for selection. More recently, OpenFE~\cite{zhang2024openfe} frames feature generation as an operator-operand search problem, using a two-stage expansion-and-selection pipeline with LightGBM-based feature importance to achieve state-of-the-art performance on tabular benchmarks.
+
+These methods share a common limitation: they operate in a \emph{syntactic} transformation space, applying predefined mathematical operators without any semantic understanding of the data domain. For example, computing \texttt{age $\times$ income} is treated identically to \texttt{age $\times$ zip\_code}, even though only the former has financial meaning. This leads to a combinatorial explosion of candidates, most of which are semantically meaningless, and an inability to generate domain-specific features that require conceptual understanding (e.g., ``transaction velocity'' or ``dormant account reactivation'').
+
+\subsection{LLM-Based Feature Engineering}
+
+The application of LLMs to feature engineering represents a paradigm shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2024llmsgeneratefinanciallyrelevantfeatures} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features. Each generated feature is evaluated using a logistic regression model, and the feedback is used to guide subsequent iterations. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features.
+
+While these methods demonstrate the potential of LLMs for feature engineering, they have significant shortcomings. First, they rely exclusively on the LLM's parametric knowledge, which is a frozen snapshot of general web text that may lack domain-specific expertise. Second, their verification mechanisms are rudimentary: CAAFE uses a weak proxy model (logistic regression) that poorly approximates the downstream model's behavior, while FeatLLM performs no model-based validation. Third, the generated features come with no provenance information---there is no record of \emph{why} a feature was created or what knowledge supports it.
+
+Concurrent work has explored LLMs for related data science tasks. AIDE~\cite{wangsolution} uses LLM agents to automate the entire data science pipeline, including feature engineering, but treats feature generation as one step in a broader optimization rather than a focused capability. DS-Agent~\cite{guo2024ds} adopts a similar end-to-end approach with case-based reasoning. These methods do not address the specific challenges of knowledge-grounded feature generation and provenance tracking.
+
+\subsection{Domain Knowledge Integration in Machine Learning}
+
+The integration of domain knowledge into machine learning has a long history. Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures. In the feature engineering context, domain experts traditionally encode their knowledge as hand-crafted features---a process that is effective but does not scale. Transfer learning approaches~\cite{weiss2016survey} implicitly transfer knowledge through pretrained representations, but these are primarily designed for unstructured data (text, images) rather than tabular features.
+
+In the financial domain specifically, AML feature engineering relies on expert-defined indicators such as transaction velocity, structuring patterns, and network centrality measures~\cite{chen2018machine}. Regulatory bodies publish typologies and red-flag indicators (e.g., FATF guidelines), and financial institutions maintain internal detection rules derived from compliance experience and legal proceedings. This rich, structured knowledge has not been systematically leveraged by automated feature engineering methods.
+
+\subsection{LLM Agents with Tool Use}
+
+The ReAct framework~\cite{yao2023react} demonstrated that LLMs can interleave reasoning and action through tool use, enabling more reliable problem-solving than pure generation. Subsequent work has applied tool-augmented LLM agents to code generation~\cite{qian2024chatdev}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. KnowFeat builds on this paradigm by equipping the LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification---creating a closed-loop system where the agent can iteratively refine its feature proposals based on concrete feedback.
+
+\subsection{Positioning of KnowFeat}
+
+Table~\ref{tab:comparison} summarizes the key differences between KnowFeat and existing approaches. KnowFeat is the first method to combine structured external domain knowledge, multi-stage verification (L1--L3), and full feature provenance tracking within an LLM-based feature engineering framework.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of automated feature engineering methods.}
+\label{tab:comparison}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Property} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
+\hline
+Semantic understanding & \texttimes & \texttimes & \checkmark & \checkmark & \checkmark \\
+External knowledge     & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
+Execution verification & N/A        & N/A        & \texttimes & \texttimes & \checkmark \\
+Statistical filtering  & \checkmark & \checkmark & \texttimes & \texttimes & \checkmark \\
+Model-based validation & \texttimes & \texttimes & Weak       & \texttimes & \checkmark \\
+Provenance tracking    & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
+Adaptive search        & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
+\hline
+\end{tabular}
+\end{table}

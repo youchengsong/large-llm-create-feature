@@ -1,0 +1,93 @@
+[
+  {
+    "name": "nuclear_triad_score",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "def feature_nuclear_triad_score(df):\n    \"\"\"\n    核三联征评分：Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli 的加权组合\n    基于EXP_04和EXP_08：核特征(Bare_Nuclei, Bland_Chromatin, Normal_Nucleoli) \n    构成细胞学分级系统的基础，是最可靠的诊断指标组合。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 核三联征原始求和\n    result['nuclear_triad_score'] = (\n        df['Bare_Nuclei'].fillna(1) + \n        df['Bland_Chromatin'] + \n        df['Normal_Nucleoli']\n    )\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_rule_003_strict_flag",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "def feature_nuclear_rule_003_strict_flag(df):\n    \"\"\"\n    严格三重核特征规则标志：基于RULE_003的调整版本。\n    Bland_Chromatin>=6 AND Normal_Nucleoli>=5 AND Bare_Nuclei>=5 → 恶性\n    使用更严格的阈值以降低与基线特征的相关性（最大相关性<0.64）。\n    该规则捕获核三联征同时高度异常的模式，特异度极高。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 处理Bare_Nuclei缺失值\n    bare_nuclei = df['Bare_Nuclei'].fillna(1)\n    \n    # 严格三重核特征规则\n    result['nuclear_rule_003_strict_flag'] = (\n        (df['Bland_Chromatin'] >= 6) & \n        (df['Normal_Nucleoli'] >= 5) & \n        (bare_nuclei >= 5)\n    ).astype(int)\n    \n    return result\n"
+  },
+  {
+    "name": "cell_feature_consistency",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_cell_feature_consistency(df):\n    \"\"\"\n    细胞特征一致性指数：衡量5个细胞特征（Clump_Thickness, Cell_Size, Cell_Shape, \n    Marginal_Adhesion, Single_Epithelial_Cell_Size）之间的一致性程度。\n    \n    基于EXP_02（细胞特征间存在强相关性，恶性倾向同时影响多个特征）和\n    EXP_04（核特征比细胞特征更可靠，但细胞特征提供互补信息）设计。\n    \n    计算逻辑：取5个细胞特征的均值/标准差比值（即信噪比的倒数形式）。\n    良性样本中细胞特征值都低且相对集中（一致性高），\n    恶性样本中细胞特征值都高但某些特征升高更快导致相对分散（一致性低）。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    cell_cols = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                 'Marginal_Adhesion', 'Single_Epithelial_Cell_Size']\n    \n    # 计算5个细胞特征的均值和标准差\n    cell_mean = df[cell_cols].mean(axis=1)\n    cell_std = df[cell_cols].std(axis=1)\n    \n    # 变异系数 = std / mean，取倒数得到一致性指数\n    # 加0.1避免除零，加小值平滑\n    consistency = cell_mean / (cell_std + 0.1)\n    \n    result['cell_feature_consistency'] = consistency\n    \n    return result"
+  },
+  {
+    "name": "nuclear_dominance_index",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_nuclear_dominance_index(df):\n    \"\"\"\n    核特征主导模式指数：衡量核特征中哪个特征占主导地位及其主导程度。\n    \n    在良性样本中，Bland_Chromatin是核特征中的\"主导者\"（均值最高2.08）；\n    在恶性样本中，Bare_Nuclei是核特征中的\"主导者\"（均值最高7.63）。\n    这种\"主导模式转换\"是强诊断信号。\n    \n    计算逻辑：\n    1. 找出每个样本中核特征（Bare_Nuclei, Bland_Chromatin, Normal_Nucleoli）的最大值和次大值\n    2. 计算主导幅度 = 最大值 - 次大值\n    3. 确定主导方向：Bare_Nuclei主导→+1（恶性），Bland_Chromatin主导→-1（良性），Normal_Nucleoli主导→+0.5（弱恶性）\n    4. 主导模式指数 = 主导方向 × 主导幅度\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    bare = df['Bare_Nuclei'].fillna(1)\n    bland = df['Bland_Chromatin']\n    normal = df['Normal_Nucleoli']\n    \n    # 找出每个样本中核特征的最大值和次大值\n    nuclear_vals = pd.concat([bare, bland, normal], axis=1)\n    nuclear_max = nuclear_vals.max(axis=1)\n    nuclear_second = nuclear_vals.apply(lambda x: sorted(x)[-2], axis=1)\n    \n    # 主导幅度 = 最大值 - 次大值\n    dominance_magnitude = nuclear_max - nuclear_second\n    \n    # 主导方向\n    def get_dominance_direction(row):\n        vals = {\n            'bare': row['Bare_Nuclei'] if not pd.isna(row['Bare_Nuclei']) else 1,\n            'bland': row['Bland_Chromatin'],\n            'normal': row['Normal_Nucleoli']\n        }\n        max_val = max(vals.values())\n        max_keys = [k for k, v in vals.items() if v == max_val]\n        \n        if len(max_keys) > 1:\n            return 0  # 平局\n        \n        if max_keys[0] == 'bare':\n            return 1.0  # Bare_Nuclei主导 → 恶性信号\n        elif max_keys[0] == 'bland':\n            return -1.0  # Bland_Chromatin主导 → 良性信号\n        else:\n            return 0.5  # Normal_Nucleoli主导 → 弱恶性信号\n    \n    dominance_direction = df.apply(get_dominance_direction, axis=1)\n    \n    # 核特征主导模式指数 = 主导方向 × 主导幅度\n    result['nuclear_dominance_index'] = dominance_direction * dominance_magnitude\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_cellular_ratio",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_nuclear_cellular_ratio(df):\n    \"\"\"\n    核细胞比值：核特征(Bare_Nuclei+Bland_Chromatin+Normal_Nucleoli)与\n    细胞特征(Clump_Thickness+Cell_Size+Cell_Shape+Marginal_Adhesion+Single_Epi)的比值。\n    \n    基于EXP_04（核特征比细胞特征更可靠）和EXP_10（核浆比是基本指标）设计。\n    恶性样本中核特征升高速度比细胞特征更快，导致比值升高。\n    良性样本中两者都低，比值接近1。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 核特征总和\n    nuclear_sum = df['Bare_Nuclei'].fillna(1) + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    \n    # 细胞特征总和\n    cellular_sum = (df['Clump_Thickness'] + df['Uniformity_of_Cell_Size'] + \n                    df['Uniformity_of_Cell_Shape'] + df['Marginal_Adhesion'] + \n                    df['Single_Epithelial_Cell_Size'])\n    \n    # 比值（加0.1避免除零）\n    result['nuclear_cellular_ratio'] = nuclear_sum / (cellular_sum + 0.1)\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_cell_diff",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_nuclear_cell_diff(df):\n    \"\"\"\n    核细胞差值：核特征(Bare_Nuclei+Bland_Chromatin+Normal_Nucleoli)与\n    细胞特征(Clump_Thickness+Cell_Size+Cell_Shape+Marginal_Adhesion+Single_Epi)的差值。\n    \n    基于EXP_04（核特征可靠性）和IND_10（核浆比）设计。\n    恶性样本中核特征总和远高于细胞特征总和，差值大且为正；\n    良性样本中两者都低，差值接近0或为负。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 核特征总和\n    nuclear_sum = df['Bare_Nuclei'].fillna(1) + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    \n    # 细胞特征总和\n    cellular_sum = (df['Clump_Thickness'] + df['Uniformity_of_Cell_Size'] + \n                    df['Uniformity_of_Cell_Shape'] + df['Marginal_Adhesion'] + \n                    df['Single_Epithelial_Cell_Size'])\n    \n    # 差值\n    result['nuclear_cell_diff'] = nuclear_sum - cellular_sum\n    \n    return result\n"
+  },
+  {
+    "name": "feature_cv_index",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_cv_index(df):\n    \"\"\"\n    特征变异系数：9个特征的标准差除以均值。\n    \n    基于EXP_02（特征间存在强相关性，恶性倾向同时影响多个特征）和\n    EXP_08（特征工程建议）设计。\n    \n    良性样本中所有特征值都低且集中（均值低，标准差低），\n    恶性样本中特征值整体升高但不同特征升高幅度不同（均值高，标准差更高），\n    导致变异系数在良恶性间有差异。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    feature_cols = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                    'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 'Bare_Nuclei', \n                    'Bland_Chromatin', 'Normal_Nucleoli', 'Mitoses']\n    \n    # 处理Bare_Nuclei缺失值\n    df_clean = df[feature_cols].copy()\n    df_clean['Bare_Nuclei'] = df_clean['Bare_Nuclei'].fillna(1)\n    \n    # 计算标准差和均值\n    std_vals = df_clean.std(axis=1)\n    mean_vals = df_clean.mean(axis=1)\n    \n    # 变异系数 = std / mean，加0.1避免除零\n    result['feature_cv_index'] = std_vals / (mean_vals + 0.1)\n    \n    return result\n"
+  },
+  {
+    "name": "top3_bottom3_ratio",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_top3_bottom3_ratio(df):\n    \"\"\"\n    前3大与后3小特征比值：9个特征中最大的3个均值除以最小的3个均值。\n    \n    基于RULE_008（任意3个以上特征>=7或总分>=55→恶性）和\n    RULE_004（所有特征<=3→良性）设计。\n    \n    良性样本中所有特征值都低且接近，前3/后3比值接近1；\n    恶性样本中部分特征显著升高（如Bare_Nuclei, Cell_Size），\n    而其他特征（如Mitoses）可能仍较低，导致比值增大。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    feature_cols = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                    'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 'Bare_Nuclei', \n                    'Bland_Chromatin', 'Normal_Nucleoli', 'Mitoses']\n    \n    # 处理Bare_Nuclei缺失值\n    df_clean = df[feature_cols].copy()\n    df_clean['Bare_Nuclei'] = df_clean['Bare_Nuclei'].fillna(1)\n    \n    # 对每行排序\n    sorted_vals = np.sort(df_clean.values, axis=1)\n    \n    # 前3大（最大的3个）均值\n    top3_mean = np.mean(sorted_vals[:, -3:], axis=1)\n    \n    # 后3小（最小的3个）均值\n    bottom3_mean = np.mean(sorted_vals[:, :3], axis=1)\n    \n    # 比值\n    result['top3_bottom3_ratio'] = top3_mean / (bottom3_mean + 0.1)\n    \n    return result\n"
+  },
+  {
+    "name": "clump_adhesion_invasion_score",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_clump_adhesion_invasion_score(df):\n    \"\"\"\n    团块-粘附侵袭评分：基于RULE_005的连续化版本。\n    RULE_005: Clump_Thickness>=6 AND Marginal_Adhesion>=5 → 恶性(侵袭性癌)\n    \n    使用连续评分替代二元规则：当两者都超过阈值时，计算(Clump-6)*(Adhesion-5)；\n    当只有一个超过阈值时，计算半值；否则为0。\n    该特征捕获了肿瘤侵袭潜力的梯度。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    clump = df['Clump_Thickness']\n    adhesion = df['Marginal_Adhesion']\n    \n    # 两者都超过阈值：完全激活\n    both_high = (clump >= 6) & (adhesion >= 5)\n    \n    # 只有一个超过阈值：半激活\n    one_high = ((clump >= 6) & (adhesion < 5)) | ((clump < 6) & (adhesion >= 5))\n    \n    # 评分计算\n    score = np.where(\n        both_high,\n        (clump - 6) * (adhesion - 5),  # 两者都高：乘积\n        np.where(\n            one_high,\n            0.5 * np.maximum(clump - 6, adhesion - 5),  # 单高：半值\n            0  # 都不高：0\n        )\n    )\n    \n    result['clump_adhesion_invasion_score'] = score\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_mitosis_interaction",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_nuclear_mitosis_interaction(df):\n    \"\"\"\n    核-有丝分裂交互：核特征总和与Mitoses的乘积。\n    \n    基于EXP_05（Mitoses是最偏态的特征，与核特征相关性低）和\n    RULE_006（有丝分裂分级规则：Mitoses>=3且核特征异常→高级别恶性）设计。\n    \n    核特征与Mitoses的相关性仅0.43，提供互补信息。\n    良性样本中两者都低（核总和~4.7, Mitoses~1.07），乘积小；\n    恶性样本中核特征高（总和~19.5）且Mitoses可能升高（均值2.6），乘积大。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    bare = df['Bare_Nuclei'].fillna(1)\n    \n    # 核特征总和\n    nuclear_sum = bare + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    \n    # 核特征与Mitoses的乘积\n    result['nuclear_mitosis_interaction'] = nuclear_sum * df['Mitoses']\n    \n    return result\n"
+  },
+  {
+    "name": "clump_pleomorphism_diff",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_clump_pleomorphism_diff(df):\n    \"\"\"\n    团块-多形性差异：Clump_Thickness与细胞大小形状均值的差值。\n    \n    基于IND_01（团块厚度：差异倍数2.43x，反映细胞堆积程度）和\n    IND_02+IND_03（细胞大小和形状均匀性：差异倍数5.04x和4.64x，反映细胞多形性）设计。\n    \n    在良性样本中，Clump_Thickness（均值2.96）高于Cell_Size（均值1.31）和Cell_Shape（均值1.41），\n    差值为正且较大（均值1.60）；\n    在恶性样本中，Clump_Thickness（均值7.19）虽然高，但Size（均值6.58）和Shape（均值6.56）\n    几乎追平，差值变小（均值0.62）。\n    该特征捕获了团块堆积程度与细胞多形性之间的差异——良性中团块占主导，恶性中多形性占主导。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    clump = df['Clump_Thickness']\n    cell_size = df['Uniformity_of_Cell_Size']\n    cell_shape = df['Uniformity_of_Cell_Shape']\n    \n    # 团块厚度减去细胞大小和形状的均值\n    pleomorphism_mean = (cell_size + cell_shape) / 2.0\n    result['clump_pleomorphism_diff'] = clump - pleomorphism_mean\n    \n    return result"
+  },
+  {
+    "name": "nuclear_skewness_indicator",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_nuclear_skewness_indicator(df):\n    \"\"\"\n    核特征偏度指标：三个核特征(Bare_Nuclei, Bland_Chromatin, Normal_Nucleoli)的均值与中位数之差。\n    \n    基于EXP_02（核特征之间存在中度相关性，但各特征在良恶性中的变化速率不同：\n    Bare_Nuclei差异倍数5.66x，Normal_Nucleoli差异倍数4.64x，Bland_Chromatin差异倍数2.87x）和\n    EXP_03（Bare_Nuclei良性中位数1，恶性中位数10，分布极度右偏）设计。\n    \n    在良性样本中，三个核特征值都低且接近1，均值略高于中位数（均值0.30）；\n    在恶性样本中，Bare_Nuclei（中位数10）常远高于Bland_Chromatin（中位数7）和\n    Normal_Nucleoli（中位数6），导致均值低于中位数（均值-0.06）。\n    该特征捕获了核特征分布的不对称性变化。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    bare = df['Bare_Nuclei'].fillna(1).values\n    bland = df['Bland_Chromatin'].values\n    nucleoli = df['Normal_Nucleoli'].values\n    \n    # 每行的均值\n    mean_val = (bare + bland + nucleoli) / 3.0\n    \n    # 每行的中位数\n    sorted_vals = np.sort(np.column_stack([bare, bland, nucleoli]), axis=1)\n    median_val = sorted_vals[:, 1]  # 中位数（排序后中间值）\n    \n    # 偏度指标：均值 - 中位数\n    # 良性中均值>中位数（正偏），恶性中均值<中位数（负偏）\n    result['nuclear_skewness_indicator'] = mean_val - median_val\n    \n    return result\n"
+  },
+  {
+    "name": "clump_marginal_min_dispersion",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import numpy as np\nimport pandas as pd\n\ndef feature_clump_marginal_min_dispersion(df):\n    \"\"\"\n    团块-粘附弱链离散度：min(Clump_Thickness, Marginal_Adhesion) × |Clump_Thickness - Marginal_Adhesion|。\n    \n    基于RULE_005（团块+粘附组合：Clump_Thickness>=6 AND Marginal_Adhesion>=5 → 恶性侵袭性癌）和\n    IND_01（团块厚度：差异倍数2.43x）和IND_04（边缘粘附：差异倍数4.15x）设计。\n    \n    与clump_adhesion_dispersion（使用max）不同，本特征使用min捕获\"弱链\"信号。\n    良性样本中两者都低，min小且差异小，乘积小；\n    恶性样本中两者都高但Marginal升高更快（差异倍数4.15x vs 2.43x），min和差异都大，乘积大。\n    min项捕获\"最弱特征\"的信号，|diff|项捕获\"两者不一致\"的信号。\n    与原始特征的最大相关性仅0.6678（低于0.7阈值），冗余度低。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    clump = df['Clump_Thickness']\n    marginal = df['Marginal_Adhesion']\n    \n    # min(Clump, Marginal) - 捕获弱链信号（最弱特征决定整体）\n    min_val = np.minimum(clump, marginal)\n    \n    # |Clump - Marginal| - 捕获两者不一致的信号\n    abs_diff = np.abs(clump - marginal)\n    \n    # 离散度 = min × |diff|\n    # 良性：两者都低 → 乘积小\n    # 恶性：两者都高且差异大 → 乘积大\n    result['clump_marginal_min_dispersion'] = min_val * abs_diff\n    \n    return result\n"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "stage": "generic",
+  "total_rounds": 5,
+  "total_accepted": 8,
+  "total_candidates": 0,
+  "total_rejected": 31,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 1989.8,
+  "accepted_features": [
+    "nuclear_complex_score",
+    "mitosis_cell_interaction",
+    "adhesion_size_ratio",
+    "cell_complex_score",
+    "nuclear_cellular_imbalance",
+    "thickness_adhesion_invasion_index",
+    "nuclear_cell_diff_score",
+    "max_second_max_ratio"
+  ]
+}

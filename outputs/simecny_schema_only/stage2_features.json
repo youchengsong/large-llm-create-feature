@@ -1,0 +1,9 @@
+[
+  {
+    "name": "tx_hour_entropy",
+    "dimensions": [
+      "时间地域"
+    ],
+    "code": "def feature_tx_hour_entropy(open_df, tx_df, close_df):\n    \"\"\"\n    交易时间熵特征：计算每个钱包交易时间的小时分布熵。\n    异常交易的时间分布极度集中（异常中位数熵0.72 vs 正常中位数熵2.54），\n    因为洗钱行为往往集中在特定时段（如凌晨）进行。\n    熵值越低，表示交易时间越集中，洗钱风险越高。\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    # 步骤1: 从tx_df获取每笔交易的小时和src\n    tx = tx_df[['src', 'hour']].copy()\n    tx['hour'] = tx['hour'].astype(int)\n    \n    # 步骤2: 按src和hour统计交易笔数\n    hour_counts = tx.groupby(['src', 'hour']).size().reset_index(name='count')\n    \n    # 步骤3: 计算每个src的总交易笔数\n    src_total = hour_counts.groupby('src')['count'].sum().reset_index(name='total_count')\n    \n    # 步骤4: 合并并计算每个小时的概率\n    hour_counts = hour_counts.merge(src_total, on='src')\n    hour_counts['prob'] = hour_counts['count'] / hour_counts['total_count']\n    \n    # 步骤5: 计算每个src的交易时间熵 H = -sum(p * log2(p))\n    hour_counts['entropy_component'] = -hour_counts['prob'] * np.log2(hour_counts['prob'])\n    result = hour_counts.groupby('src')['entropy_component'].sum().reset_index()\n    result.columns = ['wallet_id', 'tx_hour_entropy']\n    \n    return result"
+  }
+]

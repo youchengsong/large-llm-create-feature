@@ -1,0 +1,61 @@
+[
+  {
+    "name": "rf_ratio",
+    "dimensions": [
+      "RFM特征",
+      "RF交互"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rf_ratio(df):\n    \"\"\"\n    RF比值 = Recency / Frequency\n    综合了最近性和频次，比值越低意味着既频繁又最近才献过血\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 避免除零，Frequency最小为1\n    result['rf_ratio'] = df['Recency'] / df['Frequency']\n    return result"
+  },
+  {
+    "name": "avg_interval",
+    "dimensions": [
+      "RFM特征",
+      "献血间隔"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_avg_interval(df):\n    \"\"\"\n    平均献血间隔 = (Time - Recency) / (Frequency - 1)\n    当Frequency>1时计算，否则为NaN。间隔越规律越可能再次献血。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 仅当Frequency>1时计算，否则设为NaN\n    mask = df['Frequency'] > 1\n    result['avg_interval'] = np.where(\n        mask,\n        (df['Time'] - df['Recency']) / (df['Frequency'] - 1),\n        np.nan\n    )\n    return result"
+  },
+  {
+    "name": "rfm_best_segment",
+    "dimensions": [
+      "RFM特征",
+      "规则组合"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rfm_best_segment(df):\n    \"\"\"\n    RFM最佳细分: Recency <= 6 AND Frequency >= 5\n    最近(<6月)、高频(>=5次)献血者最可能再次献血\n    \"\"\"\n    result = df[['row_id']].copy()\n    result['rfm_best_segment'] = ((df['Recency'] <= 6) & (df['Frequency'] >= 5)).astype(int)\n    return result"
+  },
+  {
+    "name": "interval_regularity",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_interval_regularity(df):\n    \"\"\"\n    献血间隔规律性评分 = exp(-0.5 * ((avg_interval - 3) / 2)^2)\n    使用高斯核度量平均献血间隔与理想间隔(3个月)的接近程度。\n    值越接近1表示献血间隔越规律（接近每3个月一次），\n    值越接近0表示间隔不规律或无法计算（首次献血者）。\n    基于IND_06: 间隔越规律越可能再次献血。\n    3个月是RULE_008中女性最低献血间隔，也是常见献血频率。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 计算平均献血间隔\n    mask = df['Frequency'] > 1\n    avg_interval = np.where(\n        mask,\n        (df['Time'] - df['Recency']) / (df['Frequency'] - 1),\n        np.nan\n    )\n    # 使用高斯核度量与理想间隔(3个月)的接近程度\n    result['interval_regularity'] = np.where(\n        mask,\n        np.exp(-0.5 * ((avg_interval - 3.0) / 2.0)**2),\n        0.0\n    )\n    return result"
+  },
+  {
+    "name": "freq_excess",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_freq_excess(df):\n    \"\"\"\n    频次超额 = Frequency - Time * 0.2\n    基于期望献血频率的偏差度量。\n    假设平均每5个月献一次血（0.2次/月），\n    计算实际频次与期望频次的差值。\n    正值表示比平均水平献血更频繁（积极献血者），\n    负值表示比平均水平献血更少（可能已流失）。\n    基于IND_04: Time与Frequency需要结合理解。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 期望频次（假设平均每5个月献一次）\n    expected_freq = df['Time'] * 0.2\n    # 频次超额\n    result['freq_excess'] = df['Frequency'] - expected_freq\n    return result"
+  },
+  {
+    "name": "freq_zscore_by_time",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_freq_zscore_by_time(df):\n    \"\"\"\n    频次的时间分组Z-score = (Frequency - group_mean) / (group_std + 0.001)\n    将样本按Time分为10组，计算每个样本的Frequency在该组内的Z-score。\n    衡量在相同时间跨度下，某人的献血频次相对于同组平均水平的偏离程度。\n    正值表示在同时间跨度人群中献血更频繁（更积极），\n    负值表示在同时间跨度人群中献血较少（可能已流失）。\n    基于IND_04: Time与Frequency需要结合理解。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 按Time分10组\n    df_temp = df.copy()\n    df_temp['t_group'] = pd.qcut(df_temp['Time'].rank(method='first'), q=10, labels=False)\n    # 计算每组均值和标准差\n    group_mean = df_temp.groupby('t_group')['Frequency'].transform('mean')\n    group_std = df_temp.groupby('t_group')['Frequency'].transform('std')\n    # 计算Z-score\n    result['freq_zscore_by_time'] = (df_temp['Frequency'] - group_mean) / (group_std + 0.001)\n    return result"
+  },
+  {
+    "name": "very_recent_active",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_very_recent_active(df):\n    \"\"\"\n    近期活跃献血者 = (Recency <= 2) AND (Frequency >= 2)\n    最近2个月内献过血且至少献过2次的人。\n    比RULE_001(Recency<=6, Frequency>=5)更宽松的条件，\n    捕捉\"近期活跃\"但尚未达到高频的献血者。\n    基于EXP_05: 高频+最近献过血=忠诚活跃(最佳)，\n    但低频+最近献过=新加入(需培养)。\n    此特征捕捉介于两者之间的中间状态。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 近期活跃献血者\n    result['very_recent_active'] = ((df['Recency'] <= 2.0) & (df['Frequency'] >= 2.0)).astype(float)\n    return result"
+  },
+  {
+    "name": "active_donor_v2",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_active_donor_v2(df):\n    \"\"\"\n    活跃献血者v2 = (Frequency / (Time + 1) > 0.2) AND (Recency <= 6)\n    基于RULE_005(活跃献血者)的放宽版本。\n    原规则: Frequency/Time > 0.3 AND Recency <= 6\n    放宽到: Frequency/Time > 0.2 AND Recency <= 6\n    捕捉更多中等活跃度的献血者。\n    基于IND_05: 献血频率(Frequency/Time)标准化了献血行为密度。\n    \"\"\"\n    result = df[['row_id']].copy()\n    # 计算献血频率密度\n    freq_density = df['Frequency'] / (df['Time'] + 1.0)\n    # 活跃献血者条件\n    result['active_donor_v2'] = ((freq_density > 0.2) & (df['Recency'] <= 6.0)).astype(float)\n    return result"
+  }
+]

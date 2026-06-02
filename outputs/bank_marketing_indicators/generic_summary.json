@@ -1,0 +1,33 @@
+{
+  "stage": "generic",
+  "total_rounds": 8,
+  "total_accepted": 22,
+  "total_candidates": 0,
+  "total_rejected": 105,
+  "convergence_reason": "达到最大轮次 8",
+  "elapsed_sec": 4084.8,
+  "accepted_features": [
+    "premium_profile_score",
+    "age_job_marital_risk_score",
+    "financial_health_index",
+    "poutcome_campaign_interaction",
+    "contact_saturation_risk",
+    "contact_channel_quality",
+    "economic_contact_efficiency",
+    "seasonal_timing_score",
+    "pdays_recency_score",
+    "life_stage_segment",
+    "contact_fatigue_score",
+    "seasonal_financial_capacity",
+    "job_age_balance_lifecycle",
+    "monthly_historical_synergy",
+    "contact_timing_quality",
+    "weekly_campaign_efficiency_by_season",
+    "age_education_lifecycle_gap",
+    "monthly_econ_phase_score",
+    "new_customer_econ_timing",
+    "monthly_job_affinity",
+    "balance_seasonal_affordability",
+    "age_historical_contact_sensitivity"
+  ]
+}

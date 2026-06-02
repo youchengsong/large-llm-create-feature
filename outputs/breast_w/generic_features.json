@@ -1,0 +1,58 @@
+[
+  {
+    "name": "nuclear_complex_score",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_nuclear_complex_score(df):\n    \"\"\"\n    核复合评分：组合Bare_Nuclei(裸核)、Bland_Chromatin(淡染色质)、\n    Normal_Nucleoli(正常核仁)三个核特征的总和。\n    根据EXP_04，核三联征构成大多数细胞学分级系统的基础。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 三个核特征求和\n    result['nuclear_complex_score'] = (\n        df['Bare_Nuclei'] + \n        df['Bland_Chromatin'] + \n        df['Normal_Nucleoli']\n    )\n    \n    return result\n"
+  },
+  {
+    "name": "mitosis_cell_interaction",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_mitosis_cell_interaction(df):\n    \"\"\"\n    有丝分裂-细胞大小交互：根据RULE_006，Mitoses>=3且(Cell_Size_Uniformity>=4或Bland_Chromatin>=5)提示高级别恶性。\n    本特征将Mitoses与Cell_Size_Uniformity相乘，捕获增殖活性与细胞异型性的协同效应。\n    有丝分裂反映细胞分裂率，细胞大小反映异型性，两者组合能捕获高增殖+高异型性的侵袭性表型。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # Mitoses与Cell_Size_Uniformity的乘积\n    result['mitosis_cell_interaction'] = df['Mitoses'] * df['Uniformity_of_Cell_Size']\n    \n    return result\n"
+  },
+  {
+    "name": "adhesion_size_ratio",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_adhesion_size_ratio(df):\n    \"\"\"\n    细胞粘附-大小比率：Marginal_Adhesion(边缘粘附)与Single_Epithelial_Cell_Size(单上皮细胞大小)的比值。\n    根据IND_04，边缘粘附丧失(高评分)反映E-cadherin下调导致的侵袭性潜力。\n    根据IND_05，单上皮细胞大小增大(高评分)反映核浆比增大。\n    两者比率捕获了\"粘附丧失程度相对于细胞增大程度\"的关系。\n    当粘附丧失程度超过细胞增大程度时(比率>1)，可能提示更侵袭性的表型。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 计算比率，加1避免除零\n    result['adhesion_size_ratio'] = df['Marginal_Adhesion'] / (df['Single_Epithelial_Cell_Size'] + 1e-10)\n    \n    return result\n"
+  },
+  {
+    "name": "cell_complex_score",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_cell_complex_score(df):\n    \"\"\"\n    细胞复合评分：组合Clump_Thickness, Uniformity_of_Cell_Size, \n    Uniformity_of_Cell_Shape, Marginal_Adhesion四个细胞特征的总和。\n    反映肿瘤的细胞架构、增殖和侵袭潜力。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 四个细胞特征求和\n    result['cell_complex_score'] = (\n        df['Clump_Thickness'] + \n        df['Uniformity_of_Cell_Size'] + \n        df['Uniformity_of_Cell_Shape'] + \n        df['Marginal_Adhesion']\n    )\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_cellular_imbalance",
+    "dimensions": [
+      "核特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_nuclear_cellular_imbalance(df):\n    \"\"\"\n    核-细胞失衡评分：捕获核特征与细胞特征之间的不平衡模式。\n    \n    根据EXP_06，最强诊断组合包括核特征(Bare_Nuclei+Bland_Chromatin)和\n    细胞特征(Clump_Thickness+Cell_Size_Uniformity+Cell_Shape_Uniformity)。\n    \n    当核特征异常程度显著偏离细胞特征时（无论是核高细胞低，还是核低细胞高），\n    可能提示需要进一步鉴别的特殊亚型。\n    \n    本特征计算：\n    1. nuclear_cellular_ratio: 核复合评分 / 细胞复合评分\n       - 核复合 = Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli\n       - 细胞复合 = Clump_Thickness + Uniformity_of_Cell_Size + Uniformity_of_Cell_Shape\n    2. nuclear_cellular_interaction: 核复合 * 细胞复合（捕获协同效应）\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    eps = 1e-10\n    \n    # 核复合评分\n    nuclear_complex = df['Bare_Nuclei'] + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    \n    # 细胞复合评分（使用与核特征最相关的细胞特征）\n    cellular_complex = df['Clump_Thickness'] + df['Uniformity_of_Cell_Size'] + df['Uniformity_of_Cell_Shape']\n    \n    # 核/细胞比率：>1表示核异常程度超过细胞异常\n    result['nuclear_cellular_ratio'] = nuclear_complex / (cellular_complex + eps)\n    \n    # 核*细胞乘积：捕获两者的协同效应\n    result['nuclear_cellular_product'] = nuclear_complex * cellular_complex\n    \n    return result\n"
+  },
+  {
+    "name": "thickness_adhesion_invasion_index",
+    "dimensions": [
+      "细胞特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_thickness_adhesion_invasion_index(df):\n    \"\"\"\n    团块-粘附侵袭指数：基于RULE_005 (Clump_Thickness>=6 AND Marginal_Adhesion>=5 → 恶性侵袭性癌)\n    和IND_01 (团块厚度反映细胞堆积层数)、IND_04 (边缘粘附反映细胞粘附力丧失)，\n    捕获\"组织结构紊乱+侵袭性潜力\"的协同效应。\n    \n    当CT>=6且MA>=5时触发\"侵袭性\"标志，并加入超过阈值的额外严重程度分级。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 步骤1: RULE_005触发标志 - CT>=6 AND MA>=5\n    # 根据RULE_005: Clump_Thickness>=6 AND Marginal_Adhesion>=5 → 恶性(侵袭性癌)\n    rule5_trigger = ((df['Clump_Thickness'] >= 6) & (df['Marginal_Adhesion'] >= 5)).astype(int)\n    \n    # 步骤2: CT超过阈值后的严重程度分级\n    # 根据IND_01: 团块厚度>=5提示恶性, >=7强烈恶性\n    # 6-7: 1级(癌性), 8-10: 2级(显著多层)\n    ct_grade = np.where(df['Clump_Thickness'] >= 8, 2,\n                        np.where(df['Clump_Thickness'] >= 6, 1, 0))\n    \n    # 步骤3: MA超过阈值后的严重程度分级\n    # 根据IND_04: 边缘粘附>=4提示恶性, >=6强烈恶性\n    # 5-7: 1级(粘附中度丧失), 8-10: 2级(粘附显著丧失)\n    ma_grade = np.where(df['Marginal_Adhesion'] >= 8, 2,\n                        np.where(df['Marginal_Adhesion'] >= 5, 1, 0))\n    \n    # 步骤4: 综合侵袭指数\n    # 当RULE_005触发时: 基础分1 + CT分级 + MA分级 (范围1-5)\n    # 当RULE_005未触发时: 0\n    # 该设计确保高特异性(RULE_005触发时恶性率96.5%)的同时，\n    # 通过严重程度分级提供连续区分度(评分越高恶性率越高)\n    result['thickness_adhesion_invasion_index'] = rule5_trigger * (1 + ct_grade + ma_grade)\n    \n    return result\n"
+  },
+  {
+    "name": "nuclear_cell_diff_score",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_nuclear_cell_diff_score(df):\n    \"\"\"\n    核-细胞差异评分：核复合评分与细胞复合评分的差值。\n    \n    根据EXP_06，最强诊断组合包括核特征(Bare_Nuclei+Bland_Chromatin)和\n    细胞特征(Clump_Thickness+Cell_Size+Cell_Shape+Marginal_Adhesion)。\n    \n    根据EXP_04，核特征(染色质模式+核仁突出度+核膜不规则性)构成细胞学分级系统的基础，\n    而细胞特征提供肿瘤架构和侵袭行为的互补信息。\n    \n    当核特征异常程度与细胞特征异常程度不一致时（差值大），可能提示特殊亚型。\n    良性样本两者都低，差值小；恶性样本中核特征通常比细胞特征更极端（裸核可达10，\n    而团块厚度等相对较低），导致差值为负且绝对值大。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    # 核复合评分：Bare_Nuclei + Bland_Chromatin + Normal_Nucleoli\n    nuclear_complex = df['Bare_Nuclei'] + df['Bland_Chromatin'] + df['Normal_Nucleoli']\n    \n    # 细胞复合评分：Clump_Thickness + Uniformity_of_Cell_Size + Uniformity_of_Cell_Shape + Marginal_Adhesion\n    cellular_complex = (df['Clump_Thickness'] + df['Uniformity_of_Cell_Size'] + \n                        df['Uniformity_of_Cell_Shape'] + df['Marginal_Adhesion'])\n    \n    # 核-细胞差异：核复合 - 细胞复合\n    # 良性：两者都低，差值小（接近0或略负）\n    # 恶性：核特征更极端（裸核可达10），差值负且绝对值大\n    result['nuclear_cell_diff_score'] = nuclear_complex - cellular_complex\n    \n    return result\n"
+  },
+  {
+    "name": "max_second_max_ratio",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_max_second_max_ratio(df):\n    \"\"\"\n    最大/次大值比：9个特征值中最大值与第二大值的比值。\n    \n    根据EXP_05，Mitoses是最偏态的特征（>80%样本评分1），\n    而Bare_Nuclei在恶性样本中可达10。良性样本所有特征值低且接近，\n    最大值≈次大值，比值接近1。恶性样本中，若某个特征异常突出（如Bare_Nuclei=10\n    而其他特征较低），则比值>1且大。\n    \n    该比值捕获了\"单一特征主导异常\"的模式——\n    比值越大，越可能有一个特征异常突出，提示局灶性严重异常。\n    \"\"\"\n    result = df[['row_id']].copy()\n    \n    feat_cols = ['Clump_Thickness', 'Uniformity_of_Cell_Size', 'Uniformity_of_Cell_Shape', \n                 'Marginal_Adhesion', 'Single_Epithelial_Cell_Size', 'Bare_Nuclei', \n                 'Bland_Chromatin', 'Normal_Nucleoli', 'Mitoses']\n    \n    # 对每行排序，取最大值和次大值\n    sorted_vals = np.sort(df[feat_cols].values, axis=1)\n    max_vals = sorted_vals[:, -1]\n    second_max_vals = sorted_vals[:, -2]\n    \n    # 计算比值，避免除零\n    result['max_second_max_ratio'] = max_vals / (second_max_vals + 1e-10)\n    \n    return result\n"
+  }
+]

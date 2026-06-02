@@ -65,6 +65,12 @@ DATASET_REGISTRY = {
         "task": "Is this tumor benign or malignant? benign or malignant?",
         "meta": None,
     },
+    "adult": {
+        "csv": PROJECT_ROOT / "data" / "public" / "adult.csv",
+        "target": "class",
+        "task": "Does this person earn more than $50K per year? Yes or no?",
+        "meta": None,
+    },
     "simecny": {
         "csv": None,
         "target": "is_risk",

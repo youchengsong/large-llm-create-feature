@@ -1,0 +1,27 @@
+{
+  "stage": "generic",
+  "total_rounds": 6,
+  "total_accepted": 16,
+  "total_candidates": 0,
+  "total_rejected": 71,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3095.6,
+  "accepted_features": [
+    "metabolic_syndrome_score",
+    "bp_skin_composite_risk",
+    "dpf_bmi_genetic_obesity_risk",
+    "dpf_pregnancy_genetic_risk",
+    "skin_missing_bmi_interaction",
+    "genetic_age_composite_risk",
+    "insulin_glucose_ratio_bmi",
+    "insulin_missing_glucose_risk",
+    "glucose_bmi_ratio",
+    "skin_bp_grid_risk",
+    "pregnancy_risk_severity_score",
+    "glucose_squared_risk",
+    "glucose_bmi_excess_product",
+    "bmi_age_threshold_risk_score",
+    "skin_thickness_squared",
+    "insulin_glucose_deviation"
+  ]
+}

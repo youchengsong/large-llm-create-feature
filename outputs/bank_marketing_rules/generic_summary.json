@@ -1,0 +1,23 @@
+{
+  "stage": "generic",
+  "total_rounds": 4,
+  "total_accepted": 12,
+  "total_candidates": 0,
+  "total_rejected": 45,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 1894.2,
+  "accepted_features": [
+    "customer_profile_score",
+    "age_edu_marital_score",
+    "financial_capacity_score",
+    "historical_contact_score",
+    "seasonal_contact_quality",
+    "seasonal_financial_opportunity",
+    "season_campaign_interaction",
+    "month_day_target_encoding",
+    "pdays_season_interaction",
+    "age_job_lifecycle_score",
+    "high_value_profile_flag",
+    "contact_month_synergy"
+  ]
+}

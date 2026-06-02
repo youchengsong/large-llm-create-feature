@@ -1,0 +1,12 @@
+{
+  "stage": "stage2",
+  "total_rounds": 4,
+  "total_accepted": 1,
+  "total_candidates": 0,
+  "total_rejected": 44,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3731.2,
+  "accepted_features": [
+    "tx_hour_entropy"
+  ]
+}

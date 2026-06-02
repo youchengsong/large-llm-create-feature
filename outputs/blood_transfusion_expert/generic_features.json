@@ -1,0 +1,43 @@
+[
+  {
+    "name": "rf_ratio_score",
+    "dimensions": [
+      "RFM特征",
+      "比率特征",
+      "交互特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rf_ratio_score(df):\n    result = df[['row_id']].copy()\n    # Recency/Frequency 比值 - 越低越好（最近献血且频次高）\n    # 使用log变换处理长尾分布\n    rf_ratio = df['Recency'] / (df['Frequency'] + 1e-10)\n    result['rf_ratio_score'] = np.log1p(rf_ratio)\n    return result"
+  },
+  {
+    "name": "avg_donation_interval",
+    "dimensions": [
+      "RFM特征",
+      "间隔特征",
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_avg_donation_interval(df):\n    result = df[['row_id']].copy()\n    # 平均献血间隔 = (Time - Recency) / (Frequency - 1)\n    # 对于Frequency=1的情况，无法计算间隔，设为NaN（首次献血者）\n    interval = np.where(\n        df['Frequency'] > 1,\n        (df['Time'] - df['Recency']) / (df['Frequency'] - 1),\n        np.nan\n    )\n    result['avg_donation_interval'] = interval\n    return result"
+  },
+  {
+    "name": "habit_formed_flag",
+    "dimensions": [
+      "RFM特征",
+      "行为习惯",
+      "二元特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_habit_formed_flag(df):\n    result = df[['row_id']].copy()\n    # 献血>=4次的人形成稳定献血习惯 (RULE_004, EXP_04)\n    result['habit_formed_flag'] = (df['Frequency'] >= 4).astype(int)\n    return result"
+  },
+  {
+    "name": "long_no_donation_flag",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_long_no_donation_flag(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 根据RULE_003(流失预警)，超过12个月未献血且总频次<3为流失风险\n    # 但仅使用Recency>12作为长期未献血的信号，正类中仅12.4%属于此群体，负类中40.7%\n    result['long_no_donation_flag'] = (df['Recency'] > 12).astype(int)\n    return result"
+  },
+  {
+    "name": "active_donor_flag",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_active_donor_flag(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 根据RULE_005(活跃献血者)，献血频率(Frequency/Time)超过0.3次/月且最近6个月内献过血\n    freq_rate = df['Frequency'] / df['Time'].clip(lower=1)\n    # 步骤2: 同时满足两个条件：频率>0.3次/月 且 Recency<=6\n    result['active_donor_flag'] = ((freq_rate > 0.3) & (df['Recency'] <= 6)).astype(int)\n    return result"
+  }
+]

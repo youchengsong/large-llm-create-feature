@@ -1,0 +1,64 @@
+[
+  {
+    "name": "rf_ratio",
+    "dimensions": [
+      "RFM特征",
+      "RF比值"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rf_ratio(df):\n    result = df[['row_id']].copy()\n    # R/F比值 = Recency / Frequency，综合最近性和频次\n    # 低比值意味着既频繁又最近才献过血——最佳预测指标\n    result['rf_ratio'] = df['Recency'] / (df['Frequency'] + 1e-5)\n    return result"
+  },
+  {
+    "name": "avg_donation_interval",
+    "dimensions": [
+      "RFM特征",
+      "献血间隔"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_avg_donation_interval(df):\n    result = df[['row_id']].copy()\n    # 平均献血间隔 = (Time - Recency) / (Frequency - 1)\n    # 规律献血者（如每3个月一次）比不规律献血者更可能继续献血\n    # 对Frequency=1的首次献血者，间隔设为NaN（无意义），用中位数填充\n    numerator = df['Time'] - df['Recency']\n    denominator = df['Frequency'] - 1\n    # 避免除零，Frequency=1时分母为0\n    interval = np.where(denominator > 0, numerator / denominator, np.nan)\n    # 用中位数填充缺失值\n    median_val = np.nanmedian(interval)\n    interval = np.where(np.isnan(interval), median_val, interval)\n    result['avg_donation_interval'] = interval\n    return result"
+  },
+  {
+    "name": "rfm_best_segment",
+    "dimensions": [
+      "RFM特征",
+      "规则特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rfm_best_segment(df):\n    result = df[['row_id']].copy()\n    # RFM最佳细分: Recency <= 6 AND Frequency >= 5\n    # 最近(<6月)、高频(>=5次)献血者最可能再次献血\n    result['rfm_best_segment'] = ((df['Recency'] <= 6) & (df['Frequency'] >= 5)).astype(int)\n    return result"
+  },
+  {
+    "name": "habit_formed_donor",
+    "dimensions": [
+      "RFM特征",
+      "习惯特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_habit_formed_donor(df):\n    result = df[['row_id']].copy()\n    # 习惯形成: Frequency >= 4\n    # 献过3-4次血的人形成了稳定的利他认同和行为习惯，保留率显著更高\n    result['habit_formed_donor'] = (df['Frequency'] >= 4).astype(int)\n    return result"
+  },
+  {
+    "name": "active_donor_flag",
+    "dimensions": [
+      "RFM特征",
+      "活跃标记"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_active_donor_flag(df):\n    result = df[['row_id']].copy()\n    # 活跃献血者: Frequency/Time > 0.3 AND Recency <= 6\n    # 献血频率超过0.3次/月且最近6个月内献过血\n    freq_rate = df['Frequency'] / (df['Time'] + 1e-5)\n    result['active_donor_flag'] = ((freq_rate > 0.3) & (df['Recency'] <= 6)).astype(int)\n    return result"
+  },
+  {
+    "name": "first_time_donor",
+    "dimensions": [
+      "RFM特征",
+      "首次献血"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_first_time_donor(df):\n    result = df[['row_id']].copy()\n    # 是否首次献血者: Frequency == 1\n    # 首次献血者再次献血概率较低，约50%不会再次献血\n    result['first_time_donor'] = (df['Frequency'] == 1).astype(int)\n    return result"
+  },
+  {
+    "name": "recency_inverse",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_recency_inverse(df):\n    result = df[['row_id']].copy()\n    # Recency的倒数变换：1/(Recency+1)\n    # 强调最近献血的重要性，间隔越短值越大\n    # 与Recency是非线性关系，可降低相关性\n    result['recency_inverse'] = 1.0 / (df['Recency'] + 1.0)\n    return result"
+  },
+  {
+    "name": "recency_parity_freq_interaction",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_recency_parity_freq_interaction(df):\n    result = df[['row_id']].copy()\n    # Recency 奇偶性与 Frequency 的交互特征\n    # 数据探索发现：\n    # - Recency 偶数样本正类率 28.8%，奇数仅 13.5%\n    # - 偶数 Recency + Freq>=5 正类率高达 41.4%\n    # - 奇数 Recency + Freq 1-2 正类率仅 8.7%\n    # 这反映了献血行为模式：规律献血者倾向于在偶数月献血（间隔2/4/6个月）\n    # 而奇数 Recency 且低频的献血者多为非规律献血者\n    \n    recency_even = (df['Recency'].astype(int) % 2 == 0).astype(int)\n    freq_bin = pd.cut(df['Frequency'], bins=[0, 2, 4, 6, 100], labels=[0, 1, 2, 3]).astype(int)\n    \n    # 组合特征：奇偶性(0/1) * 4 + freq_bin(0-3) -> 0-7\n    result['recency_parity_freq_interaction'] = recency_even * 4 + freq_bin\n    return result"
+  }
+]

@@ -24,6 +24,7 @@ OPENML_DATASETS = {
     "blood_transfusion": 1464,
     "bank_marketing": 1461,
     "breast_w": 15,
+    "adult": 1590,
 }
 
 DATASET_TARGET_MAP = {
@@ -33,6 +34,7 @@ DATASET_TARGET_MAP = {
     "bank_marketing": "y",
     "breast_w": "Class",
     "heart": "HeartDisease",
+    "adult": "class",
 }
 
 
@@ -88,6 +90,11 @@ def download_openml(name: str, dataset_id: int, output_dir: Path) -> Path:
     if name == "bank_marketing":
         if target_name in df.columns:
             val_map = {"yes": 1, "no": 0, "1": 1, "2": 0}
+            df[target_name] = df[target_name].map(val_map).fillna(df[target_name])
+
+    if name == "adult":
+        if target_name in df.columns:
+            val_map = {"<=50K": 0, ">50K": 1, "<=50K.": 0, ">50K.": 1}
             df[target_name] = df[target_name].map(val_map).fillna(df[target_name])
 
     df.to_csv(output_path, index=False)

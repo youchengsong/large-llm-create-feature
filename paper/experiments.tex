@@ -1,0 +1,210 @@
+% experiments.tex
+\section{Experiments}
+\label{sec:experiments}
+
+We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-money laundering dataset. Our experiments aim to answer four research questions:
+\begin{itemize}
+    \item \textbf{RQ1}: Does KnowFeat improve predictive performance compared to existing AutoFE and LLM-based methods?
+    \item \textbf{RQ2}: How does KnowFeat perform on a real-world AML task with severe class imbalance?
+    \item \textbf{RQ3}: What is the contribution of each knowledge level? (Ablation study)
+    \item \textbf{RQ4}: How does KnowFeat balance feature quantity vs.\ quality?
+\end{itemize}
+
+\subsection{Experimental Setup}
+\label{subsec:setup}
+
+\subsubsection{Datasets}
+We use seven datasets summarized in Table~\ref{tab:datasets}:
+
+\begin{table}[t]
+\centering
+\caption{Dataset statistics. Positive rate refers to the proportion of the minority class.}
+\label{tab:datasets}
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Dataset} & \textbf{Samples} & \textbf{Features} & \textbf{Pos.\ Rate} & \textbf{Source} \\
+\hline
+credit\_g          & 1,000   & 20  & 70.0\% & OpenML \\
+diabetes           & 768     & 8   & 34.9\% & OpenML \\
+blood\_transfusion & 748     & 4   & 23.8\% & OpenML \\
+heart              & 918     & 11  & 55.3\% & OpenML \\
+bank\_marketing    & 45,211  & 16  & 11.7\% & OpenML \\
+breast\_w          & 683     & 9   & 35.0\% & OpenML \\
+SimECNY (AML)      & 200,000 & 93  & 2.24\% & Private \\
+\hline
+\end{tabular}
+\end{table}
+
+The six public datasets are standard tabular benchmarks from OpenML, covering diverse domains (finance, healthcare, marketing). SimECNY is a real-world digital currency transaction dataset containing 200,000 transactions with 93 baseline features and 4,484 positive (suspicious) samples, representing a realistic AML detection scenario with severe class imbalance (2.24\% positive rate).
+
+\subsubsection{Baselines}
+We compare KnowFeat against five baselines:
+\begin{itemize}
+    \item \textbf{No-FE}: XGBoost trained on original features without any feature engineering.
+    \item \textbf{OpenFE}~\cite{zhang2024openfe}: State-of-the-art transformation-based AutoFE that searches over operator-operand combinations.
+    \item \textbf{AutoFeat}~\cite{horn2020set}: Polynomial and interaction feature generation with L1 selection.
+    \item \textbf{CAAFE}~\cite{hollmann2024llmsgeneratefinanciallyrelevantfeatures}: LLM-based iterative feature generation with logistic regression feedback.
+    \item \textbf{FeatLLM}~\cite{han2024featllm}: LLM-based rule extraction and binary feature generation.
+\end{itemize}
+
+\subsubsection{Evaluation Protocol}
+All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. For public datasets, the primary metric is AUC. For the AML dataset, we report Recall, Precision, F1, and AUC, with \texttt{scale\_pos\_weight=auto} to handle class imbalance. We additionally report results with \texttt{scale\_pos\_weight=1} (no class balancing) to better differentiate methods under challenging conditions.
+
+\subsection{RQ1: Public Dataset Performance}
+\label{subsec:rq1}
+
+Table~\ref{tab:main_results} presents the AUC comparison on public datasets. KnowFeat achieves the best performance on 2 out of 6 datasets (credit\_g and blood\_transfusion) and ranks second on 3 datasets (diabetes, heart, breast\_w). Notably, KnowFeat's improvements on credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE) are the largest absolute gains among all methods, demonstrating that knowledge-guided features can unlock performance improvements that purely syntactic methods miss.
+
+% Placeholder for main results table
+\begin{table*}[t]
+\centering
+\caption{AUC comparison on public datasets (mean$\pm$std over 5 seeds). \textbf{Bold} indicates the best result; \underline{underline} indicates second best. T/O = timeout.}
+\label{tab:main_results}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
+\hline
+credit\_g          & 0.7670{\scriptsize$\pm$.021} & \underline{0.7833{\scriptsize$\pm$.031}} & 0.7540{\scriptsize$\pm$.017} & 0.7596{\scriptsize$\pm$.023} & 0.7604{\scriptsize$\pm$.022} & \textbf{0.7854{\scriptsize$\pm$.014}} \\
+diabetes           & 0.8027{\scriptsize$\pm$.033} & \textbf{0.8252{\scriptsize$\pm$.034}} & 0.8089{\scriptsize$\pm$.027} & 0.8032{\scriptsize$\pm$.030} & 0.8096{\scriptsize$\pm$.032} & \underline{0.8190{\scriptsize$\pm$.032}} \\
+blood\_transfusion & 0.6824{\scriptsize$\pm$.043} & 0.6654{\scriptsize$\pm$.040} & 0.6824{\scriptsize$\pm$.043} & 0.6779{\scriptsize$\pm$.043} & 0.6805{\scriptsize$\pm$.044} & \textbf{0.7007{\scriptsize$\pm$.036}} \\
+heart              & 0.9320{\scriptsize$\pm$.007} & \textbf{0.9417{\scriptsize$\pm$.011}} & 0.9340{\scriptsize$\pm$.003} & 0.9302{\scriptsize$\pm$.006} & 0.9297{\scriptsize$\pm$.004} & \underline{0.9379{\scriptsize$\pm$.006}} \\
+bank\_marketing    & 0.9330{\scriptsize$\pm$.002} & \textbf{0.9374{\scriptsize$\pm$.002}} & T/O & 0.9334{\scriptsize$\pm$.002} & 0.9337{\scriptsize$\pm$.002} & — \\
+breast\_w          & 0.9926{\scriptsize$\pm$.005} & \textbf{0.9944{\scriptsize$\pm$.005}} & 0.9936{\scriptsize$\pm$.004} & 0.9924{\scriptsize$\pm$.006} & 0.9924{\scriptsize$\pm$.005} & \underline{0.9938{\scriptsize$\pm$.005}} \\
+\hline
+\textbf{Avg.\ Rank} & 4.2 & \textbf{1.3} & 4.4 & 4.5 & 4.0 & \underline{1.6} \\
+\hline
+\end{tabular}
+\end{table*}
+
+OpenFE achieves the best results on 4 datasets, which is expected given that it performs exhaustive operator-operand search with LightGBM-based selection---a purely data-driven approach that is highly effective when sufficient transformation combinations exist. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
+
+CAAFE and FeatLLM perform close to or below the No-FE baseline on most datasets, suggesting that their generated features often introduce noise rather than signal. This is consistent with their lack of rigorous verification: without L2 and L3 filtering, low-quality features dilute the model's predictive power.
+
+\subsection{RQ2: AML Dataset Performance}
+\label{subsec:rq2}
+
+Table~\ref{tab:simecny} presents results on the SimECNY AML dataset with \texttt{scale\_pos\_weight=auto}.
+
+\begin{table}[t]
+\centering
+\caption{SimECNY AML results (spw=auto, mean$\pm$std over 5 seeds).}
+\label{tab:simecny}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Method} & \textbf{$n_f$} & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
+\hline
+No-FE     & 93   & .9663{\scriptsize$\pm$.010} & .9764{\scriptsize$\pm$.004} & .9713{\scriptsize$\pm$.005} & .9996{\scriptsize$\pm$.000} \\
+OpenFE    & 123  & .9645{\scriptsize$\pm$.008} & .9752{\scriptsize$\pm$.004} & .9698{\scriptsize$\pm$.003} & .9996{\scriptsize$\pm$.000} \\
+CAAFE     & 94   & .9681{\scriptsize$\pm$.008} & .9725{\scriptsize$\pm$.006} & .9703{\scriptsize$\pm$.005} & .9996{\scriptsize$\pm$.000} \\
+FeatLLM   & 1124 & .9625{\scriptsize$\pm$.010} & .9728{\scriptsize$\pm$.005} & .9676{\scriptsize$\pm$.006} & .9995{\scriptsize$\pm$.000} \\
+\textbf{KnowFeat}  & \textbf{95}   & \textbf{.9681{\scriptsize$\pm$.007}} & .9751{\scriptsize$\pm$.003} & \textbf{.9716{\scriptsize$\pm$.003}} & .9996{\scriptsize$\pm$.000} \\
+\hline
+\end{tabular}
+\end{table}
+
+With \texttt{scale\_pos\_weight=auto} ($\approx$43.6), all methods achieve high recall ($>$0.96), which compresses inter-method differences. KnowFeat achieves the highest F1 (0.9716) and ties for the highest Recall (0.9681, shared with CAAFE) while adding only 2 features. In contrast, FeatLLM adds 1,031 features yet achieves the \emph{lowest} Recall (0.9625) and F1 (0.9676), indicating that a large number of unverified features can actually hurt performance.
+
+\subsubsection{Results without Class Balancing (spw=1)}
+
+To better differentiate methods, we re-evaluate all methods with \texttt{scale\_pos\_weight=1} (no class balancing), which forces the model to rely more heavily on feature quality rather than reweighting. Table~\ref{tab:simecny_spw1} shows the results.
+
+\begin{table}[t]
+\centering
+\caption{SimECNY AML results (spw=1, mean$\pm$std over 5 seeds).}
+\label{tab:simecny_spw1}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Method} & \textbf{$n_f$} & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
+\hline
+No-FE     & 93   & \textbf{.9409{\scriptsize$\pm$.011}} & .9934{\scriptsize$\pm$.002} & \textbf{.9664{\scriptsize$\pm$.006}} & .9996{\scriptsize$\pm$.000} \\
+OpenFE    & 123  & .9342{\scriptsize$\pm$.012} & .9912{\scriptsize$\pm$.002} & .9619{\scriptsize$\pm$.007} & .9995{\scriptsize$\pm$.000} \\
+CAAFE     & 94   & .9382{\scriptsize$\pm$.012} & .9922{\scriptsize$\pm$.002} & .9644{\scriptsize$\pm$.007} & .9996{\scriptsize$\pm$.000} \\
+FeatLLM   & 1124 & .9298{\scriptsize$\pm$.014} & .9912{\scriptsize$\pm$.002} & .9595{\scriptsize$\pm$.008} & .9995{\scriptsize$\pm$.000} \\
+KnowFeat  & 95   & \underline{.9394{\scriptsize$\pm$.008}} & .9932{\scriptsize$\pm$.002} & \underline{.9655{\scriptsize$\pm$.005}} & .9996{\scriptsize$\pm$.000} \\
+\hline
+\end{tabular}
+\end{table}
+
+Without class balancing, the recall gap between methods widens substantially. FeatLLM suffers the largest drop ($\Delta$Recall $= -0.033$), confirming that its 1,031 features are largely noise that the model relied on the sample weighting to compensate for. KnowFeat exhibits the smallest drop among feature-engineered methods ($\Delta$Recall $= -0.029$), with F1 (0.9655) nearly matching the No-FE baseline (0.9664). This robustness to evaluation settings underscores the quality of knowledge-guided features.
+
+\subsection{RQ3: Ablation Study}
+\label{subsec:rq3}
+
+To quantify the contribution of domain knowledge, we compare the \textit{schema\_only} variant (Level 0: no domain knowledge, only dataset metadata) against the \textit{full} variant (all knowledge levels). Results are shown in Table~\ref{tab:ablation}.
+
+\begin{table}[t]
+\centering
+\caption{Ablation study: schema\_only vs.\ full KnowFeat (AUC).}
+\label{tab:ablation}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\hline
+\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & \textbf{$\Delta$AUC} \\
+\hline
+blood\_transfusion & 0.6891{\scriptsize$\pm$.048} & \textbf{0.7007{\scriptsize$\pm$.036}} & +0.012 \\
+heart              & 0.9304{\scriptsize$\pm$.005} & \textbf{0.9379{\scriptsize$\pm$.006}} & +0.008 \\
+diabetes           & — (0 features) & 0.8190{\scriptsize$\pm$.032} & — \\
+\hline
+\end{tabular}
+\end{table}
+
+The results reveal several important findings:
+
+\textbf{Knowledge drives feature generation.} On the diabetes dataset, the schema-only variant generates \emph{zero} features that pass the L3 verification---the LLM cannot create useful features from column names alone without domain understanding. With full knowledge, KnowFeat generates 24 accepted features and improves AUC by +0.016 over No-FE.
+
+\textbf{Knowledge improves feature quality.} On blood\_transfusion and heart, the full variant outperforms schema\_only by +0.012 and +0.008 AUC respectively. Both variants generate a similar number of features (e.g., 12 vs.\ 12 on blood\_transfusion), indicating that the improvement comes from feature \emph{quality}, not quantity---domain knowledge guides the agent toward more predictive transformations.
+
+\textbf{SimECNY ablation.} On the AML dataset, schema\_only and full achieve near-identical results (F1: 0.9718 vs.\ 0.9716, AUC: 0.9996 vs.\ 0.9996), which we attribute to the strength of the 93 baseline features. The baseline already captures most discriminative signal, leaving minimal room for improvement regardless of knowledge level. This motivates future work with reduced baseline features to more clearly demonstrate knowledge contributions (see Section~\ref{sec:conclusion}).
+
+\subsection{RQ4: Feature Quantity vs.\ Quality}
+\label{subsec:rq4}
+
+Table~\ref{tab:feature_count} compares the number of features generated by each method.
+
+\begin{table}[t]
+\centering
+\caption{Number of features after engineering (including baseline).}
+\label{tab:feature_count}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lcccccc}
+\hline
+\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
+\hline
+credit\_g          & 20  & 50  & 23  & 24  & 280  & 46  \\
+diabetes           & 8   & 38  & 13  & 9   & 152  & 24  \\
+blood\_trans.      & 4   & 34  & 4   & 7   & 120  & 12  \\
+heart              & 11  & 41  & 21  & 14  & 98   & 31  \\
+breast\_w          & 9   & 39  & 20  & 10  & 107  & 16  \\
+SimECNY            & 93  & 123 & —   & 94  & 1124 & 95  \\
+\hline
+\end{tabular}
+\end{table}
+
+FeatLLM generates by far the most features (98--1,124), yet achieves the worst or near-worst performance on most datasets. This confirms that \emph{more features $\neq$ better performance} when verification is absent. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +2 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline, ensuring that each feature makes a genuine contribution.
+
+On SimECNY, the contrast is particularly stark: KnowFeat adds only 2 features (both verified to improve recall) while FeatLLM adds 1,031 features (unverified), yet KnowFeat achieves higher F1 and Recall. This demonstrates the effectiveness of quality-over-quantity feature engineering.
+
+% Placeholder for efficiency analysis
+\subsection{Provenance and Interpretability}
+\label{subsec:provenance}
+
+A distinctive advantage of KnowFeat is that every generated feature comes with a provenance card. Figure~\ref{fig:provenance} shows an example provenance card for a feature generated on the AML dataset.
+
+\begin{figure}[t]
+    \centering
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{1.5cm}\textit{[Provenance card example placeholder]}\vspace{1.5cm}}}
+    \caption{Example provenance card for a KnowFeat-generated feature, showing the knowledge assets (RULE\_003, IND\_12), reasoning chain, and computation steps.}
+    \label{fig:provenance}
+\end{figure}
+
+Each provenance card includes: (1) the knowledge assets that inspired the feature, referenced by ID; (2) a structured reasoning chain explaining \emph{why} the feature is relevant; and (3) the computation steps from raw fields to the final value. This level of traceability is essential for deployment in regulated industries where model features must be auditable and explainable to compliance officers and regulators.

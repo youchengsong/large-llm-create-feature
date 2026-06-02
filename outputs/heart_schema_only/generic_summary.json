@@ -1,0 +1,27 @@
+{
+  "stage": "generic",
+  "total_rounds": 5,
+  "total_accepted": 16,
+  "total_candidates": 0,
+  "total_rejected": 64,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3578.6,
+  "accepted_features": [
+    "Metabolic_Syndrome",
+    "Oldpeak_ST_interact",
+    "Exercise_Consistency_Score",
+    "HR_Ratio",
+    "RestingECG_ASY_Interaction",
+    "Diamond_Forrester_Score",
+    "Age_Sex_BP_Composite",
+    "Exercise_Negative_Exclusion",
+    "Exercise_Positive_HighRisk_Profile",
+    "Exercise_Positive_Hypertension",
+    "RestingECG_ST_Slope_Combo_v2",
+    "ST_Slope_FastingBS_Score",
+    "Chol_Age_Sex_Composite",
+    "Oldpeak_RestingECG_Interaction",
+    "Chol_Missing_FastingBS_Score",
+    "Silent_Ischemia_Score"
+  ]
+}

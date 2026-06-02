@@ -147,13 +147,15 @@ def load_stage2(cfg: Optional[KnowFeatConfig] = None,
 
 
 def get_label_series(data: Stage2Data) -> pd.Series:
-    """从 tx_df 中提取标签列。"""
+    """从 baseline_features 中提取标签列（确保与特征行对齐）。"""
+    if data.baseline_features is not None and data.label_col in data.baseline_features.columns:
+        return data.baseline_features[data.label_col].astype(int).reset_index(drop=True)
     return data.tx_df[data.label_col].astype(int)
 
 
 BASELINE_EXCLUDE_FEATURES = {
     # 标签 / ID 列
-    "is_laundering", "is_risk", "tx_id", "src", "dst",
+    "is_laundering", "is_risk", "tx_id", "tx_id_fe", "src", "dst",
     # 以下 10 个特征因数据泄漏或过拟合风险从基线中排除（不删除 parquet 原数据）
     "Min_Received",
     "Min_Sent",

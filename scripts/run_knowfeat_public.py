@@ -69,10 +69,18 @@ DATASET_REGISTRY = {
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "breast_w" / "domain_knowledge.json",
         "dimensions": ["细胞特征", "核特征", "复合指标"],
     },
+    "adult": {
+        "csv": PROJECT_ROOT / "data" / "public" / "adult.csv",
+        "target": "class",
+        "domain": "收入预测",
+        "task": "二分类（年收入是否超过50K美元）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "adult" / "domain_knowledge.json",
+        "dimensions": ["人口统计", "教育就业", "财务资产", "社会经济"],
+    },
 }
 
 
-def build_config(dataset_name: str, max_features: int = 20) -> KnowFeatConfig:
+def build_config(dataset_name: str, max_features: int = 9999) -> KnowFeatConfig:
     """为公开数据集构建 KnowFeat 配置。"""
     reg = DATASET_REGISTRY[dataset_name]
 
@@ -91,7 +99,7 @@ def build_config(dataset_name: str, max_features: int = 20) -> KnowFeatConfig:
     cfg.verification.accept_metric = "auc"
     cfg.search.dimensions = reg["dimensions"]
     cfg.search.max_features = max_features
-    cfg.search.initial_budget_per_dim = max(2, max_features // len(reg["dimensions"]))
+    cfg.search.initial_budget_per_dim = max(2, 20 // len(reg["dimensions"]))
 
     return cfg
 
@@ -99,7 +107,7 @@ def build_config(dataset_name: str, max_features: int = 20) -> KnowFeatConfig:
 def main():
     parser = argparse.ArgumentParser(description="在公开数据集上运行 KnowFeat")
     parser.add_argument("--dataset", required=True, choices=list(DATASET_REGISTRY.keys()))
-    parser.add_argument("--max-features", type=int, default=20)
+    parser.add_argument("--max-features", type=int, default=9999)
     parser.add_argument("--max-rounds", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--knowledge-filter", default=None,

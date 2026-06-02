@@ -6,7 +6,13 @@ data/full_backup/
 output/full_baseline_features.csv
 output/full_baseline_features_original.csv
 outputs/baseline_cache.parquet
+outputs/baseline_cache_40feat.parquet
 outputs/single_agent_run/*.parquet
+outputs/featllm/simecny_features.csv
+outputs/openfe/simecny_features.csv
+outputs/simecny_knowfeat_features.csv
+outputs/caafe/simecny_features.csv
+outputs/caafe/simecny_code.py
 logs/
 
 # Python
@@ -25,6 +31,22 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Node
+node_modules/
+
+# Paper build artifacts
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+
+# Claude manager temp
+.claude-manager/
 
 # SimECNY intermediate files
 inputs/SimECNY/open/accounts.csv

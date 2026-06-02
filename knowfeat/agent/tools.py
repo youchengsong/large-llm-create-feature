@@ -570,6 +570,7 @@ class ToolContext:
             label=label_aligned,
             vcfg=self.vcfg,
             seed=self.cfg.seed,
+            spw_override=self.vcfg.spw_override,
         )
         pr.l3_result = l3
         pr.stage_reached = "L3"
@@ -818,8 +819,13 @@ def _align_series(
 
     if "wallet_id" in sandbox_df.columns:
         wallet_map = dict(zip(sandbox_df["wallet_id"], feature_series.values))
-        if "src" in data.tx_df.columns:
-            aligned = data.tx_df["src"].map(wallet_map)
+        src_series = None
+        if data.baseline_features is not None and "src" in data.baseline_features.columns:
+            src_series = data.baseline_features["src"]
+        elif "src" in data.tx_df.columns:
+            src_series = data.tx_df["src"]
+        if src_series is not None:
+            aligned = src_series.map(wallet_map)
         elif "wallet_id" in data.tx_df.columns:
             aligned = data.tx_df["wallet_id"].map(wallet_map)
         else:

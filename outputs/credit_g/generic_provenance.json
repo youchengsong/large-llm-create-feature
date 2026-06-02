@@ -1,0 +1,452 @@
+[
+  {
+    "feature_name": "age_employment_risk_score",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄与就业稳定性的交互风险评分。年轻(<25)且就业不稳定(<1年或失业)的申请人违约风险最高，年长(>=35)且就业稳定(>=7年)的申请人违约风险最低。该特征将年龄和就业两个维度的信息融合为一个序数风险评分(0-4)。",
+    "reasoning": "步骤1: 因为IND_08指出年龄越小风险越高（<25岁为高风险），且IND_06指出就业时间越短风险越高（'unemployed'或'<1'为高风险），所以将年龄分为三组（<25, 25-35, >=35）并将就业分为三档（不稳定/中等/稳定）。步骤2: 因为EXP_04指出年龄与几乎所有其他特征存在交互，年轻申请人就业不稳定的违约率远高于平均水平，所以将年龄和就业状态组合成一个5级风险评分（0-4），其中年轻+就业不稳定=4分（最高风险），成熟+就业稳定=0分（最低风险）。",
+    "knowledge_source": "基于IND_06(就业不稳定)、IND_08(年龄风险)和EXP_04(年龄交互效应)设计年龄-就业交互风险评分",
+    "data_fields_used": [
+      "age",
+      "employment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "b5bb3ad2e6ff8017"
+  },
+  {
+    "feature_name": "personal_status_checking_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "个人状态与活期账户状态的交互风险评分。从数据探索发现，'male single' + 'no checking'的违约率高达0.897，而'female div/dep/mar' + '<0'的违约率仅为0.477。该特征将个人状态和活期账户状态的风险等级相加，生成0-4的序数风险评分。",
+    "reasoning": "步骤1: 因为IND_01指出活期账户余额为负(<0)是高风险信号，而'no checking'反直觉地与较低风险相关，所以将活期账户分为三档风险等级：<0=高风险(2分), no checking和0<=X<200=中风险(1分), >=200=低风险(0分)。步骤2: 因为数据探索发现不同个人状态的违约率差异显著(female div/dep/mar=0.648最低, male single=0.734最高)，所以将个人状态分为三档风险等级：female div/dep/mar=0分, male div/sep=1分, male mar/wid和male single=2分。步骤3: 因为EXP_04指出年龄与几乎所有其他特征存在交互，类似地个人状态也与活期账户存在强交互（如male single+no checking违约率0.897远高于各自单独效应），所以将两个风险等级相加得到0-4的综合风险评分。",
+    "knowledge_source": "基于IND_01(活期账户透支)和EXP_04(交互效应)，结合数据探索发现的个人状态与活期账户的强交互模式",
+    "data_fields_used": [
+      "personal_status",
+      "checking_status"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "74e8a9dc24e6e9eb"
+  },
+  {
+    "feature_name": "financial_vulnerability_score",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "财务脆弱性评分，综合储蓄不足(IND_05)、无资产(IND_09)、住房不稳定(IND_11)三个维度的风险，并对三重脆弱性给予额外惩罚。分数范围0-5分，越高风险越大。",
+    "reasoning": "步骤1: 因为IND_05指出储蓄不足（<100或no known savings）的借款人缺乏财务缓冲，违约风险高，所以对储蓄不足的样本加1分；步骤2: 因为IND_09指出无已知资产（no known property）的借款人缺乏抵押品和财务稳定信号，所以对无资产样本加1分，仅有汽车的加0.5分（汽车价值较低）；步骤3: 因为IND_11指出非自有住房（rent/for free）的借款人面临持续的住房成本压力，所以对非自有住房样本加1分；步骤4: 因为RULE_003指出同时满足无储蓄+无资产+租房的样本违约率高达80%（远高于平均30%），存在三重脆弱性的乘法交互效应，所以额外加2分以捕获这种叠加风险。",
+    "knowledge_source": "综合IND_05(储蓄不足)、IND_09(无资产)、IND_11(住房不稳定)和RULE_003(无储蓄+无资产+租房)的领域知识",
+    "data_fields_used": [
+      "savings_status",
+      "property_magnitude",
+      "housing"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "ed4cfb21a3852778"
+  },
+  {
+    "feature_name": "cashflow_crisis_index",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "现金流危机指数，综合活期账户透支(IND_01, EXP_01最强预测因子)、储蓄不足(IND_05)和高金额(RULE_001)三个维度。透支为最高风险信号，与高金额叠加时风险非线性放大。分数范围0-5分。",
+    "reasoning": "步骤1: 因为EXP_01指出活期账户状态是德国信贷数据集中违约预测最强的单一特征，余额为负(<0 DM)的申请人违约概率约为>=200 DM申请人的2-3倍，数据也显示透支样本bad_rate约49.3%，所以checking_status='<0'加2分；步骤2: 因为IND_05指出储蓄不足（<100或no known savings）的借款人缺乏财务缓冲，数据也显示无储蓄样本违约率更高，所以对无储蓄样本加1分；步骤3: 因为IND_04指出信贷金额>5000 DM为高风险，且数据探索显示金额>5000时违约率上升，所以credit_amount>5000加1分；步骤4: 因为RULE_001指出透支+高金额同时存在时风险非线性放大（数据验证bad_rate=63.8% vs 单独透支49.3%），所以同时满足时额外加1分捕获交互效应。",
+    "knowledge_source": "综合IND_01(活期账户透支)、IND_04(信贷金额)、IND_05(储蓄不足)、RULE_001(透支+高金额)、EXP_01(活期账户最强预测因子)的领域知识",
+    "data_fields_used": [
+      "checking_status",
+      "savings_status",
+      "credit_amount"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6e9446e6a498ce8f"
+  },
+  {
+    "feature_name": "credit_history_risk_score",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "explanation": "将信用历史类别映射为有序风险评分(0-4)，基于IND_03不良信用历史的风险排序，并考虑EXP_03中'no credits/all paid'和'all paid'的悖论效应（薄档案反而违约率更低）。",
+    "reasoning": "步骤1: 因为IND_03(不良信用历史)指出过去违约是未来违约的最强预测因子，且'critical/other existing credit'和'delayed previously'为高风险类别，所以将这两个类别映射为最高分(4分和3分); 步骤2: 因为EXP_03(信用历史悖论)指出'no credits/all paid'和'all paid'的违约率反而低于'existing paid'（选择偏差导致），所以将'no credits/all paid'映射为最低分(0分)，'all paid'映射为1分，'existing paid'映射为2分; 步骤3: 因为需要将分类变量转换为数值型有序特征供模型使用，所以使用向量化映射生成risk_scores数组。",
+    "knowledge_source": "基于IND_03(不良信用历史)的风险排序和EXP_03(信用历史悖论)的薄档案效应",
+    "data_fields_used": [
+      "credit_history"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "88beb37f2afb0b07"
+  },
+  {
+    "feature_name": "history_checking_interaction_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "explanation": "将信用历史（IND_03）和活期账户状态（IND_01，最强单一预测因子）进行交互组合，两个高风险叠加时给予额外加分（乘法交互效应），生成0-6分的风险评分。",
+    "reasoning": "步骤1: 因为IND_01(活期账户透支)指出活期账户余额为负是德国信贷数据集中最强的单一预测因子，且EXP_01确认其始终排名第一，所以将checking_status编码为0-2的风险分; 步骤2: 因为IND_03(不良信用历史)指出过去违约是未来违约的最强预测因子，所以将credit_history编码为0-2的风险分; 步骤3: 因为EXP_01指出余额为负的申请人违约概率约为>=200 DM申请人的2-3倍，且两个最强预测因子叠加时风险非线性放大，所以将基础分相加后，对历史高风险+账户高风险样本额外加2分以捕获乘法交互效应; 步骤4: 因为需要生成有序数值特征供模型使用，所以最终评分范围为0-6分。",
+    "knowledge_source": "基于IND_01(活期账户透支)、IND_03(不良信用历史)和EXP_01(活期账户最强预测因子)的交互组合",
+    "data_fields_used": [
+      "credit_history",
+      "checking_status"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "c8e8aa757a00ccbb"
+  },
+  {
+    "feature_name": "purpose_amount_risk_score",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "explanation": "贷款用途-金额风险评分，将purpose按违约率分为5级风险等级，与credit_amount的4级风险等级进行乘法交互，并加入高风险用途+高金额的额外加分和低风险用途+低金额的额外减分，生成0-8的综合风险评分。",
+    "reasoning": "步骤1: 因为EXP_05指出贷款用途包含显著的非线性风险信息，将用途分为风险等级比one-hot编码更有效，且探索显示education(44%)和other(41.7%)违约率最高，所以将purpose映射为0-4的风险等级; 步骤2: 因为IND_04指出信贷金额越高风险越大，>5000 DM为高风险，>10000 DM为极高风险，且探索显示>10000违约率60%，所以将credit_amount分箱为0-4的风险等级; 步骤3: 因为EXP_02指出贷款金额和期限存在乘法交互，用途和金额的组合风险也应是非线性的，所以计算purpose_risk * amount_risk的乘法交互; 步骤4: 因为RULE_005指出不良历史+高暴露的组合风险更高，类似地高风险用途+高金额也应额外加分，所以对高风险用途(>=3)且高金额(>5000)加2分",
+    "knowledge_source": "基于EXP_05（贷款用途风险等级）、IND_04（信贷金额风险）、RULE_005（不良历史+高暴露）",
+    "data_fields_used": [
+      "purpose",
+      "credit_amount"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "353b4f2e20aa396d"
+  },
+  {
+    "feature_name": "duration_installment_interaction",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "explanation": "贷款期限-分期负担交互风险评分，将duration按IND_02阈值分箱为0-3风险等级，installment_commitment按IND_07阈值分箱为0-2风险等级，加法交互后加入乘法交互额外加分。捕获duration>36+installment>=3（违约率78.6%）等极端高风险组合。",
+    "reasoning": "步骤1: 因为IND_02指出贷款期限越长风险越高，>24个月为高风险，>36个月为极高风险，所以将duration按阈值[12,24,36]分箱为0-3风险等级; 步骤2: 因为IND_07指出installment_commitment数值越高负担越重，4为最高风险，且探索显示installment=3和4的违约率显著高于1和2，所以将installment分箱为0-2风险等级; 步骤3: 因为EXP_02指出贷款期限和金额存在乘法交互，类似地期限和分期负担也存在交互效应，所以计算加法交互score = dur_risk + inst_risk; 步骤4: 因为探索发现duration>36+installment>=3违约率高达78.6%，duration 25-36+installment=4违约率47.9%，远超单独效应的叠加，所以对这两类组合额外加1分捕获乘法交互效应",
+    "knowledge_source": "基于IND_02（贷款期限风险）、IND_07（分期付款负担）、EXP_02（乘法交互）",
+    "data_fields_used": [
+      "duration",
+      "installment_commitment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "e4ec0a0ed0ea0bf1"
+  },
+  {
+    "feature_name": "age_employment_woe_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-就业WOE风险评分，基于IND_08（年龄风险）、IND_06（就业不稳定）和EXP_04（年龄交互效应）的WOE映射特征。数据探索显示age_group+employment组合IV=0.2410。高风险组合如>45岁+4<=X<7年(WOE=1.23)映射为4分，低风险组合如30-35岁+<1年(WOE=-0.78)映射为0分。",
+    "reasoning": "步骤1: 因为IND_08指出年龄与就业存在显著交互效应，且数据探索显示age_group+employment组合IV=0.2410远高于单独字段的IV（age=0.1083，employment=0.0864），所以将年龄分为5组（<25, 25-30, 30-35, 35-45, >45），将就业分为5类（1<=X<4, 4<=X<7, <1, >=7, unemployed）。\n步骤2: 因为数据探索计算了25个组合的WOE值，发现高风险组合如>45岁+4<=X<7(WOE=1.23)、35-45岁+4<=X<7(WOE=0.92)、30-35岁+4<=X<7(WOE=0.73)、30-35岁+1<=X<4(WOE=0.65)，低风险组合如30-35岁+<1(WOE=-0.78)、30-35岁+unemployed(WOE=-0.85)、25-30岁+unemployed(WOE=-1.03)、<25岁+<1(WOE=-0.77)，所以将WOE分箱映射为0-4分：WOE>0.7=4分，0.2<WOE<=0.7=3分，-0.3<WOE<=0.2=2分，-0.7<WOE<=-0.3=1分，WOE<=-0.7=0分。\n步骤3: 因为需要将每个样本映射到对应的年龄-就业组合，所以使用二维映射矩阵，根据年龄分组和就业编码查询对应的风险分数。",
+    "knowledge_source": "基于IND_08（年龄风险）、IND_06（就业不稳定）和EXP_04（年龄交互效应）的WOE交互效应分析",
+    "data_fields_used": [
+      "age",
+      "employment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "9e991bd5d5fee9bb"
+  },
+  {
+    "feature_name": "checking_installment_interaction_risk",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "活期账户与分期负担的交互风险评分。结合IND_01（活期账户透支-最强单一预测因子）和IND_07（分期付款负担），两个字段相关性极低(corr=0.0053)，组合后能捕获独特的风险信号。",
+    "reasoning": "步骤1: 因为IND_01指出活期账户余额为负(<0)是德国信贷数据集中最强的单一预测因子（违约率49.3%），而'no checking'违约率仅11.7%，所以将checking_status编码为0-3风险分。步骤2: 因为IND_07指出installment_commitment=4为最高负担（最高风险），且数据发现installment=3或4的违约率高于1或2，所以将installment编码为0-1风险分（>=3得1分）。步骤3: 因为数据探索发现checking='<0'+installment=4的组合违约率高达56.3%，远高于两者单独风险之和（49.3%+33.4%），所以增加交互加分2分。步骤4: 因为checking='0<=X<200'+installment=4的违约率40.7%也高于单独风险，所以增加交互加分1分。步骤5: 因为checking='no checking'+installment低(1或2)的违约率仅8-14.6%，低于平均水平，所以给予减分1分作为奖励。",
+    "knowledge_source": "基于IND_01（活期账户透支）、IND_07（分期付款负担）以及EXP_01（活期账户状态是最强预测因子）",
+    "data_fields_used": [
+      "row_id",
+      "checking_status",
+      "installment_commitment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6a9935d8093f0d75"
+  },
+  {
+    "feature_name": "age_personal_status_woe_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-个人状态WOE风险评分，基于IND_08（年龄风险）和personal_status的交互效应，使用实际WOE值进行分箱映射。高风险组合如35-45岁+male mar/wid(WOE=1.46)映射为4分，低风险组合如<25岁+female div(WOE=-0.64)映射为1分。",
+    "reasoning": "步骤1: 因为IND_08指出年龄与个人状态存在显著交互效应，且数据探索显示age_group+personal_status组合IV=0.2148远高于单独字段，所以将年龄分为5组（<25, 25-30, 30-35, 35-45, >45），将个人状态分为4类（female div/dep/mar, male div/sep, male mar/wid, male single）。\n步骤2: 因为数据探索计算了20个组合的WOE值，发现高风险组合（WOE>0.5）如35-45岁+male mar/wid(WOE=1.46)、35-45岁+female div(WOE=0.60)、>45岁+female div(WOE=0.57)、30-35岁+male single(WOE=0.54)，低风险组合（WOE<-0.5）如<25岁+female div(WOE=-0.64)、25-30岁+male div(WOE=-0.85)、30-35岁+female div(WOE=-0.55)，所以将WOE分箱映射为0-4分：WOE>0.5=4分，0<WOE<=0.5=3分，-0.5<WOE<=0=2分，-1<WOE<=-0.5=1分，WOE<=-1=0分。\n步骤3: 因为需要将每个样本映射到对应的年龄-个人状态组合，所以使用二维映射矩阵，根据年龄分组和个人状态编码查询对应的风险分数。",
+    "knowledge_source": "基于IND_08（年龄风险）和personal_status字段的WOE交互效应分析",
+    "data_fields_used": [
+      "age",
+      "personal_status"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "b1ffc158835f4d3a"
+  },
+  {
+    "feature_name": "purpose_savings_interaction_risk",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "explanation": "贷款用途与储蓄状况的乘法交互风险评分。基于EXP_05（贷款用途风险等级）和IND_05（储蓄不足）的交互特征。高风险用途（如used car违约率83.5%, radio/tv违约率77.9%）搭配储蓄不足（no known savings）时违约率飙升至90%以上。使用purpose_r * (savings_r+1)公式捕获这种乘法交互效应。数据探索显示IV高达0.2826。",
+    "reasoning": "步骤1: 因为EXP_05指出贷款用途包含显著的非线性风险信息，二手车贷款违约率最低(16.5%)，娱乐贷款最高(radio/tv违约率77.9%)，所以基于实际违约率排序构建purpose_risk_map，将10个用途映射为0-7的风险评分。步骤2: 因为IND_05指出储蓄越少风险越高（<100或no known savings为高风险），储蓄作为收入冲击的财务缓冲，所以构建savings_risk_map：>=1000=0, 500<=X<1000=1, 100<=X<500=2, <100=3, no known savings=4。步骤3: 因为数据探索发现高风险用途+储蓄不足的组合违约率极高（used car+no known savings=90.6%, radio/tv+no known savings=88.5%, furniture/equipment+>=1000=100%但样本少），存在乘法交互效应，所以使用purpose_r*(savings_r+1)公式捕获这种非线性放大效应。",
+    "knowledge_source": "基于EXP_05（贷款用途风险等级）、IND_05（储蓄不足）和EXP_06（储蓄作为缓冲能力）的交互特征。",
+    "data_fields_used": [
+      "purpose",
+      "savings_status"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "7dd6e2c6c8a76271"
+  },
+  {
+    "feature_name": "age_savings_interaction_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-储蓄状况交互风险评分，基于IND_05(储蓄不足)、IND_08(年龄风险)和EXP_04(年龄交互)的跨维度交互特征。使用5段年龄分段与5类储蓄状况的25种组合，基于实际违约率映射为5档有序风险评分。数据探索显示该组合IV=0.3267，KS=0.2062。",
+    "reasoning": "步骤1: 因为IND_08指出年龄越小风险越高但数据探索发现实际违约率呈倒U型，所以将年龄分为5段（<25, 25-30, 30-35, 35-45, >45）；步骤2: 因为IND_05指出储蓄越少风险越高，所以将savings_status编码为5类（<100, 100<=X<500, no known savings, 500<=X<1000, >=1000）；步骤3: 因为EXP_04指出年龄与几乎所有其他特征存在交互，数据探索发现age×savings_status组合IV=0.3267，所以创建25种组合的有序编码；步骤4: 因为需要避免target泄露，所以基于实际违约率排序将25种组合映射为5档有序风险评分（0-4分），低风险组合（mean<0.55）映射为0分，高风险组合（mean>=0.88）映射为4分。",
+    "knowledge_source": "基于IND_05(储蓄不足)、IND_08(年龄风险)、EXP_04(年龄交互)以及数据探索发现的年龄-储蓄交互模式",
+    "data_fields_used": [
+      "age",
+      "savings_status"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "0b978e3706e8cda1"
+  },
+  {
+    "feature_name": "savings_property_woe_risk",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "储蓄状况与资产类型的WOE映射交互风险评分。基于IND_05（储蓄不足）、IND_09（无资产）和EXP_07（财富/稳定性复合指标）的交互效应。高风险组合如<100+no known property（违约率50%）和100<=X<500+no known property（违约率55.6%）映射为4分，低风险组合如100<=X<500+real estate（违约率5%）和>=1000+real estate（违约率0%）映射为0分。",
+    "reasoning": "步骤1: 因为IND_05（储蓄不足）指出储蓄越少风险越高，储蓄作为收入冲击的财务缓冲，所以将savings_status作为核心风险维度。步骤2: 因为IND_09（无资产）指出无已知资产为高风险，房产所有权是财务稳定和财富积累的代理指标，所以将property_magnitude作为第二风险维度。步骤3: 因为EXP_07（财富/稳定性复合指标）指出资产和住房特征共同构成的财富/稳定性复合指标比单独使用更具预测力，且数据探索发现savings_status与checking_status的Cramer's V仅0.164（低相关性），所以构建savings_status和property_magnitude的交互特征。步骤4: 因为数据探索发现两个字段的交互WOE跨度极大（-1.25到2.10），区分度极强，所以计算每个组合的WOE值并分箱映射为0-4分的有序风险评分。",
+    "knowledge_source": "基于IND_05（储蓄不足）、IND_09（无资产）、EXP_07（财富/稳定性复合指标）",
+    "data_fields_used": [
+      "savings_status",
+      "property_magnitude"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6a9de817ac859e11"
+  },
+  {
+    "feature_name": "residence_employment_woe_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "居住时长-就业稳定性WOE风险评分（0-4分）。基于IND_06（就业不稳定）和residence_since（居住时长）的WOE映射交互特征。数据探索发现该组合IV=0.2476，捕获了如\"居住1年+失业=83.3%违约率\"等极端风险模式。",
+    "reasoning": "步骤1: 因为IND_06（就业不稳定）指出就业时间越短风险越高，而residence_since（居住时长）反映了居住稳定性，两者结合可更全面评估客户稳定性风险，所以需要构建residence_since x employment的交互特征。\n步骤2: 因为数据探索发现residence_since x employment组合的IV高达0.2476，且存在非线性交互效应（如residence=3+>=7年就业的违约率44%远高于各自单独水平），所以需要为每种组合单独计算风险评分。\n步骤3: 因为WOE（证据权重）能有效量化每个组合相对于整体平均水平的风险偏离，所以计算20种组合的WOE值作为风险度量。\n步骤4: 根据WOE分箱阈值（<-1.0=4分，-1.0~-0.5=3分，-0.5~0.0=2分，0.0~0.5=1分，>=0.5=0分）将20种组合映射为0-4分的有序风险评分。\n步骤5: 遍历每个样本，根据其residence_since和employment查找映射表，得到最终风险评分。",
+    "knowledge_source": "基于IND_06（就业不稳定）和residence_since（居住时长）的交互效应，数据探索发现IV=0.2476。",
+    "data_fields_used": [
+      "residence_since",
+      "employment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "a3dc2c57bf64a042"
+  },
+  {
+    "feature_name": "personal_status_payment_woe_risk",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "个人状态-外部债务WOE交互风险评分（0-3分）。基于IND_10（外部债务增加总债务负担）和personal_status的交互效应，使用WOE映射。数据探索发现personal_status×other_payment_plans组合的违约率从23%到83%跨度极大，且与已有特征相关性很低（最高0.15）。",
+    "reasoning": "步骤1: 因为IND_10指出有外部还款计划（bank或stores）增加总债务负担，直接影响偿债能力，所以需要将other_payment_plans与个人状态字段组合。  \n步骤2: 因为personal_status（个人状态）反映了申请人的家庭状况和性别，与外部债务负担存在交互效应（如单身男性无外部债务违约率最低23%，离异男性租房+外部债务违约率最高83%），所以将personal_status和other_payment_plans组合为交互特征。  \n步骤3: 因为WOE（证据权重）能量化每个组合相对于整体的风险偏离程度，且与已有特征的相关性很低（最高0.15），所以基于WOE值分箱映射为0-3分的有序风险评分。",
+    "knowledge_source": "基于IND_10（外部债务增加总债务负担）和personal_status（个人状态）的WOE映射交互特征",
+    "data_fields_used": [
+      "personal_status",
+      "other_payment_plans"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "8d68dd7cb76e13a8"
+  },
+  {
+    "feature_name": "guarantor_housing_paradox_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "explanation": "担保人与住房状况的悖论交互风险评分。数据探索发现反直觉模式：guarantor+own违约率87.5%（有担保人+自有住房反而风险最高），而co applicant+rent仅27.3%。这种模式与已有特征的冗余度预计很低。",
+    "reasoning": "步骤1: 因为RULE_010（担保人缓释）指出有担保人或共同申请人可降低风险，但数据探索发现反直觉模式（guarantor+own违约率87.5%），所以选择other_parties和housing两个字段进行交互组合。\n步骤2: 因为数据探索发现other_parties x housing的交互模式非常独特（guarantor+own=87.5% vs co applicant+rent=27.3%），且这两个字段都未被已有特征使用，所以与credit_history_risk_score等已有特征的冗余度预计很低。\n步骤3: 因为需要确保冗余度<0.7，所以选择与已有特征使用的字段完全不重叠的other_parties和housing。\n步骤4: 基于实际违约率排序，将9种组合映射为5档风险评分（0-4分）。",
+    "knowledge_source": "基于RULE_010（担保人缓释）、IND_11（住房不稳定）以及数据探索发现的other_parties x housing反直觉交互模式。",
+    "data_fields_used": [
+      "other_parties",
+      "housing"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "ca15747aa9c75b74"
+  },
+  {
+    "feature_name": "personal_status_residence_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "explanation": "个人状态与居住稳定性的交互风险评分。数据探索发现personal_status x residence_since的IV=0.1158，交互模式丰富且反直觉：male div/sep+residence=1违约率仅30.0%，而male div/sep+residence=2高达80.0%。该特征不使用已有特征使用的字段，冗余度预计很低。",
+    "reasoning": "步骤1: 因为IND_13（职业风险）和residence_since（居住时长）都是重要风险指标，且数据探索发现personal_status x residence_since的IV=0.1158，所以选择这两个字段进行交互组合。\n步骤2: 因为personal_status和residence_since都未被已有特征使用，所以与credit_history_risk_score等已有特征的冗余度预计很低。\n步骤3: 因为数据探索发现交互模式丰富且反直觉（male div/sep+residence=1仅30.0% vs male div/sep+residence=2高达80.0%），所以基于实际违约率排序构建5档风险映射矩阵。\n步骤4: 基于实际违约率排序，将16种组合映射为5档风险评分（0-4分）。",
+    "knowledge_source": "基于IND_13（职业风险）、residence_since（居住时长）以及数据探索发现的personal_status x residence_since交互模式。",
+    "data_fields_used": [
+      "personal_status",
+      "residence_since"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6de942b36a888cc7"
+  },
+  {
+    "feature_name": "monthly_payment_installment_woe_risk",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "explanation": "基于月还款负担代理(credit_amount/duration)与分期付款负担的WOE映射交互风险评分。核心发现：中高月还款(Q3)+最低分期负担(1)的WOE=1.17（极低风险），而中低月还款(Q2)+最低分期负担(1)的WOE=-1.00（极高风险），存在显著的非线性交互效应。评分范围0-4分。",
+    "reasoning": "步骤1: 因为RULE_008指出credit_amount/duration可作为月还款负担的代理指标，且EXP_02指出期限与金额存在乘法交互，所以计算monthly_pmt=credit_amount/duration。\n步骤2: 因为数据探索发现monthly_pmt与duration的相关性仅-0.13（低相关），可避免冗余问题，所以将monthly_pmt分为4等份(Q1-Q4)。\n步骤3: 因为IND_07指出分期付款负担越高风险越大，但数据探索发现monthly_pmt与installment存在显著非线性交互（如mp=Q3+inst=1的WOE=1.17，mp=Q2+inst=1的WOE=-1.00），所以计算16种组合的WOE值。\n步骤4: 因为WOE值反映各组合相对于整体的风险偏离，所以按WOE阈值分箱映射为0-4分有序风险评分。",
+    "knowledge_source": "基于RULE_008（月还款代理）、IND_07（分期付款负担）和EXP_02（期限与金额的乘法交互）的WOE映射交互特征",
+    "data_fields_used": [
+      "credit_amount",
+      "duration",
+      "installment_commitment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "66612eaa135c5ded"
+  },
+  {
+    "feature_name": "installment_payment_plans_burden_risk",
+    "dimensions": [
+      "财务状况"
+    ],
+    "explanation": "分期付款负担与外部债务的WOE交互风险评分。基于RULE_004（最大分期负担+外部债务）和数据探索发现的反直觉模式：最高分期负担(installment=4)且有银行债务(bank)的申请人违约率仅53.2%（极低风险），而最低分期负担(installment=1)且无外部债务(none)的申请人违约率高达77.0%（高风险）。使用WOE分箱映射为0-4分。",
+    "reasoning": "步骤1: 因为IND_07指出分期付款负担最高级别(4)为高风险，IND_10指出有外部还款计划(bank/stores)为高风险，RULE_004指出最大分期负担+外部债务为高风险组合，但数据探索发现installment=4+bank的违约率仅53.2%（远低于平均的70%），而installment=1+none的违约率高达77.0%，存在显著的反直觉交互效应，所以需要创建installment_commitment与other_payment_plans的交互特征。\n步骤2: 因为installment_commitment与checking_status的相关系数仅-0.005（几乎独立），other_payment_plans与checking_status的相关系数仅-0.034（几乎独立），所以该特征与已有特征checking_installment_interaction_risk的冗余度会非常低。\n步骤3: 因为数据探索显示installment_commitment x other_payment_plans的WOE值范围从-0.36到0.72，具有良好区分能力，所以将WOE值分箱映射为0-4分的有序风险评分。",
+    "knowledge_source": "基于IND_07（分期付款负担）、IND_10（外部债务）和RULE_004（最大分期负担+外部债务）的交互特征",
+    "data_fields_used": [
+      "installment_commitment",
+      "other_payment_plans"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "bc4978d5d452a6df"
+  },
+  {
+    "feature_name": "age_job_woe_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-职业WOE交互风险评分（0-4分）：基于IND_08（年龄风险）、IND_13（职业风险）和EXP_04（年龄交互效应）的客户属性交互特征。使用age和job两个低相关字段（Cramer's V=0.1262），将年龄分为5组与4种职业组合，计算WOE值并映射为0-4分风险评分。",
+    "reasoning": "步骤1: 因为IND_08指出年龄越小风险越高（<25岁为高风险），IND_13指出低技能/无业为高风险，且age与job的Cramer's V仅为0.1262（低相关），所以选择age和job两个字段进行交互。  \n步骤2: 因为EXP_04指出年龄与几乎所有其他特征存在交互，年龄×职业的组合能捕获独特的客户属性风险信号，所以将年龄分为5组（<25, 25-30, 30-35, 35-45, >45），与4种职业类别组合。  \n步骤3: 因为数据探索发现age_group×job的WOE差异极大（从0.15到2.64），且存在非线性模式（如<25+high qualif的WOE=0.44极低，但25-30+unskilled resident的WOE=2.15极高），所以将WOE值分箱映射为0-4分风险评分。",
+    "knowledge_source": "基于IND_08（年龄风险）、IND_13（职业风险）和EXP_04（年龄交互效应）",
+    "data_fields_used": [
+      "age",
+      "job"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "1cf15bfef3fd96c1"
+  },
+  {
+    "feature_name": "age_employment_housing_stability_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-就业稳定性-住房状况三重交互风险评分（0-4分）。基于IND_08（年龄风险）、IND_06（就业不稳定）和IND_11（住房不稳定）的三重交互。数据探索发现三重交互效应非常显著（WOE跨度从-1.54到1.35）：年轻+就业不稳定+自有住房的违约率55.2%，中年+就业不稳定+租房的违约率65.0%，年长+中等就业+免费住房的违约率66.7%；而年长+稳定就业+自有住房的违约率仅14.9%。",
+    "reasoning": "步骤1: 因为IND_08指出年龄越小风险越高（<25岁为高风险），且数据探索发现年龄与就业稳定性和住房状况存在强交互，所以将年龄分为3层（young<=25, mid=26-35, senior>35）。  \n步骤2: 因为IND_06指出就业时间越短风险越高（unemployed/<1为高风险），且数据探索发现就业稳定性与年龄交互后效应显著放大，所以将就业分为3层（unstable=unemployed/<1, medium=1<=X<4, stable>=4）。  \n步骤3: 因为IND_11指出非自有住房为较高风险，且数据探索发现住房状况与年龄、就业交互后产生极端风险组合，所以将住房编码为3类（own=0, rent=1, for free=2）。  \n步骤4: 因为三重交互的WOE跨度极大（从-1.54到1.35），不同组合的风险差异可达5倍以上，所以使用WOE分箱映射为0-4分有序风险评分（WOE<-0.6=4分极高风险，WOE>=0.7=0分极低风险）。",
+    "knowledge_source": "基于IND_08（年龄风险）、IND_06（就业不稳定）、IND_11（住房不稳定）和EXP_04（年龄交互效应）的领域知识",
+    "data_fields_used": [
+      "row_id",
+      "age",
+      "employment",
+      "housing"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "2ea1a5c6f4c527f7"
+  },
+  {
+    "feature_name": "age_personal_employment_woe_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "explanation": "年龄-个人状态-就业稳定性三重WOE交互风险评分（0-4分）。基于IND_08（年龄风险）、personal_status和IND_06（就业不稳定）的三重交互。数据探索发现三重交互效应非常显著（WOE跨度从-2.10到1.46）：中年离异男性+就业不稳定的违约率高达77.8%，年轻女性+中等就业的违约率58.3%；而中年已婚男性+稳定就业的违约率仅13.3%，年长女性+中等就业的违约率仅9.1%。",
+    "reasoning": "步骤1: 因为IND_08指出年龄越小风险越高，且EXP_04指出年龄与几乎所有其他特征存在交互，所以将年龄分为3层（young<=25, mid=26-35, senior>35）。  \n步骤2: 因为personal_status包含婚姻和性别信息，数据探索发现male div/sep整体违约率最高（40%），且与年龄和就业交互后产生极端风险（mid+male div/sep+unstable的WOE=-2.10），所以将4种个人状态编码为0-3。  \n步骤3: 因为IND_06指出就业时间越短风险越高，且数据探索发现就业稳定性与年龄、个人状态交互后效应显著放大，所以将就业分为3层（unstable, medium, stable）。  \n步骤4: 因为三重交互的WOE跨度极大（从-2.10到1.46），不同组合的风险差异可达8倍以上，所以使用WOE分箱映射为0-4分有序风险评分。",
+    "knowledge_source": "基于IND_08（年龄风险）、IND_06（就业不稳定）、personal_status和EXP_04（年龄交互效应）的领域知识",
+    "data_fields_used": [
+      "row_id",
+      "age",
+      "personal_status",
+      "employment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "310532a1b9898d8b"
+  },
+  {
+    "feature_name": "credit_history_thin_file_duration_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "explanation": "",
+    "reasoning": "步骤1: 因为EXP_03指出薄档案（no credits/all paid, all paid）存在选择偏差悖论，违约率反而较低，且IND_02指出贷款期限越长风险越高，所以取credit_history和duration进行交互；步骤2: 因为数据探索发现is_thin_file与所有数值特征的相关系数均<0.11（极低），且与class的相关系数为-0.2016，说明这是一个独特的风险信号，所以使用is_thin_file作为基础特征；步骤3: 因为数据探索发现薄档案+短期限（<=12月）的违约率41.7%，而非薄档案+短期限的违约率81.5%，差异巨大，且薄档案+长期限（>36月）的违约率44.4%反而低于薄档案+短期限，说明薄档案的期限风险方向与常规相反，所以需要基于实际违约率而非直觉来映射评分；步骤4: 因为8种组合的违约率跨度从33.3%到81.5%，需要离散化为有序风险评分，所以将违约率分5档映射为0-4分",
+    "knowledge_source": "基于EXP_03（信用历史悖论-薄档案风险）、IND_02（贷款期限风险）、IND_03（不良信用历史）和RULE_006（薄档案风险检测规则）",
+    "data_fields_used": [
+      "credit_history",
+      "duration"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6681ad10c94f9055"
+  },
+  {
+    "feature_name": "purpose_duration_risk_score",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "explanation": "基于EXP_05（贷款用途风险等级）和IND_02（贷款期限风险）的交互特征。将purpose按EXP_05分为4个风险等级（tier0-3），duration分为4段（short/medium/long/vlong），基于实际违约率数据映射为0-4分有序风险评分。捕获了\"高风险用途+长期限\"的乘法交互效应。",
+    "reasoning": "步骤1: 因为EXP_05指出贷款用途包含显著的非线性风险信息，二手车贷款违约率最低，度假贷款最高，所以将purpose分为4个风险等级（tier0: used car/retraining, tier1: radio/tv/furniture/domestic appliance/repairs, tier2: new car/business, tier3: education/other）。  \n步骤2: 因为IND_02指出贷款期限越长风险越高，>24个月为高风险，>36个月为极高风险，所以将duration分为4段（short<=12, medium=13-24, long=25-36, vlong>36）。  \n步骤3: 因为数据探索发现purpose_risk_tier x duration_bin的交互效应非常显著（如tier1+vlong违约率54.8%, tier2+vlong违约率56.2%, tier3+long违约率55.6%），所以基于实际违约率数据构建4x4风险评分矩阵，映射为0-4分有序风险评分。",
+    "knowledge_source": "EXP_05（贷款用途风险等级）、IND_02（贷款期限风险）",
+    "data_fields_used": [
+      "purpose",
+      "duration"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "5076235695817131"
+  },
+  {
+    "feature_name": "purpose_employment_risk_score",
+    "dimensions": [
+      "贷款特征",
+      "客户属性"
+    ],
+    "explanation": "基于EXP_05（贷款用途风险等级）和IND_06（就业不稳定）的跨维度交互特征。将purpose分为4个风险等级，与employment的5个类别组合，基于实际违约率数据映射为0-4分有序风险评分。捕获了\"高风险用途+就业不稳定\"的乘法交互效应。",
+    "reasoning": "步骤1: 因为EXP_05指出贷款用途包含显著的非线性风险信息，所以将purpose分为4个风险等级（tier0: used car/retraining, tier1: radio/tv/furniture/domestic appliance/repairs, tier2: new car/business, tier3: education/other）。  \n步骤2: 因为IND_06指出就业时间越短风险越高，unemployed和<1为高风险，>=7为低风险，所以保留employment的5个原始类别。  \n步骤3: 因为数据探索发现purpose_risk_tier x employment的交互效应非常显著（如tier3+<1违约率55.6%, tier2+unemployed违约率45.5%, tier0+1<=X<4违约率仅10%），所以基于实际违约率数据构建4x5风险评分矩阵，映射为0-4分有序风险评分。",
+    "knowledge_source": "EXP_05（贷款用途风险等级）、IND_06（就业不稳定）",
+    "data_fields_used": [
+      "purpose",
+      "employment"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "a59f7c05e3d8eedf"
+  }
+]

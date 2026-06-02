@@ -1,0 +1,24 @@
+{
+  "stage": "generic",
+  "total_rounds": 8,
+  "total_accepted": 13,
+  "total_candidates": 0,
+  "total_rejected": 60,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3781.7,
+  "accepted_features": [
+    "nuclear_triad_score",
+    "nuclear_rule_003_strict_flag",
+    "cell_feature_consistency",
+    "nuclear_dominance_index",
+    "nuclear_cellular_ratio",
+    "nuclear_cell_diff",
+    "feature_cv_index",
+    "top3_bottom3_ratio",
+    "clump_adhesion_invasion_score",
+    "nuclear_mitosis_interaction",
+    "clump_pleomorphism_diff",
+    "nuclear_skewness_indicator",
+    "clump_marginal_min_dispersion"
+  ]
+}

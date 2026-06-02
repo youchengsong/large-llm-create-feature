@@ -1,0 +1,47 @@
+[
+  {
+    "name": "active_score",
+    "dimensions": [
+      "RFM特征",
+      "活跃度评分"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_active_score(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 计算献血频率密度 = Frequency / (Time + 1)\n    freq_density = df['Frequency'] / (df['Time'] + 1)\n    # 步骤2: 创建最近献血标志 (Recency <= 6)\n    recent_flag = (df['Recency'] <= 6).astype(int)\n    # 步骤3: 计算活跃评分 = 献血频率密度 × 最近献血标志\n    result['active_score'] = freq_density * recent_flag\n    return result"
+  },
+  {
+    "name": "avg_donation_interval",
+    "dimensions": [
+      "RFM特征",
+      "献血间隔"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_avg_donation_interval(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 基于IND_06，计算平均献血间隔\n    # 活跃窗口 = Time - Recency（最早到最近一次献血的跨度）\n    active_window = df['Time'] - df['Recency']\n    # 献血次数间隔数 = Frequency - 1\n    intervals = df['Frequency'] - 1\n    # 步骤2: 计算平均间隔，处理Frequency=1的特殊情况\n    result['avg_donation_interval'] = np.where(\n        intervals > 0,\n        active_window / intervals,\n        0.0  # 仅献过一次血，间隔设为0\n    )\n    return result"
+  },
+  {
+    "name": "new_recent",
+    "dimensions": [
+      "RFM特征",
+      "首次献血"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_new_recent(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 基于IND_09，识别首次献血者 (Frequency == 1)\n    is_first_time = (df['Frequency'] == 1).astype(int)\n    # 步骤2: 结合Recency，对首次献血者按最近性加权\n    # 首次献血且Recency短的人更可能再次献血\n    result['new_recent'] = is_first_time * (1.0 / (df['Recency'] + 1))\n    return result"
+  },
+  {
+    "name": "rfm_best_segment",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rfm_best_segment(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 基于RULE_001，创建RFM最佳细分标志\n    # Recency <= 6（最近6个月内献过血）AND Frequency >= 5（高频献血者）\n    result['rfm_best_segment'] = ((df['Recency'] <= 6) & (df['Frequency'] >= 5)).astype(int)\n    return result"
+  },
+  {
+    "name": "churn_warning_flag",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_churn_warning_flag(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 基于RULE_003，创建流失预警标志\n    # 超过12个月未献血(Recency > 12)且总频次<3(Frequency < 3)\n    result['churn_warning_flag'] = ((df['Recency'] > 12) & (df['Frequency'] < 3)).astype(int)\n    return result"
+  },
+  {
+    "name": "loyal_donor_flag",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_loyal_donor_flag(df):\n    result = df[['row_id']].copy()\n    # 步骤1: 基于RULE_007，创建长期忠诚献血者标志\n    # Time >= 36 (首次献血超过36个月前)\n    # Frequency >= 10 (至少献过10次)\n    # Recency <= 6 (最近6个月内献过)\n    result['loyal_donor_flag'] = ((df['Time'] >= 36) & (df['Frequency'] >= 10) & (df['Recency'] <= 6)).astype(int)\n    return result"
+  }
+]

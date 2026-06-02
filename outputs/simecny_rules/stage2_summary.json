@@ -1,0 +1,12 @@
+{
+  "stage": "stage2",
+  "total_rounds": 3,
+  "total_accepted": 1,
+  "total_candidates": 0,
+  "total_rejected": 28,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3585.7,
+  "accepted_features": [
+    "log_amount_median"
+  ]
+}

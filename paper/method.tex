@@ -1,0 +1,149 @@
+% method.tex
+\section{Methodology}
+\label{sec:method}
+
+This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the ReAct agent with tool use (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), and the intelligent search strategy (Section~\ref{subsec:search}).
+
+\subsection{Framework Overview}
+\label{subsec:overview}
+
+KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ with baseline features $\mathbf{x}_i \in \mathbb{R}^d$ and target label $y_i$, along with a domain knowledge base $\mathcal{K}$, KnowFeat generates a set of new features $\mathcal{F}^* = \{f_1, f_2, \ldots, f_k\}$ such that the augmented dataset $\mathcal{D}' = \{(\mathbf{x}_i \| f_1(\mathbf{x}_i) \| \cdots \| f_k(\mathbf{x}_i),\; y_i)\}$ achieves improved predictive performance on a target metric (e.g., AUC or Recall).
+
+The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an illustration):
+
+\begin{enumerate}
+    \item \textbf{Initialization.} Load the dataset, compute baseline model performance, and calibrate statistical thresholds via noise injection (Section~\ref{subsec:verification}).
+    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-level hierarchy and inject the selected level into the agent's context (Section~\ref{subsec:knowledge}).
+    \item \textbf{Multi-Round Generation.} For each round $r = 1, \ldots, R_{\max}$:
+    \begin{enumerate}
+        \item Allocate per-dimension budgets based on SHAP feedback from the previous round.
+        \item For each dimension, the LLM agent explores the data, proposes candidate features grounded in knowledge assets, and submits them for verification.
+        \item Each candidate passes through the L1$\to$L2$\to$L3 pipeline. Accepted features are added to the baseline; rejected features enter the failure memory.
+        \item Forward selection discovers feature combinations that are individually weak but collectively effective.
+    \end{enumerate}
+    \item \textbf{Convergence.} The process terminates when no new features are accepted for $C$ consecutive rounds (default $C=2$) or the maximum round count $R_{\max}$ is reached.
+    \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and provenance cards for each feature.
+\end{enumerate}
+
+% Placeholder for framework figure
+\begin{figure}[t]
+    \centering
+    % \includegraphics[width=\columnwidth]{figures/framework.pdf}
+    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{2cm}\textit{[Framework overview figure placeholder]}\vspace{2cm}}}
+    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
+    \label{fig:framework}
+\end{figure}
+
+\subsection{Hierarchical Knowledge Injection}
+\label{subsec:knowledge}
+
+A key innovation of KnowFeat is the systematic integration of external domain knowledge into the feature generation process. We organize knowledge into five hierarchical levels of increasing specificity:
+
+\textbf{Level 0: Schema Only.} The agent receives only the dataset schema---column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
+
+\textbf{Level 1: Risk Indicators.} Structured risk indicators derived from regulatory guidelines and industry standards. Each indicator specifies a risk dimension, risk class, relevant data field, and directionality. For the AML domain, we compile 38 indicators (IND\_01 through IND\_38) covering transaction amount thresholds, frequency patterns, temporal anomalies, and network centrality measures.
+
+\textbf{Level 2: Detection Rules.} Operational detection rules that encode specific logic patterns. Each rule includes a rule ID, natural language description, logical expression, confidence level, pattern category, and a Python implementation hint. We compile 15 rules (RULE\_001 through RULE\_015) from compliance manuals and internal documentation.
+
+\textbf{Level 3: Expert Opinions.} Unstructured insights from domain expert interviews. These capture tacit knowledge---heuristics, edge cases, and domain intuitions---that are difficult to formalize as rules but valuable for feature design. Expert opinions are encoded as natural language paragraphs (EXP\_01 through EXP\_$N$).
+
+\textbf{Level 4: Court Document Evidence.} Risk factors extracted from real legal proceedings using a key-clue extraction pipeline. For the AML domain, we process 309 court judgment documents to extract evidence-grounded risk factors (RF\_S2\_FFF\_NNN format). This represents the highest level of domain specificity, grounding feature generation in real-world case evidence.
+
+The hierarchy is \emph{ablatable}: by setting a knowledge filter parameter, we can include any subset of levels, enabling systematic study of each level's contribution. In the ``full'' configuration (default), all levels are included. The knowledge base is formatted as structured text and injected into the agent's system prompt, with each knowledge item assigned a unique identifier for provenance tracking.
+
+\subsection{ReAct Agent with Specialized Tools}
+\label{subsec:agent}
+
+KnowFeat employs an LLM agent following the ReAct paradigm~\cite{yao2023react}, interleaving reasoning (chain-of-thought) with actions (tool calls). The agent is equipped with three specialized tools:
+
+\textbf{Tool 1: \texttt{explore\_data}.} Executes arbitrary Python code on the dataset to inspect distributions, compute correlations, identify patterns, and understand the data before proposing features. This tool runs in a sandboxed environment and returns printed output or return values to the agent.
+
+\textbf{Tool 2: \texttt{generate\_feature}.} Registers a candidate feature with mandatory provenance fields:
+\begin{itemize}
+    \item \texttt{feature\_name}: A descriptive identifier.
+    \item \texttt{code}: Executable Python code that computes the feature from raw data.
+    \item \texttt{explanation}: A natural language description of what the feature captures.
+    \item \texttt{reasoning}: A structured chain linking knowledge assets to the feature design, formatted as ``Step $N$: Because [knowledge ID] indicates [insight], we compute [transformation]...''
+    \item \texttt{knowledge\_ids}: A list of specific knowledge asset identifiers (e.g., RULE\_001, IND\_05, EXP\_03) that inspired the feature.
+    \item \texttt{computation\_steps}: Step-by-step description from raw fields to the final feature value.
+    \item \texttt{data\_fields\_used}: The raw columns consumed by the feature.
+\end{itemize}
+
+\textbf{Tool 3: \texttt{execute\_sandbox}.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call \texttt{generate\_feature} followed immediately by \texttt{execute\_sandbox} for each candidate---batch registration is prohibited to ensure tight feedback loops.
+
+The agent's prompt instructs it to:
+(1) reason about which knowledge assets are relevant to the current dimension and budget,
+(2) explore the data to validate assumptions,
+(3) propose a feature grounded in specific knowledge items, and
+(4) submit it for verification and react to the feedback.
+
+\subsection{Three-Stage Verification Pipeline}
+\label{subsec:verification}
+
+Each candidate feature passes through three progressively stricter verification stages:
+
+\subsubsection{L1: Execution Verification}
+The generated Python code is executed in an isolated sandbox with a 30-second timeout. L1 checks for:
+\begin{itemize}
+    \item Syntax and runtime errors.
+    \item Output shape consistency (one value per sample).
+    \item Presence of required identifier columns.
+    \item Data type validity (numeric output).
+\end{itemize}
+If L1 fails, the agent receives the error message and is allowed up to 2 automatic repair attempts before the feature is permanently rejected.
+
+\subsubsection{L2: Statistical Quality}
+The feature's statistical properties are evaluated against automatically calibrated thresholds. To establish these thresholds, we generate $N_{\text{noise}} = 100$ random features (drawn from standard distributions), compute their quality metrics, and set the acceptance threshold at the $P_{\text{noise}}$-th percentile (default $P_{\text{noise}} = 95$). This ensures that accepted features are statistically better than random noise. Specifically, L2 checks:
+\begin{itemize}
+    \item \textbf{Information Value (IV)}: Must exceed the noise-calibrated threshold.
+    \item \textbf{KS Statistic}: Must exceed the noise-calibrated threshold.
+    \item \textbf{Redundancy}: Pearson correlation with all existing features must be below 0.7.
+    \item \textbf{Missing Rate}: Must be below 30\%.
+\end{itemize}
+
+\subsubsection{L3: Model Effectiveness}
+The feature is evaluated for its actual contribution to predictive performance. We train an XGBoost model on the baseline features augmented with the candidate feature, using stratified 80/20 train-test splits across 5 random seeds $\{42, 123, 456, 789, 2024\}$. The acceptance criterion depends on the task:
+\begin{itemize}
+    \item \textbf{Classification (public datasets)}: $\Delta\text{AUC} > 0$, i.e., the augmented model must achieve strictly higher AUC than the baseline.
+    \item \textbf{AML detection}: $\Delta\text{Recall} > 0$ \emph{and} Precision $\geq 90\%$, ensuring that the feature improves detection without sacrificing precision.
+\end{itemize}
+
+The three-stage design is intentionally progressive: L1 is cheap (milliseconds), L2 is moderate (seconds), and L3 is expensive (minutes per feature). By filtering early, we avoid wasting computational resources on clearly defective candidates.
+
+\subsection{Intelligent Search Strategy}
+\label{subsec:search}
+
+To systematically explore the feature space, KnowFeat employs a multi-component search strategy.
+
+\subsubsection{Dimension-Based Budgeting}
+We decompose the feature space into $D=4$ semantic dimensions relevant to the target domain:
+\begin{enumerate}
+    \item \textbf{Amount \& Frequency}: Features related to monetary values and transaction counts.
+    \item \textbf{Time \& Geography}: Features capturing temporal patterns and spatial distributions.
+    \item \textbf{Behavior Sequence}: Features encoding sequential patterns in user actions.
+    \item \textbf{Entity Association}: Features derived from relationships between entities (accounts, counterparties).
+\end{enumerate}
+
+Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
+
+\subsubsection{SHAP-Guided Budget Reallocation}
+Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features. We reallocate the budget using an \emph{inverse-proportion} strategy:
+\begin{equation}
+    B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
+\end{equation}
+where $B_{\min}$ is a minimum per-dimension budget (default 1) and $B_{\text{total}}$ is the total budget for the round. This ensures that underrepresented dimensions---those contributing least to the current model---receive more exploration budget in subsequent rounds, promoting balanced feature coverage.
+
+\subsubsection{Failure Memory}
+A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.
+
+\subsubsection{Forward Selection}
+Individual features may fail L3 verification (i.e., $\Delta\text{Recall} = 0$ or $\Delta\text{AUC} \leq 0$) yet contribute positively when combined with other candidates. To capture such synergistic effects, we apply greedy forward selection on the pool of L2-passed but L3-failed candidates:
+\begin{enumerate}
+    \item Sort candidates by their L2 quality scores.
+    \item Greedily add each candidate to the current accepted feature set.
+    \item If the augmented set improves the target metric, accept the candidate; otherwise, discard it.
+\end{enumerate}
+This mechanism is particularly important for high-dimensional datasets where individual features have marginal effects but feature combinations capture meaningful interactions.
+
+\subsubsection{Cross-Dimension Propagation}
+High-scoring features accepted in one dimension may inspire analogous features in other dimensions. After each round, the top-$K_{\text{cross}}$ features (default $K_{\text{cross}} = 5$) by SHAP importance are propagated to other dimensions as ``inspiration prompts,'' encouraging the agent to adapt successful patterns across different semantic contexts.

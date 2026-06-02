@@ -1,0 +1,114 @@
+[
+  {
+    "name": "Metabolic_Syndrome",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "def feature_Metabolic_Syndrome(df):\n    result = df[['row_id']].copy()\n    # 按HeartDisease分层计算Cholesterol中位数（排除Cholesterol=0）\n    chol_median_0 = df.loc[(df['Cholesterol'] > 0) & (df['HeartDisease'] == 0), 'Cholesterol'].median()\n    chol_median_1 = df.loc[(df['Cholesterol'] > 0) & (df['HeartDisease'] == 1), 'Cholesterol'].median()\n    \n    # 使用numpy.where进行插补，保持int类型\n    import numpy as np\n    chol_filled = np.where(\n        (df['Cholesterol'] == 0) & (df['HeartDisease'] == 0), \n        int(chol_median_0),\n        np.where(\n            (df['Cholesterol'] == 0) & (df['HeartDisease'] == 1),\n            int(chol_median_1),\n            df['Cholesterol'].values\n        )\n    )\n    \n    # 三个条件求和得到0-3分的代谢综合征聚集评分\n    result['Metabolic_Syndrome'] = (\n        (df['RestingBP'] >= 130).astype(int) + \n        (df['FastingBS'] == 1).astype(int) + \n        (chol_filled >= 200).astype(int)\n    )\n    return result"
+  },
+  {
+    "name": "Oldpeak_ST_interact",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "def feature_Oldpeak_ST_interact(df):\n    result = df[['row_id']].copy()\n    # 编码ST_Slope: Down=2, Flat=1, Up=0\n    st_slope_enc = df['ST_Slope'].map({'Down': 2, 'Flat': 1, 'Up': 0})\n    # Oldpeak与ST_Slope交互：同样1.5mm的ST压低，下斜型(Down)远比上斜型(Up)令人担忧\n    result['Oldpeak_ST_interact'] = df['Oldpeak'] * st_slope_enc\n    return result"
+  },
+  {
+    "name": "Exercise_Consistency_Score",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "def feature_Exercise_Consistency_Score(df):\n    result = df[['row_id']].copy()\n    # 运动试验三个同步诊断通道\n    # 通道1: 血流动力学 - 变时性功能不全 (MaxHR < (220-Age)*0.85)\n    chrono = (df['MaxHR'] < (220 - df['Age']) * 0.85).astype(int)\n    # 通道2: ECG变化 - Oldpeak>=1.0且ST_Slope为Down或Flat (运动试验阳性)\n    ecg = ((df['Oldpeak'] >= 1.0) & df['ST_Slope'].isin(['Down', 'Flat'])).astype(int)\n    # 通道3: 症状 - ExerciseAngina=='Y'\n    angina = (df['ExerciseAngina'] == 'Y').astype(int)\n    # 三项均异常(一致阳性)比仅一项异常(不一致)风险高得多\n    result['Exercise_Consistency_Score'] = chrono + ecg + angina\n    return result"
+  },
+  {
+    "name": "HR_Ratio",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_HR_Ratio(df):\n    result = df[['row_id']].copy()\n    # 计算年龄预测最大心率: 220 - Age\n    # 计算心率储备比: MaxHR / (220 - Age)\n    result['HR_Ratio'] = df['MaxHR'] / (220 - df['Age'])\n    return result"
+  },
+  {
+    "name": "RestingECG_ASY_Interaction",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "def feature_RestingECG_ASY_Interaction(df):\n    import pandas as pd\n    result = df[['row_id']].copy()\n    \n    # 基于IND_11(异常静息心电图)和EXP_04(无症状胸痛悖论)\n    # RestingECG异常(Non-Normal) + ASY(无症状) = 极高风险组合\n    # RestingECG异常 + 非ASY = 中风险\n    # RestingECG正常 + ASY = 中风险（ASY本身是强预测因子）\n    # RestingECG正常 + 非ASY = 低风险\n    \n    # RestingECG异常标志\n    rest_abnormal = (df['RestingECG'] != 'Normal').astype(int)\n    # ASY标志\n    asy = (df['ChestPainType'] == 'ASY').astype(int)\n    \n    # 组合评分: 0-3分\n    # RestingECG正常+非ASY=0, RestingECG正常+ASY=1, RestingECG异常+非ASY=2, RestingECG异常+ASY=3\n    result['RestingECG_ASY_Interaction'] = rest_abnormal * 2 + asy\n    \n    return result"
+  },
+  {
+    "name": "Diamond_Forrester_Score",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_Diamond_Forrester_Score(df):\n    import pandas as pd\n    result = df[['row_id']].copy()\n    \n    # 基于RULE_005 Diamond-Forrester预测试概率\n    # 年龄评分: <40=0, 40-50=1, 50-60=2, >=60=3\n    age_score = pd.cut(df['Age'], bins=[0, 40, 50, 60, 200], labels=[0, 1, 2, 3]).astype(int)\n    \n    # 性别评分: F=0, M=1\n    sex_score = (df['Sex'] == 'M').astype(int)\n    \n    # 胸痛类型评分: 基于该数据集中各类型的心脏病比例排序\n    # NAP=0, ATA=1, TA=2, ASY=3 (ASY在该数据集中风险最高)\n    cp_score = df['ChestPainType'].map({'NAP': 0, 'ATA': 1, 'TA': 2, 'ASY': 3})\n    \n    # 综合评分 0-7分，越高风险越大\n    result['Diamond_Forrester_Score'] = age_score + sex_score + cp_score\n    \n    return result"
+  },
+  {
+    "name": "Age_Sex_BP_Composite",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_Age_Sex_BP_Composite(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_01(高龄)、IND_02(男性性别)、IND_03(高血压)和RULE_001(ACC/AHA自动高风险)\n    # 以及EXP_01(风险因素交互是乘法的)\n    \n    # 年龄风险: 男性>=45或女性>=55为独立风险因素(IND_01)\n    # 创建年龄-性别联合风险评分\n    age_risk = np.where(\n        (df['Sex'] == 'M') & (df['Age'] >= 45), 1,\n        np.where(\n            (df['Sex'] == 'F') & (df['Age'] >= 55), 1,\n            np.where(df['Age'] >= 60, 1, 0)  # 任何性别>=60也高风险\n        )\n    )\n    \n    # 血压风险: RestingBP>=140为确定高血压(IND_03)\n    # RestingBP=0为缺失值，用中位数填充\n    bp_median = df.loc[df['RestingBP'] > 0, 'RestingBP'].median()\n    bp_filled = np.where(df['RestingBP'] == 0, bp_median, df['RestingBP'])\n    \n    bp_risk = (bp_filled >= 140).astype(int)\n    \n    # 年龄-血压交互风险: 根据EXP_01，风险因素是乘法的而非加法的\n    # 年龄风险 * (1 + 血压风险) 捕获交互效应\n    result['Age_Sex_BP_Composite'] = age_risk * (1 + bp_risk)\n    \n    return result"
+  },
+  {
+    "name": "Exercise_Negative_Exclusion",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_Exercise_Negative_Exclusion(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于RULE_010(低风险排除)和EXP_07(运动试验三通道)的思路\n    # 创建运动试验完全正常的低风险标志\n    # 运动试验三个通道全部正常 = 极低风险\n    \n    # 通道1: 血流动力学 - 变时性功能正常 (达到年龄预测最大心率的85%)\n    # 根据RULE_009: MaxHR >= (220-Age)*0.85 为正常\n    chrono_normal = (df['MaxHR'] >= (220 - df['Age']) * 0.85).astype(int)\n    \n    # 通道2: ECG变化 - 无显著ST段压低且ST_Slope为上斜型\n    # 根据IND_09: Oldpeak<1.0为正常; 根据IND_10: Up为良性\n    ecg_normal = ((df['Oldpeak'] < 1.0) & (df['ST_Slope'] == 'Up')).astype(int)\n    \n    # 通道3: 症状 - 无运动诱发心绞痛\n    # 根据IND_08: ExerciseAngina='N'为正常\n    angina_normal = (df['ExerciseAngina'] == 'N').astype(int)\n    \n    # 三项均正常 = 运动试验阴性排除 (低风险)\n    # 根据EXP_07: 三项均异常(一致阳性)风险高，反之三项均正常风险极低\n    result['Exercise_Negative_Exclusion'] = (chrono_normal & ecg_normal & angina_normal).astype(int)\n    \n    return result"
+  },
+  {
+    "name": "Exercise_Positive_HighRisk_Profile",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_Exercise_Positive_HighRisk_Profile(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于RULE_002(运动试验阳性)和RULE_008(年龄-性别-症状复合)\n    # 以及EXP_01(风险因素乘法交互)\n    # 运动试验阳性 + 高风险临床特征 = 极高风险\n    \n    # 运动试验阳性: Oldpeak>=1.0且ST_Slope为Down或Flat (RULE_002)\n    ecg_pos = ((df['Oldpeak'] >= 1.0) & df['ST_Slope'].isin(['Down', 'Flat'])).astype(int)\n    \n    # 高风险临床特征组合:\n    # 根据RULE_008: 男性+>=55岁+无症状+运动心绞痛 = 预测试概率>85%\n    # 简化版: 年龄>=55 + 男性 = 高风险临床背景\n    high_risk_clinical = ((df['Age'] >= 55) & (df['Sex'] == 'M')).astype(int)\n    \n    # 运动试验阳性 + 高风险临床背景 = 极高风险\n    # 根据EXP_01: 风险因素的交互是乘法的，联合效应远大于单独效应\n    result['Exercise_Positive_HighRisk_Profile'] = ecg_pos * high_risk_clinical\n    \n    return result"
+  },
+  {
+    "name": "Exercise_Positive_Hypertension",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_Exercise_Positive_Hypertension(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于RULE_001(ACC/AHA自动高风险)和RULE_002(运动试验阳性)\n    # 以及EXP_01(风险因素乘法交互)\n    # 运动试验阳性 + 高血压 = 双重高风险\n    \n    # 运动试验阳性: Oldpeak>=1.0且ST_Slope为Down或Flat (RULE_002)\n    ecg_pos = ((df['Oldpeak'] >= 1.0) & df['ST_Slope'].isin(['Down', 'Flat'])).astype(int)\n    \n    # 高血压: RestingBP>=140 (RULE_001, IND_03)\n    # 注意RestingBP=0为缺失值，排除\n    bp_high = ((df['RestingBP'] >= 140) & (df['RestingBP'] > 0)).astype(int)\n    \n    # 运动试验阳性 + 高血压 = 极高风险\n    # 根据EXP_01: 风险因素的交互是乘法的，联合效应远大于单独效应\n    # 根据RULE_001: RestingBP>=140自动归为高心血管风险\n    result['Exercise_Positive_Hypertension'] = ecg_pos * bp_high\n    \n    return result"
+  },
+  {
+    "name": "RestingECG_ST_Slope_Combo_v2",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "def feature_RestingECG_ST_Slope_Combo_v2(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_11(异常静息心电图)和IND_10(下斜型ST段)和EXP_08(RestingECG作为运动试验解释的修饰因子)\n    # 使用更独特的编码方式降低冗余\n    \n    # RestingECG风险编码: ST=3, LVH=1, Normal=0 (放大ST的效应)\n    ecg_risk = df['RestingECG'].map({'ST': 3, 'LVH': 1, 'Normal': 0})\n    \n    # ST_Slope风险编码: Down=3, Flat=2, Up=0 (Flat也有风险)\n    slope_risk = df['ST_Slope'].map({'Down': 3, 'Flat': 2, 'Up': 0})\n    \n    # 使用非线性组合: 仅当两者都异常时才有高值\n    # 如果RestingECG=Normal且ST_Slope=Up，得分为0\n    # 如果RestingECG=ST且ST_Slope=Flat，得分为3*2=6\n    result['RestingECG_ST_Slope_Combo_v2'] = ecg_risk * slope_risk\n    \n    return result"
+  },
+  {
+    "name": "ST_Slope_FastingBS_Score",
+    "dimensions": [
+      "ECG特征"
+    ],
+    "code": "def feature_ST_Slope_FastingBS_Score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_10(下斜型ST段)、IND_05(空腹高血糖)和EXP_01(风险因素乘法交互)\n    # 以及RULE_001(ACC/AHA自动高风险: FastingBS=1)\n    # ST_Slope异常(Flat/Down) + 空腹高血糖 = 极高风险组合\n    \n    # ST_Slope编码: Down=3, Flat=2, Up=0 (Flat也有很高风险)\n    slope_risk = df['ST_Slope'].map({'Down': 3, 'Flat': 2, 'Up': 0}).values\n    \n    # FastingBS编码: 1=高风险\n    bs_risk = df['FastingBS'].values\n    \n    # 组合: 使用乘法交互\n    # Down+BS=1: 3*(1+1)=6, Flat+BS=1: 2*(1+1)=4, Up+BS=1: 0*(1+1)=0\n    # Down+BS=0: 3*(1+0)=3, Flat+BS=0: 2*(1+0)=2, Up+BS=0: 0\n    result['ST_Slope_FastingBS_Score'] = slope_risk * (1 + bs_risk)\n    \n    return result"
+  },
+  {
+    "name": "Chol_Age_Sex_Composite",
+    "dimensions": [
+      "复合指标"
+    ],
+    "code": "def feature_Chol_Age_Sex_Composite(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_01(高龄)、IND_02(男性性别)、IND_04(高胆固醇)\n    # 和EXP_01(风险因素乘法交互)、EXP_06(Cholesterol缺失值处理)\n    \n    # 步骤1: 处理Cholesterol缺失值(EXP_06: Cholesterol=0为缺失值)\n    # 按HeartDisease分层计算中位数进行插补\n    chol_median_0 = df.loc[(df['Cholesterol'] > 0) & (df['HeartDisease'] == 0), 'Cholesterol'].median()\n    chol_median_1 = df.loc[(df['Cholesterol'] > 0) & (df['HeartDisease'] == 1), 'Cholesterol'].median()\n    \n    chol_filled = np.where(\n        (df['Cholesterol'] == 0) & (df['HeartDisease'] == 0), \n        int(chol_median_0),\n        np.where(\n            (df['Cholesterol'] == 0) & (df['HeartDisease'] == 1),\n            int(chol_median_1),\n            df['Cholesterol'].values\n        )\n    )\n    \n    # 步骤2: 创建胆固醇双峰风险评分\n    # IND_04: >=240 mg/dL为高胆固醇\n    # 但分布差异表显示异常组Cholesterol均值更低(175.9 vs 227.1)\n    # 这是因为约30%的异常组Cholesterol=0(缺失)\n    # 插补后，低胆固醇(<150)和高胆固醇(>240)都是风险信号\n    # 低胆固醇可能反映营养不良或慢性疾病状态\n    # 高胆固醇是传统风险因素\n    chol_risk = np.where(\n        (chol_filled < 150) | (chol_filled > 240), 2,\n        np.where((chol_filled >= 150) & (chol_filled <= 200), 1,\n        np.where((chol_filled > 200) & (chol_filled <= 240), 1, 0))\n    )\n    \n    # 步骤3: 创建年龄风险评分(IND_01)\n    # >=60岁=3分, 55-59岁=2分, 50-54岁=1分, <50岁=0分\n    age_risk = np.where(df['Age'] >= 60, 3, \n                       np.where(df['Age'] >= 55, 2,\n                               np.where(df['Age'] >= 50, 1, 0)))\n    \n    # 步骤4: 创建性别风险评分(IND_02)\n    # 男性=1分, 女性=0分\n    sex_risk = (df['Sex'] == 'M').astype(int)\n    \n    # 步骤5: 计算复合评分(范围0-6分)\n    # 基于EXP_01: 风险因素交互是乘法的，但这里用加法近似\n    result['Chol_Age_Sex_Composite'] = chol_risk + age_risk + sex_risk\n    \n    return result"
+  },
+  {
+    "name": "Oldpeak_RestingECG_Interaction",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_Oldpeak_RestingECG_Interaction(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_09(ST段压低)、IND_11(异常静息心电图)和EXP_08(RestingECG作为运动试验解释的修饰因子)\n    # EXP_08指出：RestingECG=Normal的患者运动中出现ST改变=明确运动诱发缺血\n    # RestingECG=LVH使运动试验解释复杂化，基线复极化异常可能掩盖或模拟缺血\n    # RestingECG=ST本身已有ST异常，运动中的ST改变解读需要谨慎\n    # 因此，Oldpeak的临床意义取决于RestingECG的背景\n    \n    # 步骤1: 编码RestingECG (Normal=0, LVH=1, ST=2)\n    rest_ecg_enc = df['RestingECG'].map({'Normal': 0, 'LVH': 1, 'ST': 2}).values\n    \n    # 步骤2: 取Oldpeak值\n    oldpeak = df['Oldpeak'].values\n    \n    # 步骤3: 计算交互特征 = Oldpeak * RestingECG_encoded\n    # 对于RestingECG=Normal的患者，Oldpeak直接反映运动诱发缺血\n    # 对于RestingECG=LVH的患者，Oldpeak需要谨慎解读（可能被掩盖或放大）\n    # 对于RestingECG=ST的患者，Oldpeak的增量信息较小（基线已有异常）\n    # 这个交互特征捕捉了\"在特定静息ECG背景下，ST段压低的临床意义\"\n    result['Oldpeak_RestingECG_Interaction'] = oldpeak * rest_ecg_enc\n    \n    return result"
+  },
+  {
+    "name": "Chol_Missing_FastingBS_Score",
+    "dimensions": [
+      "风险因素"
+    ],
+    "code": "def feature_Chol_Missing_FastingBS_Score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_04(高胆固醇)、IND_05(空腹高血糖)、EXP_06(Cholesterol=0为缺失值)\n    # 数据探索发现：\n    # - Cholesterol=0的172条样本中88.4%有心脏病\n    # - Cholesterol=0 & FastingBS=1: 98.9%有心脏病(n=89)\n    # - Cholesterol=0 & FastingBS=0: 78.3%有心脏病(n=83)\n    # - Cholesterol>0的样本中，疾病率约47.4%\n    \n    # 步骤1: 识别Cholesterol缺失值 (EXP_06: Cholesterol=0为缺失值)\n    chol_missing = (df['Cholesterol'] == 0).astype(int)\n    \n    # 步骤2: 获取FastingBS值\n    bs = df['FastingBS'].values\n    \n    # 步骤3: 创建组合评分\n    # 基于数据探索的疾病率：\n    # Chol=0 & FastingBS=1: 98.9% -> 高风险(3分)\n    # Chol=0 & FastingBS=0: 78.3% -> 中高风险(2分)\n    # Chol>0 & FastingBS=1: 约70% -> 中风险(1分)\n    # Chol>0 & FastingBS=0: 约45% -> 低风险(0分)\n    result['Chol_Missing_FastingBS_Score'] = np.where(\n        (df['Cholesterol'] == 0) & (df['FastingBS'] == 1), 3,\n        np.where(\n            (df['Cholesterol'] == 0) & (df['FastingBS'] == 0), 2,\n            np.where(\n                (df['Cholesterol'] > 0) & (df['FastingBS'] == 1), 1, 0\n            )\n        )\n    )\n    \n    return result"
+  },
+  {
+    "name": "Silent_Ischemia_Score",
+    "dimensions": [
+      "运动试验"
+    ],
+    "code": "def feature_Silent_Ischemia_Score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于IND_08(运动诱发心绞痛)和IND_09(ST段压低)和EXP_04(无症状胸痛悖论)\n    # 以及EXP_07(运动试验三个同步诊断通道)\n    # 沉默性缺血：无运动心绞痛但有ST段压低，提示无症状但存在心肌缺血\n    # 数据探索显示：ExerciseAngina=N + Oldpeak>=1.0 的HD率=0.573\n    # ExerciseAngina=N + Oldpeak>=2.0 的HD率=0.741\n    # 这与EXP_04的无症状悖论一致\n    \n    # 步骤1: 编码ExerciseAngina (N=1, Y=0) - 无运动心绞痛\n    no_angina = (df['ExerciseAngina'] == 'N').astype(int)\n    \n    # 步骤2: 取Oldpeak值（ST段压低程度）\n    oldpeak = df['Oldpeak'].values\n    \n    # 步骤3: 计算沉默性缺血评分 = 无运动心绞痛 × Oldpeak\n    # 当有运动心绞痛(Y)时，no_angina=0，评分为0\n    # 当无运动心绞痛(N)但ST段压低时，评分=Oldpeak值\n    # 这捕捉了\"无症状但ST段压低\"的沉默性缺血模式\n    result['Silent_Ischemia_Score'] = no_angina * oldpeak\n    \n    return result"
+  }
+]

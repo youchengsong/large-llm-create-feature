@@ -314,7 +314,7 @@ def run_stage(
         else:
             consecutive_no_new = 0
 
-        if accepted_after >= cfg.search.max_features:
+        if False:  # max_features limit disabled
             result.convergence_reason = f"达到特征上限 {cfg.search.max_features}"
             logger.info("收敛: %s", result.convergence_reason)
             break
@@ -505,7 +505,10 @@ def run(
         data = load_stage2(cfg=cfg)
     domain_knowledge = load_domain_knowledge(cfg)
     result = run_stage(cfg, data, domain_knowledge, knowledge_filter=knowledge_filter)
-    save_results(result, cfg.paths.output_dir)
+    output_dir = cfg.paths.output_dir
+    if knowledge_filter:
+        output_dir = output_dir / f"simecny_{knowledge_filter}"
+    save_results(result, output_dir)
 
     return result
 
@@ -531,6 +534,10 @@ def main() -> None:
         choices=["rules", "indicators", "expert", "court", "schema_only"],
         help="消融实验: 只注入指定类型的领域知识",
     )
+    parser.add_argument(
+        "--spw", type=float, default=None,
+        help="scale_pos_weight override for L3 verification (default: auto, set 1 for no balancing)",
+    )
     args = parser.parse_args()
 
     overrides: dict = {}
@@ -540,6 +547,8 @@ def main() -> None:
         overrides["max_features"] = args.max_features
     if args.quiet:
         overrides["verbose"] = False
+    if args.spw is not None:
+        overrides["spw_override"] = args.spw
 
     result = run(
         stage=args.stage,

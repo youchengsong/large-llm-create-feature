@@ -1,0 +1,9 @@
+[
+  {
+    "name": "log_amount_median_src",
+    "dimensions": [
+      "金额频次"
+    ],
+    "code": "def feature_log_amount_median_src(open_df, tx_df, close_df):\n    \"\"\"\n    计算每个钱包作为发送方时的交易金额中位数的对数变换。\n    洗钱账户常使用极小金额（0.1~1.0）进行测试交易，导致金额中位数极低，\n    而正常账户的金额中位数通常较高。log变换可有效放大这种差异。\n    \"\"\"\n    import pandas as pd\n    import numpy as np\n    \n    # 按src计算金额中位数\n    src_stats = tx_df.groupby('src').agg(\n        amount_median=('amount', 'median'),\n    ).reset_index()\n    \n    # 对负值进行clip处理（只有极少数负值交易），然后取log1p变换\n    src_stats['log_amount_median_src'] = np.log1p(src_stats['amount_median'].clip(lower=0))\n    \n    result = src_stats[['src', 'log_amount_median_src']].rename(columns={'src': 'wallet_id'})\n    \n    return result\n"
+  }
+]

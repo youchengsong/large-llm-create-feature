@@ -60,6 +60,12 @@ DATASET_CONFIG = {
         "metrics": ["auc", "accuracy"],
         "domain_knowledge": "inputs/public_datasets/breast_w/domain_knowledge.json",
     },
+    "adult": {
+        "csv": "data/public/adult.csv",
+        "target": "class",
+        "metrics": ["auc", "accuracy"],
+        "domain_knowledge": "inputs/public_datasets/adult/domain_knowledge.json",
+    },
     "simecny": {
         "csv": None,  # uses baseline_cache.parquet
         "target": "is_risk",
@@ -101,7 +107,7 @@ def prepare_features(
 ) -> tuple[pd.DataFrame, pd.Series]:
     """准备特征矩阵和标签。"""
     if feature_cols is None:
-        exclude = {target, "row_id", "wallet_id", "tx_id", "account",
+        exclude = {target, "row_id", "wallet_id", "tx_id", "tx_id_fe", "account",
                    "src", "dst", "is_laundering", "is_risk", "label", "is_illicit",
                    "Min_Received", "Min_Sent", "S_src_counterparty_index",
                    "Timestamp_Hour", "S_dst_counterparty_index",
@@ -129,6 +135,7 @@ def prepare_features(
 
 def evaluate_single_seed(
     X: pd.DataFrame, y: pd.Series, seed: int, metrics_list: list[str],
+    spw_override: float = None,
 ) -> dict[str, float]:
     """单次 80/20 split 评估。"""
     from sklearn.model_selection import train_test_split
@@ -141,12 +148,17 @@ def evaluate_single_seed(
         X, y, test_size=0.2, random_state=seed, stratify=y,
     )
 
+    if spw_override is not None:
+        spw = spw_override
+    else:
+        spw = float((y_train == 0).sum() / max((y_train == 1).sum(), 1))
     model = xgb.XGBClassifier(
         n_estimators=200,
         max_depth=6,
         learning_rate=0.1,
         subsample=0.8,
         colsample_bytree=0.8,
+        scale_pos_weight=spw,
         random_state=seed,
         eval_metric="logloss",
         enable_categorical=True,
@@ -180,6 +192,7 @@ def evaluate_dataset(
     features_csv: str = None,
     feature_cols: list[str] = None,
     seeds: list[int] = None,
+    spw_override: float = None,
 ) -> dict:
     """完整评估：5 seeds × metrics，返回标准化结果。"""
     if seeds is None:
@@ -192,13 +205,14 @@ def evaluate_dataset(
     X, y = prepare_features(df, target, feature_cols)
 
     logger.info(
-        "评估 %s / %s: X=(%d, %d), y 正例率=%.2f%%",
+        "评估 %s / %s: X=(%d, %d), y 正例率=%.2f%%, spw=%s",
         dataset_name, method_name, *X.shape, y.mean() * 100,
+        spw_override if spw_override is not None else "auto",
     )
 
     all_results = []
     for seed in seeds:
-        result = evaluate_single_seed(X, y, seed, metrics_list)
+        result = evaluate_single_seed(X, y, seed, metrics_list, spw_override=spw_override)
         all_results.append(result)
         logger.info("  seed=%d: %s", seed, {k: f"{v:.4f}" for k, v in result.items()})
 
@@ -276,16 +290,33 @@ def main():
     parser.add_argument("--seeds", nargs="*", type=int, default=None)
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--baseline", action="store_true", help="仅评估基线特征")
+    parser.add_argument("--spw", type=float, default=None,
+                        help="scale_pos_weight override (default: auto=neg/pos, set 1 for no balancing)")
+    parser.add_argument("--feature-subset", default=None,
+                        help="JSON file listing baseline feature names to use (subset experiment)")
     args = parser.parse_args()
 
     if args.baseline:
         args.method = "No-FE"
 
+    feature_cols = None
+    if args.feature_subset:
+        import json
+        with open(args.feature_subset) as f:
+            baseline_subset = json.load(f)
+        if args.features_csv:
+            extra_df = pd.read_csv(args.features_csv, nrows=0)
+            feature_cols = baseline_subset + [c for c in extra_df.columns]
+        else:
+            feature_cols = baseline_subset
+
     results = evaluate_dataset(
         dataset_name=args.dataset,
         method_name=args.method,
         features_csv=args.features_csv,
+        feature_cols=feature_cols,
         seeds=args.seeds,
+        spw_override=args.spw,
     )
 
     save_results(results, args.output_dir)

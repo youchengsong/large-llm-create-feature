@@ -1,0 +1,37 @@
+[
+  {
+    "name": "rfm_score",
+    "dimensions": [
+      "RFM特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rfm_score(df):\n    result = pd.DataFrame()\n    result['row_id'] = df['row_id']\n    \n    # Step 1: Normalize Recency (lower is better) - invert so higher score = better\n    # Recency ranges 0-74, we want low recency to give high score\n    max_recency = df['Recency'].max()\n    recency_score = 1 - (df['Recency'] / max_recency)  # 0 to 1, higher = more recent\n    \n    # Step 2: Normalize Frequency (higher is better)\n    max_freq = df['Frequency'].max()\n    freq_score = df['Frequency'] / max_freq  # 0 to 1, higher = more frequent\n    \n    # Step 3: Combine into RFM score (weighted: Recency is strongest predictor)\n    # IND_01: Recency is strongest predictor in RFM model\n    # IND_02: Frequency is second strongest\n    # EXP_01: Based on RFM framework from Taiwan blood center\n    result['rfm_score'] = (0.6 * recency_score + 0.4 * freq_score)\n    \n    return result"
+  },
+  {
+    "name": "rfm_best_segment",
+    "dimensions": [
+      "RFM特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_rfm_best_segment(df):\n    result = pd.DataFrame()\n    result['row_id'] = df['row_id']\n    \n    # Step 1: Create binary indicator for best RFM segment\n    # RULE_001: Recency <= 6 AND Frequency >= 5 = best donors\n    result['rfm_best_segment'] = ((df['Recency'] <= 6) & (df['Frequency'] >= 5)).astype(int)\n    \n    return result"
+  },
+  {
+    "name": "active_donor_segment",
+    "dimensions": [
+      "RFM特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_active_donor_segment(df):\n    result = pd.DataFrame()\n    result['row_id'] = df['row_id']\n    \n    # Step 1: Calculate donation frequency rate\n    freq_rate = df['Frequency'] / df['Time']\n    \n    # Step 2: Create binary indicator for active donor\n    # RULE_005: Frequency/Time > 0.3 AND Recency <= 6\n    result['active_donor_segment'] = ((freq_rate > 0.3) & (df['Recency'] <= 6)).astype(int)\n    \n    return result"
+  },
+  {
+    "name": "avg_donation_interval",
+    "dimensions": [
+      "RFM特征"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_avg_donation_interval(df):\n    result = pd.DataFrame()\n    result['row_id'] = df['row_id']\n    \n    # Step 1: Calculate average interval between donations\n    # IND_06: (Time - Recency) / (Frequency - 1) approximates average interval\n    # Only valid for Frequency > 1\n    active_window = df['Time'] - df['Recency']\n    denom = df['Frequency'] - 1\n    \n    # For Frequency == 1, set interval to Time (total time since first donation)\n    # as there's only one donation\n    result['avg_donation_interval'] = np.where(\n        denom > 0,\n        active_window / denom,\n        df['Time']  # For first-time donors, use total time\n    )\n    \n    return result"
+  },
+  {
+    "name": "freq_active_product_log",
+    "dimensions": [
+      "行为模式"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_freq_active_product_log(df):\n    result = pd.DataFrame()\n    result['row_id'] = df['row_id']\n    \n    # Step 1: Calculate active window = Time - Recency\n    # IND_10: 活跃窗口反映了持续献血的时间长度\n    active_window = df['Time'] - df['Recency']\n    \n    # Step 2: Multiply Frequency by active window\n    # This captures the total \"donation exposure\" - \n    # high frequency over a long active period = committed donor\n    # Low values = either infrequent or short active period\n    product = df['Frequency'] * active_window\n    \n    # Step 3: Apply log1p to stabilize the distribution\n    # The product can range from 0 to large values (50*98=4900)\n    result['freq_active_product_log'] = np.log1p(product)\n    \n    return result\n"
+  }
+]

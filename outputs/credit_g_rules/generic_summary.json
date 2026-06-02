@@ -1,0 +1,19 @@
+{
+  "stage": "generic",
+  "total_rounds": 3,
+  "total_accepted": 8,
+  "total_candidates": 0,
+  "total_rejected": 29,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 1530.5,
+  "accepted_features": [
+    "personal_status_age_risk",
+    "financial_stability_score",
+    "total_debt_burden_score",
+    "credit_history_woe_score",
+    "bad_history_amount_risk",
+    "purpose_existing_credits_risk",
+    "duration_purpose_risk_score",
+    "payment_duration_interaction"
+  ]
+}

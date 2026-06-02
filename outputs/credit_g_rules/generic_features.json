@@ -1,0 +1,58 @@
+[
+  {
+    "name": "personal_status_age_risk",
+    "dimensions": [
+      "客户属性"
+    ],
+    "code": "\ndef feature_personal_status_age_risk(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 年龄风险\n    age_risk = (df['age'] < 25).astype(int)\n    \n    # 组合WOE映射（基于全样本计算）\n    # female div/dep/mar + <25: WOE=-0.56\n    # female div/dep/mar + >=25: WOE=-0.11\n    # male div/sep + <25: 样本太少(1个)，合并到>=25\n    # male div/sep + >=25: WOE=-0.48\n    # male mar/wid + <25: WOE=-0.29\n    # male mar/wid + >=25: WOE=0.29\n    # male single + <25: WOE=-0.46\n    # male single + >=25: WOE=0.23\n    \n    woe_map = {\n        ('female div/dep/mar', 1): -0.56,\n        ('female div/dep/mar', 0): -0.11,\n        ('male div/sep', 1): -0.48,  # 样本少，用>=25的WOE\n        ('male div/sep', 0): -0.48,\n        ('male mar/wid', 1): -0.29,\n        ('male mar/wid', 0): 0.29,\n        ('male single', 1): -0.46,\n        ('male single', 0): 0.23,\n    }\n    \n    result['personal_status_age_risk'] = df.apply(\n        lambda row: woe_map.get((row['personal_status'], age_risk[row.name]), 0.0), \n        axis=1\n    )\n    \n    return result[['row_id', 'personal_status_age_risk']]\n"
+  },
+  {
+    "name": "financial_stability_score",
+    "dimensions": [
+      "财务状况"
+    ],
+    "code": "def feature_financial_stability_score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于bad rate排序，将每个字段映射为风险分数（越高越危险）\n    \n    # checking_status风险分: <0=4, 0<=X<200=3, >=200=2, no checking=1\n    checking_map = {'<0': 4, '0<=X<200': 3, '>=200': 2, 'no checking': 1}\n    \n    # savings_status风险分: <100=4, 100<=X<500=3, no known savings=2, 500<=X<1000=1, >=1000=1\n    savings_map = {'<100': 4, '100<=X<500': 3, 'no known savings': 2, '500<=X<1000': 1, '>=1000': 1}\n    \n    # property_magnitude风险分: no known property=4, car=3, life insurance=2, real estate=1\n    property_map = {'no known property': 4, 'car': 3, 'life insurance': 2, 'real estate': 1}\n    \n    # housing风险分: for free=4, rent=3, own=1\n    housing_map = {'for free': 4, 'rent': 3, 'own': 1}\n    \n    result['checking_risk'] = df['checking_status'].map(checking_map).fillna(2)\n    result['savings_risk'] = df['savings_status'].map(savings_map).fillna(2)\n    result['property_risk'] = df['property_magnitude'].map(property_map).fillna(3)\n    result['housing_risk'] = df['housing'].map(housing_map).fillna(3)\n    \n    # 综合评分 = 加权和（checking_status权重最高，因为它是最强预测因子）\n    result['financial_stability_score'] = (\n        result['checking_risk'] * 3 + \n        result['savings_risk'] * 2 + \n        result['property_risk'] * 2 + \n        result['housing_risk'] * 1\n    )\n    \n    return result[['row_id', 'financial_stability_score']]"
+  },
+  {
+    "name": "total_debt_burden_score",
+    "dimensions": [
+      "财务状况"
+    ],
+    "code": "def feature_total_debt_burden_score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 步骤1: installment_commitment(1-4)是偿债收入比(DSTI)的序数代理\n    install_score = df['installment_commitment'].astype(int)\n    \n    # 步骤2: other_payment_plans 外部债务评分\n    # bank=2分（银行债务更正式、金额更大）, stores=1分, none=0分\n    ext_debt_score = df['other_payment_plans'].map({'bank': 2, 'stores': 1, 'none': 0}).fillna(0).astype(int)\n    \n    # 步骤3: 总债务负担 = 分期负担 + 外部债务负担\n    # 范围: 1(最低) ~ 6(最高)\n    result['total_debt_burden_score'] = install_score + ext_debt_score\n    \n    return result[['row_id', 'total_debt_burden_score']]"
+  },
+  {
+    "name": "credit_history_woe_score",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "code": "def feature_credit_history_woe_score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 基于全样本计算的WOE值（好客户/坏客户的对数比率）\n    # critical/other existing credit: WOE=0.7306 (低风险)\n    # existing paid: WOE=-0.0852 (中等风险)\n    # delayed previously: WOE=-0.0898 (中等风险)\n    # no credits/all paid: WOE=-1.3404 (高风险)\n    # all paid: WOE=-1.1244 (高风险)\n    \n    woe_map = {\n        'critical/other existing credit': 0.7306,\n        'existing paid': -0.0852,\n        'delayed previously': -0.0898,\n        'no credits/all paid': -1.3404,\n        'all paid': -1.1244\n    }\n    \n    result['credit_history_woe_score'] = df['credit_history'].map(woe_map).fillna(0.0)\n    \n    return result[['row_id', 'credit_history_woe_score']]"
+  },
+  {
+    "name": "bad_history_amount_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "code": "def feature_bad_history_amount_risk(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 步骤1: 将credit_history分为不良历史(1)和正常历史(0)\n    # 不良历史: 'critical/other existing credit', 'delayed previously'\n    bad_hist = df['credit_history'].isin(['critical/other existing credit', 'delayed previously']).astype(int)\n    \n    # 步骤2: 将credit_amount分为3组（低/中/高）\n    # 使用固定分位数阈值\n    amt_low_thresh = 1365.0  # 33%分位数\n    amt_high_thresh = 3976.0  # 67%分位数\n    \n    amt_group = pd.cut(df['credit_amount'], \n                       bins=[-np.inf, amt_low_thresh, amt_high_thresh, np.inf],\n                       labels=['low', 'mid', 'high'])\n    \n    # 步骤3: 计算6个组合的WOE值\n    # bad_hist=0, amt=low: WOE=-0.2610\n    # bad_hist=0, amt=mid: WOE=0.0466\n    # bad_hist=0, amt=high: WOE=-0.5734\n    # bad_hist=1, amt=low: WOE=0.8607\n    # bad_hist=1, amt=mid: WOE=0.6115\n    # bad_hist=1, amt=high: WOE=0.1639\n    \n    woe_map = {\n        (0, 'low'): -0.2610,\n        (0, 'mid'): 0.0466,\n        (0, 'high'): -0.5734,\n        (1, 'low'): 0.8607,\n        (1, 'mid'): 0.6115,\n        (1, 'high'): 0.1639,\n    }\n    \n    result['bad_history_amount_risk'] = df.apply(\n        lambda row: woe_map.get((bad_hist[row.name], amt_group[row.name]), 0.0),\n        axis=1\n    )\n    \n    return result[['row_id', 'bad_history_amount_risk']]"
+  },
+  {
+    "name": "purpose_existing_credits_risk",
+    "dimensions": [
+      "信贷历史"
+    ],
+    "code": "def feature_purpose_existing_credits_risk(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    # 步骤1: 将purpose按EXP_05分为风险等级\n    # 低风险(0): used car\n    # 中等风险(1): new car, furniture/equipment, repairs, domestic appliance\n    # 高风险(2): business, education, retraining, other\n    # 极高风险(3): radio/tv, vacation\n    purpose_risk = df['purpose'].map({\n        'used car': 0,\n        'new car': 1,\n        'furniture/equipment': 1,\n        'repairs': 1,\n        'domestic appliance': 1,\n        'business': 2,\n        'education': 2,\n        'retraining': 2,\n        'other': 2,\n        'radio/tv': 3,\n        'vacation': 3\n    })\n    \n    # 步骤2: 将purpose_risk二分为低风险(0,3)和高风险(1,2)\n    pr_bin = purpose_risk.isin([1, 2]).astype(int)\n    \n    # 步骤3: 将existing_credits二分为1和>=2\n    ec_bin = (df['existing_credits'] >= 2).astype(int)\n    \n    # 步骤4: WOE映射\n    # pr=0(低风险用途), ec=1(多信贷): WOE=0.5753 (最低风险)\n    # pr=0(低风险用途), ec=0(单信贷): WOE=0.4524\n    # pr=1(高风险用途), ec=1(多信贷): WOE=-0.0886\n    # pr=1(高风险用途), ec=0(单信贷): WOE=-0.3630 (最高风险)\n    \n    woe_map = {\n        (0, 0): 0.4524,\n        (0, 1): 0.5753,\n        (1, 0): -0.3630,\n        (1, 1): -0.0886,\n    }\n    \n    result['purpose_existing_credits_risk'] = df.apply(\n        lambda row: woe_map.get((pr_bin[row.name], ec_bin[row.name]), 0.0),\n        axis=1\n    )\n    \n    return result[['row_id', 'purpose_existing_credits_risk']]"
+  },
+  {
+    "name": "duration_purpose_risk_score",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "code": "def feature_duration_purpose_risk_score(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    total_good = 300  # class=0 (好客户)\n    total_bad = 700   # class=1 (坏客户)\n    \n    # 步骤1: duration二分类 (<=12 短期 vs >12 长期)\n    dur_short = (df['duration'] <= 12).astype(int)\n    \n    # 步骤2: purpose风险分组 (基于WOE排序)\n    # low_risk: used car, retraining (WOE最高，好客户比例高)\n    # mid_risk: radio/tv, furniture/equipment, domestic appliance, repairs, business\n    # high_risk: new car, other, education (WOE最低，坏客户比例高)\n    def purpose_group(p):\n        if p in ['used car', 'retraining']:\n            return 'low_risk'\n        elif p in ['radio/tv', 'furniture/equipment', 'domestic appliance', 'repairs', 'business']:\n            return 'mid_risk'\n        else:\n            return 'high_risk'\n    \n    purpose_grp = df['purpose'].map(purpose_group)\n    \n    # 步骤3: 预计算WOE映射 (基于全样本)\n    # dur_short=0(>12), purpose=high_risk: WOE=0.8837\n    # dur_short=0(>12), purpose=low_risk: WOE=2.4433\n    # dur_short=0(>12), purpose=mid_risk: WOE=1.5521\n    # dur_short=1(<=12), purpose=high_risk: WOE=1.8563\n    # dur_short=1(<=12), purpose=low_risk: WOE=2.7444\n    # dur_short=1(<=12), purpose=mid_risk: WOE=2.3277\n    \n    woe_map = {\n        (0, 'high_risk'): 0.8837,\n        (0, 'low_risk'): 2.4433,\n        (0, 'mid_risk'): 1.5521,\n        (1, 'high_risk'): 1.8563,\n        (1, 'low_risk'): 2.7444,\n        (1, 'mid_risk'): 2.3277,\n    }\n    \n    result['duration_purpose_risk_score'] = df.apply(\n        lambda row: woe_map.get((dur_short[row.name], purpose_grp[row.name]), 1.5),\n        axis=1\n    )\n    \n    return result[['row_id', 'duration_purpose_risk_score']]"
+  },
+  {
+    "name": "payment_duration_interaction",
+    "dimensions": [
+      "贷款特征"
+    ],
+    "code": "def feature_payment_duration_interaction(df):\n    import pandas as pd\n    import numpy as np\n    result = df[['row_id']].copy()\n    \n    total_good = 300\n    total_bad = 700\n    \n    # 步骤1: 计算月还款代理 = credit_amount / duration\n    monthly_pmt = df['credit_amount'] / df['duration']\n    \n    # 步骤2: 月还款二分类 (基于中位数)\n    pmt_median = monthly_pmt.median()\n    pmt_high = (monthly_pmt > pmt_median).astype(int)\n    \n    # 步骤3: 期限二分类 (>24月为长期)\n    dur_long = (df['duration'] > 24).astype(int)\n    \n    # 步骤4: 预计算WOE映射\n    # pmt_high=0(低月还款), dur_long=0(短中期): WOE=1.6776\n    # pmt_high=0(低月还款), dur_long=1(长期): WOE=0.9957\n    # pmt_high=1(高月还款), dur_long=0(短中期): WOE=2.1783\n    # pmt_high=1(高月还款), dur_long=1(长期): WOE=1.1445\n    \n    woe_map = {\n        (0, 0): 1.6776,\n        (0, 1): 0.9957,\n        (1, 0): 2.1783,\n        (1, 1): 1.1445,\n    }\n    \n    result['payment_duration_interaction'] = df.apply(\n        lambda row: woe_map.get((pmt_high[row.name], dur_long[row.name]), 1.5),\n        axis=1\n    )\n    \n    return result[['row_id', 'payment_duration_interaction']]"
+  }
+]

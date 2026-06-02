@@ -1,0 +1,28 @@
+{
+  "stage": "generic",
+  "total_rounds": 6,
+  "total_accepted": 17,
+  "total_candidates": 0,
+  "total_rejected": 83,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 4114.8,
+  "accepted_features": [
+    "hr_ratio",
+    "exercise_consistency_score",
+    "oldpeak_st_slope_interaction",
+    "age_sex_symptom_risk_score",
+    "exercise_test_discordance",
+    "resting_ecg_fasting_interaction",
+    "st_oldpeak_joint_risk",
+    "comprehensive_risk_score",
+    "fasting_chestpain_interaction",
+    "resting_ecg_bp_interaction",
+    "resting_ecg_angina_interaction",
+    "ecg_sex_fasting_triple_risk",
+    "resting_ecg_cholesterol_missing_risk",
+    "ecg_age_sex_triple_risk",
+    "ecg_bp_sex_triple_risk",
+    "chol_missing_fbs_risk",
+    "bp_fasting_joint_risk"
+  ]
+}

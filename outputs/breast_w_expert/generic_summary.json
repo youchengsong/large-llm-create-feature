@@ -1,0 +1,21 @@
+{
+  "stage": "generic",
+  "total_rounds": 7,
+  "total_accepted": 10,
+  "total_candidates": 0,
+  "total_rejected": 50,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3252.9,
+  "accepted_features": [
+    "nuclear_composite_score",
+    "nuclear_bare_clump_interact",
+    "clump_size_ratio",
+    "mitoses_epi_product",
+    "feature_rank_std",
+    "clump_grade",
+    "clump_5",
+    "cell_median_min_ratio",
+    "nuclear_cellular_absdiff",
+    "nuclear_cellular_ratio"
+  ]
+}

@@ -1,0 +1,254 @@
+# Provenance Cards
+
+## consistency_score
+
+**维度**: 风险因素, 运动试验综合
+
+**含义**: 运动试验一致性评分，基于EXP_07专家共识。运动试验提供三个同步诊断通道：(1)血流动力学—变时性功能不全(MaxHR<85%预测值)；(2)ECG变化—ST段压低>=1.0mm且下斜/水平型；(3)症状—运动诱发心绞痛。三项均异常(一致阳性)风险远高于仅一项异常(不一致)。评分0-3，分数越高风险越大。
+
+**设计推理**: 步骤1: 因为EXP_07指出运动试验提供三个同步诊断通道，三项均异常(一致阳性)比仅一项异常(不一致)风险高得多，所以创建一致性评分来量化三个通道的异常数量。
+步骤2: 因为RULE_009(变时性功能不全)指出MaxHR < (220-Age)*0.85是不良心脏事件的强独立预测因子，所以计算通道1: maxhr_abnormal = (MaxHR < (220-Age)*0.85).astype(int)。
+步骤3: 因为RULE_002(运动试验阳性)指出Oldpeak>=1.0mm且ST_Slope为Down或Flat为阳性标准，所以计算通道2: ecg_abnormal = (Oldpeak>=1.0 & ST_Slope in ['Down','Flat']).astype(int)。
+步骤4: 因为IND_08(运动诱发心绞痛)指出ExerciseAngina=Y提示心肌缺血，所以计算通道3: angina_abnormal = (ExerciseAngina=='Y').astype(int)。
+步骤5: 因为三个通道异常数量越多风险越高，所以计算consistency_score = maxhr_abnormal + ecg_abnormal + angina_abnormal。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, Age, MaxHR, Oldpeak, ST_Slope, ExerciseAngina
+
+**代码哈希**: `48696ae15ea0827c`
+
+---
+
+## hr_ratio
+
+**维度**: 风险因素, 血流动力学
+
+**含义**: 年龄校正的心率储备比，基于IND_07(低最大心率)和EXP_05(心率储备比)。原始MaxHR值需要年龄校正才有意义。计算MaxHR/(220-Age)，比值越低风险越高。<0.80为变时性功能不全，是心血管死亡的独立预测因子。
+
+**设计推理**: 步骤1: 因为IND_07指出最大心率越低风险越高，但EXP_05指出原始MaxHR值需要年龄校正才有意义（70岁MaxHR=120是80%正常，而40岁MaxHR=120仅67%明显异常），所以创建年龄校正的心率储备比。
+步骤2: 因为年龄预测最大心率公式为220-Age，所以计算age_predicted_maxhr = 220 - Age。
+步骤3: 因为心率储备比=实际MaxHR/预测MaxHR，比值越低风险越高，所以计算hr_ratio = MaxHR / (220 - Age)。
+步骤4: 为防止极端值影响模型稳定性，将hr_ratio截断到[0.3, 1.2]合理范围。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, Age, MaxHR
+
+**代码哈希**: `de889fc9e79620c6`
+
+---
+
+## oldpeak_slope_interaction
+
+**维度**: 风险因素, ECG交互
+
+**含义**: Oldpeak与ST_Slope交互特征，基于EXP_03专家共识。同样1.5mm的ST压低，下斜型(Down)远比上斜型(Up)令人担忧。创建Oldpeak×ST_Slope_encoded交互特征(Down=2, Flat=1, Up=0)和严重缺血标志(Oldpeak>=2.0且Down)。
+
+**设计推理**: 步骤1: 因为EXP_03指出同样1.5mm的ST压低，下斜型(Down)远比上斜型(Up)令人担忧，建议创建交互特征Oldpeak×ST_Slope_encoded，所以对ST_Slope进行编码：Down=2(最病理性), Flat=1, Up=0(良性)。
+步骤2: 因为Oldpeak的临床意义取决于ST_Slope形态，下斜型+大Oldpeak会放大缺血信号，上斜型+大Oldpeak会被抑制，所以计算交互特征oldpeak_slope_interaction = Oldpeak × slope_encoded。
+步骤3: 因为IND_09指出Oldpeak>=2.0mm为严重缺血，IND_10指出下斜型ST段是最病理性形态，所以创建severe_ischemia标志 = (Oldpeak>=2.0 & ST_Slope=='Down').astype(int)。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, Oldpeak, ST_Slope
+
+**代码哈希**: `9c1d20c150ac1e27`
+
+---
+
+## metabolic_risk_score
+
+**维度**: 风险因素, 代谢综合征
+
+**含义**: 代谢综合征聚集风险评分，基于EXP_01(风险因素交互是乘法的)和RULE_006(代谢综合征聚集)。高血压(RestingBP>=130)+高血糖(FastingBS=1)+高胆固醇(Cholesterol>=200)三项同时存在风险远大于各项之和。同时处理Cholesterol=0的缺失值(EXP_06)并包含ACC/AHA自动高风险规则(RULE_001)。
+
+**设计推理**: 步骤1: 因为EXP_06指出约172条记录Cholesterol=0是生理不可能的缺失值，如果不处理会产生虚假的'低胆固醇=疾病'模式，所以按HeartDisease分层的中位数插补Cholesterol=0的值，先转为float避免类型错误。
+步骤2: 因为IND_03指出RestingBP>=130为1期高血压，且RestingBP=0为缺失值，所以计算hypertension = (RestingBP>=130 & RestingBP>0).astype(int)。
+步骤3: 因为IND_05指出FastingBS=1表示空腹血糖>120mg/dL与冠心病风险显著增加相关，所以计算hyperglycemia = (FastingBS==1).astype(int)。
+步骤4: 因为IND_04指出Cholesterol>=240为高，200-239为边缘高，使用插补后的值计算hypercholesterolemia = (chol_filled>=200).astype(int)。
+步骤5: 因为EXP_01指出心血管风险因素的交互是乘法的而非加法的，三项同时存在风险远大于各项之和，所以计算metabolic_risk_score = 三项之和(0-3)和metabolic_syndrome = 三项同时存在标志。
+步骤6: 因为RULE_001指出RestingBP>=140或FastingBS=1自动归为高心血管风险，所以计算bp_fbs_high_risk = (RestingBP>=140 | FastingBS==1).astype(int)。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, RestingBP, Cholesterol, FastingBS, HeartDisease
+
+**代码哈希**: `49e532b9036a1ee6`
+
+---
+
+## exercise_low_risk_flag
+
+**维度**: 运动试验
+
+**含义**: 运动试验低风险标志，基于RULE_010(低风险排除)和EXP_07(运动试验一致性)的反向应用。当运动试验三个通道均正常时提示低风险：(1)ST_Slope=Up(上斜型，良性)；(2)无运动诱发心绞痛；(3)达到年龄预测最大心率的85%以上(无变时性功能不全)。三项均正常=低风险，是运动试验阴性的一致表现。
+
+**设计推理**: 步骤1: 因为IND_10指出快速上斜型(Up)ST段通常被认为是良性的，CHD死亡风险降低30%，所以条件1为ST_Slope==Up。步骤2: 因为IND_08指出运动诱发心绞痛提示心肌缺血，所以条件2为ExerciseAngina==N(无运动心绞痛)。步骤3: 因为RULE_009指出变时性功能不全(MaxHR<(220-Age)*0.85)是不良心脏事件的强预测因子，所以条件3为MaxHR>=(220-Age)*0.85(达到足够心率)。步骤4: 因为EXP_07指出三项均异常(一致阳性)比仅一项异常风险高得多，反向推理三项均正常(一致阴性)应提示低风险，所以三个条件同时满足时标记为1。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, ST_Slope, ExerciseAngina, MaxHR, Age
+
+**代码哈希**: `8c8fdf9205ebfa72`
+
+---
+
+## ecg_slope_resting_risk_code
+
+**维度**: ECG特征
+
+**含义**: ST_Slope与RestingECG联合风险编码，基于数据探索中各组合的HD率排序，不使用Oldpeak阈值以避免冗余。同时创建LVH掩盖缺血标志(EXP_08)。
+
+**设计推理**: 步骤1: 因为IND_10指出ST段形态(下斜型>水平型>上斜型)是CAD预测因子，IND_11指出异常静息ECG是独立风险因子，且EXP_08指出RestingECG应作为运动试验解释的修饰因子，所以需要联合编码ST_Slope和RestingECG;
+步骤2: 因为数据探索显示各组合HD率差异显著(从0.145到0.907)，且不使用Oldpeak阈值可以避免与Oldpeak字段的高度冗余，所以根据HD率排序创建0-5的序数编码;
+步骤3: 因为EXP_08指出RestingECG=LVH使运动试验解释复杂化，基线复极化异常可能掩盖缺血，所以创建LVH掩盖缺血标志(LVH+Flat/Down)。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: ST_Slope, RestingECG
+
+**代码哈希**: `9f8916393769f3f6`
+
+---
+
+## diamond_forrester_score
+
+**维度**: 复合指标
+
+**含义**: Diamond-Forrester预测试概率评分，基于年龄、性别和胸痛类型三个维度计算CAD先验概率。年龄≥55岁得2分，45-54岁得1分；男性得2分；无症状(ASY)得3分，典型心绞痛(TA)得2分，非典型心绞痛(ATA)得1分。总分0-7分，分数越高风险越大。
+
+**设计推理**: 步骤1: 因为IND_01(高龄)指出年龄越大风险越高，≥45岁(男)或≥55岁(女)为独立风险因素，所以将年龄分段编码为0/1/2分。步骤2: 因为IND_02(男性性别)指出男性比女性平均提前10年发展心血管疾病，所以男性得2分。步骤3: 因为IND_06(无症状胸痛悖论高风险)和EXP_04指出ASY是最强单一预测因子，TA有Diamond-Forrester三标准，所以胸痛类型按ASY(3)>TA(2)>ATA(1)>NAP(0)编码。步骤4: 因为RULE_005(Diamond-Forrester预测试概率)指出基于年龄、性别和胸痛类型的组合可计算CAD先验概率，所以将三者相加得到综合评分。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: Age, Sex, ChestPainType
+
+**代码哈希**: `b7184881d0e17f64`
+
+---
+
+## chol_missing_hyperglycemia_risk
+
+**维度**: 风险因素
+
+**含义**: Cholesterol缺失与高血糖联合风险评分。基于EXP_06(约172条记录Cholesterol=0是生理不可能的缺失值)和IND_05(空腹血糖>120 mg/dL与冠心病风险显著增加)。当Cholesterol缺失且FastingBS=1时，HD率高达98.9%，是极强的风险信号。创建4级评分：0=正常+无高血糖，1=正常+高血糖，2=缺失+无高血糖，3=缺失+高血糖。
+
+**设计推理**: 步骤1: 因为EXP_06指出约172条记录(19%)Cholesterol=0是生理不可能的缺失值，这些缺失值本身有极强的预测性(88.4%患病率)，所以识别Cholesterol==0的样本作为缺失标志。步骤2: 因为IND_05指出空腹血糖>120 mg/dL(FastingBS=1)与冠心病风险显著增加相关，所以识别FastingBS==1的样本作为高血糖标志。步骤3: 因为EXP_01指出心血管风险因素的交互是乘法的而非加法的，Chol缺失+高血糖的组合HD率高达98.9%，远高于单独任一因素，所以创建4级评分：chol_missing*2 + high_fbs，其中0=最低风险，3=最高风险。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: Cholesterol, FastingBS
+
+**代码哈希**: `3c4a29a991c91ffb`
+
+---
+
+## bp_deviation_fbs_risk_score
+
+**维度**: 风险因素
+
+**含义**: BP偏离度与空腹血糖联合风险评分。基于IND_03(高血压：BP>=140为确定高血压，正常值<120)、IND_05(空腹血糖>120 mg/dL与冠心病风险显著增加)和EXP_01(心血管风险因素的交互是乘法的而非加法的)。计算BP偏离理想值120 mmHg的相对程度，再与FastingBS做乘法交互，当同时存在高血糖时风险倍增。
+
+**设计推理**: 步骤1: 因为IND_03指出正常血压<120 mmHg，BP>=140为确定高血压，BP偏离正常值越大风险越高，所以计算BP偏离理想值120的相对程度|RestingBP-120|/120。步骤2: 因为只有1条记录RestingBP=0是缺失值，所以用中位数插补确保计算稳定。步骤3: 因为IND_05指出空腹血糖>120 mg/dL(FastingBS=1)与冠心病风险显著增加，所以识别FastingBS=1的样本。步骤4: 因为EXP_01指出心血管风险因素的交互是乘法的而非加法的，高血压+高血糖组合产生的风险远大于各项风险之和，所以使用乘法交互公式：偏离度×(1+FastingBS)，当FBS=1时BP偏离的效应加倍。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: RestingBP, FastingBS
+
+**代码哈希**: `23175a2259789b6c`
+
+---
+
+## exercise_paradox_patterns
+
+**维度**: 运动试验
+
+**含义**: 运动试验三通道矛盾模式标志，捕获运动试验中不一致的诊断信号。包括：Oldpeak=0+ST_Slope=Flat(基线异常)、ExerciseAngina=Y+Oldpeak=0(微血管心绞痛)、Oldpeak>0+ST_Slope=Up(良性ST压低)。
+
+**设计推理**: 步骤1: 因为EXP_07指出运动试验三个通道(血流动力学、ECG变化、症状)一致阳性时风险最高，但通道间不一致(矛盾模式)也提供重要诊断信息，所以需要创建矛盾模式特征。步骤2: 因为探索数据显示Oldpeak=0但ST_Slope=Flat时HD率高达0.916(107个样本)，而consistency_score无法捕获此模式(因Oldpeak<1.0)，所以创建paradox_flat_zero标志。步骤3: 因为IND_08指出运动诱发心绞痛提示心肌缺血，但探索数据显示ExerciseAngina=Y且Oldpeak=0时HD率仍达0.714(63个样本)，提示即使无ST段压低，心绞痛本身也是强风险信号，所以创建paradox_angina_no_st标志。步骤4: 因为IND_10指出上斜型ST段通常被认为是良性的，但探索数据显示Oldpeak>0且ST_Slope=Up时HD率仅0.392(130个样本)，提示有ST压低但形态良性时风险较低，所以创建paradox_up_st_depression标志。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, Oldpeak, ST_Slope, ExerciseAngina
+
+**代码哈希**: `5722714eb7166064`
+
+---
+
+## exercise_cholesterol_missing_interaction
+
+**维度**: 运动试验
+
+**含义**: 运动试验阳性与胆固醇缺失状态的交互特征。胆固醇缺失(Cholesterol=0)本身是强预测因子，与运动试验阳性结合时风险极高。
+
+**设计推理**: 步骤1: 因为IND_04指出Cholesterol=0是生理不可能值(约19%记录)，代表缺失数据，所以需要识别缺失状态。步骤2: 因为EXP_06指出约172条记录Cholesterol=0是缺失值，如果不处理会产生虚假的'低胆固醇=疾病'模式，所以创建缺失标志。步骤3: 因为探索数据显示运动阳性+胆固醇缺失(HD=0.922)与已有特征相关性很低(最高0.28)，且样本数64足够，所以创建此交互特征。步骤4: 同时创建运动阳性+胆固醇正常作为对照特征。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: row_id, Oldpeak, ST_Slope, Cholesterol
+
+**代码哈希**: `1def329050aa8ede`
+
+---
+
+## bp_age_sex_interaction
+
+**维度**: 复合指标
+
+**含义**: 血压-年龄-性别乘法交互特征。使用连续值而非二元阈值，通过(RestingBP/100)*(Age/50)*(1+0.3*Sex_M)公式捕获三个基础风险因素的乘法交互效应。标准化确保数值在合理范围，性别乘数体现男性更高风险。与所有已有特征相关性均<0.55，HD率单调递增。
+
+**设计推理**: 步骤1: 因为EXP_01指出心血管风险因素的交互是乘法的而非加法的，且IND_01(高龄)和IND_03(高血压)都是连续风险因素，所以使用乘法而非加法来组合RestingBP和Age。
+步骤2: 因为IND_02指出男性比女性提前约10年发展心血管疾病，所以加入性别乘数(1+0.3*Sex_M)来放大男性风险。
+步骤3: 因为RestingBP取值范围0-200，Age取值范围28-77，直接相乘会导致数值过大，所以分别除以100和50进行标准化，使结果在合理范围(约0-3)。
+步骤4: 因为数据探索验证了该特征与所有已有特征的相关性均<0.55（远低于0.7阈值），且HD率呈单调递增（Q1=0.309→Q4=0.752），所以该特征具有独立的信息贡献。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: RestingBP, Age, Sex
+
+**代码哈希**: `d385237f833f818b`
+
+---
+
+## exercise_st_depression_angina_interaction
+
+**维度**: 运动试验
+
+**含义**: 运动试验ST段压低与心绞痛的非线性交互评分。Oldpeak的平方乘以ExerciseAngina，当无心绞痛时特征值为0，有心绞痛时特征值=Oldpeak^2。平方变换降低与原始Oldpeak的线性相关性，同时保留风险信号。
+
+**设计推理**: 步骤1: 因为IND_08指出运动诱发心绞痛提示心肌缺血，是Duke跑步机评分的组成部分，所以创建angina标志(ExerciseAngina=='Y')。步骤2: 因为IND_09指出ST段压低(Oldpeak)幅度与缺血严重程度相关，且数据探索显示Oldpeak与ExerciseAngina的交互效应显著(Y+Oldpeak>=2.0的HD率=0.932)，所以使用Oldpeak^2*EA的乘法交互。步骤3: 因为平方变换可以降低与原始Oldpeak的线性相关性(从0.97降至0.69)，避免与基线特征Oldpeak的冗余，同时平方变换放大了高Oldpeak值的风险信号，符合EXP_01(风险因素交互是乘法的而非加法的)原则。
+
+**知识溯源ID**: 未指定
+
+**计算步骤**: 未指定
+
+**数据字段**: Oldpeak, ExerciseAngina
+
+**代码哈希**: `fb71abbd6443eee8`
+
+---

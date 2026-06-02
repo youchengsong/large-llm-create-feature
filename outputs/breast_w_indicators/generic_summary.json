@@ -1,0 +1,15 @@
+{
+  "stage": "generic",
+  "total_rounds": 3,
+  "total_accepted": 4,
+  "total_candidates": 0,
+  "total_rejected": 12,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 1432.8,
+  "accepted_features": [
+    "nuclear_composite_score",
+    "mitosis_size_interaction",
+    "cell_composite_score",
+    "nuclear_cytoplasmic_ratio_index"
+  ]
+}
