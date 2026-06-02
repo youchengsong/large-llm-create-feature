@@ -2,7 +2,7 @@
 
 Usage:
     python scripts/knowfeat_to_csv.py --dataset credit_g
-    python scripts/knowfeat_to_csv.py --dataset diabetes
+    python scripts/knowfeat_to_csv.py --dataset credit_g --features-dir outputs/credit_g_schema_only
 """
 
 import argparse
@@ -33,12 +33,18 @@ DATASET_CONFIG = {
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", required=True, choices=list(DATASET_CONFIG.keys()))
+    parser.add_argument("--features-dir", default=None,
+                        help="Directory containing generic_features.json (default: outputs/{dataset})")
     args = parser.parse_args()
 
     ds = args.dataset
     cfg = DATASET_CONFIG[ds]
-    
-    features_json = PROJECT_ROOT / "outputs" / ds / "generic_features.json"
+
+    feat_dir = Path(args.features_dir) if args.features_dir else PROJECT_ROOT / "outputs" / ds
+    if not feat_dir.is_absolute():
+        feat_dir = PROJECT_ROOT / feat_dir
+
+    features_json = feat_dir / "generic_features.json"
     if not features_json.exists():
         logger.error("Features JSON not found: %s", features_json)
         sys.exit(1)
@@ -61,7 +67,9 @@ def main():
         try:
             exec_globals = {"pd": pd, "np": np}
             exec(code, exec_globals)
-            func_name = [k for k in exec_globals if k.startswith("feature_")][0]
+            func_candidates = [k for k, v in exec_globals.items()
+                                if callable(v) and k not in ("pd", "np") and not k.startswith("__")]
+            func_name = func_candidates[0]
             feat_result = exec_globals[func_name](df)
             if isinstance(feat_result, pd.DataFrame):
                 new_cols = [c for c in feat_result.columns if c != "row_id"]
@@ -81,7 +89,7 @@ def main():
         except Exception as e:
             logger.warning("  FAIL: %s (%s)", name, e)
 
-    out_csv = PROJECT_ROOT / "outputs" / ds / "knowfeat_features.csv"
+    out_csv = feat_dir / "knowfeat_features.csv"
     result_df.to_csv(out_csv, index=False)
     logger.info("Saved %d features to %s", success_count, out_csv)
 
