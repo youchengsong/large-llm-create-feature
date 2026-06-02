@@ -14,17 +14,18 @@ We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-mon
 \label{subsec:setup}
 
 \subsubsection{Datasets}
-We use seven datasets summarized in Table~\ref{tab:datasets}:
+We use seven datasets summarized in Table~\ref{tab:datasets}.
 
 \begin{table}[t]
 \centering
-\caption{Dataset statistics. Positive rate refers to the proportion of the minority class.}
+\caption{Dataset statistics.}
 \label{tab:datasets}
-\renewcommand{\arraystretch}{1.1}
+\small
+\renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{lrrrr}
+\begin{tabular}{l r r r l}
 \hline
-\textbf{Dataset} & \textbf{Samples} & \textbf{Features} & \textbf{Pos.\ Rate} & \textbf{Source} \\
+\textbf{Dataset} & \textbf{Samples} & \textbf{Feat.} & \textbf{Pos.\ Rate} & \textbf{Source} \\
 \hline
 credit\_g          & 1,000   & 20  & 70.0\% & OpenML \\
 diabetes           & 768     & 8   & 34.9\% & OpenML \\
@@ -50,30 +51,30 @@ We compare KnowFeat against five baselines:
 \end{itemize}
 
 \subsubsection{Evaluation Protocol}
-All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. For public datasets, the primary metric is AUC. For the AML dataset, we report Recall, Precision, F1, and AUC, with \texttt{scale\_pos\_weight=auto} to handle class imbalance. We additionally report results with \texttt{scale\_pos\_weight=1} (no class balancing) to better differentiate methods under challenging conditions.
+All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. For public datasets, the primary metric is AUC. For the AML dataset, we report Recall, Precision, F1, and AUC, with scale\_pos\_weight=auto to handle class imbalance. We additionally report results with scale\_pos\_weight=1 (no class balancing) to better differentiate methods under challenging conditions.
 
 \subsection{RQ1: Public Dataset Performance}
 \label{subsec:rq1}
 
 Table~\ref{tab:main_results} presents the AUC comparison on public datasets. KnowFeat achieves the best performance on 2 out of 6 datasets (credit\_g and blood\_transfusion) and ranks second on 3 datasets (diabetes, heart, breast\_w). Notably, KnowFeat's improvements on credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE) are the largest absolute gains among all methods, demonstrating that knowledge-guided features can unlock performance improvements that purely syntactic methods miss.
 
-% Placeholder for main results table
 \begin{table*}[t]
 \centering
-\caption{AUC comparison on public datasets (mean$\pm$std over 5 seeds). \textbf{Bold} indicates the best result; \underline{underline} indicates second best. T/O = timeout.}
+\caption{AUC comparison on public datasets (mean$\pm$std over 5 seeds). \textbf{Bold}: best; \underline{underline}: second best. T/O = timeout.}
 \label{tab:main_results}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{lcccccc}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{l c c c c c c}
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
 \hline
-credit\_g          & 0.7670{\scriptsize$\pm$.021} & \underline{0.7833{\scriptsize$\pm$.031}} & 0.7540{\scriptsize$\pm$.017} & 0.7596{\scriptsize$\pm$.023} & 0.7604{\scriptsize$\pm$.022} & \textbf{0.7854{\scriptsize$\pm$.014}} \\
-diabetes           & 0.8027{\scriptsize$\pm$.033} & \textbf{0.8252{\scriptsize$\pm$.034}} & 0.8089{\scriptsize$\pm$.027} & 0.8032{\scriptsize$\pm$.030} & 0.8096{\scriptsize$\pm$.032} & \underline{0.8190{\scriptsize$\pm$.032}} \\
-blood\_transfusion & 0.6824{\scriptsize$\pm$.043} & 0.6654{\scriptsize$\pm$.040} & 0.6824{\scriptsize$\pm$.043} & 0.6779{\scriptsize$\pm$.043} & 0.6805{\scriptsize$\pm$.044} & \textbf{0.7007{\scriptsize$\pm$.036}} \\
-heart              & 0.9320{\scriptsize$\pm$.007} & \textbf{0.9417{\scriptsize$\pm$.011}} & 0.9340{\scriptsize$\pm$.003} & 0.9302{\scriptsize$\pm$.006} & 0.9297{\scriptsize$\pm$.004} & \underline{0.9379{\scriptsize$\pm$.006}} \\
-bank\_marketing    & 0.9330{\scriptsize$\pm$.002} & \textbf{0.9374{\scriptsize$\pm$.002}} & T/O & 0.9334{\scriptsize$\pm$.002} & 0.9337{\scriptsize$\pm$.002} & — \\
-breast\_w          & 0.9926{\scriptsize$\pm$.005} & \textbf{0.9944{\scriptsize$\pm$.005}} & 0.9936{\scriptsize$\pm$.004} & 0.9924{\scriptsize$\pm$.006} & 0.9924{\scriptsize$\pm$.005} & \underline{0.9938{\scriptsize$\pm$.005}} \\
+credit\_g          & .7670{\scriptsize$\pm$.021} & \underline{.7833{\scriptsize$\pm$.031}} & .7540{\scriptsize$\pm$.017} & .7596{\scriptsize$\pm$.023} & .7604{\scriptsize$\pm$.022} & \textbf{.7854{\scriptsize$\pm$.014}} \\
+diabetes           & .8027{\scriptsize$\pm$.033} & \textbf{.8252{\scriptsize$\pm$.034}} & .8089{\scriptsize$\pm$.027} & .8032{\scriptsize$\pm$.030} & .8096{\scriptsize$\pm$.032} & \underline{.8190{\scriptsize$\pm$.032}} \\
+blood\_transfusion & .6824{\scriptsize$\pm$.043} & .6654{\scriptsize$\pm$.040} & .6824{\scriptsize$\pm$.043} & .6779{\scriptsize$\pm$.043} & .6805{\scriptsize$\pm$.044} & \textbf{.7007{\scriptsize$\pm$.036}} \\
+heart              & .9320{\scriptsize$\pm$.007} & \textbf{.9417{\scriptsize$\pm$.011}} & .9340{\scriptsize$\pm$.003} & .9302{\scriptsize$\pm$.006} & .9297{\scriptsize$\pm$.004} & \underline{.9379{\scriptsize$\pm$.006}} \\
+bank\_marketing    & .9330{\scriptsize$\pm$.002} & \textbf{.9374{\scriptsize$\pm$.002}} & T/O & .9334{\scriptsize$\pm$.002} & .9337{\scriptsize$\pm$.002} & --- \\
+breast\_w          & .9926{\scriptsize$\pm$.005} & \textbf{.9944{\scriptsize$\pm$.005}} & .9936{\scriptsize$\pm$.004} & .9924{\scriptsize$\pm$.006} & .9924{\scriptsize$\pm$.005} & \underline{.9938{\scriptsize$\pm$.005}} \\
 \hline
 \textbf{Avg.\ Rank} & 4.2 & \textbf{1.3} & 4.4 & 4.5 & 4.0 & \underline{1.6} \\
 \hline
@@ -87,48 +88,50 @@ CAAFE and FeatLLM perform close to or below the No-FE baseline on most datasets,
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
 
-Table~\ref{tab:simecny} presents results on the SimECNY AML dataset with \texttt{scale\_pos\_weight=auto}.
+Table~\ref{tab:simecny} presents results on the SimECNY AML dataset with scale\_pos\_weight=auto.
 
 \begin{table}[t]
 \centering
-\caption{SimECNY AML results (spw=auto, mean$\pm$std over 5 seeds).}
+\caption{SimECNY AML results (spw=auto, mean$\pm$std, 5 seeds).}
 \label{tab:simecny}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lccccc}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{l r c c c c}
 \hline
-\textbf{Method} & \textbf{$n_f$} & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
+\textbf{Method} & $\boldsymbol{n_f}$ & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
 \hline
-No-FE     & 93   & .9663{\scriptsize$\pm$.010} & .9764{\scriptsize$\pm$.004} & .9713{\scriptsize$\pm$.005} & .9996{\scriptsize$\pm$.000} \\
-OpenFE    & 123  & .9645{\scriptsize$\pm$.008} & .9752{\scriptsize$\pm$.004} & .9698{\scriptsize$\pm$.003} & .9996{\scriptsize$\pm$.000} \\
-CAAFE     & 94   & .9681{\scriptsize$\pm$.008} & .9725{\scriptsize$\pm$.006} & .9703{\scriptsize$\pm$.005} & .9996{\scriptsize$\pm$.000} \\
-FeatLLM   & 1124 & .9625{\scriptsize$\pm$.010} & .9728{\scriptsize$\pm$.005} & .9676{\scriptsize$\pm$.006} & .9995{\scriptsize$\pm$.000} \\
-\textbf{KnowFeat}  & \textbf{95}   & \textbf{.9681{\scriptsize$\pm$.007}} & .9751{\scriptsize$\pm$.003} & \textbf{.9716{\scriptsize$\pm$.003}} & .9996{\scriptsize$\pm$.000} \\
+No-FE     & 93   & .9663{\scriptsize$\pm$.010} & .9764{\scriptsize$\pm$.004} & .9713{\scriptsize$\pm$.005} & .9996 \\
+OpenFE    & 123  & .9645{\scriptsize$\pm$.008} & .9752{\scriptsize$\pm$.004} & .9698{\scriptsize$\pm$.003} & .9996 \\
+CAAFE     & 94   & .9681{\scriptsize$\pm$.008} & .9725{\scriptsize$\pm$.006} & .9703{\scriptsize$\pm$.005} & .9996 \\
+FeatLLM   & 1124 & .9625{\scriptsize$\pm$.010} & .9728{\scriptsize$\pm$.005} & .9676{\scriptsize$\pm$.006} & .9995 \\
+\textbf{KnowFeat}  & \textbf{95} & \textbf{.9681}{\scriptsize$\pm$.007} & .9751{\scriptsize$\pm$.003} & \textbf{.9716}{\scriptsize$\pm$.003} & .9996 \\
 \hline
 \end{tabular}
 \end{table}
 
-With \texttt{scale\_pos\_weight=auto} ($\approx$43.6), all methods achieve high recall ($>$0.96), which compresses inter-method differences. KnowFeat achieves the highest F1 (0.9716) and ties for the highest Recall (0.9681, shared with CAAFE) while adding only 2 features. In contrast, FeatLLM adds 1,031 features yet achieves the \emph{lowest} Recall (0.9625) and F1 (0.9676), indicating that a large number of unverified features can actually hurt performance.
+With scale\_pos\_weight=auto ($\approx$43.6), all methods achieve high recall ($>$0.96), which compresses inter-method differences. KnowFeat achieves the highest F1 (0.9716) and ties for the highest Recall (0.9681, shared with CAAFE) while adding only 2 features. In contrast, FeatLLM adds 1,031 features yet achieves the \emph{lowest} Recall (0.9625) and F1 (0.9676), indicating that a large number of unverified features can actually hurt performance.
 
 \subsubsection{Results without Class Balancing (spw=1)}
 
-To better differentiate methods, we re-evaluate all methods with \texttt{scale\_pos\_weight=1} (no class balancing), which forces the model to rely more heavily on feature quality rather than reweighting. Table~\ref{tab:simecny_spw1} shows the results.
+To better differentiate methods, we re-evaluate all methods with scale\_pos\_weight=1 (no class balancing), which forces the model to rely more heavily on feature quality rather than reweighting. Table~\ref{tab:simecny_spw1} shows the results.
 
 \begin{table}[t]
 \centering
-\caption{SimECNY AML results (spw=1, mean$\pm$std over 5 seeds).}
+\caption{SimECNY AML results (spw=1, mean$\pm$std, 5 seeds).}
 \label{tab:simecny_spw1}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{lccccc}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{l r c c c c}
 \hline
-\textbf{Method} & \textbf{$n_f$} & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
+\textbf{Method} & $\boldsymbol{n_f}$ & \textbf{Recall} & \textbf{Prec.} & \textbf{F1} & \textbf{AUC} \\
 \hline
-No-FE     & 93   & \textbf{.9409{\scriptsize$\pm$.011}} & .9934{\scriptsize$\pm$.002} & \textbf{.9664{\scriptsize$\pm$.006}} & .9996{\scriptsize$\pm$.000} \\
-OpenFE    & 123  & .9342{\scriptsize$\pm$.012} & .9912{\scriptsize$\pm$.002} & .9619{\scriptsize$\pm$.007} & .9995{\scriptsize$\pm$.000} \\
-CAAFE     & 94   & .9382{\scriptsize$\pm$.012} & .9922{\scriptsize$\pm$.002} & .9644{\scriptsize$\pm$.007} & .9996{\scriptsize$\pm$.000} \\
-FeatLLM   & 1124 & .9298{\scriptsize$\pm$.014} & .9912{\scriptsize$\pm$.002} & .9595{\scriptsize$\pm$.008} & .9995{\scriptsize$\pm$.000} \\
-KnowFeat  & 95   & \underline{.9394{\scriptsize$\pm$.008}} & .9932{\scriptsize$\pm$.002} & \underline{.9655{\scriptsize$\pm$.005}} & .9996{\scriptsize$\pm$.000} \\
+No-FE     & 93   & \textbf{.9409}{\scriptsize$\pm$.011} & .9934{\scriptsize$\pm$.002} & \textbf{.9664}{\scriptsize$\pm$.006} & .9996 \\
+OpenFE    & 123  & .9342{\scriptsize$\pm$.012} & .9912{\scriptsize$\pm$.002} & .9619{\scriptsize$\pm$.007} & .9995 \\
+CAAFE     & 94   & .9382{\scriptsize$\pm$.012} & .9922{\scriptsize$\pm$.002} & .9644{\scriptsize$\pm$.007} & .9996 \\
+FeatLLM   & 1124 & .9298{\scriptsize$\pm$.014} & .9912{\scriptsize$\pm$.002} & .9595{\scriptsize$\pm$.008} & .9995 \\
+KnowFeat  & 95   & \underline{.9394}{\scriptsize$\pm$.008} & .9932{\scriptsize$\pm$.002} & \underline{.9655}{\scriptsize$\pm$.005} & .9996 \\
 \hline
 \end{tabular}
 \end{table}
@@ -142,17 +145,18 @@ To quantify the contribution of domain knowledge, we compare the \textit{schema\
 
 \begin{table}[t]
 \centering
-\caption{Ablation study: schema\_only vs.\ full KnowFeat (AUC).}
+\caption{Ablation: schema\_only vs.\ full KnowFeat (AUC).}
 \label{tab:ablation}
-\renewcommand{\arraystretch}{1.15}
+\small
+\renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{4pt}
-\begin{tabular}{lccc}
+\begin{tabular}{l c c c}
 \hline
-\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & \textbf{$\Delta$AUC} \\
+\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & $\boldsymbol{\Delta}$\textbf{AUC} \\
 \hline
-blood\_transfusion & 0.6891{\scriptsize$\pm$.048} & \textbf{0.7007{\scriptsize$\pm$.036}} & +0.012 \\
-heart              & 0.9304{\scriptsize$\pm$.005} & \textbf{0.9379{\scriptsize$\pm$.006}} & +0.008 \\
-diabetes           & — (0 features) & 0.8190{\scriptsize$\pm$.032} & — \\
+blood\_trans. & .6891{\scriptsize$\pm$.048} & \textbf{.7007}{\scriptsize$\pm$.036} & +0.012 \\
+heart              & .9304{\scriptsize$\pm$.005} & \textbf{.9379}{\scriptsize$\pm$.006} & +0.008 \\
+diabetes           & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \hline
 \end{tabular}
 \end{table}
@@ -172,20 +176,21 @@ Table~\ref{tab:feature_count} compares the number of features generated by each 
 
 \begin{table}[t]
 \centering
-\caption{Number of features after engineering (including baseline).}
+\caption{Number of features after engineering (incl.\ baseline).}
 \label{tab:feature_count}
-\renewcommand{\arraystretch}{1.15}
+\small
+\renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{lcccccc}
+\begin{tabular}{l r r r r r r}
 \hline
-\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
+\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{Auto.} & \textbf{CAAFE} & \textbf{Feat.} & \textbf{Ours} \\
 \hline
-credit\_g          & 20  & 50  & 23  & 24  & 280  & 46  \\
-diabetes           & 8   & 38  & 13  & 9   & 152  & 24  \\
-blood\_trans.      & 4   & 34  & 4   & 7   & 120  & 12  \\
-heart              & 11  & 41  & 21  & 14  & 98   & 31  \\
-breast\_w          & 9   & 39  & 20  & 10  & 107  & 16  \\
-SimECNY            & 93  & 123 & —   & 94  & 1124 & 95  \\
+credit\_g     & 20  & 50  & 23  & 24  & 280  & 46  \\
+diabetes      & 8   & 38  & 13  & 9   & 152  & 24  \\
+blood\_trans. & 4   & 34  & 4   & 7   & 120  & 12  \\
+heart         & 11  & 41  & 21  & 14  & 98   & 31  \\
+breast\_w     & 9   & 39  & 20  & 10  & 107  & 16  \\
+SimECNY       & 93  & 123 & --- & 94  & 1124 & 95  \\
 \hline
 \end{tabular}
 \end{table}
@@ -194,7 +199,6 @@ FeatLLM generates by far the most features (98--1,124), yet achieves the worst o
 
 On SimECNY, the contrast is particularly stark: KnowFeat adds only 2 features (both verified to improve recall) while FeatLLM adds 1,031 features (unverified), yet KnowFeat achieves higher F1 and Recall. This demonstrates the effectiveness of quality-over-quantity feature engineering.
 
-% Placeholder for efficiency analysis
 \subsection{Provenance and Interpretability}
 \label{subsec:provenance}
 

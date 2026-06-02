@@ -34,19 +34,20 @@ Table~\ref{tab:comparison} summarizes the key differences between KnowFeat and e
 \centering
 \caption{Comparison of automated feature engineering methods.}
 \label{tab:comparison}
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{2.5pt}
-\begin{tabular}{lccccc}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{l c c c c c}
 \hline
-\textbf{Property} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
+\textbf{Property} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{Ours} \\
 \hline
-Semantic understanding & \texttimes & \texttimes & \checkmark & \checkmark & \checkmark \\
-External knowledge     & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
-Execution verification & N/A        & N/A        & \texttimes & \texttimes & \checkmark \\
-Statistical filtering  & \checkmark & \checkmark & \texttimes & \texttimes & \checkmark \\
-Model-based validation & \texttimes & \texttimes & Weak       & \texttimes & \checkmark \\
-Provenance tracking    & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
-Adaptive search        & \texttimes & \texttimes & \texttimes & \texttimes & \checkmark \\
+Semantic understanding &            &            & \checkmark & \checkmark & \checkmark \\
+External knowledge     &            &            &            &            & \checkmark \\
+Execution verification & --         & --         &            &            & \checkmark \\
+Statistical filtering  & \checkmark & \checkmark &            &            & \checkmark \\
+Model-based validation &            &            & Weak       &            & \checkmark \\
+Provenance tracking    &            &            &            &            & \checkmark \\
+Adaptive search        &            &            &            &            & \checkmark \\
 \hline
 \end{tabular}
 \end{table}
