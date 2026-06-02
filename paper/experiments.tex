@@ -56,7 +56,7 @@ All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learni
 \subsection{RQ1: Public Dataset Performance}
 \label{subsec:rq1}
 
-Table~\ref{tab:main_results} presents the AUC comparison on public datasets. KnowFeat achieves the best performance on 2 out of 6 datasets (credit\_g and blood\_transfusion) and ranks second on 3 datasets (diabetes, heart, breast\_w). Notably, KnowFeat's improvements on credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE) are the largest absolute gains among all methods, demonstrating that knowledge-guided features can unlock performance improvements that purely syntactic methods miss.
+Table~\ref{tab:main_results} presents the AUC comparison on six public datasets. KnowFeat achieves the best performance on 3 out of 6 datasets (credit\_g, blood\_transfusion, and breast\_w) and ranks second on 2 datasets (diabetes and heart). Notably, KnowFeat's improvements on credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE) are the largest absolute gains among all methods, demonstrating that knowledge-guided features can unlock performance improvements that purely syntactic methods miss.
 
 \begin{table*}[t]
 \centering
@@ -73,15 +73,15 @@ credit\_g          & .7670{\scriptsize$\pm$.021} & \underline{.7833{\scriptsize$
 diabetes           & .8027{\scriptsize$\pm$.033} & \textbf{.8252{\scriptsize$\pm$.034}} & .8089{\scriptsize$\pm$.027} & .8032{\scriptsize$\pm$.030} & .8096{\scriptsize$\pm$.032} & \underline{.8190{\scriptsize$\pm$.032}} \\
 blood\_transfusion & .6824{\scriptsize$\pm$.043} & .6654{\scriptsize$\pm$.040} & .6824{\scriptsize$\pm$.043} & .6779{\scriptsize$\pm$.043} & .6805{\scriptsize$\pm$.044} & \textbf{.7007{\scriptsize$\pm$.036}} \\
 heart              & .9320{\scriptsize$\pm$.007} & \textbf{.9417{\scriptsize$\pm$.011}} & .9340{\scriptsize$\pm$.003} & .9302{\scriptsize$\pm$.006} & .9297{\scriptsize$\pm$.004} & \underline{.9379{\scriptsize$\pm$.006}} \\
-bank\_marketing    & .9330{\scriptsize$\pm$.002} & \textbf{.9374{\scriptsize$\pm$.002}} & T/O & .9334{\scriptsize$\pm$.002} & .9337{\scriptsize$\pm$.002} & --- \\
-breast\_w          & .9926{\scriptsize$\pm$.005} & \textbf{.9944{\scriptsize$\pm$.005}} & .9936{\scriptsize$\pm$.004} & .9924{\scriptsize$\pm$.006} & .9924{\scriptsize$\pm$.005} & \underline{.9938{\scriptsize$\pm$.005}} \\
+bank\_marketing    & .9330{\scriptsize$\pm$.002} & \textbf{.9374{\scriptsize$\pm$.002}} & T/O & .9334{\scriptsize$\pm$.002} & .9337{\scriptsize$\pm$.002} & \underline{.9344{\scriptsize$\pm$.002}} \\
+breast\_w          & .9926{\scriptsize$\pm$.005} & \underline{.9944{\scriptsize$\pm$.005}} & .9936{\scriptsize$\pm$.004} & .9924{\scriptsize$\pm$.006} & .9924{\scriptsize$\pm$.005} & \textbf{.9957{\scriptsize$\pm$.003}} \\
 \hline
-\textbf{Avg.\ Rank} & 4.2 & \textbf{1.3} & 4.4 & 4.5 & 4.0 & \underline{1.6} \\
+\textbf{Avg.\ Rank} & 4.3 & \textbf{1.5} & 4.6 & 4.7 & 4.2 & \underline{1.7} \\
 \hline
 \end{tabular}
 \end{table*}
 
-OpenFE achieves the best results on 4 datasets, which is expected given that it performs exhaustive operator-operand search with LightGBM-based selection---a purely data-driven approach that is highly effective when sufficient transformation combinations exist. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
+OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing), which is expected given that it performs exhaustive operator-operand search with LightGBM-based selection---a purely data-driven approach that is highly effective when sufficient transformation combinations exist. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
 CAAFE and FeatLLM perform close to or below the No-FE baseline on most datasets, suggesting that their generated features often introduce noise rather than signal. This is consistent with their lack of rigorous verification: without L2 and L3 filtering, low-quality features dilute the model's predictive power.
 
@@ -149,14 +149,17 @@ To quantify the contribution of domain knowledge, we compare the \textit{schema\
 \label{tab:ablation}
 \small
 \renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{l c c c}
 \hline
-\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & $\boldsymbol{\Delta}$\textbf{AUC} \\
+\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & $\boldsymbol{\Delta}$ \\
 \hline
-blood\_trans. & .6891{\scriptsize$\pm$.048} & \textbf{.7007}{\scriptsize$\pm$.036} & +0.012 \\
-heart              & .9304{\scriptsize$\pm$.005} & \textbf{.9379}{\scriptsize$\pm$.006} & +0.008 \\
-diabetes           & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
+credit\_g     & .7750{\scriptsize$\pm$.012} & \textbf{.7854}{\scriptsize$\pm$.014} & +.010 \\
+blood\_trans. & .6891{\scriptsize$\pm$.048} & \textbf{.7007}{\scriptsize$\pm$.036} & +.012 \\
+heart         & .9304{\scriptsize$\pm$.005} & \textbf{.9379}{\scriptsize$\pm$.006} & +.008 \\
+bank\_mkt.    & .9314{\scriptsize$\pm$.002} & \textbf{.9344}{\scriptsize$\pm$.002} & +.003 \\
+breast\_w     & \textbf{.9964}{\scriptsize$\pm$.002} & .9957{\scriptsize$\pm$.003} & $-$.001 \\
+diabetes      & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \hline
 \end{tabular}
 \end{table}
@@ -165,9 +168,9 @@ The results reveal several important findings:
 
 \textbf{Knowledge drives feature generation.} On the diabetes dataset, the schema-only variant generates \emph{zero} features that pass the L3 verification---the LLM cannot create useful features from column names alone without domain understanding. With full knowledge, KnowFeat generates 24 accepted features and improves AUC by +0.016 over No-FE.
 
-\textbf{Knowledge improves feature quality.} On blood\_transfusion and heart, the full variant outperforms schema\_only by +0.012 and +0.008 AUC respectively. Both variants generate a similar number of features (e.g., 12 vs.\ 12 on blood\_transfusion), indicating that the improvement comes from feature \emph{quality}, not quantity---domain knowledge guides the agent toward more predictive transformations.
+\textbf{Knowledge improves feature quality.} On four of five remaining datasets, the full variant outperforms schema\_only, with gains ranging from +0.003 (bank\_marketing) to +0.012 (blood\_transfusion). On blood\_transfusion, both variants generate 12 features, indicating that the improvement comes from feature \emph{quality}, not quantity---domain knowledge guides the agent toward more predictive transformations. The largest gain (+0.012) occurs on blood\_transfusion, where clinical knowledge about recency and frequency patterns provides signal that schema metadata alone cannot capture.
 
-\textbf{SimECNY ablation.} On the AML dataset, schema\_only and full achieve near-identical results (F1: 0.9718 vs.\ 0.9716, AUC: 0.9996 vs.\ 0.9996), which we attribute to the strength of the 93 baseline features. The baseline already captures most discriminative signal, leaving minimal room for improvement regardless of knowledge level. This motivates future work with reduced baseline features to more clearly demonstrate knowledge contributions (see Section~\ref{sec:conclusion}).
+\textbf{breast\_w exception.} On breast\_w, schema\_only slightly outperforms full ($-$0.001 AUC). We attribute this to the dataset's near-ceiling baseline (AUC $>$ 0.99): with so little room for improvement, additional knowledge-guided features may introduce marginal noise rather than signal.
 
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
@@ -189,13 +192,14 @@ credit\_g     & 20  & 50  & 23  & 24  & 280  & 46  \\
 diabetes      & 8   & 38  & 13  & 9   & 152  & 24  \\
 blood\_trans. & 4   & 34  & 4   & 7   & 120  & 12  \\
 heart         & 11  & 41  & 21  & 14  & 98   & 31  \\
+bank\_mkt.    & 16  & 46  & T/O & 21  & 132  & 36  \\
 breast\_w     & 9   & 39  & 20  & 10  & 107  & 16  \\
 SimECNY       & 93  & 123 & --- & 94  & 1124 & 95  \\
 \hline
 \end{tabular}
 \end{table}
 
-FeatLLM generates by far the most features (98--1,124), yet achieves the worst or near-worst performance on most datasets. This confirms that \emph{more features $\neq$ better performance} when verification is absent. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +2 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline, ensuring that each feature makes a genuine contribution.
+FeatLLM generates by far the most features (98--1,124), yet achieves the worst or near-worst performance on most datasets. This confirms that \emph{more features $\neq$ better performance} when verification is absent. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +2 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline, ensuring that each added feature makes a genuine contribution.
 
 On SimECNY, the contrast is particularly stark: KnowFeat adds only 2 features (both verified to improve recall) while FeatLLM adds 1,031 features (unverified), yet KnowFeat achieves higher F1 and Recall. This demonstrates the effectiveness of quality-over-quantity feature engineering.
 
