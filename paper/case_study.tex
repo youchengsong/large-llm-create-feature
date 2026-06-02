@@ -1,0 +1,127 @@
+% case_study.tex
+\section{Case Study: Knowledge-Grounded Feature Generation}
+\label{sec:case_study}
+
+To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the heart disease and credit default datasets. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific normalization, and non-linear risk interaction.
+
+\subsection{Case 1: Exercise Test Consistency Score (Heart)}
+\label{subsec:case1}
+
+\textbf{Feature:} \texttt{consistency\_score} — a 0--3 ordinal score counting the number of abnormal channels in a cardiac exercise test.
+
+\textbf{Knowledge assets used:}
+\begin{itemize}
+    \item \textit{EXP\_07} (Expert Opinion): ``Exercise testing provides three simultaneous diagnostic channels. Concordant positivity (all three abnormal) carries far higher risk than a single abnormal channel.''
+    \item \textit{RULE\_009} (Detection Rule): Chronotropic incompetence --- $\text{MaxHR} < 0.85 \times (220 - \text{Age})$ is a strong independent predictor of adverse cardiac events.
+    \item \textit{RULE\_002} (Detection Rule): Exercise test positivity --- $\text{Oldpeak} \geq 1.0\text{mm}$ with downsloping or flat ST segment.
+    \item \textit{IND\_08} (Risk Indicator): Exercise-induced angina indicates myocardial ischemia.
+\end{itemize}
+
+\textbf{Reasoning chain:}
+\begin{enumerate}
+    \item From \textit{EXP\_07}: exercise tests provide three diagnostic channels --- hemodynamic, ECG morphology, and symptomatic. Concordance across channels multiplicatively increases risk.
+    \item From \textit{RULE\_009}: compute Channel 1 as \texttt{MaxHR < 0.85 $\times$ (220 $-$ Age)}.
+    \item From \textit{RULE\_002}: compute Channel 2 as \texttt{Oldpeak $\geq$ 1.0 AND ST\_Slope $\in$ \{Down, Flat\}}.
+    \item From \textit{IND\_08}: compute Channel 3 as \texttt{ExerciseAngina = `Y'}.
+    \item Sum the three binary channels into a consistency score (0--3).
+\end{enumerate}
+
+\textbf{Generated code (simplified):}
+\begin{verbatim}
+ch1 = (MaxHR < 0.85*(220-Age)).astype(int)
+ch2 = ((Oldpeak >= 1.0)
+     & (ST_Slope.isin(['Down','Flat']))).astype(int)
+ch3 = (ExerciseAngina == 'Y').astype(int)
+consistency_score = ch1 + ch2 + ch3
+\end{verbatim}
+
+\textbf{Why this matters.}
+This feature fuses knowledge from four distinct assets (1 expert opinion, 2 detection rules, 1 risk indicator) spanning three clinical modalities. No individual input column captures the concept of ``concordant positivity;'' it requires understanding that the \emph{combination} of hemodynamic failure, ECG changes, and symptoms is qualitatively different from any single abnormality. A purely data-driven method (e.g., OpenFE) could discover pairwise interactions like \texttt{MaxHR $\times$ Oldpeak}, but would not produce a clinically meaningful tri-channel concordance score. Furthermore, the specific thresholds (0.85 for chronotropic incompetence, 1.0mm for ST depression) come from medical guidelines encoded in \textit{RULE\_009} and \textit{RULE\_002}, not from the LLM's parametric knowledge alone.
+
+\subsection{Case 2: Age-Corrected Heart Rate Reserve (Heart)}
+\label{subsec:case2}
+
+\textbf{Feature:} \texttt{hr\_ratio} — the ratio of observed maximum heart rate to age-predicted maximum heart rate: $\text{hr\_ratio} = \text{MaxHR} / (220 - \text{Age})$.
+
+\textbf{Knowledge assets used:}
+\begin{itemize}
+    \item \textit{IND\_07} (Risk Indicator): Lower maximum heart rate indicates higher cardiovascular risk.
+    \item \textit{EXP\_05} (Expert Opinion): ``Raw MaxHR is misleading without age correction. A 70-year-old with MaxHR=120 achieves 80\% of predicted (borderline normal), while a 40-year-old with MaxHR=120 reaches only 67\% (clearly abnormal). Always use heart rate reserve ratio.''
+\end{itemize}
+
+\textbf{Reasoning chain:}
+\begin{enumerate}
+    \item From \textit{IND\_07}: lower MaxHR implies higher risk, but this relationship is confounded by age.
+    \item From \textit{EXP\_05}: the clinically appropriate measure is the \emph{ratio} of observed to predicted MaxHR (where predicted = $220 - \text{Age}$), not the raw value.
+    \item Compute $\text{hr\_ratio} = \text{MaxHR} / (220 - \text{Age})$, clipped to $[0.3, 1.2]$.
+    \item Values below 0.80 indicate chronotropic incompetence, an independent predictor of cardiovascular mortality.
+\end{enumerate}
+
+\textbf{Generated code (simplified):}
+\begin{verbatim}
+hr_ratio = MaxHR / (220 - Age)
+hr_ratio = hr_ratio.clip(0.3, 1.2)
+\end{verbatim}
+
+\textbf{Why this matters.}
+The raw dataset contains \texttt{MaxHR} and \texttt{Age} as separate columns. A syntactic AutoFE method might discover \texttt{MaxHR / Age} or \texttt{MaxHR $-$ Age} through operator enumeration, but these lack clinical meaning. The specific formula $\text{MaxHR} / (220 - \text{Age})$ with the 0.80 clinical threshold comes directly from cardiology expertise encoded in \textit{EXP\_05}. This example demonstrates how expert knowledge guides the agent toward a \emph{domain-correct} normalization rather than an arbitrary mathematical transformation.
+
+\subsection{Case 3: Financial Vulnerability Score (Credit)}
+\label{subsec:case3}
+
+\textbf{Feature:} \texttt{financial\_vulnerability\_score} — a 0--5 composite score capturing multi-dimensional financial fragility.
+
+\textbf{Knowledge assets used:}
+\begin{itemize}
+    \item \textit{IND\_05} (Risk Indicator): Insufficient savings ($<$100 or no known savings) indicates lack of financial buffer.
+    \item \textit{IND\_09} (Risk Indicator): No known property indicates lack of collateral and financial stability.
+    \item \textit{IND\_11} (Risk Indicator): Non-owner-occupied housing (rent or free) implies ongoing housing cost pressure.
+    \item \textit{RULE\_003} (Detection Rule): Simultaneous no-savings, no-property, and renting yields 80\% default rate (vs.\ 30\% average) --- a triple-vulnerability with multiplicative interaction.
+\end{itemize}
+
+\textbf{Reasoning chain:}
+\begin{enumerate}
+    \item From \textit{IND\_05}: assign +1 if savings $<$100 or unknown.
+    \item From \textit{IND\_09}: assign +1 if no known property; +0.5 if only car (lower collateral value).
+    \item From \textit{IND\_11}: assign +1 if renting or living for free.
+    \item From \textit{RULE\_003}: assign an additional +2 if \emph{all three} vulnerability conditions are simultaneously met, capturing the non-linear interaction ($80\%$ default rate vs.\ the sum of individual effects).
+\end{enumerate}
+
+\textbf{Generated code (simplified):}
+\begin{verbatim}
+score = 0
+score += (savings < 100 or unknown)        # IND_05
+score += (no_known_property)               # IND_09
+score += (housing in {rent, free})          # IND_11
+if all_three_vulnerable:                   # RULE_003
+    score += 2  # non-linear penalty
+\end{verbatim}
+
+\textbf{Why this matters.}
+This feature illustrates KnowFeat's ability to encode \emph{non-linear risk interactions} that go beyond pairwise feature crosses. The triple-vulnerability penalty (RULE\_003) reflects a domain insight that financial fragility compounds super-additively: a borrower who lacks savings, property, \emph{and} stable housing simultaneously is far riskier than the sum of individual risk factors would suggest. A data-driven method could potentially discover this interaction through exhaustive three-way feature crosses, but the combinatorial space of three-way interactions over 20 features makes this practically infeasible without guidance. KnowFeat generates this feature directly because the detection rule \textit{RULE\_003} explicitly encodes the three-way pattern.
+
+\subsection{Summary of Case Study Findings}
+
+Table~\ref{tab:case_summary} summarizes the three case studies.
+
+\begin{table}[t]
+\centering
+\caption{Summary of case study features. Each feature traces to multiple knowledge assets and implements domain-specific logic that purely data-driven methods would not produce.}
+\label{tab:case_summary}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llcl}
+\hline
+\textbf{Feature} & \textbf{Dataset} & \textbf{\# KA} & \textbf{Key Insight} \\
+\hline
+\texttt{consistency\_score} & Heart & 4 & Tri-channel concordance \\
+\texttt{hr\_ratio}          & Heart & 2 & Domain-correct normalization \\
+\texttt{fin\_vuln\_score}   & Credit & 4 & Non-linear triple interaction \\
+\hline
+\end{tabular}
+\begin{flushleft}
+\footnotesize KA = Knowledge Assets (indicators, rules, expert opinions) used in the feature's provenance chain.
+\end{flushleft}
+\end{table}
+
+These examples demonstrate three capabilities that distinguish KnowFeat from existing methods: (1) \emph{multi-source fusion} --- combining indicators, rules, and expert opinions into a single coherent feature; (2) \emph{domain-correct transformations} --- applying clinically or financially appropriate formulas rather than arbitrary operators; and (3) \emph{non-linear interaction encoding} --- capturing super-additive risk combinations that are infeasible to discover through exhaustive search. Critically, every feature comes with a complete provenance chain linking each computation step to specific knowledge assets, enabling domain experts to audit, validate, and trust the generated features.
