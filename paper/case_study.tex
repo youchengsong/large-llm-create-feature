@@ -2,107 +2,108 @@
 \section{Case Study: Knowledge-Grounded Features}
 \label{sec:case_study}
 
-To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the heart disease and credit default datasets. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific normalization, and non-linear risk interaction.
+To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the SimECNY AML dataset. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific behavioral patterns, and cross-dimensional interaction.
 
-\subsection{Case 1: Exercise Test Consistency Score (Heart)}
+\subsection{Case 1: Fan-In/Fan-Out Ratio (Network Topology)}
 \label{subsec:case1}
 
-\textbf{Feature:} \texttt{consistency\_score} --- a 0--3 ordinal score counting the number of abnormal channels in a cardiac exercise test.
+\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio} --- measures the asymmetry between incoming and outgoing transaction patterns, weighted by the proportion of abnormal transaction modes.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
-    \item \textit{EXP\_07} (Expert Opinion): ``Exercise testing provides three simultaneous diagnostic channels. Concordant positivity carries far higher risk than a single abnormal channel.''
-    \item \textit{RULE\_009} (Detection Rule): Chronotropic incompetence --- MaxHR $< 0.85 \times (220 - \text{Age})$.
-    \item \textit{RULE\_002} (Detection Rule): Exercise test positivity --- Oldpeak $\geq 1.0$mm with downsloping or flat ST segment.
-    \item \textit{IND\_08} (Risk Indicator): Exercise-induced angina indicates myocardial ischemia.
+    \item \textit{RULE\_006} (Detection Rule): ``Scatter-in, gather-out'' --- a classic layering pattern where funds are collected from many sources then concentrated for withdrawal.
+    \item \textit{RULE\_013} (Detection Rule): Pyramid-shaped fund networks where intermediate wallets exhibit strong fan-in/fan-out asymmetry.
+    \item \textit{PAT\_A03} (Behavioral Pattern): Online money mule wallets receive from many senders (high fan-in) then forward to a few consolidation accounts.
+    \item \textit{IND\_15} (Risk Indicator): Abnormal transaction modes (fan\_in, many\_to\_many, one\_to\_many) are individually suspicious.
 \end{itemize}
 
 \textbf{Reasoning chain:}
 \begin{enumerate}
-    \item From \textit{EXP\_07}: exercise tests provide three diagnostic channels --- hemodynamic, ECG morphology, and symptomatic. Concordance multiplicatively increases risk.
-    \item From \textit{RULE\_009}: compute Channel~1 as MaxHR $< 0.85 \times (220 - \text{Age})$.
-    \item From \textit{RULE\_002}: compute Channel~2 as Oldpeak $\geq 1.0$ AND ST\_Slope $\in$ \{Down, Flat\}.
-    \item From \textit{IND\_08}: compute Channel~3 as ExerciseAngina $=$ `Y'.
-    \item Sum three binary channels into a score (0--3).
+    \item From \textit{RULE\_006} and \textit{RULE\_013}: compute the ratio of fan-in to fan-out mode proportions per wallet.
+    \item From \textit{PAT\_A03}: money mule wallets have fan-in $\gg$ fan-out; this asymmetry ratio is the primary signal.
+    \item From \textit{IND\_15}: weight by total abnormal mode proportion, since wallets with more abnormal modes are higher risk.
+    \item Combine: $\text{ratio} \times (1 + \text{abnormal\_mode\_ratio})$.
 \end{enumerate}
 
 \textbf{Generated code (simplified):}
 {\small
 \begin{verbatim}
-ch1 = (MaxHR < 0.85*(220-Age))
-ch2 = (Oldpeak >= 1.0)
-    & (ST_Slope.isin(['Down','Flat']))
-ch3 = (ExerciseAngina == 'Y')
-score = ch1 + ch2 + ch3
+fi = mode_counts['fan_in'] / n
+fo = mode_counts['fan_out'] / n
+ratio = fi / (fo + eps)
+abnormal = fi + m2m_ratio + o2m_ratio
+result = ratio * (1 + abnormal)
 \end{verbatim}
 }
 
 \textbf{Why this matters.}
-This feature fuses knowledge from four distinct assets spanning three clinical modalities. No individual column captures ``concordant positivity;'' it requires understanding that the \emph{combination} of hemodynamic failure, ECG changes, and symptoms is qualitatively different from any single abnormality. A purely data-driven method could discover pairwise interactions like MaxHR $\times$ Oldpeak, but would not produce a clinically meaningful tri-channel concordance score. The specific thresholds (0.85, 1.0mm) come from medical guidelines encoded in \textit{RULE\_009} and \textit{RULE\_002}.
+This feature fuses knowledge from four assets spanning three types (rules, patterns, indicators) to capture network topology. No individual column contains ``fan-in/fan-out asymmetry''---it requires understanding that the \emph{combination} of directional imbalance and abnormal mode prevalence characterizes money mule behavior. A syntactic method might discover pairwise mode interactions but would not produce a topology-aware asymmetry score grounded in the ``scatter-in, gather-out'' layering pattern.
 
-\subsection{Case 2: Age-Corrected Heart Rate Reserve (Heart)}
+\subsection{Case 2: Probe-Then-Transfer Ratio}
 \label{subsec:case2}
 
-\textbf{Feature:} \texttt{hr\_ratio} $= \text{MaxHR} / (220 - \text{Age})$.
+\textbf{Feature:} \texttt{small\_test\_round\_amount\_ratio} --- detects the ``probe-then-bulk-transfer'' pattern by combining small-amount test ratio with round-number transfer ratio.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
-    \item \textit{IND\_07}: Lower maximum heart rate indicates higher cardiovascular risk.
-    \item \textit{EXP\_05}: ``Raw MaxHR is misleading without age correction. A 70-year-old with MaxHR=120 achieves 80\% of predicted (borderline), while a 40-year-old with MaxHR=120 reaches only 67\% (abnormal). Always use heart rate reserve ratio.''
+    \item \textit{RULE\_003} (Detection Rule): Rapid fund movement---small probe transactions ($\leq$5 CNY) precede large-value transfers.
+    \item \textit{PAT\_A02/A03} (Behavioral Pattern): Money mule operations begin with ``small test, then bulk operation.''
+    \item \textit{IND\_01/02} (Risk Indicator): Round-number amounts (multiples of 100) and repetitive amount patterns indicate structured transactions.
 \end{itemize}
 
 \textbf{Reasoning chain:}
 \begin{enumerate}
-    \item From \textit{IND\_07}: lower MaxHR implies higher risk, but this is confounded by age.
-    \item From \textit{EXP\_05}: the clinically correct measure is the \emph{ratio} of observed to predicted MaxHR (predicted $= 220 - \text{Age}$).
-    \item Compute hr\_ratio, clipped to $[0.3, 1.2]$. Values below 0.80 indicate chronotropic incompetence.
+    \item From \textit{RULE\_003} and \textit{PAT\_A02/A03}: compute the proportion of transactions with amount $\leq$5 CNY (probe ratio).
+    \item From \textit{IND\_01/02}: compute the proportion of transactions with amounts divisible by 100 (round-number ratio).
+    \item From domain expertise (\textit{EXP\_01}): ``probe + round-number bulk transfer'' co-occurrence is far more discriminative than either signal alone.
+    \item Combine: $\text{small\_ratio} \times (1 + \text{round\_100\_ratio})$.
 \end{enumerate}
 
 \textbf{Generated code (simplified):}
 {\small
 \begin{verbatim}
-hr_ratio = MaxHR / (220 - Age)
-hr_ratio = hr_ratio.clip(0.3, 1.2)
+amt = abs(amount)
+small_ratio = (amt <= 5).sum() / n
+round_ratio = (amt % 100 == 0).sum() / n
+result = small_ratio * (1 + round_ratio)
 \end{verbatim}
 }
 
 \textbf{Why this matters.}
-A syntactic AutoFE method might discover MaxHR/Age or MaxHR $-$ Age through operator enumeration, but these lack clinical meaning. The specific formula MaxHR$/\!(220 - \text{Age})$ with the 0.80 threshold comes directly from cardiology expertise encoded in \textit{EXP\_05}. This demonstrates how expert knowledge guides the agent toward a \emph{domain-correct} normalization rather than an arbitrary transformation.
+The ``probe-then-transfer'' pattern is well-documented in AML regulations but impossible to discover through syntactic transformation search. It requires understanding that sub-5-CNY transactions serve a fundamentally different purpose (channel testing) than regular small purchases. The specific threshold (5 CNY) and the interaction with round-number amounts come directly from \textit{RULE\_003} and compliance expertise---transformations that no data-driven method would enumerate.
 
-\subsection{Case 3: Financial Vulnerability Score (Credit)}
+\subsection{Case 3: Cross-Dimensional Risk Interaction}
 \label{subsec:case3}
 
-\textbf{Feature:} \texttt{financial\_vulnerability\_score} --- a 0--5 composite score capturing multi-dimensional financial fragility.
+\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio} --- a multiplicative interaction between geographic risk and temporal anomaly.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
-    \item \textit{IND\_05}: Insufficient savings ($<$100 or unknown) indicates lack of financial buffer.
-    \item \textit{IND\_09}: No known property indicates lack of collateral.
-    \item \textit{IND\_11}: Non-owner housing (rent/free) implies ongoing cost pressure.
-    \item \textit{RULE\_003}: Simultaneous no-savings, no-property, and renting yields 80\% default rate (vs.\ 30\% average) --- a triple-vulnerability with multiplicative interaction.
+    \item \textit{RULE\_005/014} (Detection Rules): Cross-regional fund flows involving border areas (region codes 540000/650000) are high-risk for underground banking.
+    \item \textit{IND\_08/09} (Risk Indicators): Transactions concentrated in off-hours (18:00--8:00) indicate abnormal activity.
+    \item \textit{EXP\_05} (Expert Opinion): ``Border region + nighttime trading is the hallmark of cross-border money laundering.''
 \end{itemize}
 
 \textbf{Reasoning chain:}
 \begin{enumerate}
-    \item From \textit{IND\_05}: assign +1 if savings $<$100 or unknown.
-    \item From \textit{IND\_09}: assign +1 if no known property; +0.5 if only car.
-    \item From \textit{IND\_11}: assign +1 if renting or living for free.
-    \item From \textit{RULE\_003}: assign +2 if \emph{all three} conditions are simultaneously met, capturing the non-linear interaction.
+    \item From \textit{RULE\_005/014}: flag wallets registered in high-risk border regions.
+    \item From \textit{IND\_08/09}: compute off-hour transaction ratio.
+    \item From \textit{EXP\_05}: neither signal alone is sufficient---border wallets are not inherently suspicious, nor are off-hour transactions. The \emph{combination} is the strong signal.
+    \item Combine via multiplication: $\text{is\_high\_risk} \times \text{off\_hour\_ratio}$. Non-border wallets receive 0 regardless of timing.
 \end{enumerate}
 
 \textbf{Generated code (simplified):}
 {\small
 \begin{verbatim}
-score  = (savings < 100 or unknown)
-score += (no_known_property)
-score += (housing in {rent, free})
-if all_three:
-    score += 2  # RULE_003 penalty
+is_hr = region.isin([540000, 650000])
+off = (hour >= 18) | (hour < 8)
+off_ratio = off.sum() / n
+result = is_hr * off_ratio
 \end{verbatim}
 }
 
 \textbf{Why this matters.}
-The triple-vulnerability penalty (\textit{RULE\_003}) reflects a domain insight that financial fragility compounds super-additively: a borrower who lacks savings, property, \emph{and} stable housing is far riskier than individual factors suggest. Discovering this three-way interaction through exhaustive search over 20 features is combinatorially infeasible without guidance. KnowFeat generates it directly because \textit{RULE\_003} explicitly encodes the pattern.
+This feature demonstrates \emph{cross-dimensional interaction}: it combines geographic context (from account metadata) with temporal patterns (from transaction logs), guided by expert knowledge that explicitly identifies the combination as a ``hallmark'' signal. Syntactic methods cannot cross data sources or reason about why border + nighttime is meaningful. The multiplicative form ensures that neither dimension alone triggers a high score---only the conjunction, exactly as the expert knowledge prescribes.
 
 \subsection{Summary of Case Study Findings}
 
@@ -115,16 +116,16 @@ Table~\ref{tab:case_summary} summarizes the three case studies.
 \small
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{l l c l}
+\begin{tabular}{l c l}
 \hline
-\textbf{Feature} & \textbf{Dataset} & \textbf{\#KA} & \textbf{Key Insight} \\
+\textbf{Feature} & \textbf{\#KA} & \textbf{Key Insight} \\
 \hline
-\texttt{consistency\_score} & Heart  & 4 & Tri-channel concordance \\
-\texttt{hr\_ratio}          & Heart  & 2 & Domain-correct normal. \\
-\texttt{fin\_vuln\_score}   & Credit & 4 & Non-linear 3-way inter. \\
+\texttt{fan\_in\_fan\_out}    & 4 & Network topology fusion \\
+\texttt{small\_test\_round}   & 5 & Behavioral sequence pattern \\
+\texttt{region\_off\_hour}    & 4 & Cross-dim.\ interaction \\
 \hline
-\multicolumn{4}{l}{\scriptsize KA = Knowledge Assets used in the provenance chain.} \\
+\multicolumn{3}{l}{\scriptsize KA = Knowledge Assets in provenance chain.} \\
 \end{tabular}
 \end{table}
 
-These examples demonstrate three capabilities that distinguish KnowFeat from existing methods: (1)~\emph{multi-source fusion} --- combining indicators, rules, and expert opinions into a single coherent feature; (2)~\emph{domain-correct transformations} --- applying clinically or financially appropriate formulas rather than arbitrary operators; and (3)~\emph{non-linear interaction encoding} --- capturing super-additive risk combinations that are infeasible to discover through exhaustive search. Every feature includes a complete provenance chain linking each computation step to specific knowledge assets.
+These examples demonstrate three capabilities that distinguish KnowFeat: (1)~\emph{multi-source fusion}---combining rules, behavioral patterns, and risk indicators into topology-aware features; (2)~\emph{domain-specific patterns}---encoding regulatory knowledge (probe thresholds, structuring indicators) that syntactic search cannot discover; and (3)~\emph{cross-dimensional interaction}---combining signals from different data sources guided by expert knowledge about their conjunction. Every feature includes a complete provenance chain, enabling compliance officers to audit the feature's rationale.
