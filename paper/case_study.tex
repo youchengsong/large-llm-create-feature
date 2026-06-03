@@ -7,11 +7,11 @@ To illustrate how KnowFeat leverages domain knowledge to generate interpretable,
 \subsection{Case 1: Fan-In/Fan-Out Ratio (Network Topology)}
 \label{subsec:case1}
 
-\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio} --- measures the asymmetry between incoming and outgoing transaction patterns, weighted by the proportion of abnormal transaction modes.
+\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio}, which measures the asymmetry between incoming and outgoing transaction patterns, weighted by the proportion of abnormal transaction modes.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
-    \item \textit{RULE\_006} (Detection Rule): ``Scatter-in, gather-out'' --- a classic layering pattern where funds are collected from many sources then concentrated for withdrawal.
+    \item \textit{RULE\_006} (Detection Rule): ``Scatter-in, gather-out,'' a classic layering pattern where funds are collected from many sources then concentrated for withdrawal.
     \item \textit{RULE\_013} (Detection Rule): Pyramid-shaped fund networks where intermediate wallets exhibit strong fan-in/fan-out asymmetry.
     \item \textit{PAT\_A03} (Behavioral Pattern): Online money mule wallets receive from many senders (high fan-in) then forward to a few consolidation accounts.
     \item \textit{IND\_15} (Risk Indicator): Abnormal transaction modes (fan\_in, many\_to\_many, one\_to\_many) are individually suspicious.
@@ -42,7 +42,7 @@ This feature fuses knowledge from four assets spanning three types (rules, patte
 \subsection{Case 2: Probe-Then-Transfer Ratio}
 \label{subsec:case2}
 
-\textbf{Feature:} \texttt{small\_test\_round\_amount\_ratio} --- detects the ``probe-then-bulk-transfer'' pattern by combining small-amount test ratio with round-number transfer ratio.
+\textbf{Feature:} \texttt{small\_test\_round\_amount\_ratio}, which detects the ``probe-then-bulk-transfer'' pattern by combining small-amount test ratio with round-number transfer ratio.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
@@ -75,7 +75,7 @@ The ``probe-then-transfer'' pattern is well-documented in AML regulations but im
 \subsection{Case 3: Cross-Dimensional Risk Interaction}
 \label{subsec:case3}
 
-\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio} --- a multiplicative interaction between geographic risk and temporal anomaly.
+\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio}, a multiplicative interaction between geographic risk and temporal anomaly.
 
 \textbf{Knowledge assets used:}
 \begin{itemize}
