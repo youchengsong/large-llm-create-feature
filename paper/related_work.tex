@@ -12,9 +12,11 @@ These methods share a common limitation: they operate in a \emph{syntactic} tran
 
 The application of LLMs to feature engineering represents a paradigm shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2024llmsgeneratefinanciallyrelevantfeatures} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features. Each generated feature is evaluated using a logistic regression model, and the feedback is used to guide subsequent iterations. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features.
 
-While these methods demonstrate the potential of LLMs for feature engineering, they have significant shortcomings. First, they rely exclusively on the LLM's parametric knowledge, which is a frozen snapshot of general web text that may lack domain-specific expertise. Second, their verification mechanisms are rudimentary: CAAFE uses a weak proxy model (logistic regression) that poorly approximates the downstream model's behavior, while FeatLLM performs no model-based validation. Third, the generated features come with no provenance information---there is no record of \emph{why} a feature was created or what knowledge supports it.
+More recently, LLM-FE~\cite{li2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with performance feedback.
 
-Concurrent work has explored LLMs for related data science tasks. AIDE~\cite{wangsolution} uses LLM agents to automate the entire data science pipeline, including feature engineering, but treats feature generation as one step in a broader optimization rather than a focused capability. DS-Agent~\cite{guo2024ds} adopts a similar end-to-end approach with case-based reasoning. These methods do not address the specific challenges of knowledge-grounded feature generation and provenance tracking.
+While these methods demonstrate the potential of LLMs for feature engineering, they share significant shortcomings. First, they rely exclusively on the LLM's parametric knowledge, which is a frozen snapshot of general web text that may lack domain-specific expertise. Second, their verification mechanisms are rudimentary: CAAFE uses a weak proxy model (logistic regression), FeatLLM performs no model-based validation, and LLM-FE relies on downstream model accuracy without statistical quality checks. Third, the generated features come with no provenance information---there is no record of \emph{why} a feature was created or what knowledge supports it.
+
+Concurrent work has explored LLMs for related data science tasks. AIDE~\cite{wangsolution} uses LLM agents to automate the entire data science pipeline, and DS-Agent~\cite{guo2024ds} adopts a similar end-to-end approach with case-based reasoning. These methods do not address knowledge-grounded feature generation and provenance tracking.
 
 \subsection{Domain Knowledge Integration in Machine Learning}
 
@@ -36,18 +38,19 @@ Table~\ref{tab:comparison} summarizes the key differences between KnowFeat and e
 \label{tab:comparison}
 \small
 \renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{1.5pt}
-\begin{tabular}{l c c c c c}
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{l c c c c c c}
 \hline
-\textbf{Property} & \textbf{OpenFE} & \textbf{Auto.} & \textbf{CAAFE} & \textbf{Feat.} & \textbf{Ours} \\
+\textbf{Property} & \textbf{OpenFE} & \textbf{Auto.} & \textbf{CAAFE} & \textbf{Feat.} & \textbf{LLM-} & \textbf{Ours} \\
+ & & & & & \textbf{FE} & \\
 \hline
-Semantic understand. &            &            & \checkmark & \checkmark & \checkmark \\
-External knowledge   &            &            &            &            & \checkmark \\
-Exec.\ verification  & --         & --         &            &            & \checkmark \\
-Statistical filter.  & \checkmark & \checkmark &            &            & \checkmark \\
-Model validation     &            &            & Weak       &            & \checkmark \\
-Provenance tracking  &            &            &            &            & \checkmark \\
-Adaptive search      &            &            &            &            & \checkmark \\
+Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark \\
+External knowl.   &            &            &            &            &            & \checkmark \\
+Exec.\ verific.   & --         & --         &            &            &            & \checkmark \\
+Statistical filt. & \checkmark & \checkmark &            &            &            & \checkmark \\
+Model validation  &            &            & Weak       &            & \checkmark & \checkmark \\
+Provenance track. &            &            &            &            &            & \checkmark \\
+Adaptive search   &            &            &            &            & \checkmark & \checkmark \\
 \hline
 \end{tabular}
 \end{table}

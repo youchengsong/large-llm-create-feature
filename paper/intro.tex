@@ -27,11 +27,11 @@ In this paper, we propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{F
     \item \textbf{Intelligent Search Strategy.} We decompose the feature space into semantic dimensions and allocate a per-round budget to each. After each round, SHAP analysis identifies which dimensions have contributed least, and the budget is reallocated inversely---directing the agent to explore underrepresented areas. A failure memory prevents the regeneration of previously rejected features, while a forward selection mechanism discovers feature combinations that are individually weak but collectively strong.
 \end{itemize}
 
-We evaluate KnowFeat on seven public tabular datasets from OpenML and a real-world AML dataset containing 200,000 digital currency transactions with 93 baseline features. Key findings include:
+We evaluate KnowFeat on seven public tabular datasets from OpenML and a real-world AML dataset containing 200,000 digital currency transactions with 93 baseline features. We compare against six baselines spanning traditional AutoFE (OpenFE, AutoFeat), LLM-based (CAAFE, FeatLLM), and evolutionary LLM (LLM-FE) approaches. Key findings include:
 
 \begin{itemize}
-    \item On public datasets, KnowFeat achieves the highest AUC on 4 out of 7 datasets and the best average rank (1.4), while generating 3--10$\times$ fewer features than FeatLLM.
-    \item On the AML dataset, 18 knowledge-guided features improve Recall by +2.1pp and F1 by +1.5pp over a strong 93-feature baseline, while FeatLLM's 1,031 additional features \emph{degrade} performance.
+    \item On public datasets, KnowFeat achieves the highest AUC on 4 out of 7 datasets and the best average rank (1.4) among all seven methods, while generating 3--10$\times$ fewer features than FeatLLM.
+    \item On the AML dataset, 18 knowledge-guided features improve Recall by +2.1pp and F1 by +1.5pp over a strong 93-feature baseline, substantially outperforming all baselines including LLM-FE (+1.4pp F1).
     \item Ablation experiments confirm that domain knowledge is essential: the schema-only variant generates zero accepted features on one dataset, and the full knowledge hierarchy outperforms schema-only on 5 of 6 remaining datasets.
     \item Every generated feature includes a provenance card linking it to specific knowledge assets, providing full auditability.
 \end{itemize}
