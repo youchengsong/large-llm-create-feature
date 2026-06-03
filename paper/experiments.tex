@@ -53,7 +53,7 @@ We compare against six baselines:
 \end{itemize}
 
 \subsubsection{Evaluation Protocol}
-All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. For public datasets, the primary metric is AUC. For SimECNY, we report Recall, Precision, F1, and AUC with scale\_pos\_weight=auto ($\approx$43.6) to handle class imbalance.
+All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. We use AUC as the primary metric for all datasets, as it is threshold-independent and more robust than accuracy for datasets with varying class distributions. For SimECNY, we additionally report Recall, Precision, and F1 with scale\_pos\_weight=auto ($\approx$43.6) to handle class imbalance. All baselines are reproduced using our unified evaluation protocol to ensure fair comparison.
 
 \subsection{RQ1: Public Dataset Performance}
 \label{subsec:rq1}
@@ -88,7 +88,7 @@ KnowFeat achieves the best average rank (1.4), substantially outperforming the s
 
 OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
-Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. On bank\_marketing, LLM-FE even underperforms the No-FE baseline (.9317 vs.\ .9330), and on blood\_transfusion it ranks last (.6649). This suggests that evolutionary prompt optimization alone, without external domain knowledge and rigorous multi-stage verification, is insufficient.
+Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. Notably, LLM-FE underperforms the No-FE baseline on bank\_marketing (.9317 vs.\ .9330) and blood\_transfusion (.6649 vs.\ .6824), suggesting that evolutionary prompt optimization alone, without external domain knowledge and multi-stage verification, is insufficient to consistently improve over raw features.
 
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
