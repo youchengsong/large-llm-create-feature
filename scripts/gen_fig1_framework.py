@@ -1,4 +1,4 @@
-"""Generate Figure 1: KnowFeat Framework Overview."""
+"""Generate Figure 1: KnowFeat Framework Overview — clean redesign."""
 
 import asyncio
 import shutil
@@ -14,60 +14,75 @@ from paperbanana.core.config import Settings
 
 async def main():
     source_context = """
-    KnowFeat is a knowledge-guided feature engineering framework built on an LLM agent.
-    The pipeline has the following components, flowing left to right:
+    Draw a clean, professional framework diagram for an IEEE conference paper (two-column, ~7x3.5 inches).
 
-    VISUAL STYLE: Use soft pastel colored background regions to group components.
-    Light blue for Inputs, light yellow/cream for Core Agent, light green for Verification,
-    light purple for Outputs, light gray for Search Strategy at the bottom.
-    Use small icons (magnifying glass, gear, terminal) for the agent's tools.
-    Rounded rectangle boxes. Professional academic diagram style with clear labeled arrows.
-    Use Arial or Helvetica font. IEEE two-column figure width (~7 inches).
+    This diagram illustrates KnowFeat, an LLM-based feature engineering system.
+    The main flow goes LEFT → RIGHT, with a feedback loop returning from right to left at the bottom.
 
-    INPUT (left side, light blue region):
-    - Tabular Dataset D (with features x and labels y), show a small table/database icon
-    - Domain Knowledge Base K, organized as a 5-type hierarchy stacked vertically:
-      Schema Only (column names, types, stats)
-      Risk Indicators (38 structured indicators)
-      Detection Rules (15 operational rules with logic)
-      Expert Opinions (tacit knowledge from interviews)
-      Court Document Evidence (extracted from 309 legal cases)
-      These types stack from general (top) to specific (bottom) with a gradient arrow.
-      IMPORTANT: Do NOT use "Level 0/1/2/3/4" labels. Only use the type names above.
+    There are four major blocks arranged horizontally:
 
-    CORE (center, light yellow region): ReAct LLM Agent
-    Do NOT write any specific model name (no GPT-4o, no DeepSeek). Just "LLM Agent".
-    The agent operates in a multi-round reasoning loop. It has 3 tools shown with icons:
-    - explore_data: inspect dataset (magnifying glass icon)
-    - generate_feature: propose candidate feature with provenance (gear/document icon)
-    - execute_sandbox: trigger verification (terminal icon)
+    BLOCK 1 — INPUTS (left):
+    Two stacked items:
+    (a) "Tabular Dataset D" — a simple table icon with "features x, labels y".
+    (b) "Domain Knowledge K" — five types stacked top-to-bottom, labeled with an arrow
+        from "General" at top to "Specific" at bottom:
+        • Schema Metadata
+        • Risk Indicators (38)
+        • Detection Rules (15)
+        • Expert Opinions (12)
+        • Case Evidence (309)
+    Use a light blue background for this block.
 
-    VERIFICATION (right of agent, light green region): Three-Stage Pipeline (L1 -> L2 -> L3)
-    - L1 Execution: syntax & shape checks, 30s timeout, up to 2 repair attempts
-    - L2 Statistical Quality: IV, KS > threshold, redundancy < 0.7, missing < 50%
-    - L3 Model Effectiveness: XGBoost evaluation, delta-AUC > 0 or delta-Recall > 0
-    Show Pass arrow to Outputs and Fail arrow to Failure Context.
+    BLOCK 2 — LLM AGENT (center-left):
+    A rounded box labeled "ReAct LLM Agent" (no specific model name).
+    Inside or around it, show three tool icons:
+        • explore_data (magnifying glass)
+        • generate_feature (pencil/document)
+        • execute_sandbox (terminal)
+    A curved arrow around the box indicates "Multi-round Generation".
+    Use a light orange/cream background.
 
-    OUTPUT (right side, light purple region):
-    - Accepted Feature Set F* with executable code
-    - Provenance Cards (knowledge source, reasoning chain, computation)
+    BLOCK 3 — VERIFICATION PIPELINE (center-right):
+    Three stages shown as a horizontal pipeline with arrows:
+        L1: Execution → L2: Quality Filter → L3: Model Test
+    Below each stage, one line of key info:
+        L1: "code sandbox, auto-repair"
+        L2: "IV, KS, redundancy"
+        L3: "XGBoost, 5 seeds"
+    A "Pass" arrow exits right; a "Reject" arrow exits downward.
+    Use a light green background.
 
-    SEARCH STRATEGY (bottom, light gray region spanning full width):
-    - 4 semantic dimensions in a row: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association
-    - SHAP-guided inverse-proportion budget reallocation
-    - Failure Memory prevents regenerating rejected features
-    - Forward Selection discovers synergistic feature combinations
-    - Cross-dimension propagation of successful patterns
-    Show SHAP Analysis feeding back reallocated budget to the agent (feedback loop).
+    BLOCK 4 — OUTPUTS (right):
+    Two stacked items:
+        • "Accepted Features F*"
+        • "Provenance Cards" (with sub-text: knowledge trace, reasoning chain)
+    Use a light purple background.
 
-    ARROWS: Use green arrows for main flow, orange/yellow for feedback loops, dashed for cross-dimension propagation.
+    BOTTOM — FEEDBACK LOOP (spanning full width, light gray background):
+    Shows the adaptive search strategy:
+        • Rejected features → "Failure Memory" (prevents repeats)
+        • Accepted features → "SHAP Analysis" → "Budget Reallocation"
+          Budget feeds back to the LLM Agent for the next round.
+        • Four semantic dimensions shown as small tags:
+          "Amount & Frequency", "Time & Geography", "Behavior Sequence", "Entity Association"
+        • "Forward Selection" box for synergistic combinations
+
+    ARROWS:
+        • Solid dark arrows for the main left-to-right flow
+        • Dashed or colored arrows for feedback (SHAP → Agent, Reject → Failure Memory)
+
+    STYLE:
+        • White overall background, pastel colored blocks
+        • Clean sans-serif font (Arial/Helvetica), minimum 8pt
+        • Simple flat icons, no 3D effects
+        • Enough whitespace between blocks for readability
     """
 
     caption = (
-        "Overview of the KnowFeat framework. The LLM agent generates features guided by "
-        "hierarchical domain knowledge. Each candidate is verified through a three-stage "
-        "pipeline (L1-L3). SHAP feedback dynamically reallocates the exploration budget "
-        "across semantic dimensions."
+        "Overview of the KnowFeat framework. The LLM agent generates features "
+        "guided by hierarchical domain knowledge. Each candidate is verified "
+        "through a three-stage pipeline (L1–L3). SHAP feedback dynamically "
+        "reallocates the exploration budget across semantic dimensions."
     )
 
     settings = Settings(
