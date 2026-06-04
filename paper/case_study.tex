@@ -2,137 +2,42 @@
 \section{Case Study: Knowledge-Grounded Features}
 \label{sec:case_study}
 
-To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the SimECNY AML dataset. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific behavioral patterns, and cross-dimensional interaction. Figure~\ref{fig:provenance} shows an example provenance card.
+We present two representative case studies from the SimECNY AML dataset, highlighting multi-source knowledge fusion and cross-dimensional interaction. Figure~\ref{fig:provenance} shows an example provenance card.
 
-\begin{figure}[t]
+\begin{figure*}[!t]
     \centering
-    \includegraphics[width=0.85\columnwidth]{figures/provenance_card.png}
+    \includegraphics[width=0.75\textwidth]{figures/provenance_card.png}
     \caption{Provenance card for the \texttt{fan\_in\_fan\_out\_ratio} feature, showing knowledge assets, reasoning chain, generated code, and verification results.}
     \label{fig:provenance}
-\end{figure}
+\end{figure*}
 
 \subsection{Case 1: Fan-In/Fan-Out Ratio (Network Topology)}
-\label{subsec:case1}
 
-\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio}, which measures the asymmetry between incoming and outgoing transaction patterns, weighted by the proportion of abnormal transaction modes.
+\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio}---asymmetry between incoming and outgoing transaction patterns, weighted by abnormal mode proportion. Uses 4 knowledge assets: \textit{RULE\_006} (scatter-in/gather-out layering), \textit{RULE\_013} (pyramid-shaped fund networks), \textit{PAT\_A03} (money mule behavioral pattern), and \textit{IND\_15} (abnormal transaction modes).
 
-\textbf{Knowledge assets used:}
-\begin{itemize}
-    \item \textit{RULE\_006} (Detection Rule): ``Scatter-in, gather-out,'' a classic layering pattern where funds are collected from many sources then concentrated for withdrawal.
-    \item \textit{RULE\_013} (Detection Rule): Pyramid-shaped fund networks where intermediate wallets exhibit strong fan-in/fan-out asymmetry.
-    \item \textit{PAT\_A03} (Behavioral Pattern): Online money mule wallets receive from many senders (high fan-in) then forward to a few consolidation accounts.
-    \item \textit{IND\_15} (Risk Indicator): Abnormal transaction modes (fan\_in, many\_to\_many, one\_to\_many) are individually suspicious.
-\end{itemize}
+\textbf{Reasoning chain:} (1)~Compute fan-in/fan-out mode ratio per wallet from \textit{RULE\_006/013}. (2)~Weight by abnormal mode proportion from \textit{IND\_15}. (3)~Combine: $\text{ratio} \times (1 + \text{abnormal\_mode\_ratio})$.
 
-\textbf{Reasoning chain:}
-\begin{enumerate}
-    \item From \textit{RULE\_006} and \textit{RULE\_013}: compute the ratio of fan-in to fan-out mode proportions per wallet.
-    \item From \textit{PAT\_A03}: money mule wallets have fan-in $\gg$ fan-out; this asymmetry ratio is the primary signal.
-    \item From \textit{IND\_15}: weight by total abnormal mode proportion, since wallets with more abnormal modes are higher risk.
-    \item Combine: $\text{ratio} \times (1 + \text{abnormal\_mode\_ratio})$.
-\end{enumerate}
-
-\textbf{Generated code (simplified):}
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 fi = mode_counts['fan_in'] / n
 fo = mode_counts['fan_out'] / n
 ratio = fi / (fo + eps)
 abnormal = fi + m2m_ratio + o2m_ratio
 result = ratio * (1 + abnormal)
-\end{verbatim}
-}
+\end{lstlisting}
 
-\textbf{Why this matters.}
-This feature fuses knowledge from four assets spanning three types (rules, patterns, indicators) to capture network topology. No individual column contains ``fan-in/fan-out asymmetry''---it requires understanding that the \emph{combination} of directional imbalance and abnormal mode prevalence characterizes money mule behavior. A syntactic method might discover pairwise mode interactions but would not produce a topology-aware asymmetry score grounded in the ``scatter-in, gather-out'' layering pattern.
+This feature fuses four knowledge assets spanning three types (rules, patterns, indicators) to produce a topology-aware asymmetry score. No syntactic method would produce this---it requires understanding that directional imbalance combined with abnormal mode prevalence characterizes money mule behavior.
 
-\subsection{Case 2: Probe-Then-Transfer Ratio}
-\label{subsec:case2}
+\subsection{Case 2: Cross-Dimensional Risk Interaction}
 
-\textbf{Feature:} \texttt{small\_test\_round\_amount\_ratio}, which detects the ``probe-then-bulk-transfer'' pattern by combining small-amount test ratio with round-number transfer ratio.
+\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio}---multiplicative interaction between geographic risk and temporal anomaly. Uses 3 knowledge assets: \textit{RULE\_005/014} (cross-regional flows through border areas), \textit{IND\_08/09} (off-hour transaction concentration), and \textit{EXP\_05} (``border region + nighttime trading is the hallmark of cross-border laundering'').
 
-\textbf{Knowledge assets used:}
-\begin{itemize}
-    \item \textit{RULE\_003} (Detection Rule): Rapid fund movement---small probe transactions ($\leq$5 CNY) precede large-value transfers.
-    \item \textit{PAT\_A02/A03} (Behavioral Pattern): Money mule operations begin with ``small test, then bulk operation.''
-    \item \textit{IND\_01/02} (Risk Indicator): Round-number amounts (multiples of 100) and repetitive amount patterns indicate structured transactions.
-\end{itemize}
+\textbf{Reasoning chain:} (1)~Flag high-risk border regions from \textit{RULE\_005/014}. (2)~Compute off-hour ratio from \textit{IND\_08/09}. (3)~Neither signal alone is sufficient (\textit{EXP\_05}); multiply: $\text{is\_high\_risk} \times \text{off\_hour\_ratio}$.
 
-\textbf{Reasoning chain:}
-\begin{enumerate}
-    \item From \textit{RULE\_003} and \textit{PAT\_A02/A03}: compute the proportion of transactions with amount $\leq$5 CNY (probe ratio).
-    \item From \textit{IND\_01/02}: compute the proportion of transactions with amounts divisible by 100 (round-number ratio).
-    \item From domain expertise (\textit{EXP\_01}): ``probe + round-number bulk transfer'' co-occurrence is far more discriminative than either signal alone.
-    \item Combine: $\text{small\_ratio} \times (1 + \text{round\_100\_ratio})$.
-\end{enumerate}
-
-\textbf{Generated code (simplified):}
-{\small
-\begin{verbatim}
-amt = abs(amount)
-small_ratio = (amt <= 5).sum() / n
-round_ratio = (amt % 100 == 0).sum() / n
-result = small_ratio * (1 + round_ratio)
-\end{verbatim}
-}
-
-\textbf{Why this matters.}
-The ``probe-then-transfer'' pattern is well-documented in AML regulations but impossible to discover through syntactic transformation search. It requires understanding that sub-5-CNY transactions serve a fundamentally different purpose (channel testing) than regular small purchases. The specific threshold (5 CNY) and the interaction with round-number amounts come directly from \textit{RULE\_003} and compliance expertise---transformations that no data-driven method would enumerate.
-
-\subsection{Case 3: Cross-Dimensional Risk Interaction}
-\label{subsec:case3}
-
-\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio}, a multiplicative interaction between geographic risk and temporal anomaly.
-
-\textbf{Knowledge assets used:}
-\begin{itemize}
-    \item \textit{RULE\_005/014} (Detection Rules): Cross-regional fund flows involving border areas (region codes 540000/650000) are high-risk for underground banking.
-    \item \textit{IND\_08/09} (Risk Indicators): Transactions concentrated in off-hours (18:00--8:00) indicate abnormal activity.
-    \item \textit{EXP\_05} (Expert Opinion): ``Border region + nighttime trading is the hallmark of cross-border money laundering.''
-\end{itemize}
-
-\textbf{Reasoning chain:}
-\begin{enumerate}
-    \item From \textit{RULE\_005/014}: flag wallets registered in high-risk border regions.
-    \item From \textit{IND\_08/09}: compute off-hour transaction ratio.
-    \item From \textit{EXP\_05}: neither signal alone is sufficient---border wallets are not inherently suspicious, nor are off-hour transactions. The \emph{combination} is the strong signal.
-    \item Combine via multiplication: $\text{is\_high\_risk} \times \text{off\_hour\_ratio}$. Non-border wallets receive 0 regardless of timing.
-\end{enumerate}
-
-\textbf{Generated code (simplified):}
-{\small
-\begin{verbatim}
+\begin{lstlisting}
 is_hr = region.isin([540000, 650000])
 off = (hour >= 18) | (hour < 8)
 off_ratio = off.sum() / n
 result = is_hr * off_ratio
-\end{verbatim}
-}
+\end{lstlisting}
 
-\textbf{Why this matters.}
-This feature demonstrates \emph{cross-dimensional interaction}: it combines geographic context (from account metadata) with temporal patterns (from transaction logs), guided by expert knowledge that explicitly identifies the combination as a ``hallmark'' signal. Syntactic methods cannot cross data sources or reason about why border + nighttime is meaningful. The multiplicative form ensures that neither dimension alone triggers a high score---only the conjunction, exactly as the expert knowledge prescribes.
-
-\subsection{Summary of Case Study Findings}
-
-Table~\ref{tab:case_summary} summarizes the three case studies.
-
-\begin{table}[t]
-\centering
-\caption{Summary of case study features.}
-\label{tab:case_summary}
-\small
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{l c l}
-\hline
-\textbf{Feature} & \textbf{\#KA} & \textbf{Key Insight} \\
-\hline
-\texttt{fan\_in\_fan\_out}    & 4 & Network topology fusion \\
-\texttt{small\_test\_round}   & 5 & Behavioral sequence pattern \\
-\texttt{region\_off\_hour}    & 4 & Cross-dim.\ interaction \\
-\hline
-\multicolumn{3}{l}{\scriptsize KA = Knowledge Assets in provenance chain.} \\
-\end{tabular}
-\end{table}
-
-These examples demonstrate three capabilities that distinguish KnowFeat: (1)~\emph{multi-source fusion}---combining rules, behavioral patterns, and risk indicators into topology-aware features; (2)~\emph{domain-specific patterns}---encoding regulatory knowledge (probe thresholds, structuring indicators) that syntactic search cannot discover; and (3)~\emph{cross-dimensional interaction}---combining signals from different data sources guided by expert knowledge about their conjunction. Every feature includes a complete provenance chain, enabling compliance officers to audit the feature's rationale.
+This feature demonstrates \emph{cross-dimensional interaction}: geographic context (account metadata) combined with temporal patterns (transaction logs), guided by expert knowledge. The multiplicative form ensures only the conjunction triggers a high score, exactly as the domain expertise prescribes. Both cases illustrate capabilities that syntactic methods cannot replicate, and both carry complete provenance chains for regulatory audit.

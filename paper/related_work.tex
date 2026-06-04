@@ -4,9 +4,7 @@
 
 \subsection{Traditional Automated Feature Engineering}
 
-Automated feature engineering aims to reduce the manual effort of creating predictive features from raw data. Early approaches focus on exhaustive transformation search: Nargesian et al.~\cite{nargesian2017learning} propose learning-based feature engineering for classification, Deep Feature Synthesis~\cite{kanter2015deep} recursively applies aggregation and transformation primitives along relational paths, while ExploreKit~\cite{katz2016explorekit} enumerates unary, binary, and higher-order operators over existing features and uses meta-learning to rank candidates. AutoFeat~\cite{horn2019autofeat} constructs features through polynomial and interaction terms, then applies L1 regularization for selection. More recently, OpenFE~\cite{zhang2023openfe} frames feature generation as an operator-operand search problem, using a two-stage expansion-and-selection pipeline with LightGBM-based feature importance to achieve state-of-the-art performance on tabular benchmarks.
-
-These methods share a common limitation: they operate in a \emph{syntactic} transformation space, applying predefined mathematical operators without any semantic understanding of the data domain. For example, computing \texttt{age $\times$ income} is treated identically to \texttt{age $\times$ zip\_code}, even though only the former has financial meaning. This leads to a combinatorial explosion of candidates, most of which are semantically meaningless, and an inability to generate domain-specific features that require conceptual understanding---for instance, ``transaction velocity'' or ``dormant account reactivation'' in the context of transaction anomaly detection.
+Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep Feature Synthesis~\cite{kanter2015deep} applies aggregation primitives along relational paths; ExploreKit~\cite{katz2016explorekit} enumerates operators and ranks candidates via meta-learning; AutoFeat~\cite{horn2019autofeat} uses polynomial expansion with L1 selection; and OpenFE~\cite{zhang2023openfe} frames feature generation as an operator-operand search with LightGBM-based importance ranking. End-to-end AutoML systems such as Auto-sklearn~\cite{feurer2015auto} and FLAML~\cite{wang2021flaml} include feature preprocessing but do not generate semantically new features. These methods apply predefined mathematical operators without \emph{semantic} understanding: \texttt{age $\times$ income} is treated identically to \texttt{age $\times$ zip\_code}, even though only the former has financial meaning. They cannot generate domain-specific features (e.g., ``transaction velocity'' in anomaly detection) that require conceptual understanding~\cite{nargesian2017learning}.
 
 \subsection{LLM-Based Feature Engineering}
 
@@ -14,19 +12,17 @@ The emergence of large language models~\cite{brown2020gpt3,touvron2023llama} has
 
 These methods vary in their use of domain knowledge and verification. LLM-FE and RiskTagger incorporate limited domain context (dataset descriptions and regulatory guidelines, respectively), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline. Furthermore, while RiskTagger provides natural language rationales, none offers structured provenance that traces each feature to specific knowledge assets.
 
-Tool-augmented LLM agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. In data science, AIDE~\cite{jiang2025aide} and DS-Agent~\cite{guo2024ds} automate end-to-end pipelines but do not address knowledge-grounded feature generation. KnowFeat builds on the tool-use paradigm by equipping an LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification.
+Tool-augmented LLM agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, software engineering~\cite{jimenez2024swe}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. In data science, AIDE~\cite{jiang2025aide} and DS-Agent~\cite{guo2024ds} automate end-to-end pipelines but do not address knowledge-grounded feature generation. KnowFeat builds on the tool-use paradigm by equipping an LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification.
 
 Table~\ref{tab:comparison} summarizes the key differences. KnowFeat is the first method to combine hierarchical structured domain knowledge, multi-stage verification (L1--L3), and full feature provenance tracking within an LLM-based feature engineering framework.
 
 \subsection{Domain Knowledge Integration in Machine Learning}
 
-The integration of domain knowledge into machine learning has a long history. Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures. In the feature engineering context, domain experts traditionally encode their knowledge as hand-crafted features---a process that is effective but does not scale. Transfer learning approaches~\cite{weiss2016survey} implicitly transfer knowledge through pretrained representations, but these are primarily designed for unstructured data (text, images) rather than tabular features.
-
-In the financial domain specifically, AML feature engineering relies on expert-defined indicators such as transaction velocity, structuring patterns, and network centrality measures~\cite{chen2018aml}. Recent work has also explored graph-based approaches for financial forensics~\cite{weber2019anti}. Regulatory bodies publish typologies and red-flag indicators (e.g., FATF guidelines~\cite{fatf2012recommendations}), and financial institutions maintain internal detection rules derived from compliance experience and legal proceedings. This rich, structured knowledge has not been systematically leveraged by automated feature engineering methods.
+Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures, and transfer learning~\cite{weiss2016survey} implicitly transfers knowledge through pretrained representations, but both are designed for unstructured data rather than tabular features. In financial AML, domain experts manually encode risk indicators, structuring patterns, and network centrality measures as hand-crafted features~\cite{chen2018aml}. Regulatory bodies publish red-flag typologies (e.g., FATF guidelines~\cite{fatf2012recommendations}), and institutions maintain internal detection rules from compliance experience and legal proceedings~\cite{weber2019anti}. This rich, structured knowledge has not been systematically leveraged by automated feature engineering methods.
 
 \begin{table}[t]
 \centering
-\caption{Comparison of automated feature engineering methods.}
+\caption{Comparison of automated feature engineering methods. \checkmark: fully supported; $\triangle$: partially supported (see footnotes); blank: not supported; --: not applicable.}
 \label{tab:comparison}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -37,12 +33,14 @@ In the financial domain specifically, AML feature engineering relies on expert-d
  & & & & & \textbf{FE} & \textbf{Tag.} & \\
 \hline
 Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-Hier.\ knowl.     &            &            &            &            & Partial    & Partial    & \checkmark \\
+Hier.\ knowl.     &            &            &            &            & $\triangle^a$    & $\triangle^b$    & \checkmark \\
 Exec.\ verific.   & --         & --         &            &            &            &            & \checkmark \\
 Statistical filt. & \checkmark & \checkmark &            &            &            &            & \checkmark \\
-Model validation  &            &            & Weak       &            & \checkmark &            & \checkmark \\
-Provenance track. &            &            &            &            &            & NL only    & \checkmark \\
+Model validation  &            &            & $\triangle^c$       &            & \checkmark &            & \checkmark \\
+Provenance track. &            &            &            &            &            & $\triangle^d$    & \checkmark \\
 Adaptive search   &            &            &            &            & \checkmark &            & \checkmark \\
 \hline
+\multicolumn{8}{l}{\scriptsize $^a$Dataset descriptions only. $^b$Regulatory guidelines only. $^c$Logistic regression proxy.} \\
+\multicolumn{8}{l}{\scriptsize $^d$Natural language rationales only, no structured provenance.} \\
 \end{tabular}
 \end{table}

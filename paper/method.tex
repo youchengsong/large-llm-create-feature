@@ -2,6 +2,14 @@
 \section{Methodology}
 \label{sec:method}
 
+% Framework figure - placed at top of method section for proximity to first reference
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{figures/framework.png}
+    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
+    \label{fig:framework}
+\end{figure*}
+
 This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and auditable provenance output (Section~\ref{subsec:provenance_method}).
 
 \subsection{Framework Overview}
@@ -25,14 +33,6 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
     \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and auditable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
 \end{enumerate}
 
-% Placeholder for framework figure
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/framework.png}
-    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
-    \label{fig:framework}
-\end{figure}
-
 \subsection{Hierarchical Knowledge Injection}
 \label{subsec:knowledge}
 
@@ -46,9 +46,9 @@ A key innovation of KnowFeat is the systematic integration of external domain kn
 
 \textbf{Level 3: Expert Opinions.} Unstructured insights from domain expert interviews. These capture tacit knowledge---heuristics, edge cases, and domain intuitions---that are difficult to formalize as rules but valuable for feature design. We collect 12 expert opinions (EXP\_01 through EXP\_12) encoded as natural language paragraphs. For example, EXP\_05 notes that ``border region transactions combined with nighttime activity are a hallmark of cross-border laundering.''
 
-\textbf{Level 4: Court Document Evidence.} Risk factors extracted from real legal proceedings using a key-clue extraction pipeline. For the AML domain, we process 309 court judgment documents to extract evidence-grounded risk factors. This represents the most concrete and specific level of domain knowledge, grounding feature generation in real-world case evidence. For example, court documents reveal that intermediate wallets in pyramid-shaped fund networks exhibit strong fan-in/fan-out asymmetry---a pattern that informs Level~2 rules but is independently validated by legal proceedings.
+\textbf{Level 4: Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete level, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
 
-The five levels can be freely combined: by setting a knowledge filter parameter, any subset of levels can be included, enabling systematic study of each level's contribution through ablation. In the ``full'' configuration (default), all levels are included. The knowledge base is formatted as structured text and injected into the agent's system prompt, with each knowledge item assigned a unique identifier for provenance tracking.
+The five levels can be freely combined via a knowledge filter parameter, enabling ablation study of each level's contribution. In the ``full'' configuration (default), all levels are included. Each knowledge item is assigned a unique identifier for provenance tracking.
 
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}
@@ -127,11 +127,11 @@ We decompose the feature space into $D$ semantic dimensions relevant to the targ
 Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP~\cite{lundberg2017shap} (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
 
 \subsubsection{SHAP-Guided Budget Reallocation}
-Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features. We reallocate the budget using an \emph{inverse-proportion} strategy:
+Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features, $B_{\min}$ the minimum per-dimension budget (default 1), and $B_{\text{total}}$ the total budget for the round. We reallocate the budget for round $r{+}1$ using an \emph{inverse-proportion} strategy:
 \begin{equation}
     B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
 \end{equation}
-where $B_{\min}$ is a minimum per-dimension budget (default 1) and $B_{\text{total}}$ is the total budget for the round. This ensures that underrepresented dimensions---those contributing least to the current model---receive more exploration budget in subsequent rounds, promoting balanced feature coverage.
+This ensures that underrepresented dimensions---those contributing least to the current model---receive more exploration budget, promoting balanced feature coverage.
 
 \subsubsection{Failure Memory}
 A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.

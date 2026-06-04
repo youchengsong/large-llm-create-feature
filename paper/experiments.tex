@@ -84,7 +84,7 @@ adult              & .9288{\scriptsize$\pm$.004} & \underline{.9300{\scriptsize$
 \end{tabular}
 \end{table*}
 
-Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.1). The largest improvements occur on datasets where domain knowledge provides strong semantic guidance: credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE).
+Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.1).
 
 \begin{figure}[t]
     \centering
@@ -95,8 +95,9 @@ Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the be
 
 OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
-Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. Notably, LLM-FE underperforms the No-FE baseline on bank\_marketing (.9317 vs.\ .9330) and blood\_transfusion (.6649 vs.\ .6824), suggesting that evolutionary prompt optimization alone, without external domain knowledge and multi-stage verification, is insufficient to consistently improve over raw features.
+Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. Notably, LLM-FE underperforms the No-FE baseline on two datasets, suggesting that evolutionary optimization alone is insufficient without external domain knowledge and multi-stage verification.
 
+\FloatBarrier
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
 
@@ -125,8 +126,9 @@ LLM-FE    & 94   & .9699{\scriptsize$\pm$.007} & .9758{\scriptsize$\pm$.004} & .
 
 KnowFeat's 18 domain-knowledge features yield substantial improvements: Recall improves by +2.1pp over No-FE (0.9871 vs.\ 0.9663), F1 by +1.5pp (0.9863 vs.\ 0.9713), and AUC reaches 0.9999. LLM-FE achieves the second-best F1 (0.9728) with only 1 additional feature, but KnowFeat's margin over LLM-FE remains large (+1.4pp F1, +1.7pp Recall). FeatLLM adds 1,031 features yet achieves the \emph{worst} performance across all metrics.
 
-To verify that KnowFeat's gains stem from intrinsic feature quality rather than interaction with class balancing, we re-evaluate all methods with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the clear winner (Recall 0.9683, F1 0.9812), and is the \emph{only} method that outperforms the No-FE baseline. KnowFeat suffers the smallest Recall drop when switching from spw=auto to spw=1 ($\Delta = -$1.9pp), while FeatLLM drops the most ($\Delta = -$3.3pp). This confirms that KnowFeat's 18 features encode genuine discriminative signal that does not depend on class reweighting.
+To verify robustness, we re-evaluate with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the clear winner (F1 0.9812) and is the \emph{only} method that outperforms No-FE, confirming that the 18 features encode genuine discriminative signal independent of class reweighting.
 
+\FloatBarrier
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3}
 
@@ -154,12 +156,9 @@ diabetes      & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \end{tabular}
 \end{table}
 
-\textbf{Knowledge drives feature generation.} On the diabetes dataset, the schema-only variant generates \emph{zero} features that pass L3 verification. With full knowledge, KnowFeat generates 24 accepted features and improves AUC by +0.016 over No-FE.
+On diabetes, schema-only generates \emph{zero} features passing L3, while full knowledge produces 24 features (+0.016 AUC). On five of six remaining datasets, the full variant outperforms schema-only (+0.001 to +0.012 AUC). On blood\_transfusion, both variants generate 12 features but differ in quality, confirming that knowledge improves feature \emph{quality}, not just quantity. On SimECNY, the gap is largest: schema-only generates 3 features (+0.3pp Recall) vs.\ full knowledge with 18 features (+2.1pp Recall), confirming that AML-specific knowledge assets are the primary driver.
 
-\textbf{Knowledge improves feature quality.} On five of the six remaining datasets, the full variant outperforms schema\_only, with gains ranging from +0.001 (adult) to +0.012 (blood\_transfusion). On blood\_transfusion, both variants generate 12 features, indicating that the improvement comes from feature \emph{quality}, not quantity.
-
-\textbf{SimECNY ablation.} On the AML dataset, domain knowledge is critical: schema\_only generates only 3 features (+0.3pp Recall over No-FE), while the full knowledge hierarchy generates 18 features (+2.1pp Recall). The gap between schema\_only and full (+1.8pp Recall, +1.4pp F1) confirms that the AML-specific knowledge assets (detection rules, behavioral patterns, expert opinions) are the primary driver of KnowFeat's advantage.
-
+\FloatBarrier
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
 
@@ -167,7 +166,7 @@ Table~\ref{tab:feature_count} compares the number of features generated by each 
 
 \begin{table}[t]
 \centering
-\caption{Number of features (incl.\ original).}
+\caption{Number of features (incl.\ original). T/O = timeout.}
 \label{tab:feature_count}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -189,9 +188,9 @@ SimECNY       & 93  & 123 & --- & 94  & 1124 & 94  & 111 \\
 \end{tabular}
 \end{table}
 
-FeatLLM generates by far the most features (98--1,124) yet achieves the worst or near-worst performance on most datasets. AutoFeat generates 165 features on adult yet ranks last (AUC 0.9254). LLM-FE generates a conservative number of features (9--21) but cannot consistently outperform the No-FE baseline.
+FeatLLM generates the most features (98--1,124) yet achieves the worst performance on most datasets. LLM-FE generates few features (9--21) but cannot consistently outperform the No-FE baseline.
 
-Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
+Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
 
 \begin{figure}[t]
     \centering
@@ -199,8 +198,3 @@ Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an eff
     \caption{Trade-off between feature quantity and average rank. KnowFeat achieves the best rank with a moderate number of verified features.}
     \label{fig:feat_vs_rank}
 \end{figure}
-
-\subsection{Provenance and Interpretability}
-\label{subsec:provenance}
-
-Every KnowFeat-generated feature includes a provenance card recording: (1) the knowledge assets that inspired it; (2) a reasoning chain explaining \emph{why} the feature is relevant; and (3) the computation steps from raw fields to the final value. This traceability is essential for deployment in regulated industries. We illustrate this capability through detailed case studies in Section~\ref{sec:case_study}.
