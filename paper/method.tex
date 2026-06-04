@@ -2,7 +2,7 @@
 \section{Methodology}
 \label{sec:method}
 
-This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and auditable provenance output (Section~\ref{subsec:provenance_method}).
+This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and explainable provenance output (Section~\ref{subsec:provenance_method}).
 
 \subsection{Framework Overview}
 \label{subsec:overview}
@@ -22,7 +22,7 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
         \item Forward selection discovers feature combinations that are individually weak but collectively effective.
     \end{enumerate}
     \item \textbf{Convergence.} The process terminates when no new features are accepted for $C$ consecutive rounds (default $C=2$) or the maximum round count $R_{\max}$ is reached.
-    \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and auditable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
+    \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and explainable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
 \end{enumerate}
 
 \subsection{Hierarchical Knowledge Injection}
@@ -134,14 +134,14 @@ Individual features may fail L3 yet contribute positively when combined with oth
 \subsubsection{Cross-Dimension Propagation}
 After each round, the top-$K_{\text{cross}}$ features (default $K_{\text{cross}} = 5$) by SHAP importance are shared across all dimensions as ``inspiration prompts,'' encouraging the agent to adapt successful patterns from one dimension to others.
 
-\subsection{Auditable Provenance Output}
+\subsection{Explainable Provenance Output}
 \label{subsec:provenance_method}
 
-Every generated feature is accompanied by a structured \emph{provenance card} that enables full auditability. Each provenance card records:
+Every generated feature is accompanied by a structured \emph{provenance card} that enables full explainability. Each provenance card records:
 \begin{itemize}
     \item \textbf{Knowledge assets}: The specific identifiers (e.g., RULE\_006, IND\_15, EXP\_05) that inspired the feature design.
     \item \textbf{Reasoning chain}: A step-by-step explanation of how domain knowledge led to the feature, formatted as ``Step $N$: Because [knowledge ID] indicates [insight], we compute [transformation]\ldots''
     \item \textbf{Computation steps}: The transformation pipeline from raw data fields to the final feature value.
     \item \textbf{Verification results}: L1/L2/L3 outcomes including IV, KS, redundancy, and $\Delta$AUC/$\Delta$Recall.
 \end{itemize}
-This traceability is essential for regulated domains: compliance officers can audit \emph{why} each feature exists, \emph{what evidence} supports it, and \emph{how} it was verified. Section~\ref{sec:case_study} illustrates provenance cards through concrete examples.
+This traceability is essential for regulated domains: compliance officers can trace \emph{why} each feature exists, \emph{what evidence} supports it, and \emph{how} it was verified. Section~\ref{sec:case_study} illustrates provenance cards through concrete examples.

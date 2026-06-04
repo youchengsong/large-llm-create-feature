@@ -14,8 +14,8 @@ Most methods rely on the LLM's parametric knowledge, which may be outdated or in
 \textbf{(2) Insufficient verification.}
 Existing verification mechanisms remain incomplete. CAAFE uses a logistic regression proxy; LLM-FE uses downstream accuracy without statistical filtering; FeatLLM performs no model-based validation. No method combines code execution, statistical quality filtering, and full model evaluation in a unified pipeline.
 
-\textbf{(3) Limited auditability.}
-In regulated industries, model features must be auditable. Decision-makers need to understand \emph{why} a feature was created and \emph{what evidence} supports it. Existing methods lack structured provenance that traces each feature to specific knowledge assets with detailed reasoning chains.
+\textbf{(3) Limited explainability.}
+In regulated industries, model features must be explainable. Decision-makers need to understand \emph{why} a feature was created and \emph{what evidence} supports it. Existing methods lack structured provenance that traces each feature to specific knowledge assets with detailed reasoning chains.
 
 We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations:
 
@@ -24,7 +24,7 @@ We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure enginee
 
     \item \textbf{Three-Stage Verification Pipeline.} Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds).
 
-    \item \textbf{Auditable Provenance.} Every accepted feature carries a structured provenance card recording the knowledge assets, reasoning chain, computation steps, and verification results.
+    \item \textbf{Explainable Provenance.} Every accepted feature carries a structured provenance card recording the knowledge assets, reasoning chain, computation steps, and verification results.
 \end{itemize}
 
 We evaluate KnowFeat on seven public tabular datasets from OpenML and a realistic anti-money laundering (AML) dataset, synthesized to match production digital currency transaction patterns, containing 200{,}000 transactions with 93 baseline features. Key findings:
