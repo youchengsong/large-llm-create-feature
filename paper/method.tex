@@ -9,21 +9,7 @@ This section presents the KnowFeat framework in detail. We first provide an over
 
 KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ with baseline features $\mathbf{x}_i \in \mathbb{R}^d$ and target label $y_i$, along with a domain knowledge base $\mathcal{K}$, KnowFeat generates a set of new features $\mathcal{F}^* = \{f_1, f_2, \ldots, f_k\}$ such that the augmented dataset $\mathcal{D}' = \{([\mathbf{x}_i;\, f_1(\mathbf{x}_i);\, \cdots;\, f_k(\mathbf{x}_i)],\; y_i)\}$ achieves improved predictive performance on a target metric (e.g., AUC~\cite{vanschoren2014openml} or Recall).
 
-The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an illustration):
-
-\begin{enumerate}
-    \item \textbf{Initialization.} Load the dataset, compute baseline model performance, and calibrate statistical thresholds via noise injection (Section~\ref{subsec:verification}).
-    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-type hierarchy and inject the selected types into the agent's context (Section~\ref{subsec:knowledge}).
-    \item \textbf{Multi-Round Generation.} For each round $r = 1, \ldots, R_{\max}$:
-    \begin{enumerate}
-        \item Allocate per-dimension budgets based on SHAP feedback from the previous round.
-        \item For each semantic dimension (Section~\ref{subsec:search}), the LLM agent explores the data, proposes candidate features grounded in knowledge assets, and submits them for verification.
-        \item Each candidate passes through the L1$\to$L2$\to$L3 pipeline. Accepted features are added to the baseline; rejected features enter the failure memory.
-        \item Forward selection discovers feature combinations that are individually weak but collectively effective.
-    \end{enumerate}
-    \item \textbf{Convergence.} The process terminates when no new features are accepted for $C$ consecutive rounds (default $C=2$) or the maximum round count $R_{\max}$ is reached.
-    \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and auditable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
-\end{enumerate}
+As illustrated in Figure~\ref{fig:framework}, the pipeline proceeds in four phases. First, the system loads the dataset, computes baseline performance, and calibrates statistical thresholds via noise injection (Section~\ref{subsec:verification}). Second, domain knowledge $\mathcal{K}$ is organized into a five-type hierarchy and injected into the agent's context (Section~\ref{subsec:knowledge}). Third, the agent performs multi-round generation: in each round, per-dimension budgets are allocated based on SHAP feedback, the agent proposes features grounded in knowledge assets, and each candidate passes through the L1$\to$L2$\to$L3 verification pipeline. Accepted features augment the baseline; rejected ones enter the failure memory. Forward selection further recovers individually weak but collectively effective feature combinations. The process terminates when no new features are accepted for $C=2$ consecutive rounds or $R_{\max}$ rounds are reached. Finally, the system outputs the accepted feature set $\mathcal{F}^*$ with executable code and auditable provenance cards (Section~\ref{subsec:provenance_method}).
 
 \subsection{Hierarchical Knowledge Injection}
 \label{subsec:knowledge}
@@ -40,7 +26,27 @@ A key innovation of KnowFeat is the systematic integration of external domain kn
 
 \textbf{(v) Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete type, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
 
-The five types can be freely combined via a knowledge filter parameter, enabling ablation study of each type's contribution. In the ``full'' configuration (default), all types are included. Each knowledge item is assigned a unique identifier for provenance tracking.
+The five types can be freely combined via a knowledge filter parameter, enabling ablation study of each type's contribution (Section~\ref{subsec:rq3}). Each knowledge item is assigned a unique identifier for provenance tracking. Table~\ref{tab:knowledge_examples} illustrates one representative example per type from the AML domain.
+
+\begin{table}[t]
+\centering
+\caption{Representative knowledge examples from the AML domain. Each type adds specificity: from raw schema to case-grounded evidence.}
+\label{tab:knowledge_examples}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{l l p{4.2cm}}
+\hline
+\textbf{Type} & \textbf{Count} & \textbf{Example} \\
+\hline
+Schema    & --- & \texttt{amount} (numeric), \texttt{wallet\_type} (4 categories), \texttt{hour} (0--23) \\
+Indicator & 38  & \textbf{IND\_05}: Daily tx count exceeds threshold $\to$ money mule risk \\
+Rule      & 15  & \textbf{RULE\_006}: Scatter-in, gather-out; daily in-count $\geq$20, total $\geq$1M \\
+Expert    & 12  & \textbf{EXP\_05}: Border region + nighttime $=$ cross-border laundering signal \\
+Case evid.& 309 & Multi-bank wallet network for layered fund channeling (court judgment) \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}
@@ -123,7 +129,7 @@ Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted featu
 \begin{equation}
     B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
 \end{equation}
-This ensures that underrepresented dimensions---those contributing least to the current model---receive more exploration budget, promoting balanced feature coverage.
+The intuition is that dimensions already well-represented in the model (high $s_j$) need less exploration, while underrepresented dimensions receive more budget, promoting balanced feature coverage and preventing the agent from over-exploiting a single dimension.
 
 \subsubsection{Failure Memory}
 A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.
