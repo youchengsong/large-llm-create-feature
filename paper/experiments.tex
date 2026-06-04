@@ -42,7 +42,7 @@ SimECNY (AML)      & 200,000 & 93  & 2.24 & Finance \\
 The seven public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}. SimECNY is a real-world digital currency transaction dataset containing 200,000 transactions with 93 baseline features and 4,484 positive (suspicious) samples, representing a realistic AML scenario with severe class imbalance (2.24\% positive rate).
 
 \subsubsection{Baselines}
-We compare against six baselines:
+We compare against seven baselines:
 \begin{itemize}
     \item \textbf{No-FE}: XGBoost~\cite{chen2016xgboost} on original features.
     \item \textbf{OpenFE}~\cite{zhang2023openfe}: Transformation-based AutoFE with LightGBM~\cite{ke2017lightgbm}-based selection.
@@ -50,6 +50,7 @@ We compare against six baselines:
     \item \textbf{CAAFE}~\cite{hollmann2023caafe}: LLM-based iterative feature generation with logistic regression feedback.
     \item \textbf{FeatLLM}~\cite{han2024featllm}: LLM-based rule extraction and binary feature generation.
     \item \textbf{LLM-FE}~\cite{abhyankar2025llmfe}: LLM-based evolutionary feature optimization that iteratively generates and refines features using structured prompts.
+    \item \textbf{OCTree}~\cite{nam2024octree}: LLM-based feature generation guided by decision tree reasoning.
 \end{itemize}
 
 \subsubsection{Evaluation Protocol}
@@ -66,39 +67,39 @@ Table~\ref{tab:main_results} presents the AUC comparison on seven public dataset
 \label{tab:main_results}
 \small
 \renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{l c c c c c c c}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l c c c c c c c c}
 \hline
-\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{LLM-FE} & \textbf{KnowFeat} \\
+\textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{LLM-FE} & \textbf{OCTree} & \textbf{KnowFeat} \\
 \hline
-credit\_g          & .767{\scriptsize$\pm$.021} & \underline{.783{\scriptsize$\pm$.031}} & .754{\scriptsize$\pm$.017} & .760{\scriptsize$\pm$.023} & .760{\scriptsize$\pm$.022} & .762{\scriptsize$\pm$.026} & \textbf{.785{\scriptsize$\pm$.014}} \\
-diabetes           & .803{\scriptsize$\pm$.033} & \textbf{.825{\scriptsize$\pm$.034}} & .809{\scriptsize$\pm$.027} & .803{\scriptsize$\pm$.030} & .810{\scriptsize$\pm$.032} & \underline{.815{\scriptsize$\pm$.033}} & .819{\scriptsize$\pm$.032} \\
-blood\_transfusion & .682{\scriptsize$\pm$.043} & .665{\scriptsize$\pm$.040} & .682{\scriptsize$\pm$.043} & .678{\scriptsize$\pm$.043} & .681{\scriptsize$\pm$.044} & .665{\scriptsize$\pm$.045} & \textbf{.701{\scriptsize$\pm$.036}} \\
-heart              & .932{\scriptsize$\pm$.007} & \textbf{.942{\scriptsize$\pm$.011}} & .934{\scriptsize$\pm$.003} & .930{\scriptsize$\pm$.006} & .930{\scriptsize$\pm$.004} & .933{\scriptsize$\pm$.005} & \underline{.938{\scriptsize$\pm$.006}} \\
-bank\_marketing    & .933{\scriptsize$\pm$.002} & \textbf{.937{\scriptsize$\pm$.002}} & T/O$^\dagger$ & .933{\scriptsize$\pm$.002} & .934{\scriptsize$\pm$.002} & .932{\scriptsize$\pm$.002} & \underline{.934{\scriptsize$\pm$.002}} \\
-breast\_w          & .993{\scriptsize$\pm$.005} & \underline{.994{\scriptsize$\pm$.005}} & .994{\scriptsize$\pm$.004} & .992{\scriptsize$\pm$.006} & .992{\scriptsize$\pm$.005} & .994{\scriptsize$\pm$.001} & \textbf{.996{\scriptsize$\pm$.003}} \\
-adult              & .929{\scriptsize$\pm$.004} & \underline{.930{\scriptsize$\pm$.003}} & .925{\scriptsize$\pm$.004} & .929{\scriptsize$\pm$.003} & .929{\scriptsize$\pm$.003} & .928{\scriptsize$\pm$.003} & \textbf{.930{\scriptsize$\pm$.003}} \\
+credit\_g          & .767{\scriptsize$\pm$.021} & \underline{.783{\scriptsize$\pm$.031}} & .754{\scriptsize$\pm$.017} & .760{\scriptsize$\pm$.023} & .760{\scriptsize$\pm$.022} & .762{\scriptsize$\pm$.026} & .763{\scriptsize$\pm$.066} & \textbf{.785{\scriptsize$\pm$.014}} \\
+diabetes           & .803{\scriptsize$\pm$.033} & \textbf{.825{\scriptsize$\pm$.034}} & .809{\scriptsize$\pm$.027} & .803{\scriptsize$\pm$.030} & .810{\scriptsize$\pm$.032} & \underline{.815{\scriptsize$\pm$.033}} & .803{\scriptsize$\pm$.034} & .819{\scriptsize$\pm$.032} \\
+blood\_transfusion & .682{\scriptsize$\pm$.043} & .665{\scriptsize$\pm$.040} & .682{\scriptsize$\pm$.043} & .678{\scriptsize$\pm$.043} & .681{\scriptsize$\pm$.044} & .665{\scriptsize$\pm$.045} & .679{\scriptsize$\pm$.062} & \textbf{.701{\scriptsize$\pm$.036}} \\
+heart              & .932{\scriptsize$\pm$.007} & \textbf{.942{\scriptsize$\pm$.011}} & .934{\scriptsize$\pm$.003} & .930{\scriptsize$\pm$.006} & .930{\scriptsize$\pm$.004} & .933{\scriptsize$\pm$.005} & .930{\scriptsize$\pm$.022} & \underline{.938{\scriptsize$\pm$.006}} \\
+bank\_marketing    & .933{\scriptsize$\pm$.002} & \textbf{.937{\scriptsize$\pm$.002}} & T/O$^\dagger$ & .933{\scriptsize$\pm$.002} & .934{\scriptsize$\pm$.002} & .932{\scriptsize$\pm$.002} & .929{\scriptsize$\pm$.001} & \underline{.934{\scriptsize$\pm$.002}} \\
+breast\_w          & .993{\scriptsize$\pm$.005} & \underline{.994{\scriptsize$\pm$.005}} & .994{\scriptsize$\pm$.004} & .992{\scriptsize$\pm$.006} & .992{\scriptsize$\pm$.005} & .994{\scriptsize$\pm$.001} & .990{\scriptsize$\pm$.004} & \textbf{.996{\scriptsize$\pm$.003}} \\
+adult              & .929{\scriptsize$\pm$.004} & \underline{.930{\scriptsize$\pm$.003}} & .925{\scriptsize$\pm$.004} & .929{\scriptsize$\pm$.003} & .929{\scriptsize$\pm$.003} & .928{\scriptsize$\pm$.003} & .930{\scriptsize$\pm$.002} & \textbf{.930{\scriptsize$\pm$.003}} \\
 \hline
-\textbf{Avg.\ Rank} & 4.5 & \underline{2.1} & 5.1 & 5.5 & 4.6 & 4.7 & \textbf{1.4} \\
+\textbf{Avg.\ Rank} & 4.7 & \underline{2.3} & 5.5 & 5.9 & 5.1 & 5.1 & 5.9 & \textbf{1.4} \\
 \hline
-\textbf{Avg.\ \#Feat.} & 11.7 & 41.7 & 35.1$^*$ & 14.9 & 151.3 & 17.1 & 28.4 \\
+\textbf{Avg.\ \#Feat.} & 11.7 & 41.7 & 35.1$^*$ & 14.9 & 151.3 & 17.1 & 12.7 & 28.4 \\
 \hline
-\multicolumn{8}{l}{\scriptsize $^\dagger$T/O: AutoFeat exceeded the 24-hour time limit. $^*$Avg.\ computed over 6 non-T/O datasets.} \\
+\multicolumn{9}{l}{\scriptsize $^\dagger$T/O: AutoFeat exceeded the 24-hour time limit. $^*$Avg.\ computed over 6 non-T/O datasets.} \\
 \end{tabular}
 \end{table*}
 
-Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.1).
+Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.3).
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/avg_rank.png}
-    \caption{Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4).}
+    \caption{Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4) among 8 methods.}
     \label{fig:avg_rank}
 \end{figure}
 
 OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
-Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. Notably, LLM-FE underperforms the No-FE baseline on two datasets, suggesting that evolutionary optimization alone is insufficient without external domain knowledge and multi-stage verification.
+Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. OCTree~\cite{nam2024octree}, which augments LLM generation with decision tree reasoning, performs comparably to No-FE on most datasets and achieves a near-tied third place on adult, but its average rank (5.9) is among the lowest. Notably, both LLM-FE and OCTree underperform the No-FE baseline on multiple datasets, suggesting that LLM-based generation without external domain knowledge and multi-stage verification is insufficient.
 
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
@@ -121,12 +122,13 @@ OpenFE    & 123  & .9645{\scriptsize$\pm$.008} & .9752{\scriptsize$\pm$.004} & .
 CAAFE     & 94   & .9681{\scriptsize$\pm$.008} & .9725{\scriptsize$\pm$.006} & .9703{\scriptsize$\pm$.005} & .9996 \\
 FeatLLM   & 1124 & .9625{\scriptsize$\pm$.010} & .9728{\scriptsize$\pm$.005} & .9676{\scriptsize$\pm$.006} & .9995 \\
 LLM-FE    & 94   & .9699{\scriptsize$\pm$.007} & .9758{\scriptsize$\pm$.004} & .9728{\scriptsize$\pm$.005} & .9996 \\
+OCTree    & 94   & .9654{\scriptsize$\pm$.004} & .9756{\scriptsize$\pm$.003} & .9705{\scriptsize$\pm$.003} & .9993 \\
 \textbf{Ours} & \textbf{111} & \textbf{.9871}{\scriptsize$\pm$.006} & \textbf{.9855}{\scriptsize$\pm$.001} & \textbf{.9863}{\scriptsize$\pm$.003} & \textbf{.9999} \\
 \hline
 \end{tabular}
 \end{table}
 
-KnowFeat's 18 domain-knowledge features yield substantial improvements: Recall improves by +2.1pp over No-FE (0.9871 vs.\ 0.9663), F1 by +1.5pp (0.9863 vs.\ 0.9713), and AUC reaches 0.9999. LLM-FE achieves the second-best F1 (0.9728) with only 1 additional feature, but KnowFeat's margin over LLM-FE remains large (+1.4pp F1, +1.7pp Recall). FeatLLM adds 1,031 features yet achieves the \emph{worst} performance across all metrics.
+KnowFeat's 18 domain-knowledge features yield substantial improvements: Recall improves by +2.1pp over No-FE (0.9871 vs.\ 0.9663), F1 by +1.5pp (0.9863 vs.\ 0.9713), and AUC reaches 0.9999. LLM-FE achieves the second-best F1 (0.9728) with only 1 additional feature, but KnowFeat's margin over LLM-FE remains large (+1.4pp F1, +1.7pp Recall). OCTree adds 1 feature but achieves the lowest AUC (0.9993), while FeatLLM adds 1,031 features yet achieves the \emph{worst} Recall and F1.
 
 To verify robustness, we re-evaluate with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the clear winner (F1 0.9812) and is the \emph{only} method that outperforms No-FE, confirming that the 18 features encode genuine discriminative signal independent of class reweighting.
 
@@ -162,7 +164,7 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
 
-The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. LLM-FE generates few features (avg.\ 17) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
+The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. OCTree and LLM-FE generate few features (avg.\ 12.7 and 17.1, respectively) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
 
 Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
 
