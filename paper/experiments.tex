@@ -14,7 +14,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-mon
 \label{subsec:setup}
 
 \subsubsection{Datasets}
-We use eight datasets summarized in Table~\ref{tab:datasets}: seven public benchmarks from OpenML and one real-world AML dataset.
+We use eight datasets summarized in Table~\ref{tab:datasets}: seven public benchmarks from OpenML~\cite{vanschoren2014openml} and one real-world AML dataset.
 
 \begin{table}[t]
 \centering
@@ -44,16 +44,16 @@ The seven public datasets are standard tabular benchmarks covering diverse domai
 \subsubsection{Baselines}
 We compare against six baselines:
 \begin{itemize}
-    \item \textbf{No-FE}: XGBoost on original features.
-    \item \textbf{OpenFE}~\cite{zhang2024openfe}: Transformation-based AutoFE with LightGBM-based selection.
-    \item \textbf{AutoFeat}~\cite{horn2020set}: Polynomial feature generation with L1 selection.
-    \item \textbf{CAAFE}~\cite{hollmann2024llmsgeneratefinanciallyrelevantfeatures}: LLM-based iterative feature generation with logistic regression feedback.
+    \item \textbf{No-FE}: XGBoost~\cite{chen2016xgboost} on original features.
+    \item \textbf{OpenFE}~\cite{zhang2023openfe}: Transformation-based AutoFE with LightGBM~\cite{ke2017lightgbm}-based selection.
+    \item \textbf{AutoFeat}~\cite{horn2019autofeat}: Polynomial feature generation with L1 selection.
+    \item \textbf{CAAFE}~\cite{hollmann2023caafe}: LLM-based iterative feature generation with logistic regression feedback.
     \item \textbf{FeatLLM}~\cite{han2024featllm}: LLM-based rule extraction and binary feature generation.
-    \item \textbf{LLM-FE}~\cite{li2025llmfe}: LLM-based evolutionary feature optimization that iteratively generates and refines features using structured prompts.
+    \item \textbf{LLM-FE}~\cite{abhyankar2025llmfe}: LLM-based evolutionary feature optimization that iteratively generates and refines features using structured prompts.
 \end{itemize}
 
 \subsubsection{Evaluation Protocol}
-All methods are evaluated using XGBoost (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. We use AUC as the primary metric for all datasets, as it is threshold-independent and more robust than accuracy for datasets with varying class distributions. For SimECNY, we additionally report Recall, Precision, and F1 with scale\_pos\_weight=auto ($\approx$43.6) to handle class imbalance. All baselines are reproduced using our unified evaluation protocol to ensure fair comparison.
+All methods are evaluated using XGBoost~\cite{chen2016xgboost} (n\_estimators=200, max\_depth=6, learning\_rate=0.1) with stratified 80/20 train-test splits across 5 random seeds. We use AUC as the primary metric for all datasets, as it is threshold-independent and more robust than accuracy for datasets with varying class distributions. For SimECNY, we additionally report Recall, Precision, and F1 with scale\_pos\_weight=auto ($\approx$43.6) to handle class imbalance. All baselines are reproduced using our unified evaluation protocol to ensure fair comparison.
 
 \subsection{RQ1: Public Dataset Performance}
 \label{subsec:rq1}
@@ -84,7 +84,14 @@ adult              & .9288{\scriptsize$\pm$.004} & \underline{.9300{\scriptsize$
 \end{tabular}
 \end{table*}
 
-KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.1). The largest improvements occur on datasets where domain knowledge provides strong semantic guidance: credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE).
+Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.1). The largest improvements occur on datasets where domain knowledge provides strong semantic guidance: credit\_g (+0.018 over No-FE) and blood\_transfusion (+0.018 over No-FE).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/avg_rank.png}
+    \caption{Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4).}
+    \label{fig:avg_rank}
+\end{figure}
 
 OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
@@ -184,7 +191,14 @@ SimECNY       & 93  & 123 & --- & 94  & 1124 & 94  & 111 \\
 
 FeatLLM generates by far the most features (98--1,124) yet achieves the worst or near-worst performance on most datasets. AutoFeat generates 165 features on adult yet ranks last (AUC 0.9254). LLM-FE generates a conservative number of features (9--21) but cannot consistently outperform the No-FE baseline.
 
-KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
+Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/feat_vs_rank.png}
+    \caption{Trade-off between feature quantity and average rank. KnowFeat achieves the best rank with a moderate number of verified features.}
+    \label{fig:feat_vs_rank}
+\end{figure}
 
 \subsection{Provenance and Interpretability}
 \label{subsec:provenance}

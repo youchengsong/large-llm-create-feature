@@ -28,8 +28,7 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
 % Placeholder for framework figure
 \begin{figure}[t]
     \centering
-    % \includegraphics[width=\columnwidth]{figures/framework.pdf}
-    \fbox{\parbox{0.9\columnwidth}{\centering\vspace{2cm}\textit{[Framework overview figure placeholder]}\vspace{2cm}}}
+    \includegraphics[width=\columnwidth]{figures/framework.png}
     \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
     \label{fig:framework}
 \end{figure}
@@ -102,7 +101,7 @@ The feature's statistical properties are evaluated against automatically calibra
 \end{itemize}
 
 \subsubsection{L3: Model Effectiveness}
-The feature is evaluated for its actual contribution to predictive performance. We train an XGBoost model on the baseline features augmented with the candidate feature, using stratified 80/20 train-test splits across 5 random seeds $\{42, 123, 456, 789, 2024\}$. The acceptance criterion depends on the task:
+The feature is evaluated for its actual contribution to predictive performance. We train an XGBoost~\cite{chen2016xgboost} model on the baseline features augmented with the candidate feature, using stratified 80/20 train-test splits across 5 random seeds $\{42, 123, 456, 789, 2024\}$. The acceptance criterion depends on the task:
 \begin{itemize}
     \item \textbf{Classification (public datasets)}: $\Delta\text{AUC} > 0$, i.e., the augmented model must achieve strictly higher AUC than the baseline.
     \item \textbf{AML detection}: $\Delta\text{Recall} > 0$ \emph{and} Precision $\geq 90\%$, ensuring that the feature improves detection without sacrificing precision.
@@ -124,7 +123,7 @@ We decompose the feature space into $D=4$ semantic dimensions relevant to the ta
     \item \textbf{Entity Association}: Features derived from relationships between entities (accounts, counterparties).
 \end{enumerate}
 
-Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
+Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP~\cite{lundberg2017shap} (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
 
 \subsubsection{SHAP-Guided Budget Reallocation}
 Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features. We reallocate the budget using an \emph{inverse-proportion} strategy:

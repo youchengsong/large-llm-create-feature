@@ -2,7 +2,14 @@
 \section{Case Study: Knowledge-Grounded Features}
 \label{sec:case_study}
 
-To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the SimECNY AML dataset. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific behavioral patterns, and cross-dimensional interaction.
+To illustrate how KnowFeat leverages domain knowledge to generate interpretable, high-quality features, we present three representative case studies drawn from the SimECNY AML dataset. Each example highlights a different aspect of knowledge-guided feature engineering: multi-source knowledge fusion, domain-specific behavioral patterns, and cross-dimensional interaction. Figure~\ref{fig:provenance} shows an example provenance card.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.85\columnwidth]{figures/provenance_card.png}
+    \caption{Provenance card for the \texttt{fan\_in\_fan\_out\_ratio} feature, showing knowledge assets, reasoning chain, generated code, and verification results.}
+    \label{fig:provenance}
+\end{figure}
 
 \subsection{Case 1: Fan-In/Fan-Out Ratio (Network Topology)}
 \label{subsec:case1}
