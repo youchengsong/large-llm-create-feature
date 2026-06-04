@@ -40,3 +40,30 @@ Column names, data types, and basic statistics extracted from the transaction da
 \small
 \textbf{[CASE]} Source: criminal judgment on concealing proceeds of crime. Pattern: the defendant used digital yuan wallets across 6 banks (ABC, WeBank, BoCom, PSBC, CIB, CMB) to create a multi-layer fund channeling network. Observable signals: funds transferred via digital yuan APP, routed through multiple bank wallets as intermediaries, corporate-to-personal account conversion before transfer out.
 \end{quote}
+
+\section{Verification Pipeline Walkthrough}
+\label{sec:appendix_verification}
+
+We illustrate the three-stage verification pipeline using the \texttt{fan\_in\_fan\_out\_ratio} feature from Case Study 1 (Section~\ref{sec:case_study}).
+
+\smallskip
+\noindent\textbf{L1: Code Execution.} The generated Python code is executed in a sandboxed environment with a 30-second timeout. The code successfully produces a numeric array of length 200,000 (one value per transaction), with no NaN values and correct identifier columns. Execution time: 0.8 seconds. \textit{Result: PASS.}
+
+\smallskip
+\noindent\textbf{L2: Statistical Quality.} Four statistical checks are applied:
+\begin{itemize}
+\small
+    \item \textbf{Information Value}: IV = 0.34, exceeding the noise-calibrated 95th percentile threshold of 0.02. This indicates strong discriminative power between suspicious and normal transactions.
+    \item \textbf{KS Statistic}: KS = 0.28, exceeding the threshold of 0.05, confirming significant distributional separation between positive and negative classes.
+    \item \textbf{Redundancy}: Maximum absolute Pearson correlation with existing features is 0.41, below the 0.7 threshold.
+    \item \textbf{Missing Rate}: 0\% missing values.
+\end{itemize}
+\textit{Result: PASS (all four criteria satisfied).}
+
+\smallskip
+\noindent\textbf{L3: Model Effectiveness.} An XGBoost model is trained on the 93 baseline features plus this candidate, using stratified 80/20 splits across 5 seeds. The augmented model achieves Recall = 0.9701 ($\pm$0.008) vs.\ baseline Recall = 0.9663 ($\pm$0.010), yielding $\Delta$Recall = +0.38pp. Precision remains above 97\%, satisfying the $\geq$90\% constraint. \textit{Result: PASS---feature accepted into the final set.}
+
+\smallskip
+The entire verification process for this feature takes approximately 95 seconds, dominated by L3 model training (88 seconds). Features rejected at L1 or L2 incur minimal cost ($<$2 seconds), which is why the progressive filtering design is critical for computational efficiency.
+
+On SimECNY, KnowFeat generates 52 candidates: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), saving $\sim$50 minutes of L3 model training.

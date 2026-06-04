@@ -167,3 +167,33 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. OCTree and LLM-FE generate few features (avg.\ 12.7 and 17.1, respectively) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
 
 KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
+
+\subsection{Computational Cost Analysis}
+\label{subsec:cost}
+
+Table~\ref{tab:cost} summarizes the computational cost of KnowFeat and selected baselines on the adult dataset (48,842 samples, 14 features). All timing measurements are averaged over 3 independent runs on a single NVIDIA A100 GPU.
+
+\begin{table}[t]
+\centering
+\caption{Computational cost on the adult dataset.}
+\label{tab:cost}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l r r r}
+\hline
+\textbf{Method} & \textbf{Time (min)} & \textbf{LLM Calls} & \textbf{\#Feat.\ Gen.} \\
+\hline
+OpenFE     & $\sim$8    & 0    & 50 \\
+AutoFeat   & $>$1440$^\dagger$ & 0  & 142 \\
+CAAFE      & $\sim$15   & 10   & 3 \\
+FeatLLM    & $\sim$5    & 1    & 98 \\
+LLM-FE     & $\sim$25   & 15   & 6 \\
+OCTree     & $\sim$12   & 8    & 1 \\
+KnowFeat   & $\sim$35   & 18   & 46 \\
+\hline
+\multicolumn{4}{l}{\scriptsize $^\dagger$AutoFeat exceeded the 24-hour time limit.}
+\end{tabular}
+\end{table}
+
+KnowFeat requires $\sim$35 minutes per dataset, which is moderate compared to baselines: FeatLLM is faster ($\sim$5 min) but generates 98 unverified features with inferior AUC, while AutoFeat exceeds 24 hours on larger datasets. The majority of KnowFeat's time is spent on L3 verification ($\sim$60\%), which trains XGBoost models across 5 seeds per candidate. LLM inference accounts for $\sim$25\% of the total time, with the remaining $\sim$15\% spent on data exploration and L1/L2 checks. The cost is a one-time investment: once features are accepted, they are deployed as static transformations with negligible inference overhead.
