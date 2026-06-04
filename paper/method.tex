@@ -7,7 +7,7 @@ This section presents the KnowFeat framework in detail. We first provide an over
 \subsection{Framework Overview}
 \label{subsec:overview}
 
-KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ with baseline features $\mathbf{x}_i \in \mathbb{R}^d$ and target label $y_i$, along with a domain knowledge base $\mathcal{K}$, KnowFeat generates a set of new features $\mathcal{F}^* = \{f_1, f_2, \ldots, f_k\}$ such that the augmented dataset $\mathcal{D}' = \{([\mathbf{x}_i;\, f_1(\mathbf{x}_i);\, \cdots;\, f_k(\mathbf{x}_i)],\; y_i)\}$ achieves improved predictive performance on a target metric (e.g., AUC~\cite{vanschoren2014openml} or Recall).
+KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, KnowFeat generates a set of new features such that appending them to the original data improves predictive performance on a target metric (e.g., AUC or Recall).
 
 The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an illustration):
 
@@ -28,15 +28,15 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
 \subsection{Hierarchical Knowledge Injection}
 \label{subsec:knowledge}
 
-A key innovation of KnowFeat is the systematic integration of external domain knowledge into the feature generation process. We organize knowledge into five hierarchical types of increasing specificity, from general metadata to concrete case evidence:
+KnowFeat systematically integrates external domain knowledge into the feature generation process. We organize knowledge into five hierarchical types of increasing specificity, from general metadata to concrete case evidence:
 
-\textbf{(i) Schema Metadata.} The agent receives only the dataset schema---column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
+\textbf{(i) Schema Metadata.} The agent receives only the dataset schema: column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
 
 \textbf{(ii) Risk Indicators.} Structured risk indicators derived from regulatory guidelines and industry standards. Each indicator specifies a risk dimension, risk class, relevant data field, and directionality. For the AML domain, we compile 38 indicators (IND\_01 through IND\_38) covering transaction amount thresholds, frequency patterns, temporal anomalies, and network centrality measures. For example, IND\_05 flags accounts whose single-day transaction count exceeds a regulatory threshold, while IND\_15 identifies abnormal transaction modes such as fan-in and many-to-many patterns.
 
 \textbf{(iii) Detection Rules.} Operational detection rules that encode specific logic patterns. Each rule includes a rule ID, natural language description, logical expression, confidence level, and a Python implementation hint. We compile 15 rules (RULE\_001 through RULE\_015) from compliance manuals and internal documentation. For example, RULE\_006 encodes the ``scatter-in, gather-out'' layering pattern.
 
-\textbf{(iv) Expert Opinions.} Insights from domain expert interviews that capture tacit knowledge---heuristics, edge cases, and domain intuitions---difficult to formalize as rules but valuable for feature design. We collect 12 expert opinions (EXP\_01 through EXP\_12). For example, EXP\_05 notes that ``border region transactions combined with nighttime activity are a hallmark of cross-border laundering.''
+\textbf{(iv) Expert Opinions.} Insights from domain expert interviews that capture tacit knowledge (heuristics, edge cases, and domain intuitions) difficult to formalize as rules but valuable for feature design. We collect 12 expert opinions (EXP\_01 through EXP\_12). For example, EXP\_05 notes that ``border region transactions combined with nighttime activity are a hallmark of cross-border laundering.''
 
 \textbf{(v) Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete type, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
 
@@ -45,7 +45,7 @@ The five types can be freely combined via a knowledge filter parameter, enabling
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}
 
-KnowFeat employs an LLM agent (DeepSeek-V3 in our implementation) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
+KnowFeat employs an LLM agent (DeepSeek-V4-0324-Flash in our implementation, with temperature=0 for near-deterministic outputs) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
 
 \textbf{Tool 1: Data Exploration.} Executes Python code on the dataset in a sandboxed environment to inspect distributions, compute correlations, and identify patterns before proposing features. The tool returns printed output or return values to the agent.
 
@@ -60,7 +60,7 @@ KnowFeat employs an LLM agent (DeepSeek-V3 in our implementation) that interleav
     \item \texttt{data\_fields\_used}: The raw columns consumed by the feature.
 \end{itemize}
 
-\textbf{Tool 3: Verification Trigger.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call Feature Registration followed immediately by Verification Trigger for each candidate---batch submission is prohibited to ensure tight feedback loops.
+\textbf{Tool 3: Verification Trigger.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call Feature Registration followed immediately by Verification Trigger for each candidate; batch submission is prohibited to ensure tight feedback loops.
 
 The agent's prompt instructs it to:
 (1) reason about which knowledge assets are relevant to the current dimension and budget,
@@ -119,11 +119,11 @@ We decompose the feature space into $D$ semantic dimensions relevant to the targ
 Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP~\cite{lundberg2017shap} (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
 
 \subsubsection{SHAP-Guided Budget Reallocation}
-Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features, $B_{\min}$ the minimum per-dimension budget (default 1), and $B_{\text{total}}$ the total budget for the round. We reallocate the budget for round $r{+}1$ using an \emph{inverse-proportion} strategy:
+Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features, $B_{\min}$ the minimum per-dimension budget (default 1), and $B_{\text{total}}$ the total budget for the round. We reallocate the budget for round $r{+}1$ using an \emph{inverse-SHAP weighting} strategy:
 \begin{equation}
     B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
 \end{equation}
-This ensures that underrepresented dimensions---those contributing least to the current model---receive more exploration budget, promoting balanced feature coverage.
+This ensures that underrepresented dimensions (those contributing least to the current model) receive more exploration budget, promoting balanced feature coverage.
 
 \subsubsection{Failure Memory}
 A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.
@@ -137,7 +137,7 @@ After each round, the top-$K_{\text{cross}}$ features (default $K_{\text{cross}}
 \subsection{Auditable Provenance Output}
 \label{subsec:provenance_method}
 
-A distinguishing contribution of KnowFeat is that every generated feature is accompanied by a structured \emph{provenance card} that enables full auditability. Each provenance card records:
+Every generated feature is accompanied by a structured \emph{provenance card} that enables full auditability. Each provenance card records:
 \begin{itemize}
     \item \textbf{Knowledge assets}: The specific identifiers (e.g., RULE\_006, IND\_15, EXP\_05) that inspired the feature design.
     \item \textbf{Reasoning chain}: A step-by-step explanation of how domain knowledge led to the feature, formatted as ``Step $N$: Because [knowledge ID] indicates [insight], we compute [transformation]\ldots''

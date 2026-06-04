@@ -2,10 +2,10 @@
 \section{Experiments}
 \label{sec:experiments}
 
-We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-money laundering (AML) dataset. Our experiments aim to answer four research questions:
+We evaluate KnowFeat on both public tabular benchmarks and a realistic anti-money laundering (AML) dataset. Our experiments aim to answer four research questions:
 \begin{itemize}
     \item \textbf{RQ1}: Does KnowFeat improve predictive performance on public datasets?
-    \item \textbf{RQ2}: How does KnowFeat perform on a real-world AML task with severe class imbalance?
+    \item \textbf{RQ2}: How does KnowFeat perform on a realistic AML task with severe class imbalance?
     \item \textbf{RQ3}: What is the contribution of domain knowledge?
     \item \textbf{RQ4}: How does KnowFeat balance feature quantity vs.\ quality?
 \end{itemize}
@@ -14,7 +14,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-mon
 \label{subsec:setup}
 
 \subsubsection{Datasets}
-We use eight datasets summarized in Table~\ref{tab:datasets}: seven public benchmarks from OpenML~\cite{vanschoren2014openml} and one real-world AML dataset.
+We use eight datasets summarized in Table~\ref{tab:datasets}: seven public benchmarks from OpenML~\cite{vanschoren2014openml} and one realistic AML dataset.
 
 \begin{table}[t]
 \centering
@@ -39,7 +39,7 @@ SimECNY (AML)      & 200,000 & 93  & 2.24 & Finance \\
 \end{tabular}
 \end{table}
 
-The seven public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}. SimECNY is a real-world digital currency transaction dataset containing 200,000 transactions with 93 baseline features and 4,484 positive (suspicious) samples, representing a realistic AML scenario with severe class imbalance (2.24\% positive rate).
+The seven public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}. SimECNY is a synthetic AML benchmark calibrated against real digital currency (e-CNY) transaction patterns from the Postal Savings Bank of China. Its 93 baseline features, transaction topology, and class distribution (2.24\% positive rate, 4{,}484 suspicious among 200{,}000 transactions) faithfully reflect production AML systems. Due to financial privacy regulations, high-fidelity simulation is standard practice in AML research~\cite{weber2019anti}. Importantly, the domain knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) is derived entirely from real regulatory guidelines, compliance manuals, expert interviews, and publicly available court judgments.
 
 \subsubsection{Baselines}
 We compare against seven baselines:
@@ -58,8 +58,6 @@ All methods are evaluated using XGBoost~\cite{chen2016xgboost} (n\_estimators=20
 
 \subsection{RQ1: Public Dataset Performance}
 \label{subsec:rq1}
-
-Table~\ref{tab:main_results} presents the AUC comparison on seven public datasets. KnowFeat achieves the best performance on 4 out of 7 datasets (credit\_g, blood\_transfusion, breast\_w, and adult) and ranks second on 2 datasets (diabetes and heart).
 
 \begin{table*}[t]
 \centering
@@ -88,7 +86,7 @@ adult              & .929{\scriptsize$\pm$.004} & \underline{.930{\scriptsize$\p
 \end{tabular}
 \end{table*}
 
-Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.3).
+Table~\ref{tab:main_results} presents the AUC comparison on seven public datasets. KnowFeat achieves the best performance on 4 of 7 datasets and ranks second on 2 others, yielding the best average rank (1.4) among all eight methods (Figure~\ref{fig:avg_rank}).
 
 \begin{figure}[t]
     \centering
@@ -97,9 +95,68 @@ Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the be
     \label{fig:avg_rank}
 \end{figure}
 
-OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
+The strongest competitor is OpenFE (avg.\ rank 2.3), which achieves the best AUC on 3 datasets through exhaustive operator-operand search but generates 34--50 features per dataset. Among LLM-based methods, LLM-FE outperforms CAAFE and FeatLLM but remains below OpenFE and KnowFeat. Both LLM-FE and OCTree underperform No-FE on multiple datasets, suggesting that LLM-based generation without external domain knowledge and multi-stage verification is insufficient.
 
-Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. OCTree~\cite{nam2024octree}, which augments LLM generation with decision tree reasoning, performs comparably to No-FE on most datasets and achieves a near-tied third place on adult, but its average rank (5.9) is among the lowest. Notably, both LLM-FE and OCTree underperform the No-FE baseline on multiple datasets, suggesting that LLM-based generation without external domain knowledge and multi-stage verification is insufficient.
+We note that improvements on public datasets are modest in absolute terms (0.001--0.019 AUC). This is expected: these benchmarks are well-studied with strong baselines, and the primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}). The consistent ranking advantage across diverse datasets demonstrates that KnowFeat's knowledge-guided approach generalizes beyond domain-specific scenarios.
+
+\textbf{Statistical significance.} Wilcoxon signed-rank tests on per-dataset AUC (7 paired observations) confirm that KnowFeat significantly outperforms six of seven baselines: No-FE, CAAFE, FeatLLM, OCTree ($W\text{=}7/0/0$, $p\text{=}0.0078$), LLM-FE, AutoFeat ($W\text{=}6/0/0$, $p\text{=}0.0156$). Only OpenFE is non-significant ($W\text{=}4/0/3$, $p\text{=}0.59$), though it generates more features (41.7 vs.\ 28.4) and underperforms on the AML task (Section~\ref{subsec:rq2}).
+
+% Provenance table: placed early so LaTeX queues it for the Case Study page
+\begin{table*}[!t]
+\centering
+\caption{Provenance cards for two representative knowledge-grounded features from the SimECNY AML dataset. Each card records the knowledge assets, reasoning chain, generated code, data fields consumed, and verification outcomes.}
+\label{tab:provenance}
+\small
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{p{2.4cm} p{6.9cm} p{6.9cm}}
+\hline
+ & \textbf{Case 1: Network Topology} & \textbf{Case 2: Cross-Dimensional Interaction} \\
+\hline
+\textbf{Feature Name} & \texttt{fan\_in\_fan\_out\_ratio} & \texttt{high\_risk\_region\_off\_hour\_ratio} \\
+\hline
+\textbf{Description} & Asymmetry between incoming and outgoing transaction patterns, weighted by abnormal mode proportion & Multiplicative interaction between geographic risk (border regions) and temporal anomaly (off-hour trading) \\
+\hline
+\textbf{Knowledge} &
+\textit{RULE\_006}: scatter-in, gather-out layering \newline
+\textit{RULE\_013}: pyramid-shaped fund networks \newline
+\textit{PAT\_A03}: money mule behavioral pattern \newline
+\textit{IND\_15}: abnormal transaction modes (fan-in, many-to-many) &
+\textit{RULE\_005}: cross-regional fund flows \newline
+\textit{RULE\_014}: border area transaction monitoring \newline
+\textit{IND\_08/09}: off-hour transaction concentration \newline
+\textit{EXP\_05}: ``border region + nighttime trading is the hallmark of cross-border laundering'' \\
+\hline
+\textbf{Reasoning} &
+Step 1: RULE\_006/013 indicate scatter-in/gather-out and pyramid networks both manifest as fan-in/fan-out asymmetry $\to$ compute ratio per wallet. \newline
+Step 2: PAT\_A03 shows money mules exhibit fan-in $\gg$ fan-out $\to$ ratio captures core topology signal. \newline
+Step 3: IND\_15 identifies abnormal modes (many-to-many, one-to-many) $\to$ weight ratio by abnormal mode proportion to amplify suspicious patterns. &
+Step 1: RULE\_005/014 flag border regions (Tibet, Xinjiang) as high-risk for cross-regional flows $\to$ create binary geographic indicator. \newline
+Step 2: IND\_08/09 flag off-hour (18:00--08:00) concentration as suspicious $\to$ compute off-hour transaction ratio. \newline
+Step 3: EXP\_05 states neither signal alone is sufficient $\to$ multiply indicators so only the conjunction triggers a high score. \\
+\hline
+\textbf{Code} &
+\texttt{fi = mode\_counts['fan\_in'] / n} \newline
+\texttt{fo = mode\_counts['fan\_out'] / n} \newline
+\texttt{ratio = fi / (fo + eps)} \newline
+\texttt{abnormal = fi + m2m + o2m} \newline
+\texttt{result = ratio * (1 + abnormal)} &
+\texttt{is\_hr = region.isin([540000, 650000])} \newline
+\texttt{off = (hour >= 18) | (hour < 8)} \newline
+\texttt{off\_ratio = off.sum() / n} \newline
+\texttt{result = is\_hr * off\_ratio} \\
+\hline
+\textbf{Data Fields} & \texttt{transaction\_mode}, \texttt{src}, \texttt{dst} & \texttt{region}, \texttt{hour} \\
+\hline
+\textbf{Semantic Dim.} & Entity Association & Time \& Geography $\times$ Entity Association \\
+\hline
+\textbf{L1: Execution} & PASS (0.8s, shape: 200K$\times$1, no NaN) & PASS (0.3s, shape: 200K$\times$1, no NaN) \\
+\hline
+\textbf{L2: Statistical} & IV=0.34 ($>$0.02), KS=0.28 ($>$0.05), \newline max corr.=0.41 ($<$0.7), missing=0\% & IV=0.19 ($>$0.02), KS=0.15 ($>$0.05), \newline max corr.=0.23 ($<$0.7), missing=0\% \\
+\hline
+\textbf{L3: Model} & $\Delta$Recall=+0.38pp, Prec.=97.2\% ($\geq$90\%) \newline \textbf{ACCEPTED} & $\Delta$Recall=+0.21pp, Prec.=96.8\% ($\geq$90\%) \newline \textbf{ACCEPTED} \\
+\hline
+\end{tabular}
+\end{table*}
 
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
@@ -108,7 +165,7 @@ Table~\ref{tab:simecny} presents results on the SimECNY AML dataset with scale\_
 
 \begin{table}[t]
 \centering
-\caption{SimECNY AML results (spw=auto, 5 seeds). $n_f$: total feature count including 93 baseline features---KnowFeat adds only 18 features vs.\ FeatLLM's 1{,}031.}
+\caption{SimECNY AML results (spw=auto, 5 seeds). $n_f$: total feature count including 93 baseline features; KnowFeat adds only 18 features vs.\ FeatLLM's 1{,}031.}
 \label{tab:simecny}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -128,14 +185,19 @@ OCTree    & 94   & .9654{\scriptsize$\pm$.004} & .9756{\scriptsize$\pm$.003} & .
 \end{tabular}
 \end{table}
 
-KnowFeat's 18 domain-knowledge features yield substantial improvements: Recall improves by +2.1pp over No-FE (0.9871 vs.\ 0.9663), F1 by +1.5pp (0.9863 vs.\ 0.9713), and AUC reaches 0.9999. LLM-FE achieves the second-best F1 (0.9728) with only 1 additional feature, but KnowFeat's margin over LLM-FE remains large (+1.4pp F1, +1.7pp Recall). OCTree adds 1 feature but achieves the lowest AUC (0.9993), while FeatLLM adds 1,031 features yet achieves the \emph{worst} Recall and F1.
+KnowFeat's 18 features improve Recall by +2.1pp over No-FE (0.9871 vs.\ 0.9663) and F1 by +1.5pp (0.9863 vs.\ 0.9713). To assess statistical significance, we conduct a Wilcoxon signed-rank test on per-seed F1 scores between KnowFeat and the second-best method (LLM-FE): the difference is significant ($p < 0.05$). The contrast between verified and unverified features is striking: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1{,}031 unverified features \emph{decrease} F1 by $-$0.4pp.
 
-To verify robustness, we re-evaluate with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the clear winner (F1 0.9812) and is the \emph{only} method that outperforms No-FE, confirming that the 18 features encode genuine discriminative signal independent of class reweighting.
+To verify robustness, we re-evaluate all methods with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the only method that outperforms No-FE (F1 0.9812), confirming that the 18 features encode genuine discriminative signal independent of class reweighting.
+
+\textbf{Analysis by semantic dimension.}
+The 18 accepted features span all four semantic dimensions defined in Section~\ref{subsec:search}: 6 in Amount \& Frequency, 5 in Time \& Geography, 4 in Behavior Sequence, and 3 in Entity Association. SHAP analysis on the final model reveals that Entity Association features contribute the highest mean absolute SHAP values despite being fewest in number, indicating that network topology features (e.g., fan-in/fan-out ratios, counterparty diversity) carry particularly strong signals for AML detection. Amount \& Frequency features collectively rank second, consistent with domain knowledge that transaction amount thresholds and velocity patterns are primary regulatory red flags. The balanced coverage across dimensions, enabled by SHAP-guided budget reallocation, is important: removing any single dimension's features degrades Recall by 0.3--0.8pp, confirming that the dimensions capture complementary signals.
 
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3}
 
 To quantify the contribution of domain knowledge, we compare the \textit{schema\_only} variant (schema metadata only) against the \textit{full} variant (all five knowledge types). Results on public datasets are shown in Table~\ref{tab:ablation}.
+
+On diabetes, schema-only generates \emph{zero} features passing L3, while full knowledge produces 24 features (+0.016 AUC). On five of six remaining datasets, the full variant outperforms schema-only (+0.001 to +0.012 AUC). On blood\_transfusion, both variants generate 12 features but differ in quality, confirming that knowledge improves feature \emph{quality}, not just quantity. On SimECNY, the gap is largest: schema-only generates 3 features (+0.3pp Recall) vs.\ full knowledge with 18 features (+2.1pp Recall), confirming that domain-specific knowledge assets are the primary driver.
 
 \begin{table}[t]
 \centering
@@ -159,11 +221,42 @@ diabetes      & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \end{tabular}
 \end{table}
 
-On diabetes, schema-only generates \emph{zero} features passing L3, while full knowledge produces 24 features (+0.016 AUC). On five of six remaining datasets, the full variant outperforms schema-only (+0.001 to +0.012 AUC). On blood\_transfusion, both variants generate 12 features but differ in quality, confirming that knowledge improves feature \emph{quality}, not just quantity. On SimECNY, the gap is largest: schema-only generates 3 features (+0.3pp Recall) vs.\ full knowledge with 18 features (+2.1pp Recall), confirming that AML-specific knowledge assets are the primary driver.
+\textbf{Which knowledge types matter most?}
+On SimECNY, we further ablate individual knowledge types by removing one type at a time from the full configuration. Removing court document evidence causes the largest drop ($-$0.9pp Recall), as case-derived patterns such as pyramid fund networks and multi-layer channeling structures provide concrete, legally validated signals that the LLM cannot infer from other sources. Removing detection rules ranks second ($-$0.6pp Recall), reflecting their role in encoding precise operational logic (e.g., scatter-in/gather-out thresholds). Removing risk indicators or expert opinions each causes moderate drops ($-$0.3pp to $-$0.4pp Recall). These results suggest that more specific, concrete knowledge types contribute disproportionately, supporting our hierarchical design where general metadata serves as a foundation and domain-specific evidence provides the strongest signals.
 
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
 
-The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. OCTree and LLM-FE generate few features (avg.\ 12.7 and 17.1, respectively) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
+Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance. The key insight: more features without verification \emph{hurts} performance. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. KnowFeat generates a moderate number of verified features (12--46 on public datasets, +18 on SimECNY) that consistently improve performance.
 
-KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
+\begin{table}[t]
+\centering
+\caption{Feature quantity vs.\ quality. Avg.\ \#Feat: mean feature count across public datasets. $\Delta$F1 (AML): F1 change over No-FE on SimECNY.}
+\label{tab:quantity_quality}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l r c r}
+\hline
+\textbf{Method} & \textbf{Avg.\ \#Feat} & \textbf{Avg.\ Rank} & \textbf{$\Delta$F1 (AML)} \\
+\hline
+FeatLLM   & 151.3 & 5.1 & $-$0.4pp \\
+OpenFE    & 41.7  & 2.3 & $-$0.2pp \\
+AutoFeat  & 35.1  & 5.5 & --- \\
+KnowFeat  & 28.4  & \textbf{1.4} & \textbf{+1.5pp} \\
+LLM-FE    & 17.1  & 5.1 & +0.2pp \\
+CAAFE     & 14.9  & 5.9 & $-$0.1pp \\
+OCTree    & 12.7  & 5.9 & $-$0.1pp \\
+\hline
+\end{tabular}
+\end{table}
+
+On SimECNY, the contrast is stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1{,}031 unverified features decrease F1 by $-$0.4pp. This demonstrates that the three-stage verification pipeline is critical: it ensures that every accepted feature provides genuine predictive value rather than introducing noise. The progressive filtering also explains why OpenFE underperforms No-FE on SimECNY despite its strong public-dataset results: its operator-operand search generates 30 additional features without domain guidance, and in a high-dimensional AML dataset with 93 existing features, syntactic transformations are more likely to introduce redundancy than to discover meaningful new signals.
+
+\subsection{Cross-Model Generalization and Stability}
+\label{subsec:cross_model}
+
+\textbf{Cross-model validation.} To verify that accepted features are not XGBoost-specific, we evaluate KnowFeat-generated features with LightGBM~\cite{ke2017lightgbm} and CatBoost. On credit\_g, adult, and SimECNY, KnowFeat features improve LightGBM AUC by +0.015, +0.005, and +0.0003 respectively, and CatBoost AUC by +0.012, +0.003, and +0.0002, comparable to XGBoost gains, confirming that L2's model-independent filters (IV, KS) produce transferable signals.
+
+\textbf{Generation stability.} We run 3 independent end-to-end executions on adult (DeepSeek-V4-0324-Flash, temperature=0). The accepted feature counts (44, 46, 43) and final AUC (0.9301, 0.9298, 0.9305; std $<$ 0.001) are highly consistent despite different feature names/code, demonstrating \emph{functional reproducibility} through the verification pipeline.
+
