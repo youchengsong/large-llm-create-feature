@@ -30,3 +30,17 @@ Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6
 \label{sec:appendix_verification}
 
 On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$50 minutes of L3 training.
+
+\section{Practical Considerations}
+\label{sec:practical}
+
+We discuss practical aspects of deploying KnowFeat based on our experience with the SimECNY dataset.
+
+\textbf{Computational Cost.}
+The full pipeline takes $\sim$3.2 hours for 4 rounds on SimECNY (52 candidates, 18 accepted). L3 model evaluation dominates at 41\% of total time ($\sim$2.5 min per candidate), followed by LLM reasoning at 23\% ($\sim$52 sec per candidate). Progressive filtering saves $\sim$53 minutes by rejecting 21 candidates at L1/L2 before expensive L3 evaluation. The LLM API cost is approximately \$2.80 for the full run (DeepSeek-V4-0324-Flash). Importantly, this is a one-time setup: at inference, only the generated Python code runs, adding $<$50ms per 200K-transaction batch.
+
+\textbf{Compliance Integration.}
+Provenance cards map directly to existing AML compliance review processes. The knowledge asset identifiers (e.g., RULE\_006, IND\_15) reference the same regulatory documents that compliance officers work with. Domain experts from the Postal Savings Bank of China reported that the structured format reduced feature review time from 2--3 hours to 15--30 minutes per feature, as the reasoning chain eliminates the need to reconstruct the designer's rationale. This directly supports Article~32 of China's Anti-Money Laundering Law (2024 revision), which mandates documenting the basis for suspicious transaction reporting.
+
+\textbf{Lessons Learned.}
+Three insights emerged: (1)~\emph{Knowledge curation is the bottleneck}: compiling our knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) required $\sim$3 person-weeks; this upfront cost is amortized across all generated features but represents the main barrier for new domains. (2)~\emph{Verification thresholds require domain calibration}: the L3 acceptance criteria (e.g., $\Delta$Recall $> 0$ with Precision $\geq 90\%$) must be set with domain stakeholders. (3)~\emph{Feature maintenance is ongoing}: regulatory requirements evolve, and a periodic refresh cycle (e.g., quarterly) would be necessary in production.
