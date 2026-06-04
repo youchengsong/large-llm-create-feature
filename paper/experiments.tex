@@ -88,7 +88,16 @@ adult              & .929{\scriptsize$\pm$.004} & \underline{.930{\scriptsize$\p
 \end{tabular}
 \end{table*}
 
-KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.3). OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
+Figure~\ref{fig:avg_rank} visualizes the average ranks. KnowFeat achieves the best average rank (1.4), substantially outperforming the second-best OpenFE (2.3).
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/avg_rank.png}
+    \caption{Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4) among 8 methods.}
+    \label{fig:avg_rank}
+\end{figure}
+
+OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing) through exhaustive operator-operand search. However, OpenFE generates 34--50 features per dataset, while KnowFeat achieves competitive or superior performance with 12--46 features (see Section~\ref{subsec:rq4}).
 
 Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. OCTree~\cite{nam2024octree}, which augments LLM generation with decision tree reasoning, performs comparably to No-FE on most datasets and achieves a near-tied third place on adult, but its average rank (5.9) is among the lowest. Notably, both LLM-FE and OCTree underperform the No-FE baseline on multiple datasets, suggesting that LLM-based generation without external domain knowledge and multi-stage verification is insufficient.
 
@@ -157,11 +166,4 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 
 The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. OCTree and LLM-FE generate few features (avg.\ 12.7 and 17.1, respectively) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
 
-Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\columnwidth]{figures/feat_vs_rank.png}
-    \caption{Trade-off between feature quantity and average rank across 8 methods. KnowFeat achieves the best rank (1.4) with a moderate number of verified features.}
-    \label{fig:feat_vs_rank}
-\end{figure}
+KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).

@@ -18,20 +18,21 @@ async def main():
     COMPACT layout - minimize vertical space. Use standard fonts: Times New Roman or Helvetica, 8-9pt.
     White background, no grid lines, clean academic style.
 
-    Data (sorted by rank, best at top):
+    Data (sorted by rank, best at top, 8 methods):
     | Method    | Avg. Rank |
     |-----------|-----------|
     | KnowFeat  | 1.4       |
-    | OpenFE    | 2.1       |
-    | No-FE     | 4.5       |
-    | FeatLLM   | 4.6       |
-    | LLM-FE    | 4.7       |
-    | AutoFeat  | 5.1       |
-    | CAAFE     | 5.5       |
+    | OpenFE    | 2.3       |
+    | No-FE     | 4.7       |
+    | FeatLLM   | 5.1       |
+    | LLM-FE    | 5.1       |
+    | AutoFeat  | 5.5       |
+    | CAAFE     | 5.9       |
+    | OCTree    | 5.9       |
 
     - KnowFeat bar should be a distinct darker blue color, all others in light gray
     - Show the numeric rank value at the end of each bar
-    - X-axis: "Average Rank (lower is better)" from 0 to 6
+    - X-axis: "Average Rank (lower is better)" from 0 to 7
     - Y-axis: method names
     - Thin bars with small spacing to keep the figure compact
     - No title (caption will be in LaTeX)
@@ -39,11 +40,11 @@ async def main():
     """
 
     raw_data = {
-        "methods": ["KnowFeat", "OpenFE", "No-FE", "FeatLLM", "LLM-FE", "AutoFeat", "CAAFE"],
-        "avg_rank": [1.4, 2.1, 4.5, 4.6, 4.7, 5.1, 5.5],
+        "methods": ["KnowFeat", "OpenFE", "No-FE", "FeatLLM", "LLM-FE", "AutoFeat", "CAAFE", "OCTree"],
+        "avg_rank": [1.4, 2.3, 4.7, 5.1, 5.1, 5.5, 5.9, 5.9],
     }
 
-    caption = "Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4)."
+    caption = "Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4) among 8 methods."
 
     settings = Settings(
         vlm_provider="gemini",
