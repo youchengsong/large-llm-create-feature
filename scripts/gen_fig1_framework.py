@@ -1,4 +1,4 @@
-"""Generate Figure 1: KnowFeat Framework Overview — clean redesign."""
+"""Generate Figure 1: KnowFeat Framework Overview — based on reference images."""
 
 import asyncio
 import shutil
@@ -14,75 +14,79 @@ from paperbanana.core.config import Settings
 
 async def main():
     source_context = """
-    Draw a clean, professional framework diagram for an IEEE conference paper (two-column, ~7x3.5 inches).
+    Create a detailed academic framework diagram for an IEEE two-column paper (~7 inches wide, ~3.5 inches tall).
+    This is a methodology overview figure for a system called "KnowFeat".
 
-    This diagram illustrates KnowFeat, an LLM-based feature engineering system.
-    The main flow goes LEFT → RIGHT, with a feedback loop returning from right to left at the bottom.
+    LAYOUT: Five labeled column headers across the top: "Inputs", "Core Agent", "Three-Stage Verification Pipeline", "Outputs".
+    Below the main row, a full-width bottom band labeled "Search Strategy & Dynamic Budgeting".
+    Use pastel colored background rectangles behind each column group.
 
-    There are four major blocks arranged horizontally:
+    === COLUMN 1: "Inputs" (light blue background) ===
+    Top item: A box with a small database/table icon, labeled "Tabular Dataset D", subtitle "Features x, Labels y".
+    Below it: A larger box titled "Domain Knowledge Base K" with subtitle "(column names, types, stats)".
+    Inside this box, 5 knowledge types stacked vertically, each as a small rounded pill/tag:
+        • Schema Only
+        • Risk Indicators (38 structured indicators)
+        • Detection Rules (15 operational rules with logic)
+        • Expert Opinions (tacit knowledge)
+        • Court Document Evidence (309 legal cases)
+    On the left edge, a vertical arrow labeled "General" at top → "Specific" at bottom.
+    At the bottom of this column, repeat label "Domain Knowledge Base K" in italics.
+    CRITICAL: Do NOT write "Level 0", "Level 1", "Level 2", "Level 3", "Level 4" anywhere.
 
-    BLOCK 1 — INPUTS (left):
-    Two stacked items:
-    (a) "Tabular Dataset D" — a simple table icon with "features x, labels y".
-    (b) "Domain Knowledge K" — five types stacked top-to-bottom, labeled with an arrow
-        from "General" at top to "Specific" at bottom:
-        • Schema Metadata
-        • Risk Indicators (38)
-        • Detection Rules (15)
-        • Expert Opinions (12)
-        • Case Evidence (309)
-    Use a light blue background for this block.
+    === COLUMN 2: "Core Agent" (light cream/yellow background) ===
+    Top: Label "Multi-round Reasoning Loop" with a circular arrow icon.
+    Center: A dark rounded box containing "ReAct LLM Agent" (bold text).
+    Do NOT write any model name like GPT-4o or DeepSeek. Only "ReAct LLM Agent".
+    Three tools arranged around the agent box, each with a small icon:
+        • explore_data (magnifying glass icon, top-right)
+        • generate_feature (document/gear icon, left) with sub-label "Candidate Feature & Provenance"
+        • execute_sandbox (terminal/command icon, bottom)
+    An arrow from Inputs → Agent labeled "Knowledge Context".
+    An arrow from Agent → Verification labeled "Candidate Feature".
+    At bottom: "Reallocated Budget" arrow coming up from the Search Strategy area.
 
-    BLOCK 2 — LLM AGENT (center-left):
-    A rounded box labeled "ReAct LLM Agent" (no specific model name).
-    Inside or around it, show three tool icons:
-        • explore_data (magnifying glass)
-        • generate_feature (pencil/document)
-        • execute_sandbox (terminal)
-    A curved arrow around the box indicates "Multi-round Generation".
-    Use a light orange/cream background.
+    === COLUMN 3: "Three-Stage Verification Pipeline" (light green background) ===
+    Three boxes arranged left to right, each with a small icon at top:
+        L1: "Execution" — with details: "Syntax & Shape Checks", "30s Timeout", "Up to 2 Repair Attempts"
+        L2: "Statistical Quality" — with details: "IV, KS > Threshold", "Redundancy < 0.7", "Missing < 50%"
+        L3: "Model Effectiveness" — with details: "XGBoost Evaluation", "ΔAUC > 0 or", "ΔRecall > 0"
+    Arrow from L3 → Outputs labeled "Pass".
+    Arrow from L3 going down labeled "Fail", connecting to "Failure Context" which feeds to the bottom Search Strategy area.
 
-    BLOCK 3 — VERIFICATION PIPELINE (center-right):
-    Three stages shown as a horizontal pipeline with arrows:
-        L1: Execution → L2: Quality Filter → L3: Model Test
-    Below each stage, one line of key info:
-        L1: "code sandbox, auto-repair"
-        L2: "IV, KS, redundancy"
-        L3: "XGBoost, 5 seeds"
-    A "Pass" arrow exits right; a "Reject" arrow exits downward.
-    Use a light green background.
+    === COLUMN 4: "Outputs" (light purple background) ===
+    Two stacked boxes:
+        Top: "Accepted Feature Set F*" with sub-text "Executable Code"
+        Bottom: "Provenance Cards" with sub-text "Knowledge Source, Reasoning Chain, Computation"
 
-    BLOCK 4 — OUTPUTS (right):
-    Two stacked items:
-        • "Accepted Features F*"
-        • "Provenance Cards" (with sub-text: knowledge trace, reasoning chain)
-    Use a light purple background.
+    === BOTTOM BAND: "Search Strategy & Dynamic Budgeting" (light gray background, full width) ===
+    Left side: "SHAP-guided Inverse-Proportion Budget Reallocation" box.
+    Center: "4 Semantic Dimensions" box containing a 2×2 grid of four items:
+        Amount & Frequency | Time & Geography
+        Behavior Sequence  | Entity Association
+    Right side: Three items in a row:
+        "Forward Selection" box → "Cross-dimension propagation" (dashed arrow label) → "Failure Memory" box with sub-text "Prevents Repeated Failures"
+    Arrows: SHAP box → feeds "Reallocated Budget" back up to Core Agent.
+    "Failure Context" from Verification feeds down into this band.
 
-    BOTTOM — FEEDBACK LOOP (spanning full width, light gray background):
-    Shows the adaptive search strategy:
-        • Rejected features → "Failure Memory" (prevents repeats)
-        • Accepted features → "SHAP Analysis" → "Budget Reallocation"
-          Budget feeds back to the LLM Agent for the next round.
-        • Four semantic dimensions shown as small tags:
-          "Amount & Frequency", "Time & Geography", "Behavior Sequence", "Entity Association"
-        • "Forward Selection" box for synergistic combinations
+    === ARROW STYLES ===
+    Main flow arrows (Inputs→Agent→Verification→Outputs): solid dark green, thick
+    Feedback arrows (SHAP→Agent, Fail→Failure Memory): dashed or orange/yellow
+    Cross-dimension propagation: dashed gray arrow
 
-    ARROWS:
-        • Solid dark arrows for the main left-to-right flow
-        • Dashed or colored arrows for feedback (SHAP → Agent, Reject → Failure Memory)
-
-    STYLE:
-        • White overall background, pastel colored blocks
-        • Clean sans-serif font (Arial/Helvetica), minimum 8pt
-        • Simple flat icons, no 3D effects
-        • Enough whitespace between blocks for readability
+    === VISUAL STYLE ===
+    White background, pastel colored region blocks.
+    Sans-serif font (Arial or Helvetica), all text at least 7pt.
+    Small flat icons for tools and verification stages.
+    Clean, professional, information-dense but well-organized with clear visual hierarchy.
+    No 3D effects, no gradients on text, no decorative elements.
     """
 
     caption = (
-        "Overview of the KnowFeat framework. The LLM agent generates features "
-        "guided by hierarchical domain knowledge. Each candidate is verified "
-        "through a three-stage pipeline (L1–L3). SHAP feedback dynamically "
-        "reallocates the exploration budget across semantic dimensions."
+        "Overview of the KnowFeat framework. The LLM agent generates features guided by "
+        "hierarchical domain knowledge. Each candidate is verified through a three-stage "
+        "pipeline (L1–L3). SHAP feedback dynamically reallocates the exploration budget "
+        "across semantic dimensions."
     )
 
     settings = Settings(
