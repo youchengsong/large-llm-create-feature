@@ -1,4 +1,4 @@
-"""Generate Figure 3: Feature Count vs Average Rank Scatter Plot."""
+"""Generate Figure 3: Feature Count vs Average Rank Scatter Plot - compact."""
 
 import asyncio
 import shutil
@@ -14,26 +14,30 @@ from paperbanana.core.config import Settings
 
 async def main():
     source_context = """
-    Scatter plot showing the relationship between the average number of features
-    generated and the average rank across 7 public datasets.
+    Scatter plot for an IEEE single-column figure (width ~3.5 inches, height ~2.5 inches).
+    COMPACT layout. Use standard fonts: Times New Roman or Helvetica, 8-9pt.
+    White background, clean academic style.
 
     Data:
-    | Method    | Avg Features Added | Avg Rank |
-    |-----------|-------------------|----------|
-    | KnowFeat  | 28                | 1.4      |
-    | OpenFE    | 42                | 2.1      |
-    | No-FE     | 0                 | 4.5      |
-    | FeatLLM   | 151               | 4.6      |
-    | LLM-FE    | 17                | 4.7      |
-    | AutoFeat  | 41                | 5.1      |
-    | CAAFE     | 6                 | 5.5      |
+    | Method    | Avg Features Generated | Avg Rank |
+    |-----------|----------------------|----------|
+    | KnowFeat  | 28                   | 1.4      |
+    | OpenFE    | 42                   | 2.1      |
+    | No-FE     | 0                    | 4.5      |
+    | FeatLLM   | 151                  | 4.6      |
+    | LLM-FE    | 17                   | 4.7      |
+    | AutoFeat  | 41                   | 5.1      |
+    | CAAFE     | 6                    | 5.5      |
 
-    X-axis: Average number of features generated (linear scale, 0 to 160).
-    Y-axis: Average Rank (inverted, so 1 is at the top and 6 at the bottom).
-    Label each data point with the method name next to the marker.
-    Use a filled circle marker for all methods. Use a different color for
-    KnowFeat (e.g. dark blue) vs others (e.g. gray).
-    Clean academic style with white background.
+    - X-axis: "Average Number of Features Generated" (0 to 160)
+    - Y-axis: "Average Rank" (INVERTED: 1 at top, 6 at bottom)
+    - KnowFeat point in dark blue (larger marker or star), others in gray circles
+    - Label each point with method name placed near the marker (avoid overlap)
+    - The key insight: KnowFeat is in the top-left quadrant (few features, best rank)
+      while FeatLLM is far right (many features, poor rank)
+    - No title (caption in LaTeX)
+    - Light grid lines OK for readability
+    - Remove top and right spines
     """
 
     raw_data = {
@@ -52,7 +56,7 @@ async def main():
         vlm_model="gemini-2.5-pro",
         image_provider="google_imagen",
         image_model="gemini-3.1-flash-image",
-        refinement_iterations=3,
+        refinement_iterations=2,
     )
 
     pipeline = PaperBananaPipeline(settings=settings)

@@ -20,7 +20,7 @@ In regulated industries such as finance, healthcare, and legal compliance, model
 In this paper, we propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations. Each contribution targets a specific gap identified above:
 
 \begin{itemize}
-    \item \textbf{Hierarchical Knowledge Injection} (addressing limitation 1). We organize domain knowledge into five levels of increasing specificity---schema metadata, risk indicators, detection rules, expert opinions, and court document evidence---and inject them as structured context into the LLM agent. Each level is independently ablatable, enabling systematic study of knowledge contributions.
+    \item \textbf{Hierarchical Knowledge Injection} (addressing limitation 1). We organize domain knowledge into five types of increasing specificity---schema metadata, risk indicators, detection rules, expert opinions, and court document evidence---and inject them as structured context into the LLM agent. Each type is independently ablatable, enabling systematic study of knowledge contributions.
 
     \item \textbf{Three-Stage Verification Pipeline} (addressing limitation 2). Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds), ensuring only genuinely useful features are accepted.
 

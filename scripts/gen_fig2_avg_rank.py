@@ -1,4 +1,4 @@
-"""Generate Figure 2: Average Rank Bar Chart."""
+"""Generate Figure 2: Average Rank Bar Chart - compact for single column."""
 
 import asyncio
 import shutil
@@ -14,9 +14,11 @@ from paperbanana.core.config import Settings
 
 async def main():
     source_context = """
-    Table: Average rank of 7 automated feature engineering methods across 7 public datasets.
-    Lower rank is better (rank 1 = best on that dataset).
+    Horizontal bar chart for an IEEE single-column figure (width ~3.5 inches, height ~1.8 inches).
+    COMPACT layout - minimize vertical space. Use standard fonts: Times New Roman or Helvetica, 8-9pt.
+    White background, no grid lines, clean academic style.
 
+    Data (sorted by rank, best at top):
     | Method    | Avg. Rank |
     |-----------|-----------|
     | KnowFeat  | 1.4       |
@@ -27,14 +29,13 @@ async def main():
     | AutoFeat  | 5.1       |
     | CAAFE     | 5.5       |
 
-    This is for an academic paper comparing automated feature engineering methods.
-    KnowFeat (our method) achieves the best average rank (1.4), substantially
-    outperforming the second-best OpenFE (2.1). The chart should clearly highlight
-    KnowFeat as the best method. Use a horizontal bar chart sorted by rank (best at top).
-    Use a distinct color (e.g., blue or teal) for KnowFeat and a neutral gray for others.
-    The x-axis should show "Average Rank" from 0 to 6, and y-axis lists method names.
-    Include the numeric rank value at the end of each bar.
-    Academic style: clean, no grid clutter, white background, serif or sans-serif font.
+    - KnowFeat bar should be a distinct darker blue color, all others in light gray
+    - Show the numeric rank value at the end of each bar
+    - X-axis: "Average Rank (lower is better)" from 0 to 6
+    - Y-axis: method names
+    - Thin bars with small spacing to keep the figure compact
+    - No title (caption will be in LaTeX)
+    - Remove top and right spines
     """
 
     raw_data = {

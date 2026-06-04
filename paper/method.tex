@@ -5,7 +5,7 @@
 % Framework figure - placed at top of method section for proximity to first reference
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=\textwidth]{figures/framework.png}
+    \includegraphics[width=0.85\textwidth]{figures/framework.png}
     \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
     \label{fig:framework}
 \end{figure*}
@@ -21,7 +21,7 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
 
 \begin{enumerate}
     \item \textbf{Initialization.} Load the dataset, compute baseline model performance, and calibrate statistical thresholds via noise injection (Section~\ref{subsec:verification}).
-    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-level hierarchy and inject the selected level into the agent's context (Section~\ref{subsec:knowledge}).
+    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-type hierarchy and inject the selected types into the agent's context (Section~\ref{subsec:knowledge}).
     \item \textbf{Multi-Round Generation.} For each round $r = 1, \ldots, R_{\max}$:
     \begin{enumerate}
         \item Allocate per-dimension budgets based on SHAP feedback from the previous round.
@@ -36,19 +36,19 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
 \subsection{Hierarchical Knowledge Injection}
 \label{subsec:knowledge}
 
-A key innovation of KnowFeat is the systematic integration of external domain knowledge into the feature generation process. We organize knowledge into five hierarchical levels of increasing specificity:
+A key innovation of KnowFeat is the systematic integration of external domain knowledge into the feature generation process. We organize knowledge into five hierarchical types of increasing specificity, from general metadata to concrete case evidence:
 
-\textbf{Level 0: Schema Only.} The agent receives only the dataset schema---column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
+\textbf{(i) Schema Metadata.} The agent receives only the dataset schema---column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
 
-\textbf{Level 1: Risk Indicators.} Structured risk indicators derived from regulatory guidelines and industry standards. Each indicator specifies a risk dimension, risk class, relevant data field, and directionality. For the AML domain, we compile 38 indicators (IND\_01 through IND\_38) covering transaction amount thresholds, frequency patterns, temporal anomalies, and network centrality measures. For example, IND\_05 flags accounts whose single-day transaction count exceeds a regulatory threshold, while IND\_15 identifies abnormal transaction modes such as fan-in and many-to-many patterns.
+\textbf{(ii) Risk Indicators.} Structured risk indicators derived from regulatory guidelines and industry standards. Each indicator specifies a risk dimension, risk class, relevant data field, and directionality. For the AML domain, we compile 38 indicators (IND\_01 through IND\_38) covering transaction amount thresholds, frequency patterns, temporal anomalies, and network centrality measures. For example, IND\_05 flags accounts whose single-day transaction count exceeds a regulatory threshold, while IND\_15 identifies abnormal transaction modes such as fan-in and many-to-many patterns.
 
-\textbf{Level 2: Detection Rules.} Operational detection rules that encode specific logic patterns. Each rule includes a rule ID, natural language description, logical expression, confidence level, pattern category, and a Python implementation hint. We compile 15 rules (RULE\_001 through RULE\_015) from compliance manuals and internal documentation. For example, RULE\_006 encodes the ``scatter-in, gather-out'' layering pattern where funds are collected from many sources then concentrated for withdrawal.
+\textbf{(iii) Detection Rules.} Operational detection rules that encode specific logic patterns. Each rule includes a rule ID, natural language description, logical expression, confidence level, and a Python implementation hint. We compile 15 rules (RULE\_001 through RULE\_015) from compliance manuals and internal documentation. For example, RULE\_006 encodes the ``scatter-in, gather-out'' layering pattern.
 
-\textbf{Level 3: Expert Opinions.} Unstructured insights from domain expert interviews. These capture tacit knowledge---heuristics, edge cases, and domain intuitions---that are difficult to formalize as rules but valuable for feature design. We collect 12 expert opinions (EXP\_01 through EXP\_12) encoded as natural language paragraphs. For example, EXP\_05 notes that ``border region transactions combined with nighttime activity are a hallmark of cross-border laundering.''
+\textbf{(iv) Expert Opinions.} Insights from domain expert interviews that capture tacit knowledge---heuristics, edge cases, and domain intuitions---difficult to formalize as rules but valuable for feature design. We collect 12 expert opinions (EXP\_01 through EXP\_12). For example, EXP\_05 notes that ``border region transactions combined with nighttime activity are a hallmark of cross-border laundering.''
 
-\textbf{Level 4: Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete level, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
+\textbf{(v) Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete type, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
 
-The five levels can be freely combined via a knowledge filter parameter, enabling ablation study of each level's contribution. In the ``full'' configuration (default), all levels are included. Each knowledge item is assigned a unique identifier for provenance tracking.
+The five types can be freely combined via a knowledge filter parameter, enabling ablation study of each type's contribution. In the ``full'' configuration (default), all types are included. Each knowledge item is assigned a unique identifier for provenance tracking.
 
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}

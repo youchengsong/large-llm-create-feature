@@ -97,7 +97,6 @@ OpenFE achieves the best results on 3 datasets (diabetes, heart, bank\_marketing
 
 Among LLM-based methods, LLM-FE generally outperforms CAAFE and FeatLLM but remains below both OpenFE and KnowFeat. Notably, LLM-FE underperforms the No-FE baseline on two datasets, suggesting that evolutionary optimization alone is insufficient without external domain knowledge and multi-stage verification.
 
-\FloatBarrier
 \subsection{RQ2: AML Dataset Performance}
 \label{subsec:rq2}
 
@@ -128,11 +127,10 @@ KnowFeat's 18 domain-knowledge features yield substantial improvements: Recall i
 
 To verify robustness, we re-evaluate with scale\_pos\_weight=1 (no class balancing). KnowFeat remains the clear winner (F1 0.9812) and is the \emph{only} method that outperforms No-FE, confirming that the 18 features encode genuine discriminative signal independent of class reweighting.
 
-\FloatBarrier
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3}
 
-To quantify the contribution of domain knowledge, we compare the \textit{schema\_only} variant (Level 0: only dataset metadata) against the \textit{full} variant (all knowledge levels). Results on public datasets are shown in Table~\ref{tab:ablation}.
+To quantify the contribution of domain knowledge, we compare the \textit{schema\_only} variant (schema metadata only) against the \textit{full} variant (all five knowledge types). Results on public datasets are shown in Table~\ref{tab:ablation}.
 
 \begin{table}[t]
 \centering
@@ -158,7 +156,6 @@ diabetes      & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 
 On diabetes, schema-only generates \emph{zero} features passing L3, while full knowledge produces 24 features (+0.016 AUC). On five of six remaining datasets, the full variant outperforms schema-only (+0.001 to +0.012 AUC). On blood\_transfusion, both variants generate 12 features but differ in quality, confirming that knowledge improves feature \emph{quality}, not just quantity. On SimECNY, the gap is largest: schema-only generates 3 features (+0.3pp Recall) vs.\ full knowledge with 18 features (+2.1pp Recall), confirming that AML-specific knowledge assets are the primary driver.
 
-\FloatBarrier
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
 

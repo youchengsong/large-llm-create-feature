@@ -15,45 +15,48 @@ from paperbanana.core.config import Settings
 async def main():
     source_context = """
     KnowFeat is a knowledge-guided feature engineering framework built on an LLM agent.
-    The pipeline has the following components, flowing left to right:
+    The figure should span two columns in an IEEE paper (width ~7 inches, height ~3 inches).
+    Use ONLY standard fonts: Times New Roman, Helvetica, or Arial. All text must be at least 8pt.
+    Clean, professional academic style. No decorative elements. White background.
 
-    INPUT (left side):
-    - Tabular Dataset D (with features x and labels y)
-    - Domain Knowledge Base K, organized as a 5-level hierarchy:
-      Level 0: Schema Only (column names, types, stats)
-      Level 1: Risk Indicators (38 structured indicators)
-      Level 2: Detection Rules (15 operational rules with logic)
-      Level 3: Expert Opinions (tacit knowledge from interviews)
-      Level 4: Court Document Evidence (extracted from 309 legal cases)
-      These levels stack from general (top) to specific (bottom).
+    The pipeline flows LEFT to RIGHT with these components:
 
-    CORE (center): ReAct LLM Agent
-    The agent operates in a multi-round loop. It has 3 tools:
-    - explore_data: inspect dataset distributions and patterns
-    - generate_feature: propose a candidate feature with provenance metadata (knowledge_ids, reasoning chain, code)
-    - execute_sandbox: trigger verification pipeline
+    INPUT (left side, two stacked boxes):
+    Box 1: "Tabular Dataset" (with icon or simple table representation)
+    Box 2: "Hierarchical Domain Knowledge" with 5 types stacked vertically:
+      - Schema Metadata (most general, at top)
+      - Risk Indicators (38 items)
+      - Detection Rules (15 items)
+      - Expert Opinions (12 items)
+      - Court Document Evidence (most specific, at bottom)
+      Label the stack as going from "General" at top to "Specific" at bottom with a vertical arrow.
+      Do NOT use "Level 0/1/2/3/4" labels. Just use the type names directly.
 
-    The agent receives knowledge context + failure memory + SHAP feedback each round.
+    CORE (center): "LLM Agent (GPT-4o)" box
+    The agent has 3 tools shown as small sub-boxes or icons:
+    - Data Exploration
+    - Feature Registration (with provenance fields)
+    - Verification Trigger
+    Show a circular arrow or loop indicating multi-round generation.
+    Also show "Failure Memory" feeding back into the agent and "SHAP Feedback" adjusting budgets.
 
-    VERIFICATION (right of agent): Three-Stage Pipeline (L1 -> L2 -> L3)
-    - L1 Execution: sandbox, 30s timeout, syntax/shape checks, up to 2 repair attempts
-    - L2 Statistical Quality: IV, KS statistic, redundancy < 0.7, missing < 30%, thresholds calibrated from 100 random noise features at 95th percentile
-    - L3 Model Effectiveness: XGBoost evaluation across 5 seeds, delta-AUC > 0 or delta-Recall > 0
-
-    SEARCH STRATEGY (bottom or feedback loop):
-    - 4 semantic dimensions: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association
-    - SHAP-guided inverse-proportion budget reallocation after each round
-    - Failure Memory prevents regenerating rejected features
-    - Forward Selection discovers synergistic feature combinations
-    - Cross-dimension propagation of successful patterns
+    VERIFICATION (right of agent): Three-stage pipeline shown as 3 connected filter boxes:
+    - L1: Code Execution Sandbox
+    - L2: Statistical Quality (IV, KS, redundancy, missing rate)
+    - L3: Model Effectiveness (XGBoost, 5 seeds)
+    Show arrows: candidate -> L1 -> L2 -> L3 -> Accepted/Rejected
+    Rejected features go back to Failure Memory (feedback arrow).
 
     OUTPUT (right side):
-    - Accepted feature set F* with executable code
-    - Provenance cards for each feature (knowledge assets, reasoning chain, computation steps)
+    - "Accepted Features F*" box
+    - "Provenance Cards" box (showing traceability)
 
-    The flow is: Dataset + Knowledge -> Agent proposes features -> L1->L2->L3 verification ->
-    accepted features added to baseline, rejected features to failure memory ->
-    SHAP analysis reallocates budget -> next round. Loop until convergence.
+    FEEDBACK LOOP (bottom):
+    Accepted features -> SHAP Analysis -> Budget Reallocation -> back to Agent
+    Show 4 semantic dimensions: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association
+
+    Keep the diagram compact but readable. Use light colors for boxes (light blue, light green, light yellow).
+    Arrows should be clear with labels where needed.
     """
 
     caption = (
