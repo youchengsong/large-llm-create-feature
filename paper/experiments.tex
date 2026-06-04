@@ -201,7 +201,7 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 
 \begin{table}[t]
 \centering
-\caption{Ablation: schema\_only vs.\ full KnowFeat (AUC). The Knowledge Base column shows the number of risk indicators (I), detection rules (R), and expert consensus items (E) in each dataset's knowledge base.}
+\caption{Ablation: schema\_only vs.\ full KnowFeat (AUC).}
 \label{tab:ablation}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -218,6 +218,7 @@ adult         & 10I, 8R, 6E & .9292{\scriptsize$\pm$.003} & \textbf{.9301}{\scri
 breast\_w     & 12I, 10R, 8E & \textbf{.9964}{\scriptsize$\pm$.002} & .9957{\scriptsize$\pm$.003} & $-$.001 \\
 diabetes      & 12I, 10R, 8E & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \hline
+\multicolumn{5}{l}{\scriptsize I: risk indicators; R: detection rules; E: expert consensus.} \\
 \end{tabular}
 \end{table}
 
