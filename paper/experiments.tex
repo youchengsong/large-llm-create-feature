@@ -6,7 +6,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a real-world anti-mon
 \begin{itemize}
     \item \textbf{RQ1}: Does KnowFeat improve predictive performance on public datasets?
     \item \textbf{RQ2}: How does KnowFeat perform on a real-world AML task with severe class imbalance?
-    \item \textbf{RQ3}: What is the contribution of domain knowledge? (Ablation study)
+    \item \textbf{RQ3}: What is the contribution of domain knowledge?
     \item \textbf{RQ4}: How does KnowFeat balance feature quantity vs.\ quality?
 \end{itemize}
 
@@ -39,7 +39,7 @@ SimECNY (AML)      & 200,000 & 93  & 2.24 & Finance \\
 \end{tabular}
 \end{table}
 
-The seven public datasets are standard tabular benchmarks covering diverse domains. SimECNY is a real-world digital currency transaction dataset containing 200,000 transactions with 93 baseline features and 4,484 positive (suspicious) samples, representing a realistic AML scenario with severe class imbalance (2.24\% positive rate).
+The seven public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}. SimECNY is a real-world digital currency transaction dataset containing 200,000 transactions with 93 baseline features and 4,484 positive (suspicious) samples, representing a realistic AML scenario with severe class imbalance (2.24\% positive rate).
 
 \subsubsection{Baselines}
 We compare against six baselines:
