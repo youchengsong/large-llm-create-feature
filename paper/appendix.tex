@@ -1,7 +1,7 @@
 % appendix.tex
-\appendix
+\appendices
 
-\section{Domain Knowledge Examples}
+\section{Domain Knowledge and Verification Statistics}
 \label{sec:appendix_knowledge}
 
 This appendix illustrates the five knowledge types for the SimECNY AML dataset ($\sim$200K digital yuan transactions). One example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
@@ -26,9 +26,8 @@ Online ``running-score'' laundering: anonymous wallet $\to$ real-name wallet $\t
 \noindent\textbf{(v) Court Document Evidence} [CASE]:
 Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6 banks creating a multi-layer fund channeling network via intermediary wallets and corporate-to-personal conversion.
 
-\section{Verification Statistics}
-\label{sec:appendix_verification}
-
+\smallskip
+\noindent\textbf{Verification Statistics.}
 On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$50 minutes of L3 training.
 
 \section{Practical Considerations}
@@ -43,4 +42,4 @@ The full pipeline takes $\sim$3.2 hours for 4 rounds on SimECNY (52 candidates, 
 Provenance cards map directly to existing AML compliance review processes. The knowledge asset identifiers (e.g., RULE\_006, IND\_15) reference the same regulatory documents that compliance officers work with. Domain experts from the Postal Savings Bank of China reported that the structured format reduced feature review time from 2--3 hours to 15--30 minutes per feature, as the reasoning chain eliminates the need to reconstruct the designer's rationale. This directly supports Article~32 of China's Anti-Money Laundering Law (2024 revision), which mandates documenting the basis for suspicious transaction reporting.
 
 \textbf{Lessons Learned.}
-Three insights emerged: (1)~\emph{Knowledge curation is the bottleneck}: compiling our knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) required $\sim$3 person-weeks; this upfront cost is amortized across all generated features but represents the main barrier for new domains. (2)~\emph{Verification thresholds require domain calibration}: the L3 acceptance criteria (e.g., $\Delta$Recall $> 0$ with Precision $\geq 90\%$) must be set with domain stakeholders. (3)~\emph{Feature maintenance is ongoing}: regulatory requirements evolve, and a periodic refresh cycle (e.g., quarterly) would be necessary in production.
+Three insights emerged: (1)~\emph{Knowledge curation cost varies by domain}: the full AML knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) required $\sim$3 person-weeks, where the court document extraction was semi-automated via an LLM-based key-clue extractor and the remaining types were manually compiled from regulatory guidelines. In contrast, the simplified knowledge bases for public datasets (10--14 indicators, 8--10 rules, 6--8 expert consensus items per dataset) were constructed in $\sim$2--4 hours each by extracting domain facts from authoritative medical guidelines, financial regulations, and census documentation with LLM assistance. This suggests that knowledge curation scales reasonably for well-documented domains. (2)~\emph{Verification thresholds require domain calibration}: the L3 acceptance criteria (e.g., $\Delta$Recall $> 0$ with Precision $\geq 90\%$) must be set with domain stakeholders. (3)~\emph{Feature maintenance is ongoing}: regulatory requirements evolve, and a periodic refresh cycle (e.g., quarterly) would be necessary in production.
