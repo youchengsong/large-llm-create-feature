@@ -2,43 +2,53 @@
 \section{Related Work}
 \label{sec:related}
 
-% Framework figure - placed early so it appears at top of page 3
+% Framework figure - placed early so it appears at top of page 3, before Table I
 \begin{figure*}[!t]
     \centering
     \includegraphics[width=0.85\textwidth]{figures/framework.png}
-    \caption{Overview of the KnowFeat framework. Color coding: blue = inputs (data \& knowledge), yellow = core LLM agent, green = verification pipeline (L1--L3), purple = outputs (features \& provenance cards), gray = SHAP-guided search strategy. The agent generates features grounded in hierarchical domain knowledge; each candidate is verified through a three-stage pipeline; SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
+    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
     \label{fig:framework}
 \end{figure*}
 
-\subsection{Automated Feature Engineering}
+\subsection{Traditional Automated Feature Engineering}
 
-Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep Feature Synthesis~\cite{kanter2015deep} applies aggregation primitives along relational paths; ExploreKit~\cite{katz2016explorekit} enumerates operators via meta-learning; AutoFeat~\cite{horn2019autofeat} uses polynomial expansion with L1 selection; and OpenFE~\cite{zhang2023openfe} frames generation as operator-operand search with LightGBM-based ranking. AutoML systems such as Auto-sklearn~\cite{feurer2015auto} and FLAML~\cite{wang2021flaml} include preprocessing but do not generate semantically new features. These methods apply predefined operators without \emph{semantic} understanding~\cite{nargesian2017learning}.
+Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep Feature Synthesis~\cite{kanter2015deep} applies aggregation primitives along relational paths; ExploreKit~\cite{katz2016explorekit} enumerates operators and ranks candidates via meta-learning; AutoFeat~\cite{horn2019autofeat} uses polynomial expansion with L1 selection; and OpenFE~\cite{zhang2023openfe} frames feature generation as an operator-operand search with LightGBM-based importance ranking. End-to-end AutoML systems such as Auto-sklearn~\cite{feurer2015auto} and FLAML~\cite{wang2021flaml} include feature preprocessing but do not generate semantically new features. These methods apply predefined mathematical operators without \emph{semantic} understanding: \texttt{age $\times$ income} is treated identically to \texttt{age $\times$ zip\_code}, even though only the former has financial meaning. They cannot generate domain-specific features (e.g., ``transaction velocity'' in anomaly detection) that require conceptual understanding~\cite{nargesian2017learning}.
 
-The emergence of LLMs~\cite{brown2020gpt3,touvron2023llama} enabled semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM to generate Python code using logistic regression feedback. FeatLLM~\cite{han2024featllm} extracts rules and converts them to binary indicators. LLM-FE~\cite{abhyankar2025llmfe} uses evolutionary optimization with model performance feedback. RiskTagger~\cite{li2025risktagger} uses regulatory knowledge for Web3 behavior annotation. Tool-augmented agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, software engineering~\cite{jimenez2024swe}, and data science~\cite{hong2024data,jiang2025aide,guo2024ds}, but none addresses knowledge-grounded feature generation.
+\subsection{LLM-Based Feature Engineering}
 
-These methods vary in domain knowledge and verification depth. Table~\ref{tab:comparison} summarizes the key differences. KnowFeat is the first to combine hierarchical structured knowledge, multi-stage verification (L1--L3), and full provenance tracking.
+The emergence of large language models~\cite{brown2020gpt3,touvron2023llama} has enabled a paradigm shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features, using logistic regression as a proxy evaluator. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features. LLM-FE~\cite{abhyankar2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with model performance feedback. In the financial domain, RiskTagger~\cite{li2025risktagger} uses an LLM agent with regulatory knowledge to annotate Web3 crypto laundering behaviors, demonstrating that domain knowledge can enhance LLM-based data annotation.
 
-In financial AML, domain experts manually encode risk indicators and network measures~\cite{chen2018aml}, regulatory bodies publish red-flag typologies~\cite{fatf2012recommendations}, and institutions maintain detection rules from compliance experience~\cite{weber2019anti}. Knowledge-infused learning~\cite{kursuncu2020knowledge} and transfer learning~\cite{weiss2016survey} target unstructured data rather than tabular features. This rich, structured AML knowledge has not been systematically leveraged by automated feature engineering.
+These methods vary in their use of domain knowledge and verification. LLM-FE and RiskTagger incorporate limited domain context (dataset descriptions and regulatory guidelines, respectively), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline. Furthermore, while RiskTagger provides natural language rationales, none offers structured provenance that traces each feature to specific knowledge assets.
+
+Tool-augmented LLM agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, software engineering~\cite{jimenez2024swe}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. In data science, AIDE~\cite{jiang2025aide} and DS-Agent~\cite{guo2024ds} automate end-to-end pipelines but do not address knowledge-grounded feature generation. KnowFeat builds on the tool-use paradigm by equipping an LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification.
+
+Table~\ref{tab:comparison} summarizes the key differences. KnowFeat is the first method to combine hierarchical structured domain knowledge, multi-stage verification (L1--L3), and full feature provenance tracking within an LLM-based feature engineering framework.
+
+\subsection{Domain Knowledge Integration in Machine Learning}
+
+Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures, and transfer learning~\cite{weiss2016survey} implicitly transfers knowledge through pretrained representations, but both are designed for unstructured data rather than tabular features. In financial AML, domain experts manually encode risk indicators, structuring patterns, and network centrality measures as hand-crafted features~\cite{chen2018aml}. Regulatory bodies publish red-flag typologies (e.g., FATF guidelines~\cite{fatf2012recommendations}), and institutions maintain internal detection rules from compliance experience and legal proceedings~\cite{weber2019anti}. This rich, structured knowledge has not been systematically leveraged by automated feature engineering methods.
 
 \begin{table}[t]
 \centering
-\caption{Comparison of automated feature engineering methods. \checkmark: fully supported; $\circ$: partially supported; blank: not supported; --: not applicable.}
+\caption{Comparison of automated feature engineering methods. \checkmark: fully supported; $\triangle$: partially supported (see footnotes); blank: not supported; --: not applicable.}
 \label{tab:comparison}
 \small
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{1pt}
 \begin{tabular}{l c c c c c c c}
 \hline
-\textbf{Property} & \textbf{OpenFE} & \textbf{AutoF.} & \textbf{CAAFE} & \textbf{FeatL.} & \textbf{LLM-FE} & \textbf{RiskT.} & \textbf{Ours} \\
+\textbf{Property} & \textbf{OpenFE} & \textbf{Auto.} & \textbf{CAAFE} & \textbf{Feat.} & \textbf{LLM-} & \textbf{Risk} & \textbf{Ours} \\
+ & & & & & \textbf{FE} & \textbf{Tag.} & \\
 \hline
 Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-Hier.\ knowledge  &            &            &            &            & $\circ^1$    & $\circ^2$    & \checkmark \\
+Hier.\ knowl.     &            &            &            &            & $\triangle^a$    & $\triangle^b$    & \checkmark \\
 Exec.\ verific.   & --         & --         &            &            &            &            & \checkmark \\
 Statistical filt. & \checkmark & \checkmark &            &            &            &            & \checkmark \\
-Model validation  &            &            & $\circ^3$       &            & \checkmark &            & \checkmark \\
-Provenance track. &            &            &            &            &            & $\circ^4$    & \checkmark \\
+Model validation  &            &            & $\triangle^c$       &            & \checkmark &            & \checkmark \\
+Provenance track. &            &            &            &            &            & $\triangle^d$    & \checkmark \\
 Adaptive search   &            &            &            &            & \checkmark &            & \checkmark \\
 \hline
-\multicolumn{8}{l}{\scriptsize $^1$Dataset desc.\ only. $^2$Regulatory guidelines only. $^3$LogReg proxy. $^4$NL rationales only.} \\
+\multicolumn{8}{l}{\scriptsize $^a$Dataset descriptions only. $^b$Regulatory guidelines only. $^c$Logistic regression proxy.} \\
+\multicolumn{8}{l}{\scriptsize $^d$Natural language rationales only, no structured provenance.} \\
 \end{tabular}
 \end{table}

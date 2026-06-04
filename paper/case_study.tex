@@ -2,19 +2,42 @@
 \section{Case Study: Knowledge-Grounded Features}
 \label{sec:case_study}
 
-We present two representative features from the SimECNY AML dataset to illustrate multi-source knowledge fusion and provenance traceability. Figure~\ref{fig:provenance} shows an example provenance card.
+We present two representative case studies from the SimECNY AML dataset, highlighting multi-source knowledge fusion and cross-dimensional interaction. Figure~\ref{fig:provenance} shows an example provenance card.
 
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\columnwidth]{figures/provenance_card.png}
-    \caption{Provenance card for \texttt{fan\_in\_fan\_out\_ratio}, recording knowledge assets, reasoning chain, generated code, and verification results. Each field enables regulatory audit.}
+    \caption{Provenance card for the \texttt{fan\_in\_fan\_out\_ratio} feature, showing knowledge assets, reasoning chain, generated code, and verification results.}
     \label{fig:provenance}
 \end{figure}
 
-\textbf{Case 1: Fan-In/Fan-Out Ratio.}
-This feature captures network topology asymmetry by fusing four knowledge assets spanning three types: \textit{RULE\_006} (scatter-in/gather-out layering), \textit{RULE\_013} (pyramid fund networks), \textit{PAT\_A03} (money mule pattern), and \textit{IND\_15} (abnormal transaction modes). The reasoning chain: because RULE\_006/013 indicate directional imbalance in fund flows, compute the fan-in/fan-out mode ratio per wallet; because IND\_15 flags abnormal modes, weight by abnormal mode proportion: $\text{ratio} \times (1 + \text{abnormal\_mode\_ratio})$. No syntactic method would produce this feature---it requires understanding that directional imbalance combined with abnormal mode prevalence characterizes money mule behavior.
+\subsection{Case 1: Fan-In/Fan-Out Ratio (Network Topology)}
 
-\textbf{Case 2: Cross-Dimensional Risk Interaction.}
-This feature multiplies geographic risk with temporal anomaly, guided by three knowledge assets: \textit{RULE\_005/014} (cross-regional border flows), \textit{IND\_08/09} (off-hour concentration), and \textit{EXP\_05} (``border region + nighttime = cross-border laundering''). Neither geographic nor temporal signal alone is sufficient; the expert opinion prescribes their conjunction: $\text{is\_high\_risk\_region} \times \text{off\_hour\_ratio}$. This demonstrates \emph{cross-dimensional interaction}: geographic context combined with temporal patterns, where the multiplicative form ensures only the conjunction triggers a high score.
+\textbf{Feature:} \texttt{fan\_in\_fan\_out\_ratio}---asymmetry between incoming and outgoing transaction patterns, weighted by abnormal mode proportion. Uses 4 knowledge assets: \textit{RULE\_006} (scatter-in/gather-out layering), \textit{RULE\_013} (pyramid-shaped fund networks), \textit{PAT\_A03} (money mule behavioral pattern), and \textit{IND\_15} (abnormal transaction modes).
 
-Both features carry complete provenance chains for regulatory audit, a capability absent from all baselines.
+\textbf{Reasoning chain:} (1)~Compute fan-in/fan-out mode ratio per wallet from \textit{RULE\_006/013}. (2)~Weight by abnormal mode proportion from \textit{IND\_15}. (3)~Combine: $\text{ratio} \times (1 + \text{abnormal\_mode\_ratio})$.
+
+\begin{lstlisting}
+fi = mode_counts['fan_in'] / n
+fo = mode_counts['fan_out'] / n
+ratio = fi / (fo + eps)
+abnormal = fi + m2m_ratio + o2m_ratio
+result = ratio * (1 + abnormal)
+\end{lstlisting}
+
+This feature fuses four knowledge assets spanning three types (rules, patterns, indicators) to produce a topology-aware asymmetry score. No syntactic method would produce this---it requires understanding that directional imbalance combined with abnormal mode prevalence characterizes money mule behavior.
+
+\subsection{Case 2: Cross-Dimensional Risk Interaction}
+
+\textbf{Feature:} \texttt{high\_risk\_region\_off\_hour\_ratio}---multiplicative interaction between geographic risk and temporal anomaly. Uses 3 knowledge assets: \textit{RULE\_005/014} (cross-regional flows through border areas), \textit{IND\_08/09} (off-hour transaction concentration), and \textit{EXP\_05} (``border region + nighttime trading is the hallmark of cross-border laundering'').
+
+\textbf{Reasoning chain:} (1)~Flag high-risk border regions from \textit{RULE\_005/014}. (2)~Compute off-hour ratio from \textit{IND\_08/09}. (3)~Neither signal alone is sufficient (\textit{EXP\_05}); multiply: $\text{is\_high\_risk} \times \text{off\_hour\_ratio}$.
+
+\begin{lstlisting}
+is_hr = region.isin([540000, 650000])
+off = (hour >= 18) | (hour < 8)
+off_ratio = off.sum() / n
+result = is_hr * off_ratio
+\end{lstlisting}
+
+This feature demonstrates \emph{cross-dimensional interaction}: geographic context (account metadata) combined with temporal patterns (transaction logs), guided by expert knowledge. The multiplicative form ensures only the conjunction triggers a high score, exactly as the domain expertise prescribes. Both cases illustrate capabilities that syntactic methods cannot replicate, and both carry complete provenance chains for regulatory audit.

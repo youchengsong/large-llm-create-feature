@@ -2,33 +2,38 @@
 \section{Introduction}
 \label{sec:intro}
 
-Feature engineering is widely recognized as one of the most impactful steps in building machine learning models for tabular data~\cite{domingos2012few}. Carefully designed features can substantially improve model accuracy, reduce overfitting, and provide interpretable signals for downstream tasks. However, manual feature engineering is labor-intensive, requires deep domain expertise, and does not scale.
+Feature engineering is widely recognized as one of the most impactful steps in building machine learning models for tabular data~\cite{domingos2012few}. Carefully designed features can substantially improve model accuracy, reduce overfitting, and provide interpretable signals for downstream tasks. However, manual feature engineering is labor-intensive, requires deep domain expertise, and does not scale across diverse applications.
 
-Traditional automated feature engineering (AutoFE) methods such as OpenFE~\cite{zhang2023openfe} and AutoFeat~\cite{horn2019autofeat} explore a predefined transformation space without understanding what features \emph{mean}. The emergence of large language models (LLMs) has enabled semantic feature generation: CAAFE~\cite{hollmann2023caafe}, FeatLLM~\cite{han2024featllm}, and LLM-FE~\cite{abhyankar2025llmfe} use LLMs to generate feature code from dataset descriptions. However, these methods share three fundamental limitations:
+To address this challenge, automated feature engineering (AutoFE) methods have been developed. Traditional AutoFE approaches such as OpenFE~\cite{zhang2023openfe} and AutoFeat~\cite{horn2019autofeat} apply systematic transformations---mathematical operations, aggregations, and feature crosses---to existing columns, then select the most predictive ones. These methods are purely data-driven: they explore a predefined transformation space without any understanding of what the features \emph{mean} or why certain transformations might be useful for a given domain. In practice, understanding the \emph{semantic} meaning of features is crucial in domains such as finance, healthcare, and marketing, where stakeholders must know \emph{what} a feature represents before deploying it in production.
 
-\textbf{(1) Lack of structured domain knowledge.}
-Existing methods rely on the LLM's parametric knowledge, which may be outdated or incomplete for specialized domains. None organizes external knowledge into a hierarchical format for systematic injection, yet such structured knowledge is abundant in regulated domains like anti-money laundering (AML)~\cite{fatf2012recommendations,weber2019anti}.
+The emergence of large language models (LLMs) has opened a new paradigm for feature engineering. Methods such as CAAFE~\cite{hollmann2023caafe}, FeatLLM~\cite{han2024featllm}, and LLM-FE~\cite{abhyankar2025llmfe} use LLMs to generate feature transformation code based on dataset descriptions. These approaches leverage the LLM's broad world knowledge to propose semantically meaningful features---for example, generating a ``debt-to-income ratio'' for a credit dataset without being explicitly told to do so. However, current LLM-based methods share three fundamental limitations:
+
+\textbf{(1) Lack of hierarchical, structured domain knowledge.}
+Most existing methods rely primarily on the LLM's parametric knowledge, which is general-purpose and may be outdated or incomplete for specialized domains. Some recent work incorporates limited forms of domain context: LLM-FE~\cite{abhyankar2025llmfe} provides dataset descriptions as evolutionary prompts, and RiskTagger~\cite{li2025risktagger} annotates Web3 behaviors using regulatory knowledge. However, none of these methods organizes domain knowledge into a \emph{hierarchical, structured} format---from regulatory indicators and detection rules to expert opinions and case evidence---that enables systematic injection and prevents LLM hallucination. In high-stakes applications such as anti-money laundering (AML), such structured knowledge exists in external sources that LLMs cannot access through their training data alone.
 
 \textbf{(2) Insufficient verification.}
-CAAFE uses a logistic regression proxy, LLM-FE uses downstream accuracy without statistical filtering, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline.
+Existing verification mechanisms vary in rigor but remain incomplete. CAAFE evaluates candidates with a logistic regression proxy that poorly approximates the downstream model. LLM-FE uses downstream model accuracy as feedback but lacks statistical quality filtering. FeatLLM performs no model-based validation. None of these methods combines code execution checking, statistical quality filtering (e.g., information value, redundancy), and full model evaluation into a unified pipeline, leading to the acceptance of noisy, redundant, or harmful features.
 
 \textbf{(3) Limited auditability.}
-In regulated industries, features must be auditable---decision-makers need to understand \emph{why} a feature was created and \emph{what evidence} supports it. No existing method provides structured provenance tracing each feature to specific knowledge assets.
+In regulated industries such as finance, healthcare, and legal compliance, model features must be auditable. Decision-makers need to understand \emph{why} a feature was created and \emph{what evidence} supports its relevance. While some methods provide natural language explanations (e.g., RiskTagger generates annotation rationales), they lack fine-grained, structured provenance that traces each feature back to specific knowledge assets with detailed reasoning chains. Such auditable provenance is essential for deployment in environments that require explainability and regulatory accountability.
 
-We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations:
-
-\begin{itemize}
-    \item \textbf{Hierarchical Knowledge Injection.} We organize domain knowledge into five types of increasing specificity---schema metadata, risk indicators, detection rules, expert opinions, and case evidence---and inject them as structured context into the LLM agent.
-
-    \item \textbf{Three-Stage Verification Pipeline.} Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds).
-
-    \item \textbf{Auditable Provenance.} Every accepted feature carries a provenance card recording the knowledge assets, reasoning chain, computation steps, and verification results.
-\end{itemize}
-
-We evaluate KnowFeat on seven public benchmarks from OpenML and SimECNY, a real-world AML dataset with 200{,}000 digital currency transactions and 93 baseline features. Key findings:
+In this paper, we propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations. Each contribution targets a specific gap identified above:
 
 \begin{itemize}
-    \item On public datasets, KnowFeat achieves the best AUC on 4 of 7 datasets and the best average rank (1.4) among seven methods, with significantly fewer features than LLM-based alternatives.
-    \item On SimECNY, 18 knowledge-guided features improve Recall by +2.1pp and F1 by +1.5pp over the 93-feature baseline, outperforming all baselines.
-    \item Ablation confirms that domain knowledge is essential: the schema-only variant generates zero accepted features on one dataset.
+    \item \textbf{Hierarchical Knowledge Injection} (addressing limitation 1). We organize domain knowledge into five types of increasing specificity---schema metadata, risk indicators, detection rules, expert opinions, and court document evidence---and inject them as structured context into the LLM agent. Each type is independently ablatable, enabling systematic study of knowledge contributions.
+
+    \item \textbf{Three-Stage Verification Pipeline} (addressing limitation 2). Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds), ensuring only genuinely useful features are accepted.
+
+    \item \textbf{Auditable Provenance} (addressing limitation 3). Every accepted feature carries a structured provenance card recording the knowledge assets, reasoning chain, computation steps, and verification results, enabling compliance officers to audit \emph{why} each feature exists.
 \end{itemize}
+
+We evaluate KnowFeat on seven public tabular datasets from OpenML and a real-world AML dataset containing 200,000 digital currency transactions with 93 baseline features. We compare against six baselines spanning traditional AutoFE (OpenFE, AutoFeat), LLM-based (CAAFE, FeatLLM), and evolutionary LLM (LLM-FE) approaches. Key findings include:
+
+\begin{itemize}
+    \item On public datasets, KnowFeat achieves the highest AUC on 4 of 7 datasets and the best average rank (1.4) among all seven methods, while requiring significantly fewer features than alternative LLM-based methods (12--46 vs.\ 98--1,124 for FeatLLM).
+    \item On the AML dataset, 18 knowledge-guided features improve Recall by +2.1pp and F1 by +1.5pp over a strong 93-feature baseline, substantially outperforming all baselines including LLM-FE (+1.4pp F1).
+    \item Ablation experiments confirm that domain knowledge is essential: the schema-only variant generates zero accepted features on one dataset, and the full knowledge hierarchy outperforms schema-only on 5 of 6 remaining datasets.
+    \item Every generated feature includes a provenance card linking it to specific knowledge assets, providing full auditability.
+\end{itemize}
+
+The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work. Section~\ref{sec:method} presents the KnowFeat framework. Section~\ref{sec:experiments} describes our experimental setup and results. Section~\ref{sec:case_study} illustrates KnowFeat's knowledge-grounded features through case studies. Section~\ref{sec:conclusion} concludes with limitations and future directions.
