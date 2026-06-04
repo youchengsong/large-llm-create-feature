@@ -30,11 +30,9 @@ async def main():
     - PAT_A03: Money mule behavior
     - IND_15: Abnormal transaction modes
 
-    SECTION 2 - REASONING CHAIN (white background, numbered, compact):
-    1. RULE_006 + RULE_013 -> compute fan-in/fan-out ratio
-    2. PAT_A03 -> money mule wallets: fan-in >> fan-out
-    3. IND_15 -> weight by abnormal mode proportion
-    4. Combine: ratio x (1 + abnormal_mode_ratio)
+    SECTION 2 - REASONING CHAIN (white background, paragraph text, NOT numbered list):
+    Display as a flowing causal narrative paragraph (because...therefore... style), NOT a numbered sequence:
+    "Because RULE_006 and RULE_013 indicate that scatter-in/gather-out layering and pyramid fund networks both manifest as fan-in/fan-out asymmetry, we first compute the ratio of fan-in to fan-out counts per wallet. Since PAT_A03 shows that money mule wallets exhibit fan-in >> fan-out, this ratio captures the core topology signal. Furthermore, IND_15 identifies abnormal transaction modes (many-to-many, one-to-many), so we weight the ratio by the abnormal mode proportion to amplify suspicious patterns, yielding: ratio x (1 + abnormal_mode_ratio)."
 
     SECTION 3 - CODE (light gray background, monospace font, compact):
     fi = mode_counts['fan_in'] / n

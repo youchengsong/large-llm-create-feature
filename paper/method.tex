@@ -53,7 +53,7 @@ The five types can be freely combined via a knowledge filter parameter, enabling
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}
 
-KnowFeat employs an LLM agent (GPT-4o in our implementation) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
+KnowFeat employs an LLM agent (DeepSeek-V3 in our implementation) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
 
 \textbf{Tool 1: Data Exploration.} Executes Python code on the dataset in a sandboxed environment to inspect distributions, compute correlations, and identify patterns before proposing features. The tool returns printed output or return values to the agent.
 

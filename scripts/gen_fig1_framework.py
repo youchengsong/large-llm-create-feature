@@ -32,13 +32,13 @@ async def main():
       Label the stack as going from "General" at top to "Specific" at bottom with a vertical arrow.
       Do NOT use "Level 0/1/2/3/4" labels. Just use the type names directly.
 
-    CORE (center): "LLM Agent (GPT-4o)" box
+    CORE (center): "LLM Agent" box (do NOT mention any specific model name like GPT-4o or DeepSeek - just "LLM Agent")
     The agent has 3 tools shown as small sub-boxes or icons:
     - Data Exploration
     - Feature Registration (with provenance fields)
     - Verification Trigger
     Show a circular arrow or loop indicating multi-round generation.
-    Also show "Failure Memory" feeding back into the agent and "SHAP Feedback" adjusting budgets.
+    Also show "Failure Memory" feeding back into the agent.
 
     VERIFICATION (right of agent): Three-stage pipeline shown as 3 connected filter boxes:
     - L1: Code Execution Sandbox
@@ -51,9 +51,10 @@ async def main():
     - "Accepted Features F*" box
     - "Provenance Cards" box (showing traceability)
 
-    FEEDBACK LOOP (bottom):
-    Accepted features -> SHAP Analysis -> Budget Reallocation -> back to Agent
-    Show 4 semantic dimensions: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association
+    FEEDBACK LOOP (bottom, COMPACT - keep this section small and tight):
+    Show SHAP Feedback arrow from accepted features back to Budget Reallocation, then back to Agent.
+    List 4 dimension labels in a SINGLE compact row or small grouped box: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association.
+    Do NOT expand each dimension into a large separate box. Keep the SHAP/budget area visually small.
 
     Keep the diagram compact but readable. Use light colors for boxes (light blue, light green, light yellow).
     Arrows should be clear with labels where needed.
