@@ -2,14 +2,6 @@
 \section{Methodology}
 \label{sec:method}
 
-% Framework figure - placed at top of method section for proximity to first reference
-\begin{figure*}[!t]
-    \centering
-    \includegraphics[width=0.85\textwidth]{figures/framework.png}
-    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
-    \label{fig:framework}
-\end{figure*}
-
 This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and auditable provenance output (Section~\ref{subsec:provenance_method}).
 
 \subsection{Framework Overview}

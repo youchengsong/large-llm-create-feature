@@ -2,6 +2,14 @@
 \section{Related Work}
 \label{sec:related}
 
+% Framework figure - placed early so it appears at top of page 3, before Table I
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/framework.png}
+    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
+    \label{fig:framework}
+\end{figure*}
+
 \subsection{Traditional Automated Feature Engineering}
 
 Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep Feature Synthesis~\cite{kanter2015deep} applies aggregation primitives along relational paths; ExploreKit~\cite{katz2016explorekit} enumerates operators and ranks candidates via meta-learning; AutoFeat~\cite{horn2019autofeat} uses polynomial expansion with L1 selection; and OpenFE~\cite{zhang2023openfe} frames feature generation as an operator-operand search with LightGBM-based importance ranking. End-to-end AutoML systems such as Auto-sklearn~\cite{feurer2015auto} and FLAML~\cite{wang2021flaml} include feature preprocessing but do not generate semantically new features. These methods apply predefined mathematical operators without \emph{semantic} understanding: \texttt{age $\times$ income} is treated identically to \texttt{age $\times$ zip\_code}, even though only the former has financial meaning. They cannot generate domain-specific features (e.g., ``transaction velocity'' in anomaly detection) that require conceptual understanding~\cite{nargesian2017learning}.

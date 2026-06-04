@@ -1,0 +1,36 @@
+% appendix.tex
+\appendix
+
+\section{Domain Knowledge Examples for Public Datasets}
+\label{sec:appendix_knowledge}
+
+This appendix illustrates the domain knowledge provided to KnowFeat for public datasets. We show one representative example per knowledge type using the \texttt{adult} (Census Income) dataset. Similar knowledge was constructed for all seven public benchmarks.
+
+\smallskip
+\noindent\textbf{(i) Schema Metadata.}
+Column names, data types, and basic statistics (mean, cardinality, missing rate) extracted directly from the dataset. No external knowledge is provided. Example fields: \texttt{age} (numeric, mean=38.6), \texttt{education\_num} (numeric, 16 unique), \texttt{occupation} (categorical, 14 categories).
+
+\smallskip
+\noindent\textbf{(ii) Risk Indicator.}
+\begin{quote}
+\small
+\textbf{IND\_01 -- Education Level.} Field: \texttt{education\_num}. Direction: higher education years correlate with higher income. Threshold: $\geq 13$ (bachelor's or above) significantly increases high-income probability. Rationale: education is a core proxy for human capital; U.S.\ Bureau of Labor Statistics data shows bachelor's holders earn $\sim$67\% more median weekly income than high school graduates.
+\end{quote}
+
+\smallskip
+\noindent\textbf{(iii) Detection Rule.}
+\begin{quote}
+\small
+\textbf{RULE\_001 -- High Education + Managerial Occupation.} Fields: \texttt{education\_num}, \texttt{occupation}. Logic: \texttt{education\_num} $\geq$ 13 AND \texttt{occupation} $\in$ \{Exec-managerial, Prof-specialty\}. Label: HIGH\_INCOME. This rule combines human capital (education) with occupational prestige to identify the highest-income segment.
+\end{quote}
+
+\smallskip
+\noindent\textbf{(iv) Expert Opinion.}
+\begin{quote}
+\small
+\textbf{EXP\_01.} Marital status is one of the strongest single predictors in the adult dataset, but its predictive power largely comes from interaction with sex. Among married-civ-spouse males, ${>}$50K proportion is $\sim$45\%, but only $\sim$15\% for females. Feature engineering should construct a \texttt{marital\_sex} interaction feature.
+\end{quote}
+
+\smallskip
+\noindent\textbf{(v) Case Evidence.}
+Not applicable for public datasets. This knowledge type is specific to the AML domain, where risk factors are extracted from 309 real court judgments via a key-clue extraction pipeline (see Section~\ref{subsec:knowledge}).
