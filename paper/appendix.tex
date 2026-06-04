@@ -1,36 +1,39 @@
 % appendix.tex
 \appendix
 
-\section{Domain Knowledge Examples for Public Datasets}
+\section{Domain Knowledge Examples for the AML Dataset}
 \label{sec:appendix_knowledge}
 
-This appendix illustrates the domain knowledge provided to KnowFeat for public datasets. We show one representative example per knowledge type using the \texttt{adult} (Census Income) dataset. Similar knowledge was constructed for all seven public benchmarks.
+This appendix illustrates the five knowledge types provided to KnowFeat for the SimECNY anti-money laundering dataset ($\sim$200K digital yuan transactions). One representative example per type is shown.
 
 \smallskip
 \noindent\textbf{(i) Schema Metadata.}
-Column names, data types, and basic statistics (mean, cardinality, missing rate) extracted directly from the dataset. No external knowledge is provided. Example fields: \texttt{age} (numeric, mean=38.6), \texttt{education\_num} (numeric, 16 unique), \texttt{occupation} (categorical, 14 categories).
+Column names, data types, and basic statistics extracted directly from the transaction data. No external knowledge is provided. Example fields: \texttt{amount} (numeric, mean=2{,}847.3), \texttt{wallet\_type} (categorical, 4 types), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (account identifiers).
 
 \smallskip
 \noindent\textbf{(ii) Risk Indicator.}
 \begin{quote}
 \small
-\textbf{IND\_01 -- Education Level.} Field: \texttt{education\_num}. Direction: higher education years correlate with higher income. Threshold: $\geq 13$ (bachelor's or above) significantly increases high-income probability. Rationale: education is a core proxy for human capital; U.S.\ Bureau of Labor Statistics data shows bachelor's holders earn $\sim$67\% more median weekly income than high school graduates.
+\textbf{IND\_05 -- Single-Day Transaction Frequency.} Field: \texttt{timestamp}, \texttt{src}. Direction: higher daily count increases risk. Threshold: $\geq$10 transactions/day triggers alert. Rationale: money mule accounts exhibit abnormally high transaction frequency to rapidly channel funds before detection; regulatory guidelines flag accounts exceeding normal daily activity levels.
 \end{quote}
 
 \smallskip
 \noindent\textbf{(iii) Detection Rule.}
 \begin{quote}
 \small
-\textbf{RULE\_001 -- High Education + Managerial Occupation.} Fields: \texttt{education\_num}, \texttt{occupation}. Logic: \texttt{education\_num} $\geq$ 13 AND \texttt{occupation} $\in$ \{Exec-managerial, Prof-specialty\}. Label: HIGH\_INCOME. This rule combines human capital (education) with occupational prestige to identify the highest-income segment.
+\textbf{RULE\_006 -- Scatter-In, Gather-Out Layering.} Fields: \texttt{src}, \texttt{dst}, \texttt{amount}, \texttt{timestamp}. Logic: an account receives funds from $\geq$5 distinct sources within 24h AND transfers $\geq$80\% of cumulative amount to $\leq$2 destinations within 48h. This rule captures the classic ``fan-in, fan-out'' layering pattern where illicit funds are aggregated and rapidly consolidated.
 \end{quote}
 
 \smallskip
 \noindent\textbf{(iv) Expert Opinion.}
 \begin{quote}
 \small
-\textbf{EXP\_01.} Marital status is one of the strongest single predictors in the adult dataset, but its predictive power largely comes from interaction with sex. Among married-civ-spouse males, ${>}$50K proportion is $\sim$45\%, but only $\sim$15\% for females. Feature engineering should construct a \texttt{marital\_sex} interaction feature.
+\textbf{EXP\_05.} Border-region transactions combined with nighttime activity (00:00--06:00) are a hallmark of cross-border laundering via digital yuan. Feature engineering should construct a \texttt{night\_border\_risk} interaction feature combining geographic indicators with temporal concentration.
 \end{quote}
 
 \smallskip
-\noindent\textbf{(v) Case Evidence.}
-Not applicable for public datasets. This knowledge type is specific to the AML domain, where risk factors are extracted from 309 real court judgments via a key-clue extraction pipeline (see Section~\ref{subsec:knowledge}).
+\noindent\textbf{(v) Court Document Evidence.}
+\begin{quote}
+\small
+\textbf{CASE\_038 -- Pyramid-Shaped Fund Network.} Source: court judgment on digital yuan money laundering. Pattern: the defendant used multiple bank wallets (across 6 banks) to create a multi-layer fund channeling network, receiving funds from upstream accounts and immediately dispersing them via digital yuan transfers. Observable signals: funds traverse $\geq$3 layers within 24h; each layer address is active for $<$48h.
+\end{quote}
