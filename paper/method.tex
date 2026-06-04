@@ -107,31 +107,25 @@ The three-stage design is intentionally progressive: L1 is cheap (milliseconds),
 
 To systematically explore the feature space, KnowFeat employs a multi-component search strategy.
 
-\subsubsection{Dimension-Based Budgeting}
-We decompose the feature space into $D$ semantic dimensions relevant to the target domain (default $D=4$ for the AML domain):
-\begin{enumerate}
-    \item \textbf{Amount \& Frequency}: Features related to monetary values and transaction counts.
-    \item \textbf{Time \& Geography}: Features capturing temporal patterns and spatial distributions.
-    \item \textbf{Behavior Sequence}: Features encoding sequential patterns in user actions.
-    \item \textbf{Entity Association}: Features derived from relationships between entities (accounts, counterparties).
-\end{enumerate}
+\paragraph{Dimension-Based Budgeting}
+We decompose the feature space into $D$ semantic dimensions relevant to the target domain (default $D=4$ for the AML domain): Amount \& Frequency, covering monetary values and transaction counts; Time \& Geography, capturing temporal patterns and spatial distributions; Behavior Sequence, encoding sequential patterns in user actions; and Entity Association, derived from relationships between entities such as accounts and counterparties.
 
 Each dimension receives an initial budget of $B_0$ candidates per round (default $B_0 = 3$). After each round, SHAP~\cite{lundberg2017shap} (SHapley Additive exPlanations) analysis is performed on the current model to estimate each dimension's contribution to predictions.
 
-\subsubsection{SHAP-Guided Budget Reallocation}
+\paragraph{SHAP-Guided Budget Reallocation}
 Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted features, $B_{\min}$ the minimum per-dimension budget (default 1), and $B_{\text{total}}$ the total budget for the round. We reallocate the budget for round $r{+}1$ using an \emph{inverse-SHAP weighting} strategy:
 \begin{equation}
     B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
 \end{equation}
 This ensures that underrepresented dimensions (those contributing least to the current model) receive more exploration budget, promoting balanced feature coverage.
 
-\subsubsection{Failure Memory}
+\paragraph{Failure Memory}
 A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.
 
-\subsubsection{Forward Selection}
+\paragraph{Forward Selection}
 Individual features may fail L3 yet contribute positively when combined with others. We apply greedy forward selection on L2-passed but L3-failed candidates, sorted by L2 quality scores. Each candidate is added to the accepted set if the augmented set improves the target metric, capturing synergistic feature interactions.
 
-\subsubsection{Cross-Dimension Propagation}
+\paragraph{Cross-Dimension Propagation}
 After each round, the top-$K_{\text{cross}}$ features (default $K_{\text{cross}} = 5$) by SHAP importance are shared across all dimensions as ``inspiration prompts,'' encouraging the agent to adapt successful patterns from one dimension to others.
 
 \subsection{Explainable Provenance Output}
