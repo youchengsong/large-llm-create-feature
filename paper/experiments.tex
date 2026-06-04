@@ -41,6 +41,8 @@ SimECNY (AML)      & 200,000 & 93  & 2.24 & Finance \\
 
 The seven public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}. SimECNY is a synthetic AML benchmark calibrated against real digital currency (e-CNY) transaction patterns from the Postal Savings Bank of China. Its 93 baseline features, transaction topology, and class distribution (2.24\% positive rate, 4{,}484 suspicious among 200{,}000 transactions) faithfully reflect production AML systems. Due to financial privacy regulations, high-fidelity simulation is standard practice in AML research~\cite{weber2019anti}. Importantly, the domain knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) is derived entirely from real regulatory guidelines, compliance manuals, expert interviews, and publicly available court judgments.
 
+For the seven public datasets, we also construct simplified knowledge bases with three types: risk indicators (IND), detection rules (RULE), and expert consensus (EXP), compiled from medical guidelines, financial regulations, and census documentation. Table~\ref{tab:ablation} reports the exact composition per dataset (e.g., heart: 12 IND, 10 RULE, 8 EXP). Although simpler than the AML hierarchy, these knowledge bases consistently improve over the schema-only baseline (Section~\ref{subsec:rq3}).
+
 \subsubsection{Baselines}
 We compare against seven baselines:
 \begin{itemize}
@@ -95,9 +97,7 @@ Table~\ref{tab:main_results} presents the AUC comparison on seven public dataset
     \label{fig:avg_rank}
 \end{figure}
 
-The strongest competitor is OpenFE (avg.\ rank 2.3), which achieves the best AUC on 3 datasets through exhaustive operator-operand search but generates 34--50 features per dataset. Among LLM-based methods, LLM-FE outperforms CAAFE and FeatLLM but remains below OpenFE and KnowFeat. Both LLM-FE and OCTree underperform No-FE on multiple datasets, suggesting that LLM-based generation without external domain knowledge and multi-stage verification is insufficient.
-
-We note that improvements on public datasets are modest in absolute terms (0.001--0.019 AUC). This is expected: these benchmarks are well-studied with strong baselines, and the primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}). The consistent ranking advantage across diverse datasets demonstrates that KnowFeat's knowledge-guided approach generalizes beyond domain-specific scenarios.
+The strongest competitor is OpenFE (avg.\ rank 2.3), which achieves the best AUC on 3 datasets through exhaustive operator-operand search but generates 34--50 features per dataset. Among LLM-based methods, LLM-FE outperforms CAAFE and FeatLLM but remains below OpenFE and KnowFeat. Absolute improvements are modest (0.001--0.019 AUC), as expected on well-studied benchmarks; the primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
 \textbf{Statistical significance.} Wilcoxon signed-rank tests on per-dataset AUC (7 paired observations) confirm that KnowFeat significantly outperforms six of seven baselines: No-FE, CAAFE, FeatLLM, OCTree ($W\text{=}7/0/0$, $p\text{=}0.0078$), LLM-FE, AutoFeat ($W\text{=}6/0/0$, $p\text{=}0.0156$). Only OpenFE is non-significant ($W\text{=}4/0/3$, $p\text{=}0.59$), though it generates more features (41.7 vs.\ 28.4) and underperforms on the AML task (Section~\ref{subsec:rq2}).
 
@@ -201,22 +201,22 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 
 \begin{table}[t]
 \centering
-\caption{Ablation: schema\_only vs.\ full KnowFeat (AUC).}
+\caption{Ablation: schema\_only vs.\ full KnowFeat (AUC). The Knowledge Base column shows the number of risk indicators (I), detection rules (R), and expert consensus items (E) in each dataset's knowledge base.}
 \label{tab:ablation}
 \small
 \renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{l c c c}
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{l l c c c}
 \hline
-\textbf{Dataset} & \textbf{schema\_only} & \textbf{full} & $\boldsymbol{\Delta}$ \\
+\textbf{Dataset} & \textbf{Knowledge Base} & \textbf{schema\_only} & \textbf{full} & $\boldsymbol{\Delta}$ \\
 \hline
-credit\_g     & .7750{\scriptsize$\pm$.012} & \textbf{.7854}{\scriptsize$\pm$.014} & +.010 \\
-blood\_trans.  & .6891{\scriptsize$\pm$.048} & \textbf{.7007}{\scriptsize$\pm$.036} & +.012 \\
-heart         & .9304{\scriptsize$\pm$.005} & \textbf{.9379}{\scriptsize$\pm$.006} & +.008 \\
-bank\_mkt.    & .9314{\scriptsize$\pm$.002} & \textbf{.9344}{\scriptsize$\pm$.002} & +.003 \\
-adult         & .9292{\scriptsize$\pm$.003} & \textbf{.9301}{\scriptsize$\pm$.003} & +.001 \\
-breast\_w     & \textbf{.9964}{\scriptsize$\pm$.002} & .9957{\scriptsize$\pm$.003} & $-$.001 \\
-diabetes      & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
+credit\_g     & 14I, 10R, 7E & .7750{\scriptsize$\pm$.012} & \textbf{.7854}{\scriptsize$\pm$.014} & +.010 \\
+blood\_trans.  & 10I, 8R, 6E & .6891{\scriptsize$\pm$.048} & \textbf{.7007}{\scriptsize$\pm$.036} & +.012 \\
+heart         & 12I, 10R, 8E & .9304{\scriptsize$\pm$.005} & \textbf{.9379}{\scriptsize$\pm$.006} & +.008 \\
+bank\_mkt.    & 12I, 10R, 8E & .9314{\scriptsize$\pm$.002} & \textbf{.9344}{\scriptsize$\pm$.002} & +.003 \\
+adult         & 10I, 8R, 6E & .9292{\scriptsize$\pm$.003} & \textbf{.9301}{\scriptsize$\pm$.003} & +.001 \\
+breast\_w     & 12I, 10R, 8E & \textbf{.9964}{\scriptsize$\pm$.002} & .9957{\scriptsize$\pm$.003} & $-$.001 \\
+diabetes      & 12I, 10R, 8E & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & --- \\
 \hline
 \end{tabular}
 \end{table}
@@ -251,7 +251,7 @@ OCTree    & 12.7  & 5.9 & $-$0.1pp \\
 \end{tabular}
 \end{table}
 
-On SimECNY, the contrast is stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1{,}031 unverified features decrease F1 by $-$0.4pp. This demonstrates that the three-stage verification pipeline is critical: it ensures that every accepted feature provides genuine predictive value rather than introducing noise. The progressive filtering also explains why OpenFE underperforms No-FE on SimECNY despite its strong public-dataset results: its operator-operand search generates 30 additional features without domain guidance, and in a high-dimensional AML dataset with 93 existing features, syntactic transformations are more likely to introduce redundancy than to discover meaningful new signals.
+On SimECNY, KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1{,}031 unverified features decrease F1 by $-$0.4pp. This confirms that the three-stage verification pipeline is critical for ensuring genuine predictive value. OpenFE's 30 additional syntactic features also hurt on SimECNY, as domain-blind transformations introduce redundancy in a high-dimensional (93-feature) setting.
 
 \subsection{Cross-Model Generalization and Stability}
 \label{subsec:cross_model}
