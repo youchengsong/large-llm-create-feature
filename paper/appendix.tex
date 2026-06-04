@@ -4,36 +4,36 @@
 \section{Domain Knowledge Examples for the AML Dataset}
 \label{sec:appendix_knowledge}
 
-This appendix illustrates the five knowledge types provided to KnowFeat for the SimECNY anti-money laundering dataset ($\sim$200K digital yuan transactions). One representative example per type is shown.
+This appendix illustrates the five knowledge types provided to KnowFeat for the SimECNY anti-money laundering dataset ($\sim$200K digital yuan transactions). One representative example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
 
 \smallskip
 \noindent\textbf{(i) Schema Metadata.}
-Column names, data types, and basic statistics extracted directly from the transaction data. No external knowledge is provided. Example fields: \texttt{amount} (numeric, mean=2{,}847.3), \texttt{wallet\_type} (categorical, 4 types), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (account identifiers).
+Column names, data types, and basic statistics extracted from the transaction data. Example fields: \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types: anonymous/personal/enterprise/merchant), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (wallet identifiers), \texttt{transaction\_mode} (8 categories).
 
 \smallskip
-\noindent\textbf{(ii) Risk Indicator.}
+\noindent\textbf{(ii) Risk Indicator} (from 38-indicator risk taxonomy).
 \begin{quote}
 \small
-\textbf{IND\_05 -- Single-Day Transaction Frequency.} Field: \texttt{timestamp}, \texttt{src}. Direction: higher daily count increases risk. Threshold: $\geq$10 transactions/day triggers alert. Rationale: money mule accounts exhibit abnormally high transaction frequency to rapidly channel funds before detection; regulatory guidelines flag accounts exceeding normal daily activity levels.
+\textbf{[IND\_05]} Dimension: transaction behavior anomaly. Risk class: amount \& frequency anomaly. Field: single-day transaction count. Direction: accounts whose daily transaction count exceeds regulatory thresholds indicate potential money mule activity for rapid fund channeling.
 \end{quote}
 
 \smallskip
-\noindent\textbf{(iii) Detection Rule.}
+\noindent\textbf{(iii) Detection Rule} (from 15-rule detection rule set).
 \begin{quote}
 \small
-\textbf{RULE\_006 -- Scatter-In, Gather-Out Layering.} Fields: \texttt{src}, \texttt{dst}, \texttt{amount}, \texttt{timestamp}. Logic: an account receives funds from $\geq$5 distinct sources within 24h AND transfers $\geq$80\% of cumulative amount to $\leq$2 destinations within 48h. This rule captures the classic ``fan-in, fan-out'' layering pattern where illicit funds are aggregated and rapidly consolidated.
+\textbf{[RULE\_006]} \emph{Scatter-in, gather-out.} Category: structuring. Logic: an account's daily incoming transaction count $\geq$ 20 AND daily total amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing transaction count. Python hint: group by \texttt{(src, date)}, aggregate count and sum, filter accounts with many small inflows and few large outflows.
 \end{quote}
 
 \smallskip
-\noindent\textbf{(iv) Expert Opinion.}
+\noindent\textbf{(iv) Expert Opinion} (from domain expert interviews).
 \begin{quote}
 \small
-\textbf{EXP\_05.} Border-region transactions combined with nighttime activity (00:00--06:00) are a hallmark of cross-border laundering via digital yuan. Feature engineering should construct a \texttt{night\_border\_risk} interaction feature combining geographic indicators with temporal concentration.
+\textbf{[EXP]} Online ``running-score'' laundering pattern: anonymous wallet $\to$ real-name wallet $\to$ bank account chain transfers, typically operating after midnight. Transaction amounts range 300--5{,}000 yuan, sustained over 10--30 days, with daily volume reaching wallet limits. Key signals: concentrated nighttime transfers, anonymous-to-real-name chains, daily volume at capacity.
 \end{quote}
 
 \smallskip
-\noindent\textbf{(v) Court Document Evidence.}
+\noindent\textbf{(v) Court Document Evidence} (from 309 court judgments).
 \begin{quote}
 \small
-\textbf{CASE\_038 -- Pyramid-Shaped Fund Network.} Source: court judgment on digital yuan money laundering. Pattern: the defendant used multiple bank wallets (across 6 banks) to create a multi-layer fund channeling network, receiving funds from upstream accounts and immediately dispersing them via digital yuan transfers. Observable signals: funds traverse $\geq$3 layers within 24h; each layer address is active for $<$48h.
+\textbf{[CASE]} Source: criminal judgment on concealing proceeds of crime. Pattern: the defendant used digital yuan wallets across 6 banks (ABC, WeBank, BoCom, PSBC, CIB, CMB) to create a multi-layer fund channeling network. Observable signals: funds transferred via digital yuan APP, routed through multiple bank wallets as intermediaries, corporate-to-personal account conversion before transfer out.
 \end{quote}
