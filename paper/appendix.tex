@@ -1,69 +1,32 @@
 % appendix.tex
 \appendix
 
-\section{Domain Knowledge Examples for the AML Dataset}
+\section{Domain Knowledge Examples}
 \label{sec:appendix_knowledge}
 
-This appendix illustrates the five knowledge types provided to KnowFeat for the SimECNY anti-money laundering dataset ($\sim$200K digital yuan transactions). One representative example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
+This appendix illustrates the five knowledge types for the SimECNY AML dataset ($\sim$200K digital yuan transactions). One example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
 
 \smallskip
 \noindent\textbf{(i) Schema Metadata.}
-\begin{quote}
-\small
-Column names, data types, and basic statistics extracted from the transaction data. Example fields: \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types: anonymous/personal/enterprise/merchant), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (wallet identifiers), \texttt{transaction\_mode} (8 categories).
-\end{quote}
+Column names, data types, and basic statistics extracted from the transaction data. Example fields include \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types: anonymous, personal, enterprise, merchant), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (wallet identifiers), and \texttt{transaction\_mode} (8 categories).
 
 \smallskip
-\noindent\textbf{(ii) Risk Indicator} (from 38-indicator risk taxonomy).
-\begin{quote}
-\small
-\textbf{[IND\_05]} Dimension: transaction behavior anomaly. Risk class: amount \& frequency anomaly. Field: single-day transaction count. Direction: accounts whose daily transaction count exceeds regulatory thresholds indicate potential money mule activity for rapid fund channeling.
-\end{quote}
+\noindent\textbf{(ii) Risk Indicator} [IND\_05]:
+Dimension: transaction behavior anomaly. Field: single-day transaction count. Accounts exceeding regulatory daily thresholds indicate potential money mule activity.
 
 \smallskip
-\noindent\textbf{(iii) Detection Rule} (from 15-rule detection rule set).
-\begin{quote}
-\small
-\textbf{[RULE\_006]} \emph{Scatter-in, gather-out.} Category: structuring. Logic: an account's daily incoming transaction count $\geq$ 20 AND daily total amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing transaction count. Python hint: group by \texttt{(src, date)}, aggregate count and sum, filter accounts with many small inflows and few large outflows.
-\end{quote}
+\noindent\textbf{(iii) Detection Rule} [RULE\_006]:
+\emph{Scatter-in, gather-out.} Logic: daily incoming count $\geq$ 20 AND daily amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing count. Python hint: group by \texttt{(src, date)}, filter accounts with many small inflows and few large outflows.
 
 \smallskip
-\noindent\textbf{(iv) Expert Opinion} (from domain expert interviews).
-\begin{quote}
-\small
-\textbf{[EXP]} Online ``running-score'' laundering pattern: anonymous wallet $\to$ real-name wallet $\to$ bank account chain transfers, typically operating after midnight. Transaction amounts range 300--5{,}000 yuan, sustained over 10--30 days, with daily volume reaching wallet limits. Key signals: concentrated nighttime transfers, anonymous-to-real-name chains, daily volume at capacity.
-\end{quote}
+\noindent\textbf{(iv) Expert Opinion} [EXP]:
+Online ``running-score'' laundering: anonymous wallet $\to$ real-name wallet $\to$ bank account chain transfers after midnight. Amounts 300--5{,}000 yuan, sustained 10--30 days, daily volume at wallet limits.
 
 \smallskip
-\noindent\textbf{(v) Court Document Evidence} (from 309 court judgments).
-\begin{quote}
-\small
-\textbf{[CASE]} Source: criminal judgment on concealing proceeds of crime. Pattern: the defendant used digital yuan wallets across 6 banks (ABC, WeBank, BoCom, PSBC, CIB, CMB) to create a multi-layer fund channeling network. Observable signals: funds transferred via digital yuan APP, routed through multiple bank wallets as intermediaries, corporate-to-personal account conversion before transfer out.
-\end{quote}
+\noindent\textbf{(v) Court Document Evidence} [CASE]:
+Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6 banks creating a multi-layer fund channeling network via intermediary wallets and corporate-to-personal conversion.
 
-\section{Verification Pipeline Walkthrough}
+\section{Verification Statistics}
 \label{sec:appendix_verification}
 
-We illustrate the three-stage verification pipeline using the \texttt{fan\_in\_fan\_out\_ratio} feature from Case Study 1 (Section~\ref{sec:case_study}).
-
-\smallskip
-\noindent\textbf{L1: Code Execution.} The generated Python code is executed in a sandboxed environment with a 30-second timeout. The code successfully produces a numeric array of length 200,000 (one value per transaction), with no NaN values and correct identifier columns. Execution time: 0.8 seconds. \textit{Result: PASS.}
-
-\smallskip
-\noindent\textbf{L2: Statistical Quality.} Four statistical checks are applied:
-\begin{itemize}
-\small
-    \item \textbf{Information Value}: IV = 0.34, exceeding the noise-calibrated 95th percentile threshold of 0.02. This indicates strong discriminative power between suspicious and normal transactions.
-    \item \textbf{KS Statistic}: KS = 0.28, exceeding the threshold of 0.05, confirming significant distributional separation between positive and negative classes.
-    \item \textbf{Redundancy}: Maximum absolute Pearson correlation with existing features is 0.41, below the 0.7 threshold.
-    \item \textbf{Missing Rate}: 0\% missing values.
-\end{itemize}
-\textit{Result: PASS (all four criteria satisfied).}
-
-\smallskip
-\noindent\textbf{L3: Model Effectiveness.} An XGBoost model is trained on the 93 baseline features plus this candidate, using stratified 80/20 splits across 5 seeds. The augmented model achieves Recall = 0.9701 ($\pm$0.008) vs.\ baseline Recall = 0.9663 ($\pm$0.010), yielding $\Delta$Recall = +0.38pp. Precision remains above 97\%, satisfying the $\geq$90\% constraint. \textit{Result: PASS---feature accepted into the final set.}
-
-\smallskip
-The entire verification process for this feature takes approximately 95 seconds, dominated by L3 model training (88 seconds). Features rejected at L1 or L2 incur minimal cost ($<$2 seconds), which is why the progressive filtering design is critical for computational efficiency.
-
-On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%). The progressive filtering avoids 21 unnecessary L3 evaluations, each requiring $\sim$2.5 minutes of XGBoost training across 5 seeds. The 18 accepted features span all four semantic dimensions: 6 in Amount \& Frequency, 5 in Time \& Geography, 4 in Behavior Sequence, and 3 in Entity Association, reflecting balanced coverage enabled by SHAP-based budget reallocation (Section~\ref{subsec:search}). Notably, the failure memory mechanism prevents redundant exploration: across 4 rounds, only 3 candidates (5.8\%) were rejected for proposing features too similar to previously rejected ones, indicating that the agent effectively learns from prior failures and adapts its strategy in subsequent iterations. The cross-dimension propagation mechanism further contributes to efficiency: in Round~3, the top-performing Amount \& Frequency feature inspired 2 successful Time \& Geography features by adapting the fan-in/fan-out asymmetry concept to temporal transaction patterns. These results demonstrate that the combination of failure memory, SHAP-guided budgeting, and cross-dimension propagation enables KnowFeat to explore the feature space both efficiently and comprehensively.
+On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$50 minutes of L3 training.
