@@ -15,7 +15,7 @@ from paperbanana.core.config import Settings
 async def main():
     source_context = """
     Horizontal bar chart for an IEEE single-column figure (width ~3.5 inches, height ~1.8 inches).
-    COMPACT layout - minimize vertical space. Use standard fonts: Times New Roman or Helvetica, 8-9pt.
+    COMPACT layout - minimize vertical space. MUST use Times New Roman font for ALL text (axis labels, tick labels, bar annotations) to match the IEEE paper body font. Font size 8-9pt.
     White background, no grid lines, clean academic style.
 
     Data (sorted by rank, best at top, 8 methods):
