@@ -18,7 +18,7 @@ Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep 
 
 The emergence of large language models~\cite{brown2020gpt3,touvron2023llama} has enabled a paradigm shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features, using logistic regression as a proxy evaluator. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features. LLM-FE~\cite{abhyankar2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with model performance feedback. OCTree~\cite{nam2024octree} guides LLM-based feature generation with decision tree reasoning, using tree structure feedback to steer the generation process. In the financial domain, RiskTagger~\cite{li2025risktagger} uses an LLM agent with regulatory knowledge to annotate Web3 crypto laundering behaviors, demonstrating that domain knowledge can enhance LLM-based data annotation.
 
-These methods vary in their use of domain knowledge and verification. LLM-FE and RiskTagger incorporate limited domain context (dataset descriptions and regulatory guidelines, respectively), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, OCTree uses decision tree feedback, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline. Furthermore, while RiskTagger provides natural language rationales, none offers structured provenance that traces each feature to specific knowledge assets.
+These methods vary in their use of domain knowledge and verification. LLM-FE incorporates limited domain context (dataset descriptions), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, OCTree uses decision tree feedback, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline, nor offers structured provenance that traces each feature to specific knowledge assets.
 
 Tool-augmented LLM agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, software engineering~\cite{jimenez2024swe}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. In data science, AIDE~\cite{jiang2025aide} and DS-Agent~\cite{guo2024ds} automate end-to-end pipelines but do not address knowledge-grounded feature generation. KnowFeat builds on the tool-use paradigm by equipping an LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification.
 
@@ -35,22 +35,22 @@ Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external kn
 \small
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{1pt}
-\begin{tabular}{l c c c c c c c c}
+\begin{tabular}{l c c c c c c c}
 \hline
-                   & \textbf{Open} & \textbf{Auto} & \textbf{CAA} & \textbf{Feat} & \textbf{LLM-} & \textbf{OC} & \textbf{Risk} & \textbf{Know} \\
-\textbf{Property}  & \textbf{FE}   & \textbf{Feat} & \textbf{FE}  & \textbf{LLM}  & \textbf{FE}   & \textbf{Tree} & \textbf{Tagger} & \textbf{Feat} \\
+                   & \textbf{Open} & \textbf{Auto} & \textbf{CAA} & \textbf{Feat} & \textbf{LLM-} & \textbf{OC} & \textbf{Know} \\
+\textbf{Property}  & \textbf{FE}   & \textbf{Feat} & \textbf{FE}  & \textbf{LLM}  & \textbf{FE}   & \textbf{Tree} & \textbf{Feat} \\
 \hline
-Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-Hier.\ knowledge  &            &            &            &            & $\circ$    &            & $\circ$    & \checkmark \\
-Exec.\ verific.   & --         & --         &            &            &            &            &            & \checkmark \\
-Statistical filt. & \checkmark & \checkmark &            &            &            &            &            & \checkmark \\
-Model validation  &            &            & $\circ$    &            & \checkmark & \checkmark &            & \checkmark \\
-Provenance track. &            &            &            &            &            &            & $\circ$    & \checkmark \\
-Adaptive search   &            &            &            &            & \checkmark & \checkmark &            & \checkmark \\
+Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
+Hier.\ knowledge  &            &            &            &            & $\circ$    &            & \checkmark \\
+Exec.\ verific.   & --         & --         &            &            &            &            & \checkmark \\
+Statistical filt. & \checkmark & \checkmark &            &            &            &            & \checkmark \\
+Model validation  &            &            & $\circ$    &            & \checkmark & \checkmark & \checkmark \\
+Provenance track. &            &            &            &            &            &            & \checkmark \\
+Adaptive search   &            &            &            &            & \checkmark & \checkmark & \checkmark \\
 \hline
 \end{tabular}
 \vspace{2pt}
 
 \raggedright\scriptsize
-$\circ$ Hier.\ knowl.: LLM-FE=dataset desc.; RiskTagger=regulatory guidelines. Model valid.: CAAFE=LogReg proxy. OCTree valid.: DT feedback. Provenance: RiskTagger=NL rationales only.
+$\circ$ Hier.\ knowl.: LLM-FE=dataset desc.\ only. Model valid.: CAAFE=LogReg proxy; OCTree=DT feedback.
 \end{table}
