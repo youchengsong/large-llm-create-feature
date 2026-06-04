@@ -36,7 +36,7 @@ async def main():
 
     === COLUMN 2: "Core Agent" (light cream/yellow background) ===
     Top: Label "Multi-round Reasoning Loop" with a circular arrow icon.
-    Center: A dark rounded box containing "ReAct LLM Agent" (bold text).
+    Center: A rounded box with a medium steel-blue background (#4682B4) containing "ReAct LLM Agent" (bold white text). Do NOT use black or very dark background — use a medium blue that is visible but not harsh.
     Do NOT write any model name like GPT-4o or DeepSeek. Only "ReAct LLM Agent".
     Three tools arranged around the agent box, each with a small icon:
         • explore_data (magnifying glass icon, top-right)

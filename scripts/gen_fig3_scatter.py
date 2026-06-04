@@ -18,19 +18,20 @@ async def main():
     COMPACT layout. Use standard fonts: Times New Roman or Helvetica, 8-9pt.
     White background, clean academic style.
 
-    Data:
+    Data (8 methods):
     | Method    | Avg Features Generated | Avg Rank |
     |-----------|----------------------|----------|
-    | KnowFeat  | 28                   | 1.4      |
-    | OpenFE    | 42                   | 2.1      |
-    | No-FE     | 0                    | 4.5      |
-    | FeatLLM   | 151                  | 4.6      |
-    | LLM-FE    | 17                   | 4.7      |
-    | AutoFeat  | 41                   | 5.1      |
-    | CAAFE     | 6                    | 5.5      |
+    | KnowFeat  | 28.4                 | 1.4      |
+    | OpenFE    | 41.7                 | 2.3      |
+    | No-FE     | 11.7                 | 4.7      |
+    | FeatLLM   | 151.3                | 5.1      |
+    | LLM-FE    | 17.1                 | 5.1      |
+    | AutoFeat  | 35.1                 | 5.5      |
+    | CAAFE     | 14.9                 | 5.9      |
+    | OCTree    | 12.7                 | 5.9      |
 
-    - X-axis: "Average Number of Features Generated" (0 to 160)
-    - Y-axis: "Average Rank" (INVERTED: 1 at top, 6 at bottom)
+    - X-axis: "Average Number of Features Generated" (0 to 165)
+    - Y-axis: "Average Rank" (INVERTED: 1 at top, 7 at bottom)
     - KnowFeat point in dark blue (larger marker or star), others in gray circles
     - Label each point with method name placed near the marker (avoid overlap)
     - The key insight: KnowFeat is in the top-left quadrant (few features, best rank)
@@ -41,13 +42,13 @@ async def main():
     """
 
     raw_data = {
-        "methods": ["KnowFeat", "OpenFE", "No-FE", "FeatLLM", "LLM-FE", "AutoFeat", "CAAFE"],
-        "avg_features_added": [28, 42, 0, 151, 17, 41, 6],
-        "avg_rank": [1.4, 2.1, 4.5, 4.6, 4.7, 5.1, 5.5],
+        "methods": ["KnowFeat", "OpenFE", "No-FE", "FeatLLM", "LLM-FE", "AutoFeat", "CAAFE", "OCTree"],
+        "avg_features_added": [28.4, 41.7, 11.7, 151.3, 17.1, 35.1, 14.9, 12.7],
+        "avg_rank": [1.4, 2.3, 4.7, 5.1, 5.1, 5.5, 5.9, 5.9],
     }
 
     caption = (
-        "Trade-off between feature quantity and average rank. "
+        "Trade-off between feature quantity and average rank across 8 methods. "
         "KnowFeat achieves the best rank with a moderate number of verified features."
     )
 
