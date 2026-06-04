@@ -14,50 +14,68 @@ from paperbanana.core.config import Settings
 
 async def main():
     source_context = """
-    KnowFeat is a knowledge-guided feature engineering framework built on an LLM agent.
-    The figure should span two columns in an IEEE paper (width ~7 inches, height ~3 inches).
-    Use ONLY standard fonts: Times New Roman, Helvetica, or Arial. All text must be at least 8pt.
-    Clean, professional academic style. No decorative elements. White background.
+    Reproduce this EXACT layout for an IEEE two-column paper framework diagram (width ~7 inches, height ~3.2 inches).
+    Use ONLY IEEE-compliant fonts: Arial or Helvetica for labels, Times New Roman for body text. Minimum 7pt font size.
+    White background, clean professional academic style with light pastel colors for regions.
 
-    The pipeline flows LEFT to RIGHT with these components:
+    The figure has 5 major regions flowing LEFT to RIGHT, with a feedback loop at the BOTTOM:
 
-    INPUT (left side, two stacked boxes):
-    Box 1: "Tabular Dataset" (with icon or simple table representation)
-    Box 2: "Hierarchical Domain Knowledge" with 5 types stacked vertically:
-      - Schema Metadata (most general, at top)
-      - Risk Indicators (38 items)
-      - Detection Rules (15 items)
-      - Expert Opinions (12 items)
-      - Court Document Evidence (most specific, at bottom)
-      Label the stack as going from "General" at top to "Specific" at bottom with a vertical arrow.
-      Do NOT use "Level 0/1/2/3/4" labels. Just use the type names directly.
+    === REGION 1: "Inputs" (left side, light blue background region) ===
+    Two stacked boxes:
+    Top box: "Tabular Dataset D" with subtitle "Features x, Labels y" and a small database/table icon.
+    Bottom box: "Domain Knowledge Base K" with subtitle "(column names, types, stats)" at the top,
+    then 5 knowledge types stacked vertically with colored rounded boxes, each slightly indented:
+      - "Schema Only" (lightest shade) — at top, most general
+      - "Risk Indicators" with "(38 structured indicators)" in small text
+      - "Detection Rules" with "(15 operational rules with logic)" in small text
+      - "Expert Opinions" with "(tacit knowledge)" in small text
+      - "Court Document Evidence" with "(309 legal cases)" in small text — at bottom, most specific
+    IMPORTANT: Do NOT use "Level 0/1/2/3/4" labels. Only show the type names above.
+    Show a vertical gradient arrow on the left side of this stack from "General" (top) to "Specific" (bottom).
+    Label the whole region "Domain Knowledge Base K" at the bottom.
 
-    CORE (center): "LLM Agent" box (do NOT mention any specific model name like GPT-4o or DeepSeek - just "LLM Agent")
-    The agent has 3 tools shown as small sub-boxes or icons:
-    - Data Exploration
-    - Feature Registration (with provenance fields)
-    - Verification Trigger
-    Show a circular arrow or loop indicating multi-round generation.
-    Also show "Failure Memory" feeding back into the agent.
+    === REGION 2: "Core Agent" (center, light yellow/cream background region) ===
+    Title at top: "Core Agent"
+    Show "Multi-round Reasoning Loop" as a circular arrow at the top.
+    Three tool icons/boxes arranged around the agent:
+      - "explore_data" (with magnifying glass icon)
+      - "generate_feature" (with gear icon) — subtitle "Candidate Feature & Provenance"
+      - "execute_sandbox" (with terminal icon)
+    Center label: "ReAct LLM Agent" (bold, NO model name like GPT-4o or DeepSeek)
+    At the bottom-left: "Reallocated Budget" arrow feeding into the agent from the feedback loop below.
 
-    VERIFICATION (right of agent): Three-stage pipeline shown as 3 connected filter boxes:
-    - L1: Code Execution Sandbox
-    - L2: Statistical Quality (IV, KS, redundancy, missing rate)
-    - L3: Model Effectiveness (XGBoost, 5 seeds)
-    Show arrows: candidate -> L1 -> L2 -> L3 -> Accepted/Rejected
-    Rejected features go back to Failure Memory (feedback arrow).
+    === REGION 3: "Three-Stage Verification Pipeline" (right-center, light green background region) ===
+    Title at top: "Three-Stage Verification Pipeline"
+    Three boxes flowing left to right:
+      - "L1: Execution" with small text: "Syntax & Shape Checks, 30s Timeout, Up to 2 Repair Attempts"
+      - "L2: Statistical Quality" with small text: "IV, KS > Threshold, Redundancy < 0.7, Missing < 50%"
+      - "L3: Model Effectiveness" with small text: "XGBoost Evaluation, ΔAUC > 0 or ΔRecall > 0"
+    Show "Pass" arrow from L3 going right to Outputs.
+    Show "Fail" arrow going down to "Failure Context" which feeds back to the agent.
 
-    OUTPUT (right side):
-    - "Accepted Features F*" box
-    - "Provenance Cards" box (showing traceability)
+    === REGION 4: "Outputs" (far right, light purple background region) ===
+    Title at top: "Outputs"
+    Two stacked boxes:
+      - "Accepted Feature Set F*" with subtitle "Executable Code"
+      - "Provenance Cards" with subtitle "Knowledge Source, Reasoning Chain, Computation"
 
-    FEEDBACK LOOP (bottom, COMPACT - keep this section small and tight):
-    Show SHAP Feedback arrow from accepted features back to Budget Reallocation, then back to Agent.
-    List 4 dimension labels in a SINGLE compact row or small grouped box: Amount & Frequency, Time & Geography, Behavior Sequence, Entity Association.
-    Do NOT expand each dimension into a large separate box. Keep the SHAP/budget area visually small.
+    === REGION 5: "Search Strategy & Dynamic Budgeting" (bottom, light gray background region) ===
+    This spans the full width at the bottom.
+    Left side: "SHAP-guided Inverse-Proportion Budget Reallocation" box
+    Center: "4 Semantic Dimensions" box with 4 sub-boxes in a 2x2 grid:
+      - "Amount & Frequency" | "Time & Geography"
+      - "Behavior Sequence" | "Entity Association"
+    Right side: "Forward Selection" box, then "Cross-dimension propagation" label, then "Failure Memory" box
+    with label "Prevents Repeated Failures"
+    Show arrows connecting: SHAP reallocation -> dimensions -> forward selection -> failure memory
+    Show "Failure Context" arrow from verification (Region 3) feeding into this bottom region.
 
-    Keep the diagram compact but readable. Use light colors for boxes (light blue, light green, light yellow).
-    Arrows should be clear with labels where needed.
+    === ARROWS (use colored arrows to show flow) ===
+    - Green arrows: main data flow (inputs -> agent -> verification -> outputs)
+    - Orange/yellow arrows: feedback loops (failure context, SHAP reallocation)
+    - Dashed arrows: secondary connections (cross-dimension propagation)
+
+    The overall feel should match a polished IEEE conference paper figure: structured, professional, information-dense but readable.
     """
 
     caption = (
