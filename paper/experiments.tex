@@ -62,7 +62,7 @@ Table~\ref{tab:main_results} presents the AUC comparison on seven public dataset
 
 \begin{table*}[t]
 \centering
-\caption{AUC comparison on public datasets (mean$\pm$std over 5 seeds). \textbf{Bold}: best; \underline{underline}: second best. T/O = timeout.}
+\caption{AUC comparison on public datasets (mean$\pm$std over 5 seeds). \textbf{Bold}: best; \underline{underline}: second best.}
 \label{tab:main_results}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -71,16 +71,19 @@ Table~\ref{tab:main_results} presents the AUC comparison on seven public dataset
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{LLM-FE} & \textbf{KnowFeat} \\
 \hline
-credit\_g          & .7670{\scriptsize$\pm$.021} & \underline{.7833{\scriptsize$\pm$.031}} & .7540{\scriptsize$\pm$.017} & .7596{\scriptsize$\pm$.023} & .7604{\scriptsize$\pm$.022} & .7615{\scriptsize$\pm$.026} & \textbf{.7854{\scriptsize$\pm$.014}} \\
-diabetes           & .8027{\scriptsize$\pm$.033} & \textbf{.8252{\scriptsize$\pm$.034}} & .8089{\scriptsize$\pm$.027} & .8032{\scriptsize$\pm$.030} & .8096{\scriptsize$\pm$.032} & \underline{.8148{\scriptsize$\pm$.033}} & .8190{\scriptsize$\pm$.032} \\
-blood\_transfusion & .6824{\scriptsize$\pm$.043} & .6654{\scriptsize$\pm$.040} & .6824{\scriptsize$\pm$.043} & .6779{\scriptsize$\pm$.043} & .6805{\scriptsize$\pm$.044} & .6649{\scriptsize$\pm$.045} & \textbf{.7007{\scriptsize$\pm$.036}} \\
-heart              & .9320{\scriptsize$\pm$.007} & \textbf{.9417{\scriptsize$\pm$.011}} & .9340{\scriptsize$\pm$.003} & .9302{\scriptsize$\pm$.006} & .9297{\scriptsize$\pm$.004} & .9330{\scriptsize$\pm$.005} & \underline{.9379{\scriptsize$\pm$.006}} \\
-bank\_marketing    & .9330{\scriptsize$\pm$.002} & \textbf{.9374{\scriptsize$\pm$.002}} & T/O & .9334{\scriptsize$\pm$.002} & .9337{\scriptsize$\pm$.002} & .9317{\scriptsize$\pm$.002} & \underline{.9344{\scriptsize$\pm$.002}} \\
-breast\_w          & .9926{\scriptsize$\pm$.005} & \underline{.9944{\scriptsize$\pm$.005}} & .9936{\scriptsize$\pm$.004} & .9924{\scriptsize$\pm$.006} & .9924{\scriptsize$\pm$.005} & .9939{\scriptsize$\pm$.001} & \textbf{.9957{\scriptsize$\pm$.003}} \\
-adult              & .9288{\scriptsize$\pm$.004} & \underline{.9300{\scriptsize$\pm$.003}} & .9254{\scriptsize$\pm$.004} & .9286{\scriptsize$\pm$.003} & .9289{\scriptsize$\pm$.003} & .9275{\scriptsize$\pm$.003} & \textbf{.9301{\scriptsize$\pm$.003}} \\
+credit\_g          & .767{\scriptsize$\pm$.021} & \underline{.783{\scriptsize$\pm$.031}} & .754{\scriptsize$\pm$.017} & .760{\scriptsize$\pm$.023} & .760{\scriptsize$\pm$.022} & .762{\scriptsize$\pm$.026} & \textbf{.785{\scriptsize$\pm$.014}} \\
+diabetes           & .803{\scriptsize$\pm$.033} & \textbf{.825{\scriptsize$\pm$.034}} & .809{\scriptsize$\pm$.027} & .803{\scriptsize$\pm$.030} & .810{\scriptsize$\pm$.032} & \underline{.815{\scriptsize$\pm$.033}} & .819{\scriptsize$\pm$.032} \\
+blood\_transfusion & .682{\scriptsize$\pm$.043} & .665{\scriptsize$\pm$.040} & .682{\scriptsize$\pm$.043} & .678{\scriptsize$\pm$.043} & .681{\scriptsize$\pm$.044} & .665{\scriptsize$\pm$.045} & \textbf{.701{\scriptsize$\pm$.036}} \\
+heart              & .932{\scriptsize$\pm$.007} & \textbf{.942{\scriptsize$\pm$.011}} & .934{\scriptsize$\pm$.003} & .930{\scriptsize$\pm$.006} & .930{\scriptsize$\pm$.004} & .933{\scriptsize$\pm$.005} & \underline{.938{\scriptsize$\pm$.006}} \\
+bank\_marketing    & .933{\scriptsize$\pm$.002} & \textbf{.937{\scriptsize$\pm$.002}} & T/O$^\dagger$ & .933{\scriptsize$\pm$.002} & .934{\scriptsize$\pm$.002} & .932{\scriptsize$\pm$.002} & \underline{.934{\scriptsize$\pm$.002}} \\
+breast\_w          & .993{\scriptsize$\pm$.005} & \underline{.994{\scriptsize$\pm$.005}} & .994{\scriptsize$\pm$.004} & .992{\scriptsize$\pm$.006} & .992{\scriptsize$\pm$.005} & .994{\scriptsize$\pm$.001} & \textbf{.996{\scriptsize$\pm$.003}} \\
+adult              & .929{\scriptsize$\pm$.004} & \underline{.930{\scriptsize$\pm$.003}} & .925{\scriptsize$\pm$.004} & .929{\scriptsize$\pm$.003} & .929{\scriptsize$\pm$.003} & .928{\scriptsize$\pm$.003} & \textbf{.930{\scriptsize$\pm$.003}} \\
 \hline
 \textbf{Avg.\ Rank} & 4.5 & \underline{2.1} & 5.1 & 5.5 & 4.6 & 4.7 & \textbf{1.4} \\
 \hline
+\textbf{Avg.\ \#Feat.} & 11.7 & 41.7 & 35.1$^*$ & 14.9 & 151.3 & 17.1 & 28.4 \\
+\hline
+\multicolumn{8}{l}{\scriptsize $^\dagger$T/O: AutoFeat exceeded the 24-hour time limit. $^*$Avg.\ computed over 6 non-T/O datasets.} \\
 \end{tabular}
 \end{table*}
 
@@ -104,7 +107,7 @@ Table~\ref{tab:simecny} presents results on the SimECNY AML dataset with scale\_
 
 \begin{table}[t]
 \centering
-\caption{SimECNY AML results (spw=auto, 5 seeds).}
+\caption{SimECNY AML results (spw=auto, 5 seeds). $n_f$: total feature count including 93 baseline features---KnowFeat adds only 18 features vs.\ FeatLLM's 1{,}031.}
 \label{tab:simecny}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -159,33 +162,7 @@ On diabetes, schema-only generates \emph{zero} features passing L3, while full k
 \subsection{RQ4: Feature Quantity vs.\ Quality}
 \label{subsec:rq4}
 
-Table~\ref{tab:feature_count} compares the number of features generated by each method.
-
-\begin{table}[t]
-\centering
-\caption{Number of features (incl.\ original). T/O = timeout.}
-\label{tab:feature_count}
-\small
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{1.5pt}
-\begin{tabular}{l r r r r r r r}
-\hline
-\textbf{Dataset} & \textbf{No-FE} & \textbf{Open.} & \textbf{Auto.} & \textbf{CAA.} & \textbf{Feat.} & \textbf{LLM-} & \textbf{Ours} \\
- & & \textbf{FE} & \textbf{Feat} & \textbf{FE} & \textbf{LLM} & \textbf{FE} & \\
-\hline
-credit\_g     & 20  & 50  & 23  & 24  & 280  & 21  & 46  \\
-diabetes      & 8   & 38  & 13  & 9   & 152  & 15  & 24  \\
-blood\_trans. & 4   & 34  & 4   & 7   & 120  & 9   & 12  \\
-heart         & 11  & 41  & 21  & 14  & 98   & 19  & 31  \\
-bank\_mkt.    & 16  & 46  & T/O & 21  & 132  & 20  & 36  \\
-breast\_w     & 9   & 39  & 20  & 10  & 107  & 15  & 16  \\
-adult         & 14  & 44  & 165 & 19  & 170  & 21  & 34  \\
-SimECNY       & 93  & 123 & --- & 94  & 1124 & 94  & 111 \\
-\hline
-\end{tabular}
-\end{table}
-
-FeatLLM generates the most features (98--1,124) yet achieves the worst performance on most datasets. LLM-FE generates few features (9--21) but cannot consistently outperform the No-FE baseline.
+The last row of Table~\ref{tab:main_results} reports the average number of features per method. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. LLM-FE generates few features (avg.\ 17) but cannot consistently outperform No-FE. On SimECNY (Table~\ref{tab:simecny}), KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp.
 
 Figure~\ref{fig:feat_vs_rank} visualizes this trade-off. KnowFeat strikes an effective balance: it generates a moderate number of features (12--46 on public datasets, +18 on SimECNY) that have all passed the L1$\to$L2$\to$L3 pipeline. On SimECNY, the contrast is particularly stark: KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1,031 unverified features \emph{decrease} F1 by $-$0.4pp. Beyond quantity, every KnowFeat-generated feature includes a provenance card recording the knowledge assets, reasoning chain, and computation steps, providing full auditability (see Section~\ref{sec:case_study}).
 

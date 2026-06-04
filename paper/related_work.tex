@@ -30,25 +30,27 @@ Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external kn
 
 \begin{table}[t]
 \centering
-\caption{Comparison of automated feature engineering methods. \checkmark: fully supported; $\triangle$: partially supported (see footnotes); blank: not supported; --: not applicable.}
+\caption{Comparison of automated feature engineering methods. \checkmark: fully supported; $\circ$: partially supported; blank: not supported; --: not applicable.}
 \label{tab:comparison}
 \small
 \renewcommand{\arraystretch}{1.2}
 \setlength{\tabcolsep}{1pt}
 \begin{tabular}{l c c c c c c c}
 \hline
-\textbf{Property} & \textbf{OpenFE} & \textbf{Auto.} & \textbf{CAAFE} & \textbf{Feat.} & \textbf{LLM-} & \textbf{Risk} & \textbf{Ours} \\
- & & & & & \textbf{FE} & \textbf{Tag.} & \\
+                   & \textbf{Open} & \textbf{Auto} & \textbf{CAA} & \textbf{Feat} & \textbf{LLM-} & \textbf{Risk} & \textbf{Know} \\
+\textbf{Property}  & \textbf{FE}   & \textbf{Feat} & \textbf{FE}  & \textbf{LLM}  & \textbf{FE}   & \textbf{Tagger} & \textbf{Feat} \\
 \hline
 Semantic underst. &            &            & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark \\
-Hier.\ knowl.     &            &            &            &            & $\triangle^a$    & $\triangle^b$    & \checkmark \\
+Hier.\ knowledge  &            &            &            &            & $\circ$    & $\circ$    & \checkmark \\
 Exec.\ verific.   & --         & --         &            &            &            &            & \checkmark \\
 Statistical filt. & \checkmark & \checkmark &            &            &            &            & \checkmark \\
-Model validation  &            &            & $\triangle^c$       &            & \checkmark &            & \checkmark \\
-Provenance track. &            &            &            &            &            & $\triangle^d$    & \checkmark \\
+Model validation  &            &            & $\circ$    &            & \checkmark &            & \checkmark \\
+Provenance track. &            &            &            &            &            & $\circ$    & \checkmark \\
 Adaptive search   &            &            &            &            & \checkmark &            & \checkmark \\
 \hline
-\multicolumn{8}{l}{\scriptsize $^a$Dataset descriptions only. $^b$Regulatory guidelines only. $^c$Logistic regression proxy.} \\
-\multicolumn{8}{l}{\scriptsize $^d$Natural language rationales only, no structured provenance.} \\
 \end{tabular}
+\vspace{2pt}
+
+\raggedright\scriptsize
+$\circ$ Hier.\ knowl.: LLM-FE=dataset desc.; RiskTagger=regulatory guidelines. Model valid.: CAAFE=LogReg proxy. Provenance: RiskTagger=NL rationales only.
 \end{table}
