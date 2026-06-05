@@ -7,23 +7,23 @@
 This appendix illustrates the five knowledge types for the SimECNY AML dataset ($\sim$200K digital yuan transactions). One example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
 
 \smallskip
-\noindent\textbf{(i) Schema Metadata.}
+\noindent\textbf{(1) Schema Metadata.}
 Column names, data types, and basic statistics extracted from the transaction data. Example fields include \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types: anonymous, personal, enterprise, merchant), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (wallet identifiers), and \texttt{transaction\_mode} (8 categories).
 
 \smallskip
-\noindent\textbf{(ii) Risk Indicator} [IND\_05]:
+\noindent\textbf{(2) Risk Indicator} [IND\_05]:
 Dimension: transaction behavior anomaly. Field: single-day transaction count. Accounts exceeding regulatory daily thresholds indicate potential money mule activity.
 
 \smallskip
-\noindent\textbf{(iii) Detection Rule} [RULE\_006]:
+\noindent\textbf{(3) Detection Rule} [RULE\_006]:
 \emph{Scatter-in, gather-out.} Logic: daily incoming count $\geq$ 20 AND daily amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing count. Python hint: group by \texttt{(src, date)}, filter accounts with many small inflows and few large outflows.
 
 \smallskip
-\noindent\textbf{(iv) Expert Opinion} [EXP]:
+\noindent\textbf{(4) Expert Opinion} [EXP]:
 Online ``running-score'' laundering: anonymous wallet $\to$ real-name wallet $\to$ bank account chain transfers after midnight. Amounts 300--5{,}000 yuan, sustained 10--30 days, daily volume at wallet limits.
 
 \smallskip
-\noindent\textbf{(v) Court Document Evidence} [CASE]:
+\noindent\textbf{(5) Court Document Evidence} [CASE]:
 Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6 banks creating a multi-layer fund channeling network via intermediary wallets and corporate-to-personal conversion.
 
 \smallskip
