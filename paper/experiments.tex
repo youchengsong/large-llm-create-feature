@@ -192,6 +192,19 @@ To verify robustness, we re-evaluate all methods with scale\_pos\_weight=1 (no c
 \textbf{Analysis by semantic dimension.}
 The 18 accepted features span all four semantic dimensions defined in Section~\ref{subsec:search}: 6 in Amount \& Frequency, 5 in Time \& Geography, 4 in Behavior Sequence, and 3 in Entity Association. SHAP analysis on the final model reveals that Entity Association features contribute the highest mean absolute SHAP values despite being fewest in number, indicating that network topology features (e.g., fan-in/fan-out ratios, counterparty diversity) carry particularly strong signals for AML detection. Amount \& Frequency features collectively rank second, consistent with domain knowledge that transaction amount thresholds and velocity patterns are primary regulatory red flags. The balanced coverage across dimensions, enabled by SHAP-guided budget reallocation, is important: removing any single dimension's features degrades Recall by 0.3--0.8pp, confirming that the dimensions capture complementary signals.
 
+\subsection{Representative Feature Analysis}
+\label{sec:case_study}
+
+We present two representative cases from the SimECNY AML dataset, highlighting multi-source knowledge fusion and cross-dimensional interaction. Table~\ref{tab:provenance} shows the complete provenance cards for both features.
+
+\textbf{Case 1: Fan-In/Fan-Out Ratio (Network Topology).}
+This feature fuses four knowledge assets spanning three types (rules, patterns, indicators) to produce a topology-aware asymmetry score. The key insight from RULE\_006 and RULE\_013 is that both scatter-in/gather-out layering and pyramid fund networks manifest as fan-in/fan-out asymmetry. PAT\_A03 further confirms that money mule wallets typically exhibit fan-in $\gg$ fan-out. IND\_15 adds a weighting factor based on abnormal transaction modes (many-to-many, one-to-many), amplifying the signal for wallets with suspicious mode distributions. No syntactic method would produce this feature, as it requires understanding that directional imbalance combined with abnormal mode prevalence characterizes money mule behavior.
+
+\textbf{Case 2: Cross-Dimensional Risk Interaction.}
+This feature demonstrates \emph{cross-dimensional interaction}: geographic context (account metadata) combined with temporal patterns (transaction logs), guided by expert knowledge. The critical insight from EXP\_05 is that neither geographic risk nor off-hour activity alone is sufficient evidence; only their conjunction indicates cross-border laundering. The multiplicative form encodes this domain constraint exactly: border-region accounts with normal trading hours score zero, as do off-hour traders in non-border regions.
+
+Both cases illustrate capabilities that syntactic methods cannot replicate. The provenance cards in Table~\ref{tab:provenance} trace every design decision to specific knowledge assets, providing the provenance trail required for regulatory review.
+
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3}
 
