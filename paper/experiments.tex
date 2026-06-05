@@ -192,9 +192,8 @@ To verify robustness, we re-evaluate all methods with scale\_pos\_weight=1 (no c
 \textbf{Analysis by semantic dimension.}
 The 18 accepted features span all four semantic dimensions defined in Section~\ref{subsec:search}: 6 in Amount \& Frequency, 5 in Time \& Geography, 4 in Behavior Sequence, and 3 in Entity Association. SHAP analysis on the final model reveals that Entity Association features contribute the highest mean absolute SHAP values despite being fewest in number, indicating that network topology features (e.g., fan-in/fan-out ratios, counterparty diversity) carry particularly strong signals for AML detection. Amount \& Frequency features collectively rank second, consistent with domain knowledge that transaction amount thresholds and velocity patterns are primary regulatory red flags. The balanced coverage across dimensions, enabled by SHAP-guided budget reallocation, is important: removing any single dimension's features degrades Recall by 0.3--0.8pp, confirming that the dimensions capture complementary signals.
 
-\subsection{Representative Feature Analysis}
+\textbf{Representative feature analysis.}
 \label{sec:case_study}
-
 We present two representative cases from the SimECNY AML dataset, highlighting multi-source knowledge fusion and cross-dimensional interaction. Table~\ref{tab:provenance} shows the complete provenance cards for both features.
 
 \textbf{Case 1: Fan-In/Fan-Out Ratio (Network Topology).}
