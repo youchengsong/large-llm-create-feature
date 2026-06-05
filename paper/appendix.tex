@@ -30,7 +30,7 @@ Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6
 
 \smallskip
 \noindent\textbf{Verification Statistics.}
-On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$53 minutes by avoiding unnecessary L3 evaluations on the 21 candidates rejected at L1/L2. The per-round breakdown is: Round~1 produces 18 candidates (5 accepted), Round~2 produces 16 (6 accepted), Round~3 produces 11 (5 accepted), and Round~4 produces 7 (2 accepted). The declining candidate count reflects failure memory effectiveness: as more rejected ideas accumulate, the agent avoids previously explored directions and converges faster. Forward selection recovers 3 additional features from L2-passed but L3-failed candidates across all rounds, contributing +0.4pp to the final Recall improvement.
+On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$53 minutes by avoiding unnecessary L3 evaluations on the 21 candidates rejected at L1/L2. The per-round breakdown is: Round~1 produces 18 candidates (5 accepted), Round~2 produces 16 (6 accepted), Round~3 produces 11 (5 accepted), and Round~4 produces 7 (2 accepted). The declining candidate count reflects failure memory effectiveness: as more rejected ideas accumulate, the agent avoids previously explored directions and converges faster. Forward selection further recovers a small number of features from L2-passed but L3-failed candidates that prove effective in combination.
 
 \subsection{Practical Considerations}
 \label{sec:practical}
