@@ -254,9 +254,6 @@ OCTree    & 12.7  & 5.9 & $-$0.1pp \\
 
 On SimECNY, KnowFeat's 18 verified features improve F1 by +1.5pp, while FeatLLM's 1{,}031 unverified features decrease F1 by $-$0.4pp. This confirms that the three-stage verification pipeline is critical for ensuring genuine predictive value. OpenFE's 30 additional syntactic features also hurt on SimECNY, as domain-blind transformations introduce redundancy in a high-dimensional (93-feature) setting.
 
-\subsection{Cross-Model Generalization and Stability}
-\label{subsec:cross_model}
-
 \textbf{Cross-model validation.} To verify that accepted features are not XGBoost-specific, we evaluate KnowFeat-generated features with LightGBM~\cite{ke2017lightgbm} and CatBoost. On credit\_g, adult, and SimECNY, KnowFeat features improve LightGBM AUC by +0.015, +0.005, and +0.0003 respectively, and CatBoost AUC by +0.012, +0.003, and +0.0002, comparable to XGBoost gains, confirming that L2's model-independent filters (IV, KS) produce transferable signals.
 
 \textbf{Generation stability.} We run 3 independent end-to-end executions on adult (DeepSeek-V4-0324-Flash, temperature=0). The accepted feature counts (44, 46, 43) and final AUC (0.9301, 0.9298, 0.9305; std $<$ 0.001) are highly consistent despite different feature names/code, demonstrating \emph{functional reproducibility} through the verification pipeline.
