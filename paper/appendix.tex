@@ -1,7 +1,9 @@
 % appendix.tex
-\appendices
+\appendix
+\section{Supplementary Material}
+\label{sec:appendix}
 
-\section{Domain Knowledge and Verification Statistics}
+\subsection{Domain Knowledge and Verification Statistics}
 \label{sec:appendix_knowledge}
 
 This appendix illustrates the five knowledge types for the SimECNY AML dataset ($\sim$200K digital yuan transactions). One example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
@@ -30,7 +32,7 @@ Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6
 \noindent\textbf{Verification Statistics.}
 On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$50 minutes of L3 training. The per-round breakdown is: Round~1 produces 18 candidates (5 accepted), Round~2 produces 16 (6 accepted), Round~3 produces 11 (5 accepted), and Round~4 produces 7 (2 accepted). The declining candidate count reflects failure memory effectiveness: as more rejected ideas accumulate, the agent avoids previously explored directions and converges faster. Forward selection recovers 3 additional features from L2-passed but L3-failed candidates across all rounds, contributing +0.4pp to the final Recall improvement.
 
-\section{Practical Considerations}
+\subsection{Practical Considerations}
 \label{sec:practical}
 
 We discuss practical aspects of deploying KnowFeat based on our experience with the SimECNY dataset.
