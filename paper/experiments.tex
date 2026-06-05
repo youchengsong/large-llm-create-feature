@@ -7,7 +7,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a realistic anti-mone
     \item \textbf{RQ1}: Does KnowFeat improve predictive performance on public datasets?
     \item \textbf{RQ2}: How does KnowFeat perform on a realistic AML task with severe class imbalance?
     \item \textbf{RQ3}: What is the contribution of domain knowledge?
-    \item \textbf{RQ4}: How does KnowFeat balance feature quantity vs.\ quality?
+    \item \textbf{RQ4}: How does KnowFeat balance feature quantity vs.\ quality, and do verified features generalize?
 \end{itemize}
 
 \subsection{Experimental Setup}
@@ -225,7 +225,7 @@ diabetes      & 12I, 10R, 8E & --- (0 feat.) & .8190{\scriptsize$\pm$.032} & ---
 \textbf{Which knowledge types matter most?}
 On SimECNY, we further ablate individual knowledge types by removing one type at a time from the full configuration. Removing court document evidence causes the largest drop ($-$0.9pp Recall), as case-derived patterns such as pyramid fund networks and multi-layer channeling structures provide concrete, legally validated signals that the LLM cannot infer from other sources. Removing detection rules ranks second ($-$0.6pp Recall), reflecting their role in encoding precise operational logic (e.g., scatter-in/gather-out thresholds). Removing risk indicators or expert opinions each causes moderate drops ($-$0.3pp to $-$0.4pp Recall). These results suggest that more specific, concrete knowledge types contribute disproportionately, supporting our hierarchical design where general metadata serves as a foundation and domain-specific evidence provides the strongest signals.
 
-\subsection{RQ4: Feature Quantity vs.\ Quality}
+\subsection{RQ4: Feature Quantity, Quality, and Generalization}
 \label{subsec:rq4}
 
 Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance. The key insight: more features without verification \emph{hurts} performance. FeatLLM generates the most features (avg.\ 151) yet achieves the worst average rank. KnowFeat generates a moderate number of verified features (12--46 on public datasets, +18 on SimECNY) that consistently improve performance.
