@@ -29,6 +29,11 @@
 \usepackage[colorlinks=true,linkcolor=black,citecolor=black,urlcolor=black,bookmarks=true]{hyperref}
 \usepackage{cite}
 
+% Restore footnote rule for \thanks (IEEEtran suppresses it by default)
+\makeatletter
+\renewcommand{\footnoterule}{\kern-3\p@\hrule\@width 0.4\columnwidth\kern 2.6\p@}
+\makeatother
+
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
