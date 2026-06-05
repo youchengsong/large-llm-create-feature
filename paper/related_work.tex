@@ -5,7 +5,7 @@
 % Framework figure - placed early so it appears at top of page 3, before Table I
 \begin{figure*}[!t]
     \centering
-    \includegraphics[width=0.85\textwidth]{figures/framework.png}
+    \includegraphics[width=\textwidth]{figures/framework.pdf}
     \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
     \label{fig:framework}
 \end{figure*}
@@ -16,7 +16,7 @@ Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep 
 
 \subsection{LLM-Based Feature Engineering}
 
-The emergence of large language models~\cite{brown2020gpt3,touvron2023llama} has enabled a paradigm shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features, using logistic regression as a proxy evaluator. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features. LLM-FE~\cite{abhyankar2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with model performance feedback. OCTree~\cite{nam2024octree} guides LLM-based feature generation with decision tree reasoning, using tree structure feedback to steer the generation process. In the financial domain, RiskTagger~\cite{li2025risktagger} uses an LLM agent with regulatory knowledge to annotate Web3 crypto laundering behaviors, demonstrating that domain knowledge can enhance LLM-based data annotation.
+Large language models~\cite{brown2020gpt3,touvron2023llama} have enabled a shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features, using logistic regression as a proxy evaluator. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features. LLM-FE~\cite{abhyankar2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with model performance feedback. OCTree~\cite{nam2024octree} guides LLM-based feature generation with decision tree reasoning, using tree structure feedback to steer the generation process. In the financial domain, RiskTagger~\cite{li2025risktagger} uses an LLM agent with regulatory knowledge to annotate Web3 crypto laundering behaviors, demonstrating that domain knowledge can enhance LLM-based data annotation.
 
 These methods vary in their use of domain knowledge and verification. LLM-FE incorporates limited domain context (dataset descriptions), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, OCTree uses decision tree feedback, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline, nor offers structured provenance that traces each feature to specific knowledge assets.
 
@@ -26,7 +26,7 @@ Table~\ref{tab:comparison} summarizes the key differences among related methods.
 
 \subsection{Domain Knowledge Integration in Machine Learning}
 
-Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures, and transfer learning~\cite{weiss2016survey} implicitly transfers knowledge through pretrained representations, but both are designed for unstructured data rather than tabular features. In financial AML, domain experts manually encode risk indicators, structuring patterns, and network centrality measures as hand-crafted features~\cite{chen2018aml}. Regulatory bodies publish red-flag typologies (e.g., FATF guidelines~\cite{fatf2012recommendations}), and institutions maintain internal detection rules from compliance experience and legal proceedings~\cite{weber2019anti}. This rich, structured knowledge has not been systematically leveraged by automated feature engineering methods.
+Knowledge-infused learning~\cite{kursuncu2020knowledge} incorporates external knowledge graphs into neural architectures, and transfer learning~\cite{weiss2016survey} transfers knowledge through pretrained representations, but both target unstructured data rather than tabular features. In financial AML, domain experts manually encode risk indicators, structuring patterns, and network centrality measures as features~\cite{chen2018aml}. Regulatory bodies publish red-flag typologies (e.g., FATF guidelines~\cite{fatf2012recommendations}), and institutions maintain internal detection rules from compliance experience and legal proceedings~\cite{weber2019anti}. This rich, structured knowledge has not been leveraged by automated feature engineering methods.
 
 \begin{table}[t]
 \centering
