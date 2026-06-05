@@ -14,11 +14,11 @@ Column names, data types, and basic statistics extracted from the transaction da
 
 \smallskip
 \noindent\textbf{(2) Risk Indicator} [IND\_05]:
-Dimension: transaction behavior anomaly. Field: single-day transaction count. Accounts exceeding regulatory daily thresholds indicate potential money mule activity.
+Dimension: transaction behavior anomaly. Field: single-day transaction count. Accounts exceeding regulatory daily thresholds indicate potential money mule activity. Each indicator includes a risk dimension, relevant data field, and expected directionality.
 
 \smallskip
 \noindent\textbf{(3) Detection Rule} [RULE\_006]:
-\emph{Scatter-in, gather-out.} Logic: daily incoming count $\geq$ 20 AND daily amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing count. Python hint: group by \texttt{(src, date)}, filter accounts with many small inflows and few large outflows.
+\emph{Scatter-in, gather-out.} Logic: daily incoming count $\geq$ 20 AND daily amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing count. Python hint: group by \texttt{(src, date)}, filter accounts with many small inflows and few large outflows. Each rule includes a confidence level and a Python implementation hint for the agent.
 
 \smallskip
 \noindent\textbf{(4) Expert Opinion} [EXP]:
