@@ -2,7 +2,7 @@
 \section{Methodology}
 \label{sec:method}
 
-This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: hierarchical knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and explainable provenance output (Section~\ref{subsec:provenance_method}).
+This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: multi-type knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and explainable provenance output (Section~\ref{subsec:provenance_method}).
 
 \subsection{Framework Overview}
 \label{subsec:overview}
@@ -13,7 +13,7 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
 
 \begin{enumerate}
     \item \textbf{Initialization.} Load the dataset, compute baseline model performance, and calibrate statistical thresholds via noise injection (Section~\ref{subsec:verification}).
-    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-type hierarchy and inject the selected types into the agent's context (Section~\ref{subsec:knowledge}).
+    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-type taxonomy and inject the selected types into the agent's context (Section~\ref{subsec:knowledge}).
     \item \textbf{Multi-Round Generation.} For each round $r = 1, \ldots, R_{\max}$:
     \begin{enumerate}
         \item Allocate per-dimension budgets based on SHAP feedback from the previous round.
@@ -25,10 +25,10 @@ The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an 
     \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and explainable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
 \end{enumerate}
 
-\subsection{Hierarchical Knowledge Injection}
+\subsection{Multi-Type Knowledge Injection}
 \label{subsec:knowledge}
 
-KnowFeat systematically integrates external domain knowledge into the feature generation process. We organize knowledge into five hierarchical types of increasing specificity, from general metadata to concrete case evidence:
+KnowFeat systematically integrates external domain knowledge into the feature generation process. We organize knowledge into five types of increasing specificity, from general metadata to concrete case evidence:
 
 \textbf{(1) Schema Metadata.} The agent receives only the dataset schema: column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
 

@@ -8,8 +8,8 @@ Traditional automated feature engineering (AutoFE) methods such as OpenFE~\cite{
 
 The emergence of large language models (LLMs) has opened a new paradigm for feature engineering. Methods such as CAAFE~\cite{hollmann2023caafe}, FeatLLM~\cite{han2024featllm}, and LLM-FE~\cite{abhyankar2025llmfe} use LLMs to generate feature transformation code from dataset descriptions, leveraging the LLM's broad world knowledge to propose semantically meaningful features. However, current LLM-based methods share three limitations:
 
-\textbf{(1) Lack of hierarchical, structured domain knowledge.}
-Most methods rely on the LLM's parametric knowledge, which may be outdated or incomplete for specialized domains. None organizes external domain knowledge (regulatory indicators, detection rules, expert opinions, and case evidence) into a hierarchical format for systematic injection.
+\textbf{(1) Lack of structured, multi-source domain knowledge.}
+Most methods rely on the LLM's parametric knowledge, which may be outdated or incomplete for specialized domains. None organizes external domain knowledge (regulatory indicators, detection rules, expert opinions, and case evidence) into a structured taxonomy for systematic injection.
 
 \textbf{(2) Insufficient verification.}
 Existing verification mechanisms remain incomplete. CAAFE uses a logistic regression proxy; LLM-FE uses downstream accuracy without statistical filtering; FeatLLM performs no model-based validation. No method combines code execution, statistical quality filtering, and full model evaluation in a unified pipeline.
@@ -20,7 +20,7 @@ In regulated industries, model features must be explainable. Decision-makers nee
 We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations:
 
 \begin{itemize}
-    \item \textbf{Hierarchical Knowledge Injection.} We organize domain knowledge into five types of increasing specificity (schema metadata, risk indicators, detection rules, expert opinions, and court document evidence) and inject them as structured context into the LLM agent.
+    \item \textbf{Multi-Type Knowledge Injection.} We organize domain knowledge into five types of increasing specificity (schema metadata, risk indicators, detection rules, expert opinions, and court document evidence) and inject them as structured context into the LLM agent.
 
     \item \textbf{Three-Stage Verification Pipeline.} Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds).
 
@@ -32,7 +32,7 @@ We evaluate KnowFeat on seven public tabular datasets from OpenML and a realisti
 \begin{itemize}
     \item On public datasets, KnowFeat achieves the best average rank (1.4) among eight methods with 12--46 features per dataset, compared to 98--1{,}124 for FeatLLM.
     \item On the AML dataset, 18 knowledge-guided features improve Recall by +2.1pp and F1 by +1.5pp over the 93-feature baseline, outperforming all baselines.
-    \item Ablation experiments confirm that domain knowledge is essential: the schema-only variant generates zero accepted features on one dataset, and the full hierarchy outperforms schema-only on 5 of 6 remaining datasets.
+    \item Ablation experiments confirm that domain knowledge is essential: the schema-only variant generates zero accepted features on one dataset, and the full taxonomy outperforms schema-only on 5 of 6 remaining datasets.
 \end{itemize}
 
 The remainder of this paper is organized as follows. Section~\ref{sec:related} reviews related work. Section~\ref{sec:method} presents the KnowFeat framework. Section~\ref{sec:experiments} describes our experimental setup, results, and representative feature analysis. Section~\ref{sec:conclusion} concludes with limitations and future directions.

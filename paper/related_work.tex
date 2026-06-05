@@ -6,7 +6,7 @@
 \begin{figure*}[!t]
     \centering
     \includegraphics[width=\textwidth]{figures/framework.pdf}
-    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by hierarchical domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
+    \caption{Overview of the KnowFeat framework. The LLM agent generates features guided by structured domain knowledge. Each candidate is verified through a three-stage pipeline (L1--L3). SHAP feedback dynamically reallocates the exploration budget across semantic dimensions.}
     \label{fig:framework}
 \end{figure*}
 
@@ -18,11 +18,11 @@ Traditional AutoFE methods search a \emph{syntactic} transformation space. Deep 
 
 Large language models~\cite{brown2020gpt3,touvron2023llama} have enabled a shift from syntactic to semantic feature generation. CAAFE~\cite{hollmann2023caafe} iteratively prompts an LLM with dataset descriptions and evaluation feedback to generate Python code for new features, using logistic regression as a proxy evaluator. FeatLLM~\cite{han2024featllm} takes a two-pass approach: first extracting natural language rules from the LLM, then converting these rules into binary indicator features. LLM-FE~\cite{abhyankar2025llmfe} frames feature engineering as an evolutionary optimization problem, using LLMs to iteratively generate and refine features through structured prompts with model performance feedback. OCTree~\cite{nam2024octree} guides LLM-based feature generation with decision tree reasoning, using tree structure feedback to steer the generation process. In the financial domain, RiskTagger~\cite{li2025risktagger} uses an LLM agent with regulatory knowledge to annotate Web3 crypto laundering behaviors, demonstrating that domain knowledge can enhance LLM-based data annotation.
 
-These methods vary in their use of domain knowledge and verification. LLM-FE incorporates limited domain context (dataset descriptions), but none organizes knowledge into a hierarchical, structured format for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, OCTree uses decision tree feedback, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline, nor offers structured provenance that traces each feature to specific knowledge assets.
+These methods vary in their use of domain knowledge and verification. LLM-FE incorporates limited domain context (dataset descriptions), but none organizes knowledge into a structured taxonomy for systematic injection. Verification also varies: CAAFE uses a weak proxy model, LLM-FE uses downstream model accuracy, OCTree uses decision tree feedback, and FeatLLM performs no model-based validation. None combines code execution, statistical quality filtering, and model evaluation into a unified pipeline, nor offers structured provenance that traces each feature to specific knowledge assets.
 
 Tool-augmented LLM agents~\cite{yao2023react} have been applied to code generation~\cite{qian2024chatdev}, software engineering~\cite{jimenez2024swe}, data analysis~\cite{hong2024data}, and scientific discovery~\cite{boiko2023autonomous}. In data science, AIDE~\cite{jiang2025aide} and DS-Agent~\cite{guo2024ds} automate end-to-end pipelines but do not address knowledge-grounded feature generation. KnowFeat builds on the tool-use paradigm by equipping an LLM agent with specialized tools for data exploration, feature generation with provenance, and multi-stage verification.
 
-Table~\ref{tab:comparison} summarizes the key differences among related methods. KnowFeat is the first to combine hierarchical structured domain knowledge, multi-stage verification (L1--L3), and full feature provenance tracking within an LLM-based feature engineering framework.
+Table~\ref{tab:comparison} summarizes the key differences among related methods. KnowFeat is the first to combine structured multi-type domain knowledge, multi-stage verification (L1--L3), and full feature provenance tracking within an LLM-based feature engineering framework.
 
 \subsection{Domain Knowledge Integration in Machine Learning}
 
