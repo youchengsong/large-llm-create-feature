@@ -9,7 +9,7 @@ This section presents the KnowFeat framework in detail. We first provide an over
 
 KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, KnowFeat generates a set of new features such that appending them to the original data improves predictive performance on a target metric (e.g., AUC or Recall).
 
-The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrated in Figure~\ref{fig:framework}. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs a set of verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~3), SHAP-guided budget reallocation (line~6), failure memory injection (line~8), and forward selection (line~16)---are detailed in the following subsections.
+The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrated in Figure~\ref{fig:framework}. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs a set of verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~1), candidate pool for forward selection (lines~14--15), SHAP-guided budget reallocation (line~19), and cross-dimension propagation (line~5)---are detailed in the following subsections.
 
 \begin{algorithm}[t]
 \caption{KnowFeat: Knowledge-Guided Feature Engineering}
@@ -18,28 +18,32 @@ The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrat
 \begin{algorithmic}[1]
 \REQUIRE Dataset $\mathcal{D}$, knowledge base $\mathcal{K}$, max rounds $R_{\max}$, convergence patience $C$, dimensions $\{d_1,\ldots,d_D\}$
 \ENSURE Accepted features $\mathcal{F}^*$ with provenance cards
-\STATE Train baseline model $M_0$ on $\mathcal{D}$; record baseline metric
-\STATE Assemble knowledge $\mathcal{K}$ into five-type taxonomy
 \STATE Calibrate L2 thresholds via $N_{\text{noise}}$ random features
-\STATE $\mathcal{F}^* \leftarrow \emptyset$; $\mathcal{M}_{\text{fail}} \leftarrow \emptyset$; $c \leftarrow 0$
+\STATE $\mathcal{F}^* \leftarrow \emptyset$;\, $\mathcal{P} \leftarrow \emptyset$;\, $\mathcal{M}_{\text{fail}} \leftarrow \emptyset$;\, $c \leftarrow 0$
 \FOR{$r = 1$ \TO $R_{\max}$}
-\STATE Reallocate budgets $\{B_j\}$ via inverse-SHAP weighting
 \FOR{each dimension $d_j$ with budget $B_j$}
-\STATE Inject $\mathcal{K}$, $\mathcal{M}_{\text{fail}}$ into LLM agent prompt
+\STATE Inject $\mathcal{K}$, $\mathcal{M}_{\text{fail}}$, cross-dim examples into agent
 \FOR{$k = 1$ \TO $B_j$}
 \STATE Agent explores data, proposes feature $f$ with provenance
 \STATE \textbf{L1:} Execute code in sandbox ($\leq$2 retries)
+\IF{L1 passes}
 \STATE \textbf{L2:} Check IV, KS, redundancy, missing rate
+\IF{L2 passes}
 \STATE \textbf{L3:} Evaluate $\Delta$metric via XGBoost (5 seeds)
-\IF{$f$ passes L1$\to$L2$\to$L3}
+\IF{L3 passes}
 \STATE $\mathcal{F}^* \leftarrow \mathcal{F}^* \cup \{f\}$
+\ELSE
+\STATE $\mathcal{P} \leftarrow \mathcal{P} \cup \{f\}$ \COMMENT{candidate pool}
+\ENDIF
 \ELSE
 \STATE $\mathcal{M}_{\text{fail}} \leftarrow \mathcal{M}_{\text{fail}} \cup \{(f, \text{reason})\}$
 \ENDIF
+\ENDIF
 \ENDFOR
 \ENDFOR
-\STATE Forward selection on L2-passed but L3-failed candidates
-\IF{no new features accepted in round $r$}
+\STATE Greedy forward selection: add $f \in \mathcal{P}$ to $\mathcal{F}^*$ if combination improves metric
+\STATE SHAP analysis on $\mathcal{F}^*$; reallocate $\{B_j\}$ via inverse-SHAP
+\IF{no new features in round $r$}
 \STATE $c \leftarrow c + 1$; \textbf{if} $c \geq C$ \textbf{then break}
 \ELSE
 \STATE $c \leftarrow 0$
