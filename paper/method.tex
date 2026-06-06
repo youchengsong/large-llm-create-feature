@@ -9,21 +9,45 @@ This section presents the KnowFeat framework in detail. We first provide an over
 
 KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, KnowFeat generates a set of new features such that appending them to the original data improves predictive performance on a target metric (e.g., AUC or Recall).
 
-The overall pipeline operates as follows (see Figure~\ref{fig:framework} for an illustration):
+The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrated in Figure~\ref{fig:framework}. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs a set of verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~3), SHAP-guided budget reallocation (line~6), failure memory injection (line~8), and forward selection (line~16)---are detailed in the following subsections.
 
-\begin{enumerate}
-    \item \textbf{Initialization.} Load the dataset, compute baseline model performance, and calibrate statistical thresholds via noise injection (Section~\ref{subsec:verification}).
-    \item \textbf{Knowledge Assembly.} Organize domain knowledge $\mathcal{K}$ into a five-type taxonomy and inject the selected types into the agent's context (Section~\ref{subsec:knowledge}).
-    \item \textbf{Multi-Round Generation.} For each round $r = 1, \ldots, R_{\max}$:
-    \begin{enumerate}
-        \item Allocate per-dimension budgets based on SHAP feedback from the previous round.
-        \item For each semantic dimension (Section~\ref{subsec:search}), the LLM agent explores the data, proposes candidate features grounded in knowledge assets, and submits them for verification.
-        \item Each candidate passes through the L1$\to$L2$\to$L3 pipeline. Accepted features are added to the baseline; rejected features enter the failure memory.
-        \item Forward selection discovers feature combinations that are individually weak but collectively effective.
-    \end{enumerate}
-    \item \textbf{Convergence.} The process terminates when no new features are accepted for $C$ consecutive rounds (default $C=2$) or the maximum round count $R_{\max}$ is reached.
-    \item \textbf{Output.} The accepted feature set $\mathcal{F}^*$, along with executable code and explainable provenance cards for each feature (Section~\ref{subsec:provenance_method}).
-\end{enumerate}
+\begin{algorithm}[t]
+\caption{KnowFeat: Knowledge-Guided Feature Engineering}
+\label{alg:knowfeat}
+\small
+\begin{algorithmic}[1]
+\REQUIRE Dataset $\mathcal{D}$, knowledge base $\mathcal{K}$, max rounds $R_{\max}$, convergence patience $C$, dimensions $\{d_1,\ldots,d_D\}$
+\ENSURE Accepted features $\mathcal{F}^*$ with provenance cards
+\STATE Train baseline model $M_0$ on $\mathcal{D}$; record baseline metric
+\STATE Assemble knowledge $\mathcal{K}$ into five-type taxonomy
+\STATE Calibrate L2 thresholds via $N_{\text{noise}}$ random features
+\STATE $\mathcal{F}^* \leftarrow \emptyset$; $\mathcal{M}_{\text{fail}} \leftarrow \emptyset$; $c \leftarrow 0$
+\FOR{$r = 1$ \TO $R_{\max}$}
+\STATE Reallocate budgets $\{B_j\}$ via inverse-SHAP weighting
+\FOR{each dimension $d_j$ with budget $B_j$}
+\STATE Inject $\mathcal{K}$, $\mathcal{M}_{\text{fail}}$ into LLM agent prompt
+\FOR{$k = 1$ \TO $B_j$}
+\STATE Agent explores data, proposes feature $f$ with provenance
+\STATE \textbf{L1:} Execute code in sandbox ($\leq$2 retries)
+\STATE \textbf{L2:} Check IV, KS, redundancy, missing rate
+\STATE \textbf{L3:} Evaluate $\Delta$metric via XGBoost (5 seeds)
+\IF{$f$ passes L1$\to$L2$\to$L3}
+\STATE $\mathcal{F}^* \leftarrow \mathcal{F}^* \cup \{f\}$
+\ELSE
+\STATE $\mathcal{M}_{\text{fail}} \leftarrow \mathcal{M}_{\text{fail}} \cup \{(f, \text{reason})\}$
+\ENDIF
+\ENDFOR
+\ENDFOR
+\STATE Forward selection on L2-passed but L3-failed candidates
+\IF{no new features accepted in round $r$}
+\STATE $c \leftarrow c + 1$; \textbf{if} $c \geq C$ \textbf{then break}
+\ELSE
+\STATE $c \leftarrow 0$
+\ENDIF
+\ENDFOR
+\RETURN $\mathcal{F}^*$ with provenance cards
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Multi-Type Knowledge Injection}
 \label{subsec:knowledge}
@@ -49,16 +73,7 @@ KnowFeat employs an LLM agent (DeepSeek-V4-0324-Flash in our implementation, wit
 
 \textbf{Tool 1: Data Exploration.} Executes Python code on the dataset in a sandboxed environment to inspect distributions, compute correlations, and identify patterns before proposing features. The tool returns printed output or return values to the agent.
 
-\textbf{Tool 2: Feature Registration.} Registers a candidate feature with mandatory provenance fields:
-\begin{itemize}
-    \item \texttt{feature\_name}: A descriptive identifier.
-    \item \texttt{code}: Executable Python code that computes the feature from raw data.
-    \item \texttt{explanation}: A natural language description of what the feature captures.
-    \item \texttt{reasoning}: A structured chain linking knowledge assets to the feature design, formatted as ``Step $N$: Because [knowledge ID] indicates [insight], we compute [transformation]\ldots''
-    \item \texttt{knowledge\_ids}: A list of specific knowledge asset identifiers (e.g., RULE\_001, IND\_05, EXP\_03) that inspired the feature.
-    \item \texttt{computation\_steps}: Step-by-step description from raw fields to the final feature value.
-    \item \texttt{data\_fields\_used}: The raw columns consumed by the feature.
-\end{itemize}
+\textbf{Tool 2: Feature Registration.} Registers a candidate feature with mandatory provenance fields: a descriptive name, executable Python code, a natural language explanation, a structured reasoning chain linking knowledge assets to the design (formatted as ``Step $N$: Because [knowledge~ID] indicates [insight], we compute [transformation]\ldots''), the list of knowledge asset identifiers that inspired the feature, step-by-step computation description, and the raw columns consumed.
 
 \textbf{Tool 3: Verification Trigger.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call Feature Registration followed immediately by Verification Trigger for each candidate; batch submission is prohibited to ensure tight feedback loops.
 
