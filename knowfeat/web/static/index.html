@@ -76,8 +76,8 @@ body {
 }
 
 .sidebar {
-  width: 340px;
-  min-width: 340px;
+  width: 360px;
+  min-width: 360px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border);
   overflow-y: auto;
@@ -118,7 +118,7 @@ label {
   margin-bottom: 4px;
 }
 
-select, input[type="number"] {
+select, input[type="number"], input[type="range"] {
   width: 100%;
   padding: 8px 10px;
   background: var(--bg-primary);
@@ -128,6 +128,32 @@ select, input[type="number"] {
   font-size: 14px;
   outline: none;
   margin-bottom: 10px;
+}
+
+input[type="range"] {
+  padding: 4px 0;
+  background: transparent;
+  border: none;
+  -webkit-appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  margin-top: -5px;
 }
 
 select:focus, input:focus {
@@ -140,6 +166,19 @@ select:focus, input:focus {
 }
 
 .form-row > div { flex: 1; }
+
+.range-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.range-value {
+  color: var(--accent);
+  font-weight: 600;
+}
 
 .btn {
   width: 100%;
@@ -162,12 +201,6 @@ select:focus, input:focus {
   background: var(--accent-dim);
   color: var(--text-secondary);
   cursor: not-allowed;
-}
-
-.btn-danger {
-  background: var(--red);
-  color: white;
-  margin-top: 8px;
 }
 
 .stat-grid {
@@ -334,7 +367,7 @@ select:focus, input:focus {
 .metric span { color: var(--text-primary); font-weight: 500; }
 
 .timeline {
-  max-height: 300px;
+  max-height: 400px;
   overflow-y: auto;
   background: var(--bg-primary);
   border-radius: 6px;
@@ -358,34 +391,53 @@ select:focus, input:focus {
 .timeline-type.error { color: var(--red); }
 .timeline-type.warning { color: var(--yellow); }
 
-.knowledge-list {
-  max-height: 200px;
-  overflow-y: auto;
+.knowledge-section {
+  margin-bottom: 8px;
+}
+
+.knowledge-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.knowledge-count {
+  background: var(--bg-primary);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--accent);
 }
 
 .knowledge-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 0;
-  font-size: 13px;
+  padding: 4px 0;
+  font-size: 12px;
   border-bottom: 1px solid var(--bg-primary);
 }
 
 .knowledge-item:last-child { border-bottom: none; }
 
 .knowledge-tag {
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  min-width: 40px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 32px;
   text-align: center;
 }
 
 .tag-indicator { background: #1a3a5c; color: #58a6ff; }
 .tag-rule { background: #3a2e1a; color: #d29922; }
 .tag-expert { background: #2a1a3a; color: #bc8cff; }
+.tag-pattern { background: #1a3a2a; color: #3fb950; }
+.tag-court { background: #3a1a1a; color: #f85149; }
 
 .section-title {
   font-size: 15px;
@@ -396,14 +448,6 @@ select:focus, input:focus {
   gap: 8px;
 }
 
-.section-title .count {
-  background: var(--bg-hover);
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -412,12 +456,6 @@ select:focus, input:focus {
 
 .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
 .empty-state p { font-size: 14px; }
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
 
 .tabs {
   display: flex;
@@ -438,6 +476,14 @@ select:focus, input:focus {
 .tab.active {
   color: var(--accent);
   border-bottom-color: var(--accent);
+}
+
+.count {
+  background: var(--bg-hover);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 11px;
+  margin-left: 4px;
 }
 
 .code-block {
@@ -462,6 +508,19 @@ select:focus, input:focus {
   padding: 6px 8px;
   background: var(--bg-primary);
   border-radius: 4px;
+  line-height: 1.5;
+}
+
+.simecny-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #f85149, #db6d28);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 .thought-bubble {
@@ -487,6 +546,12 @@ select:focus, input:focus {
   color: var(--purple);
   font-weight: 500;
 }
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 10px 0;
+}
 </style>
 </head>
 <body>
@@ -510,18 +575,45 @@ select:focus, input:focus {
     <div class="sidebar">
       <!-- Dataset Selection -->
       <div class="panel">
-        <div class="panel-header">Dataset Configuration</div>
+        <div class="panel-header">Dataset</div>
         <div class="panel-body">
-          <label>Dataset</label>
           <select v-model="selectedDataset" :disabled="isRunning" @change="onDatasetChange">
             <option value="">-- Select Dataset --</option>
-            <option v-for="ds in datasets" :key="ds.name" :value="ds.name" :disabled="!ds.available">
-              {{ ds.name }} ({{ ds.domain }})
-            </option>
+            <optgroup label="Core Dataset">
+              <option v-for="ds in simecnyDatasets" :key="ds.name" :value="ds.name" :disabled="!ds.available">
+                {{ ds.domain }}
+              </option>
+            </optgroup>
+            <optgroup label="Public Datasets">
+              <option v-for="ds in publicDatasets" :key="ds.name" :value="ds.name" :disabled="!ds.available">
+                {{ ds.name }} ({{ ds.domain }})
+              </option>
+            </optgroup>
           </select>
           <div v-if="selectedDatasetInfo" class="dataset-info">
-            {{ selectedDatasetInfo.task }}<br>
-            Dims: {{ selectedDatasetInfo.dimensions.join(', ') }}
+            <strong>{{ selectedDatasetInfo.domain }}</strong>
+            <span v-if="selectedDatasetInfo.is_simecny" class="simecny-badge">SimECNY</span>
+            <br>{{ selectedDatasetInfo.task }}
+            <br>Dimensions: {{ selectedDatasetInfo.dimensions.join(' / ') }}
+            <template v-if="selectedDatasetInfo.description">
+              <br>{{ selectedDatasetInfo.description }}
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- SimECNY Sampling -->
+      <div class="panel" v-if="isSimECNY">
+        <div class="panel-header">Data Sampling</div>
+        <div class="panel-body">
+          <div class="range-label">
+            <span>Transaction Rows</span>
+            <span class="range-value">{{ sampleSizeLabel }}</span>
+          </div>
+          <input type="range" v-model.number="sampleSize" min="5000" max="200000" step="5000" :disabled="isRunning">
+          <div class="range-label" style="margin-top: 0;">
+            <span style="font-size: 11px;">5K (fast)</span>
+            <span style="font-size: 11px;">200K (full)</span>
           </div>
         </div>
       </div>
@@ -530,25 +622,48 @@ select:focus, input:focus {
       <div class="panel" v-if="knowledge">
         <div class="panel-header">Domain Knowledge</div>
         <div class="panel-body">
-          <div class="knowledge-list">
-            <div class="knowledge-item" v-for="ind in knowledge.indicators" :key="ind.id">
-              <span class="knowledge-tag tag-indicator">IND</span>
-              <span>{{ ind.name }}</span>
+          <!-- SimECNY knowledge summary -->
+          <template v-if="knowledge.type === 'stage2'">
+            <div class="knowledge-section">
+              <div class="knowledge-item">
+                <span class="knowledge-tag tag-indicator">IND</span>
+                <span>Risk Indicators <span class="knowledge-count">{{ knowledge.indicators.count }}</span></span>
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-tag tag-rule">RULE</span>
+                <span>Detection Rules <span class="knowledge-count">{{ knowledge.rules.count }}</span></span>
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-tag tag-pattern">PAT</span>
+                <span>Transaction Patterns <span class="knowledge-count">{{ knowledge.patterns.count }}</span></span>
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-tag tag-expert">EXP</span>
+                <span>Expert Interview</span>
+              </div>
+              <div class="knowledge-item">
+                <span class="knowledge-tag tag-court">DOC</span>
+                <span>Court Documents <span class="knowledge-count">{{ knowledge.court_docs.count }}</span></span>
+              </div>
             </div>
-            <div class="knowledge-item" v-for="rule in knowledge.rules" :key="rule.id">
-              <span class="knowledge-tag tag-rule">RULE</span>
-              <span>{{ rule.name }}</span>
+          </template>
+          <!-- Generic knowledge list -->
+          <template v-else>
+            <div style="max-height: 160px; overflow-y: auto;">
+              <div class="knowledge-item" v-for="ind in (knowledge.indicators || [])" :key="ind.id">
+                <span class="knowledge-tag tag-indicator">IND</span>
+                <span>{{ ind.name }}</span>
+              </div>
+              <div class="knowledge-item" v-for="rule in (knowledge.rules || [])" :key="rule.id">
+                <span class="knowledge-tag tag-rule">RULE</span>
+                <span>{{ rule.name }}</span>
+              </div>
+              <div class="knowledge-item" v-for="exp in (knowledge.expert_consensus || [])" :key="exp.id">
+                <span class="knowledge-tag tag-expert">EXP</span>
+                <span>{{ (exp.content || '').substring(0, 50) }}...</span>
+              </div>
             </div>
-            <div class="knowledge-item" v-for="exp in knowledge.expert_consensus" :key="exp.id">
-              <span class="knowledge-tag tag-expert">EXP</span>
-              <span>{{ (exp.content || '').substring(0, 60) }}...</span>
-            </div>
-          </div>
-          <div class="dataset-info" style="margin-top: 8px;">
-            {{ (knowledge.indicators || []).length }} indicators,
-            {{ (knowledge.rules || []).length }} rules,
-            {{ (knowledge.expert_consensus || []).length }} expert opinions
-          </div>
+          </template>
         </div>
       </div>
 
@@ -572,8 +687,8 @@ select:focus, input:focus {
               <input type="number" v-model.number="noiseSamples" min="5" max="100" :disabled="isRunning">
             </div>
             <div>
-              <label>Convergence</label>
-              <input type="number" v-model.number="convergenceRounds" min="1" max="5" :disabled="isRunning">
+              <label>CV Folds</label>
+              <input type="number" v-model.number="cvFolds" min="2" max="5" :disabled="isRunning">
             </div>
           </div>
           <label>Knowledge Filter</label>
@@ -582,6 +697,7 @@ select:focus, input:focus {
             <option value="indicators">Indicators Only</option>
             <option value="rules">Rules Only</option>
             <option value="expert">Expert Only</option>
+            <option v-if="isSimECNY" value="court">Court Documents Only</option>
             <option value="schema_only">Schema Only (No Knowledge)</option>
           </select>
         </div>
@@ -628,7 +744,7 @@ select:focus, input:focus {
 
     <!-- Main Content -->
     <div class="main-content">
-      <!-- Welcome / Empty state -->
+      <!-- Welcome -->
       <div v-if="!hasStarted" class="empty-state" style="margin-top: 100px;">
         <div class="icon">&#9881;</div>
         <p>Select a dataset and click <strong>Start Pipeline</strong> to begin</p>
@@ -698,19 +814,19 @@ select:focus, input:focus {
                 </span>
               </div>
               <div class="metric" v-if="f.metrics.delta_recall != null">
-                &Delta;Recall: <span>{{ (f.metrics.delta_recall > 0 ? '+' : '') + f.metrics.delta_recall.toFixed(4) }}</span>
+                &Delta;Recall: <span :style="{color: f.metrics.delta_recall > 0 ? 'var(--green)' : 'var(--red)'}">
+                  {{ (f.metrics.delta_recall > 0 ? '+' : '') + f.metrics.delta_recall.toFixed(4) }}
+                </span>
               </div>
             </div>
 
             <div class="feature-detail" v-if="f.summary">{{ f.summary }}</div>
 
-            <!-- Provenance -->
             <div class="provenance" v-if="f.provenance">
               <span class="provenance-label">Knowledge Source:</span>
               {{ f.provenance.knowledge_source || 'N/A' }}
             </div>
 
-            <!-- Code (expandable) -->
             <div v-if="f.code && f.expanded" class="code-block">{{ f.code }}</div>
             <div v-if="f.code" style="margin-top: 6px;">
               <a href="#" @click.prevent="f.expanded = !f.expanded"
@@ -763,18 +879,20 @@ select:focus, input:focus {
 </div>
 
 <script>
-const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
+const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick } = Vue;
 
 createApp({
   setup() {
     const datasets = ref([]);
     const selectedDataset = ref('');
     const knowledge = ref(null);
-    const maxRounds = ref(3);
+    const maxRounds = ref(2);
     const budgetPerDim = ref(2);
     const noiseSamples = ref(20);
+    const cvFolds = ref(3);
     const convergenceRounds = ref(2);
     const knowledgeFilter = ref('');
+    const sampleSize = ref(30000);
 
     const pipelineStatus = ref('idle');
     const hasStarted = ref(false);
@@ -804,6 +922,13 @@ createApp({
     const selectedDatasetInfo = computed(() =>
       datasets.value.find(d => d.name === selectedDataset.value)
     );
+    const isSimECNY = computed(() => selectedDatasetInfo.value?.is_simecny === true);
+    const simecnyDatasets = computed(() => datasets.value.filter(d => d.is_simecny));
+    const publicDatasets = computed(() => datasets.value.filter(d => !d.is_simecny));
+    const sampleSizeLabel = computed(() => {
+      if (sampleSize.value >= 200000) return '200K (Full)';
+      return (sampleSize.value / 1000).toFixed(0) + 'K';
+    });
     const statusText = computed(() => {
       const map = { idle: 'Ready', running: 'Running', done: 'Complete', error: 'Error' };
       return map[pipelineStatus.value] || pipelineStatus.value;
@@ -845,17 +970,32 @@ createApp({
           addTimeline('DATA', `Loading dataset: ${event.dataset} (${event.domain})`, 'info');
           break;
 
+        case 'data_sampling':
+          addTimeline('SAMPLE', `Sampling: ${event.original_size.toLocaleString()} -> ${event.sample_size.toLocaleString()} rows`, 'info');
+          break;
+
         case 'data_loaded':
-          addTimeline('DATA', `Loaded: ${event.n_rows} rows, ${event.n_features} features, pos_rate=${event.pos_rate}%`, 'success');
+          if (event.n_accounts) {
+            addTimeline('DATA', `Loaded: ${event.n_rows.toLocaleString()} tx, ${event.n_accounts.toLocaleString()} accounts, ${event.n_features} features, pos_rate=${event.pos_rate}%`, 'success');
+          } else {
+            addTimeline('DATA', `Loaded: ${event.n_rows.toLocaleString()} rows, ${event.n_features} features, pos_rate=${event.pos_rate}%`, 'success');
+          }
           break;
 
         case 'knowledge_loading':
           currentPhase.value = 'Loading domain knowledge...';
           break;
 
-        case 'knowledge_loaded':
-          addTimeline('KNOW', `Knowledge: ${event.n_indicators} indicators, ${event.n_rules} rules, ${event.n_expert} expert, registry=${event.registry_size}`, 'success');
+        case 'knowledge_loaded': {
+          const parts = [];
+          if (event.n_indicators) parts.push(`${event.n_indicators} ind`);
+          if (event.n_rules) parts.push(`${event.n_rules} rules`);
+          if (event.n_patterns) parts.push(`${event.n_patterns} patterns`);
+          if (event.n_court_factors) parts.push(`${event.n_court_factors} court docs`);
+          if (event.n_expert) parts.push('expert');
+          addTimeline('KNOW', `Knowledge loaded: ${parts.join(', ')} (registry=${event.registry_size})`, 'success');
           break;
+        }
 
         case 'noise_calibration_start':
           currentPhase.value = `Noise calibration (${event.n_random} samples)...`;
@@ -863,12 +1003,12 @@ createApp({
           break;
 
         case 'noise_calibration_done':
-          addTimeline('NOISE', `Done: IV_threshold=${event.iv_threshold?.toFixed(4)}, KS_threshold=${event.ks_threshold?.toFixed(4)}`, 'success');
+          addTimeline('NOISE', `Thresholds: IV=${event.iv_threshold?.toFixed(4)}, KS=${event.ks_threshold?.toFixed(4)}`, 'success');
           break;
 
         case 'pipeline_start':
           currentPhase.value = 'Pipeline started';
-          addTimeline('START', `Pipeline started: ${event.dimensions?.join(', ')} (max ${event.max_rounds} rounds)`, 'success');
+          addTimeline('START', `Pipeline: ${event.dimensions?.join(' / ')} (max ${event.max_rounds} rounds)`, 'success');
           break;
 
         case 'round_start':
@@ -958,7 +1098,7 @@ createApp({
 
         case 'pipeline_end':
           currentPhase.value = 'Pipeline complete';
-          addTimeline('END', `Pipeline complete: ${event.total_accepted} features in ${event.total_rounds} rounds (${event.elapsed_sec}s)`, 'success');
+          addTimeline('END', `Complete: ${event.total_accepted} features in ${event.total_rounds} rounds (${event.elapsed_sec}s)`, 'success');
           break;
 
         case 'pipeline_complete':
@@ -967,12 +1107,8 @@ createApp({
           if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
           if (event.feature_codes) {
             for (const f of features.value) {
-              if (event.feature_codes[f.name]) {
-                f.code = event.feature_codes[f.name];
-              }
-              if (event.feature_provenance?.[f.name]) {
-                f.provenance = event.feature_provenance[f.name];
-              }
+              if (event.feature_codes[f.name]) f.code = event.feature_codes[f.name];
+              if (event.feature_provenance?.[f.name]) f.provenance = event.feature_provenance[f.name];
             }
           }
           addTimeline('DONE', `${event.convergence_reason}`, 'success');
@@ -995,20 +1131,14 @@ createApp({
 
       ws.onmessage = (msg) => {
         try {
-          const event = JSON.parse(msg.data);
-          handleEvent(event);
+          handleEvent(JSON.parse(msg.data));
         } catch (e) {
           console.error('Parse error:', e);
         }
       };
 
-      ws.onclose = () => {
-        setTimeout(connectWebSocket, 2000);
-      };
-
-      ws.onerror = (err) => {
-        console.error('WebSocket error:', err);
-      };
+      ws.onclose = () => { setTimeout(connectWebSocket, 2000); };
+      ws.onerror = (err) => { console.error('WebSocket error:', err); };
     }
 
     async function startPipeline() {
@@ -1040,11 +1170,17 @@ createApp({
         max_rounds: maxRounds.value,
         budget_per_dim: budgetPerDim.value,
         noise_samples: noiseSamples.value,
+        cv_folds: cvFolds.value,
         convergence_rounds: convergenceRounds.value,
         knowledge_filter: knowledgeFilter.value || undefined,
       };
 
-      addTimeline('INIT', `Starting pipeline: ${selectedDataset.value}`, 'info');
+      if (isSimECNY.value && sampleSize.value < 200000) {
+        config.sample_size = sampleSize.value;
+      }
+
+      addTimeline('INIT', `Starting: ${selectedDataset.value}` +
+        (config.sample_size ? ` (sampled to ${(config.sample_size/1000).toFixed(0)}K)` : ''), 'info');
 
       try {
         const resp = await fetch('/api/start', {
@@ -1075,7 +1211,9 @@ createApp({
 
     return {
       datasets, selectedDataset, selectedDatasetInfo, knowledge,
-      maxRounds, budgetPerDim, noiseSamples, convergenceRounds, knowledgeFilter,
+      isSimECNY, simecnyDatasets, publicDatasets,
+      maxRounds, budgetPerDim, noiseSamples, cvFolds, convergenceRounds,
+      knowledgeFilter, sampleSize, sampleSizeLabel,
       pipelineStatus, hasStarted, isRunning, statusText,
       currentRound, currentPhase, progressPercent, activeTab,
       features, timeline, thoughts, timelineEl,
