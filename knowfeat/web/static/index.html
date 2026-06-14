@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KnowFeat - Knowledge-Guided Feature Engineering</title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<style>
+:root {
+  --bg-primary: #0f1419;
+  --bg-secondary: #1a2332;
+  --bg-card: #1e2d3d;
+  --bg-hover: #253545;
+  --border: #2d4a5e;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent: #58a6ff;
+  --accent-dim: #1f4068;
+  --green: #3fb950;
+  --green-dim: #1a3a2a;
+  --red: #f85149;
+  --red-dim: #3a1a1a;
+  --yellow: #d29922;
+  --yellow-dim: #3a2e1a;
+  --orange: #db6d28;
+  --purple: #bc8cff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header h1 .logo {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: white;
+}
+
+.header .subtitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.container {
+  display: flex;
+  height: calc(100vh - 52px);
+}
+
+.sidebar {
+  width: 340px;
+  min-width: 340px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+}
+
+.panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.panel-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-body {
+  padding: 12px 14px;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+select, input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 10px;
+}
+
+select:focus, input:focus {
+  border-color: var(--accent);
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+}
+
+.form-row > div { flex: 1; }
+
+.btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover { background: #4c9aed; }
+.btn-primary:disabled {
+  background: var(--accent-dim);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.btn-danger {
+  background: var(--red);
+  color: white;
+  margin-top: 8px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stat-item {
+  background: var(--bg-primary);
+  border-radius: 6px;
+  padding: 10px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.stat-green .stat-value { color: var(--green); }
+.stat-red .stat-value { color: var(--red); }
+.stat-yellow .stat-value { color: var(--yellow); }
+.stat-blue .stat-value { color: var(--accent); }
+
+.progress-section {
+  margin-bottom: 16px;
+}
+
+.progress-bar-container {
+  background: var(--bg-primary);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-idle { background: var(--bg-hover); color: var(--text-secondary); }
+.status-running { background: var(--accent-dim); color: var(--accent); }
+.status-done { background: var(--green-dim); color: var(--green); }
+.status-error { background: var(--red-dim); color: var(--red); }
+
+.pulse {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+
+.feature-card:hover { border-color: var(--accent); }
+
+.feature-card.accepted { border-left: 3px solid var(--green); }
+.feature-card.rejected { border-left: 3px solid var(--red); }
+.feature-card.candidate { border-left: 3px solid var(--yellow); }
+.feature-card.pending { border-left: 3px solid var(--text-secondary); }
+
+.feature-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.feature-name {
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.feature-dims {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.dim-tag {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.verification-steps {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.v-step {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--bg-primary);
+}
+
+.v-step.pass { color: var(--green); }
+.v-step.fail { color: var(--red); }
+.v-step.skip { color: var(--text-secondary); }
+
+.feature-detail {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.feature-metrics {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.metric { color: var(--text-secondary); }
+.metric span { color: var(--text-primary); font-weight: 500; }
+
+.timeline {
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 12px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.6;
+}
+
+.timeline-entry {
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.timeline-entry:hover { background: var(--bg-hover); }
+
+.timeline-time { color: var(--text-secondary); }
+.timeline-type { font-weight: 600; }
+.timeline-type.info { color: var(--accent); }
+.timeline-type.success { color: var(--green); }
+.timeline-type.error { color: var(--red); }
+.timeline-type.warning { color: var(--yellow); }
+
+.knowledge-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.knowledge-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--bg-primary);
+}
+
+.knowledge-item:last-child { border-bottom: none; }
+
+.knowledge-tag {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+.tag-indicator { background: #1a3a5c; color: #58a6ff; }
+.tag-rule { background: #3a2e1a; color: #d29922; }
+.tag-expert { background: #2a1a3a; color: #bc8cff; }
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .count {
+  background: var(--bg-hover);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.tab:hover { color: var(--text-primary); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.code-block {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 6px;
+}
+
+.dataset-info {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border-radius: 4px;
+}
+
+.thought-bubble {
+  background: var(--accent-dim);
+  border-left: 3px solid var(--accent);
+  padding: 8px 12px;
+  margin: 6px 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.provenance {
+  margin-top: 8px;
+  padding: 8px;
+  background: var(--bg-primary);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.provenance-label {
+  color: var(--purple);
+  font-weight: 500;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <h1>
+      <div class="logo">K</div>
+      KnowFeat
+      <span class="subtitle">Knowledge-Guided Feature Engineering System</span>
+    </h1>
+    <div>
+      <span :class="'status-badge status-' + pipelineStatus">
+        <span v-if="pipelineStatus === 'running'" class="pulse"></span>
+        {{ statusText }}
+      </span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <!-- Dataset Selection -->
+      <div class="panel">
+        <div class="panel-header">Dataset Configuration</div>
+        <div class="panel-body">
+          <label>Dataset</label>
+          <select v-model="selectedDataset" :disabled="isRunning" @change="onDatasetChange">
+            <option value="">-- Select Dataset --</option>
+            <option v-for="ds in datasets" :key="ds.name" :value="ds.name" :disabled="!ds.available">
+              {{ ds.name }} ({{ ds.domain }})
+            </option>
+          </select>
+          <div v-if="selectedDatasetInfo" class="dataset-info">
+            {{ selectedDatasetInfo.task }}<br>
+            Dims: {{ selectedDatasetInfo.dimensions.join(', ') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Knowledge -->
+      <div class="panel" v-if="knowledge">
+        <div class="panel-header">Domain Knowledge</div>
+        <div class="panel-body">
+          <div class="knowledge-list">
+            <div class="knowledge-item" v-for="ind in knowledge.indicators" :key="ind.id">
+              <span class="knowledge-tag tag-indicator">IND</span>
+              <span>{{ ind.name }}</span>
+            </div>
+            <div class="knowledge-item" v-for="rule in knowledge.rules" :key="rule.id">
+              <span class="knowledge-tag tag-rule">RULE</span>
+              <span>{{ rule.name }}</span>
+            </div>
+            <div class="knowledge-item" v-for="exp in knowledge.expert_consensus" :key="exp.id">
+              <span class="knowledge-tag tag-expert">EXP</span>
+              <span>{{ (exp.content || '').substring(0, 60) }}...</span>
+            </div>
+          </div>
+          <div class="dataset-info" style="margin-top: 8px;">
+            {{ (knowledge.indicators || []).length }} indicators,
+            {{ (knowledge.rules || []).length }} rules,
+            {{ (knowledge.expert_consensus || []).length }} expert opinions
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameters -->
+      <div class="panel">
+        <div class="panel-header">Pipeline Parameters</div>
+        <div class="panel-body">
+          <div class="form-row">
+            <div>
+              <label>Max Rounds</label>
+              <input type="number" v-model.number="maxRounds" min="1" max="10" :disabled="isRunning">
+            </div>
+            <div>
+              <label>Budget/Dim</label>
+              <input type="number" v-model.number="budgetPerDim" min="1" max="10" :disabled="isRunning">
+            </div>
+          </div>
+          <div class="form-row">
+            <div>
+              <label>Noise Samples</label>
+              <input type="number" v-model.number="noiseSamples" min="5" max="100" :disabled="isRunning">
+            </div>
+            <div>
+              <label>Convergence</label>
+              <input type="number" v-model.number="convergenceRounds" min="1" max="5" :disabled="isRunning">
+            </div>
+          </div>
+          <label>Knowledge Filter</label>
+          <select v-model="knowledgeFilter" :disabled="isRunning">
+            <option value="">All Knowledge (Full)</option>
+            <option value="indicators">Indicators Only</option>
+            <option value="rules">Rules Only</option>
+            <option value="expert">Expert Only</option>
+            <option value="schema_only">Schema Only (No Knowledge)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="panel">
+        <div class="panel-body">
+          <button class="btn btn-primary" @click="startPipeline"
+                  :disabled="!selectedDataset || isRunning">
+            {{ isRunning ? 'Running...' : 'Start Pipeline' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistics -->
+      <div class="panel" v-if="hasStarted">
+        <div class="panel-header">Statistics</div>
+        <div class="panel-body">
+          <div class="stat-grid">
+            <div class="stat-item stat-green">
+              <div class="stat-value">{{ stats.accepted }}</div>
+              <div class="stat-label">Accepted</div>
+            </div>
+            <div class="stat-item stat-red">
+              <div class="stat-value">{{ stats.rejected }}</div>
+              <div class="stat-label">Rejected</div>
+            </div>
+            <div class="stat-item stat-yellow">
+              <div class="stat-value">{{ stats.candidates }}</div>
+              <div class="stat-label">Candidates</div>
+            </div>
+            <div class="stat-item stat-blue">
+              <div class="stat-value">{{ stats.generated }}</div>
+              <div class="stat-label">Generated</div>
+            </div>
+          </div>
+          <div v-if="elapsedTime" style="text-align: center; margin-top: 8px; font-size: 12px; color: var(--text-secondary);">
+            Elapsed: {{ elapsedTime }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Welcome / Empty state -->
+      <div v-if="!hasStarted" class="empty-state" style="margin-top: 100px;">
+        <div class="icon">&#9881;</div>
+        <p>Select a dataset and click <strong>Start Pipeline</strong> to begin</p>
+        <p style="margin-top: 8px; font-size: 13px;">
+          KnowFeat will generate knowledge-guided features with 3-level verification
+        </p>
+      </div>
+
+      <!-- Pipeline Progress -->
+      <div v-if="hasStarted">
+        <!-- Progress Bar -->
+        <div class="progress-section">
+          <div class="progress-text">
+            <span>{{ currentPhase }}</span>
+            <span>Round {{ currentRound }} / {{ maxRounds }}</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar" :style="{width: progressPercent + '%'}"></div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab" :class="{active: activeTab === 'features'}" @click="activeTab = 'features'">
+            Features <span class="count">{{ features.length }}</span>
+          </div>
+          <div class="tab" :class="{active: activeTab === 'timeline'}" @click="activeTab = 'timeline'">
+            Timeline <span class="count">{{ timeline.length }}</span>
+          </div>
+          <div class="tab" :class="{active: activeTab === 'thoughts'}" @click="activeTab = 'thoughts'">
+            Agent Thoughts <span class="count">{{ thoughts.length }}</span>
+          </div>
+        </div>
+
+        <!-- Features Tab -->
+        <div v-if="activeTab === 'features'">
+          <div v-if="features.length === 0" class="empty-state" style="padding: 30px;">
+            <p>Waiting for features to be generated...</p>
+          </div>
+          <div v-for="f in features" :key="f.name"
+               :class="'feature-card ' + f.status">
+            <div class="feature-header">
+              <span class="feature-name">{{ f.name }}</span>
+              <div class="feature-dims">
+                <span class="dim-tag" v-for="d in (f.dimensions || [])" :key="d">{{ d }}</span>
+              </div>
+            </div>
+
+            <div class="verification-steps">
+              <span :class="'v-step ' + f.l1Status">
+                {{ f.l1Status === 'pass' ? '&#10003;' : f.l1Status === 'fail' ? '&#10007;' : '-' }} L1 Sandbox
+              </span>
+              <span :class="'v-step ' + f.l2Status">
+                {{ f.l2Status === 'pass' ? '&#10003;' : f.l2Status === 'fail' ? '&#10007;' : '-' }} L2 Statistics
+              </span>
+              <span :class="'v-step ' + f.l3Status">
+                {{ f.l3Status === 'pass' ? '&#10003;' : f.l3Status === 'fail' ? '&#10007;' : '-' }} L3 Model
+              </span>
+            </div>
+
+            <div v-if="f.metrics" class="feature-metrics">
+              <div class="metric" v-if="f.metrics.iv != null">IV: <span>{{ f.metrics.iv.toFixed(4) }}</span></div>
+              <div class="metric" v-if="f.metrics.ks != null">KS: <span>{{ f.metrics.ks.toFixed(4) }}</span></div>
+              <div class="metric" v-if="f.metrics.delta_auc != null">
+                &Delta;AUC: <span :style="{color: f.metrics.delta_auc > 0 ? 'var(--green)' : 'var(--red)'}">
+                  {{ (f.metrics.delta_auc > 0 ? '+' : '') + f.metrics.delta_auc.toFixed(4) }}
+                </span>
+              </div>
+              <div class="metric" v-if="f.metrics.delta_recall != null">
+                &Delta;Recall: <span>{{ (f.metrics.delta_recall > 0 ? '+' : '') + f.metrics.delta_recall.toFixed(4) }}</span>
+              </div>
+            </div>
+
+            <div class="feature-detail" v-if="f.summary">{{ f.summary }}</div>
+
+            <!-- Provenance -->
+            <div class="provenance" v-if="f.provenance">
+              <span class="provenance-label">Knowledge Source:</span>
+              {{ f.provenance.knowledge_source || 'N/A' }}
+            </div>
+
+            <!-- Code (expandable) -->
+            <div v-if="f.code && f.expanded" class="code-block">{{ f.code }}</div>
+            <div v-if="f.code" style="margin-top: 6px;">
+              <a href="#" @click.prevent="f.expanded = !f.expanded"
+                 style="font-size: 12px; color: var(--accent); text-decoration: none;">
+                {{ f.expanded ? 'Hide Code' : 'Show Code' }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline Tab -->
+        <div v-if="activeTab === 'timeline'">
+          <div class="timeline" ref="timelineEl">
+            <div v-for="(entry, idx) in timeline" :key="idx" class="timeline-entry">
+              <span class="timeline-time">{{ entry.timeStr }}</span>
+              <span :class="'timeline-type ' + entry.level">{{ entry.type }}</span>
+              {{ entry.message }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Thoughts Tab -->
+        <div v-if="activeTab === 'thoughts'">
+          <div v-if="thoughts.length === 0" class="empty-state" style="padding: 30px;">
+            <p>Agent thoughts will appear here...</p>
+          </div>
+          <div v-for="(t, idx) in thoughts" :key="idx">
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+              R{{ t.round }} / {{ t.dimension }} / Step {{ t.step }}
+            </div>
+            <div class="thought-bubble">{{ t.thought }}</div>
+          </div>
+        </div>
+
+        <!-- Final Results -->
+        <div v-if="pipelineStatus === 'done'" class="panel" style="margin-top: 16px;">
+          <div class="panel-header">Pipeline Complete</div>
+          <div class="panel-body">
+            <p>{{ finalResult.convergence_reason }}</p>
+            <p style="margin-top: 8px; color: var(--text-secondary);">
+              {{ finalResult.total_accepted }} features accepted in
+              {{ finalResult.total_rounds }} rounds
+              ({{ finalResult.elapsed_sec }}s)
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } = Vue;
+
+createApp({
+  setup() {
+    const datasets = ref([]);
+    const selectedDataset = ref('');
+    const knowledge = ref(null);
+    const maxRounds = ref(3);
+    const budgetPerDim = ref(2);
+    const noiseSamples = ref(20);
+    const convergenceRounds = ref(2);
+    const knowledgeFilter = ref('');
+
+    const pipelineStatus = ref('idle');
+    const hasStarted = ref(false);
+    const currentRound = ref(0);
+    const currentPhase = ref('');
+    const activeTab = ref('features');
+    const startTime = ref(null);
+    const elapsedTime = ref('');
+    const finalResult = ref({});
+
+    const features = ref([]);
+    const timeline = ref([]);
+    const thoughts = ref([]);
+    const timelineEl = ref(null);
+
+    const stats = reactive({
+      accepted: 0,
+      rejected: 0,
+      candidates: 0,
+      generated: 0,
+    });
+
+    let ws = null;
+    let timerInterval = null;
+
+    const isRunning = computed(() => pipelineStatus.value === 'running');
+    const selectedDatasetInfo = computed(() =>
+      datasets.value.find(d => d.name === selectedDataset.value)
+    );
+    const statusText = computed(() => {
+      const map = { idle: 'Ready', running: 'Running', done: 'Complete', error: 'Error' };
+      return map[pipelineStatus.value] || pipelineStatus.value;
+    });
+    const progressPercent = computed(() => {
+      if (maxRounds.value <= 0) return 0;
+      return Math.min(100, (currentRound.value / maxRounds.value) * 100);
+    });
+
+    async function fetchDatasets() {
+      const resp = await fetch('/api/datasets');
+      datasets.value = await resp.json();
+    }
+
+    async function onDatasetChange() {
+      if (!selectedDataset.value) { knowledge.value = null; return; }
+      const resp = await fetch(`/api/knowledge/${selectedDataset.value}`);
+      knowledge.value = await resp.json();
+    }
+
+    function addTimeline(type, message, level = 'info') {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+      timeline.value.push({ timeStr, type, message, level });
+      if (timeline.value.length > 500) timeline.value.shift();
+      nextTick(() => {
+        if (timelineEl.value) {
+          timelineEl.value.scrollTop = timelineEl.value.scrollHeight;
+        }
+      });
+    }
+
+    function handleEvent(event) {
+      const t = event.type;
+
+      switch (t) {
+        case 'data_loading':
+          currentPhase.value = `Loading ${event.dataset}...`;
+          addTimeline('DATA', `Loading dataset: ${event.dataset} (${event.domain})`, 'info');
+          break;
+
+        case 'data_loaded':
+          addTimeline('DATA', `Loaded: ${event.n_rows} rows, ${event.n_features} features, pos_rate=${event.pos_rate}%`, 'success');
+          break;
+
+        case 'knowledge_loading':
+          currentPhase.value = 'Loading domain knowledge...';
+          break;
+
+        case 'knowledge_loaded':
+          addTimeline('KNOW', `Knowledge: ${event.n_indicators} indicators, ${event.n_rules} rules, ${event.n_expert} expert, registry=${event.registry_size}`, 'success');
+          break;
+
+        case 'noise_calibration_start':
+          currentPhase.value = `Noise calibration (${event.n_random} samples)...`;
+          addTimeline('NOISE', `Calibrating noise thresholds (n=${event.n_random})...`, 'info');
+          break;
+
+        case 'noise_calibration_done':
+          addTimeline('NOISE', `Done: IV_threshold=${event.iv_threshold?.toFixed(4)}, KS_threshold=${event.ks_threshold?.toFixed(4)}`, 'success');
+          break;
+
+        case 'pipeline_start':
+          currentPhase.value = 'Pipeline started';
+          addTimeline('START', `Pipeline started: ${event.dimensions?.join(', ')} (max ${event.max_rounds} rounds)`, 'success');
+          break;
+
+        case 'round_start':
+          currentRound.value = event.round_num;
+          currentPhase.value = `Round ${event.round_num}/${event.max_rounds}`;
+          addTimeline('ROUND', `Round ${event.round_num} started (accepted=${event.accepted}, candidates=${event.candidates})`, 'info');
+          break;
+
+        case 'dimension_start':
+          currentPhase.value = `Round ${event.round_num} - ${event.dimension} (budget=${event.budget})`;
+          addTimeline('DIM', `Exploring: ${event.dimension} (budget=${event.budget})`, 'info');
+          break;
+
+        case 'agent_step':
+          currentPhase.value = `R${event.round_num} / ${event.dimension} / Step ${event.step}`;
+          break;
+
+        case 'agent_thought':
+          thoughts.value.push({
+            round: event.round_num,
+            dimension: event.dimension,
+            step: event.step,
+            thought: event.thought,
+          });
+          break;
+
+        case 'verification_result': {
+          const f = {
+            name: event.feature_name,
+            dimensions: [],
+            status: event.accepted ? 'accepted' : (event.stage_reached === 'L3' && !event.accepted ? 'candidate' : 'rejected'),
+            summary: event.summary,
+            l1Status: 'skip',
+            l2Status: 'skip',
+            l3Status: 'skip',
+            metrics: {},
+            expanded: false,
+            code: null,
+            provenance: null,
+          };
+
+          if (event.l1) f.l1Status = event.l1.passed ? 'pass' : 'fail';
+          if (event.l2) {
+            f.l2Status = event.l2.passed ? 'pass' : 'fail';
+            f.metrics.iv = event.l2.IV;
+            f.metrics.ks = event.l2.KS;
+          }
+          if (event.l3) {
+            f.l3Status = event.l3.passed ? 'pass' : 'fail';
+            f.metrics.delta_auc = event.l3.delta_auc;
+            f.metrics.delta_recall = event.l3.delta_recall;
+          }
+
+          stats.generated++;
+          if (event.accepted) stats.accepted++;
+          else if (f.status === 'candidate') stats.candidates++;
+          else stats.rejected++;
+
+          features.value.unshift(f);
+
+          const lvl = event.accepted ? 'success' : (f.status === 'candidate' ? 'warning' : 'error');
+          addTimeline('FEAT', `${event.feature_name}: ${event.summary}`, lvl);
+          break;
+        }
+
+        case 'dimension_end':
+          if (event.features_accepted?.length) {
+            addTimeline('DIM', `${event.dimension} done: +${event.accepted} accepted, ${event.rejected} rejected`, 'success');
+          } else {
+            addTimeline('DIM', `${event.dimension} done: ${event.generated} generated, 0 accepted`, 'warning');
+          }
+          break;
+
+        case 'forward_selection_start':
+          addTimeline('FSEL', `Forward selection: ${event.n_candidates} candidates`, 'info');
+          break;
+
+        case 'shap_start':
+          addTimeline('SHAP', `Computing SHAP feedback...`, 'info');
+          break;
+
+        case 'round_end':
+          addTimeline('ROUND', `Round ${event.round_num} done: +${event.new_features} features (total=${event.total_accepted})`, 'success');
+          stats.accepted = event.total_accepted || stats.accepted;
+          stats.rejected = event.total_rejected || stats.rejected;
+          break;
+
+        case 'pipeline_end':
+          currentPhase.value = 'Pipeline complete';
+          addTimeline('END', `Pipeline complete: ${event.total_accepted} features in ${event.total_rounds} rounds (${event.elapsed_sec}s)`, 'success');
+          break;
+
+        case 'pipeline_complete':
+          pipelineStatus.value = 'done';
+          finalResult.value = event;
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          if (event.feature_codes) {
+            for (const f of features.value) {
+              if (event.feature_codes[f.name]) {
+                f.code = event.feature_codes[f.name];
+              }
+              if (event.feature_provenance?.[f.name]) {
+                f.provenance = event.feature_provenance[f.name];
+              }
+            }
+          }
+          addTimeline('DONE', `${event.convergence_reason}`, 'success');
+          break;
+
+        case 'pipeline_error':
+          pipelineStatus.value = 'error';
+          if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+          addTimeline('ERROR', event.error, 'error');
+          break;
+
+        default:
+          addTimeline(t.toUpperCase(), JSON.stringify(event).substring(0, 200), 'info');
+      }
+    }
+
+    function connectWebSocket() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onmessage = (msg) => {
+        try {
+          const event = JSON.parse(msg.data);
+          handleEvent(event);
+        } catch (e) {
+          console.error('Parse error:', e);
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = (err) => {
+        console.error('WebSocket error:', err);
+      };
+    }
+
+    async function startPipeline() {
+      if (!selectedDataset.value || isRunning.value) return;
+
+      hasStarted.value = true;
+      pipelineStatus.value = 'running';
+      features.value = [];
+      timeline.value = [];
+      thoughts.value = [];
+      stats.accepted = 0;
+      stats.rejected = 0;
+      stats.candidates = 0;
+      stats.generated = 0;
+      currentRound.value = 0;
+      currentPhase.value = 'Initializing...';
+      finalResult.value = {};
+
+      startTime.value = Date.now();
+      timerInterval = setInterval(() => {
+        const secs = Math.floor((Date.now() - startTime.value) / 1000);
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        elapsedTime.value = `${m}m ${s}s`;
+      }, 1000);
+
+      const config = {
+        dataset: selectedDataset.value,
+        max_rounds: maxRounds.value,
+        budget_per_dim: budgetPerDim.value,
+        noise_samples: noiseSamples.value,
+        convergence_rounds: convergenceRounds.value,
+        knowledge_filter: knowledgeFilter.value || undefined,
+      };
+
+      addTimeline('INIT', `Starting pipeline: ${selectedDataset.value}`, 'info');
+
+      try {
+        const resp = await fetch('/api/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(config),
+        });
+        const data = await resp.json();
+        if (data.error) {
+          addTimeline('ERROR', data.error, 'error');
+          pipelineStatus.value = 'error';
+        }
+      } catch (err) {
+        addTimeline('ERROR', err.message, 'error');
+        pipelineStatus.value = 'error';
+      }
+    }
+
+    onMounted(() => {
+      fetchDatasets();
+      connectWebSocket();
+    });
+
+    onUnmounted(() => {
+      if (ws) ws.close();
+      if (timerInterval) clearInterval(timerInterval);
+    });
+
+    return {
+      datasets, selectedDataset, selectedDatasetInfo, knowledge,
+      maxRounds, budgetPerDim, noiseSamples, convergenceRounds, knowledgeFilter,
+      pipelineStatus, hasStarted, isRunning, statusText,
+      currentRound, currentPhase, progressPercent, activeTab,
+      features, timeline, thoughts, timelineEl,
+      stats, startTime, elapsedTime, finalResult,
+      onDatasetChange, startPipeline,
+    };
+  },
+}).mount('#app');
+</script>
+</body>
+</html>

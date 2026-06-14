@@ -85,6 +85,7 @@ class ReactAgent:
         shap_feedback: Optional[ShapFeedback] = None,
         failure_records: Optional[list[FailureRecord]] = None,
         cross_dim_examples: Optional[list[CrossDimExample]] = None,
+        event_callback: Optional[Any] = None,
     ) -> RoundResult:
         """执行单轮 Agent 探索。
 
@@ -123,6 +124,13 @@ class ReactAgent:
             {"role": "user", "content": user_message},
         ]
 
+        def emit(event_type: str, **data):
+            if event_callback:
+                try:
+                    event_callback(event_type, data)
+                except Exception:
+                    pass
+
         tool_specs = self.tool_ctx.get_tool_specs()
         l1_repair_counts: dict[str, int] = {}
         n_validated = 0
@@ -136,7 +144,14 @@ class ReactAgent:
                 result.n_generated, budget,
             )
 
+            emit("agent_step", round_num=round_num, dimension=dimension,
+                 step=step, generated=result.n_generated, budget=budget)
+
             resp = self.llm.chat(messages, tools=tool_specs)
+
+            if resp.content:
+                emit("agent_thought", round_num=round_num, dimension=dimension,
+                     step=step, thought=resp.content[:500])
 
             if not resp.has_tool_calls:
                 result.terminated_reason = "agent_completed"
@@ -187,6 +202,17 @@ class ReactAgent:
 
                         obs = _parse_observation(sandbox_obs)
                         n_validated += 1
+
+                        emit("verification_result",
+                             feature_name=fname,
+                             round_num=round_num,
+                             dimension=dimension,
+                             accepted=obs.get("accepted", False),
+                             stage_reached=obs.get("stage_reached", ""),
+                             summary=obs.get("summary", ""),
+                             l1=obs.get("L1_sandbox"),
+                             l2=obs.get("L2_statistics"),
+                             l3=obs.get("L3_model_eval"))
 
                         if obs.get("accepted"):
                             result.n_accepted += 1

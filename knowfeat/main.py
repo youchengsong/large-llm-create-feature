@@ -111,6 +111,7 @@ def run_stage(
     domain_knowledge: DomainKnowledge,
     noise_thresholds: Optional[NoiseThresholds] = None,
     knowledge_filter: Optional[str] = None,
+    event_callback: Optional[callable] = None,
 ) -> StageResult:
     """Run one stage of KnowFeat feature generation.
 
@@ -131,6 +132,16 @@ def run_stage(
     t0 = time.time()
     result = StageResult(stage=cfg.stage)
 
+    def emit(event_type: str, **data):
+        if event_callback:
+            try:
+                event_callback(event_type, data)
+            except Exception:
+                pass
+
+    emit("pipeline_start", stage=cfg.stage, max_rounds=cfg.search.max_rounds,
+         dimensions=cfg.search.dimensions)
+
     # -- initialise components ------------------------------------------------
     llm = LLMClient(cfg.llm)
     if isinstance(data, Stage1Data):
@@ -145,16 +156,22 @@ def run_stage(
     cross_prop = CrossDimPropagator(cfg=cfg)
 
     if noise_thresholds is None:
+        emit("noise_calibration_start", n_random=cfg.verification.noise_n_random_features)
         logger.info("噪声校准开始 (n_random=%d) ...", cfg.verification.noise_n_random_features)
         noise_thresholds = calibrate_noise_thresholds(
             label=label,
             n_samples=len(label),
             n_random=cfg.verification.noise_n_random_features,
             percentile=cfg.verification.noise_percentile,
-            iv_fallback=cfg.verification.iv_min_fallback,
-            ks_fallback=cfg.verification.ks_min_fallback,
+            noise_multiplier=cfg.verification.noise_multiplier,
+            iv_floor=cfg.verification.iv_min_floor,
+            ks_floor=cfg.verification.ks_min_floor,
             seed=cfg.seed,
         )
+
+    emit("noise_calibration_done",
+         iv_threshold=noise_thresholds.iv_threshold,
+         ks_threshold=noise_thresholds.ks_threshold)
 
     tool_ctx = ToolContext(
         data=data, cfg=cfg, noise_thresholds=noise_thresholds,
@@ -179,6 +196,8 @@ def run_stage(
             round_num, cfg.search.max_rounds,
             accepted_before, len(tool_ctx.candidate_pool),
         )
+        emit("round_start", round_num=round_num, max_rounds=cfg.search.max_rounds,
+             accepted=accepted_before, candidates=len(tool_ctx.candidate_pool))
 
         # ---- per-dimension agent exploration --------------------------------
         for dim in dim_mgr.dimensions:
@@ -192,6 +211,8 @@ def run_stage(
             prompt_failures = _failures_to_prompt(failure_records)
             cross_examples = cross_prop.get_examples_for_dimension(dim)
 
+            emit("dimension_start", round_num=round_num, dimension=dim, budget=budget)
+
             rr = agent.run_round(
                 round_num=round_num,
                 dimension=dim,
@@ -199,8 +220,14 @@ def run_stage(
                 shap_feedback=prompt_shap,
                 failure_records=prompt_failures,
                 cross_dim_examples=cross_examples,
+                event_callback=event_callback,
             )
             result.round_results.append(rr)
+
+            emit("dimension_end", round_num=round_num, dimension=dim,
+                 generated=rr.n_generated, accepted=rr.n_accepted,
+                 candidates=rr.n_candidates, rejected=rr.n_rejected,
+                 features_accepted=rr.features_accepted)
 
             dim_mgr.record_round(
                 dimension=dim,
@@ -232,6 +259,7 @@ def run_stage(
 
         # ---- forward selection on candidate pool ----------------------------
         if tool_ctx.candidate_pool:
+            emit("forward_selection_start", n_candidates=len(tool_ctx.candidate_pool))
             logger.info(
                 "前向选择: %d 个候选特征", len(tool_ctx.candidate_pool),
             )
@@ -241,6 +269,7 @@ def run_stage(
                 candidates=list(tool_ctx.candidate_pool),
                 cfg=cfg,
                 seed=cfg.seed,
+                spw_override=cfg.verification.spw_override,
             )
 
             for cand in fs_result.accepted:
@@ -280,6 +309,7 @@ def run_stage(
             ]
 
         # ---- SHAP feedback --------------------------------------------------
+        emit("shap_start", round_num=round_num)
         if tool_ctx.accepted_features and tool_ctx.baseline_X.shape[1] > 0:
             feature_dims: dict[str, list[str]] = {}
             for fname, cand in tool_ctx.accepted_features.items():
@@ -307,6 +337,8 @@ def run_stage(
             round_num, new_this_round,
             accepted_after, cfg.search.max_features,
         )
+        emit("round_end", round_num=round_num, new_features=new_this_round,
+             total_accepted=accepted_after, total_rejected=len(tool_ctx.rejected_features))
         logger.info("维度状态:\n%s", dim_mgr.summary())
 
         if new_this_round == 0:
@@ -350,6 +382,10 @@ def run_stage(
         cfg.stage, result.total_accepted, result.total_rounds,
         result.elapsed_sec, result.convergence_reason,
     )
+    emit("pipeline_end", total_accepted=result.total_accepted,
+         total_rounds=result.total_rounds, elapsed_sec=round(result.elapsed_sec, 1),
+         convergence_reason=result.convergence_reason,
+         accepted_features=result.accepted_feature_names)
     return result
 
 
@@ -538,6 +574,10 @@ def main() -> None:
         "--spw", type=float, default=None,
         help="scale_pos_weight override for L3 verification (default: auto, set 1 for no balancing)",
     )
+    parser.add_argument(
+        "--delta-recall-min", type=float, default=None,
+        help="L3 delta_recall threshold (default: 0.0, set -1.0 to bypass L3)",
+    )
     args = parser.parse_args()
 
     overrides: dict = {}
@@ -549,6 +589,8 @@ def main() -> None:
         overrides["verbose"] = False
     if args.spw is not None:
         overrides["spw_override"] = args.spw
+    if args.delta_recall_min is not None:
+        overrides["delta_recall_min"] = args.delta_recall_min
 
     result = run(
         stage=args.stage,
