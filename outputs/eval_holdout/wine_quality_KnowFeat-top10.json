@@ -1,0 +1,41 @@
+{
+  "dataset": "wine_quality",
+  "method": "KnowFeat-top10",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 1279,
+  "n_test": 320,
+  "n_features": 21,
+  "test_positive_rate": 0.534375,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.8997605871502021,
+      "test_seed_std": 0.0024932835855535854,
+      "bootstrap_mean": 0.9018271012953109,
+      "bootstrap_std": 0.01746240100255003,
+      "bootstrap_ci95": [
+        0.8664251461272204,
+        0.9350094668397817
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.835,
+      "test_seed_std": 0.009960860906568282,
+      "bootstrap_mean": 0.843096875,
+      "bootstrap_std": 0.02064708074666671,
+      "bootstrap_ci95": [
+        0.803125,
+        0.884375
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "dataset": "blood_transfusion",
+  "method": "OpenFE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 598,
+  "n_test": 150,
+  "n_features": 34,
+  "test_positive_rate": 0.24,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7241228070175438,
+      "test_seed_std": 0.005095797698701669,
+      "bootstrap_mean": 0.7239021475859161,
+      "bootstrap_std": 0.04907762014254489,
+      "bootstrap_ci95": [
+        0.6290868868707357,
+        0.8146211638701407
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7346666666666667,
+      "test_seed_std": 0.008844332774281085,
+      "bootstrap_mean": 0.7126733333333334,
+      "bootstrap_std": 0.03647781608959981,
+      "bootstrap_ci95": [
+        0.64,
+        0.78
+      ]
+    }
+  }
+}

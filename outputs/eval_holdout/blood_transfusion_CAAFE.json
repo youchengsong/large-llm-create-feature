@@ -1,0 +1,41 @@
+{
+  "dataset": "blood_transfusion",
+  "method": "CAAFE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 598,
+  "n_test": 150,
+  "n_features": 7,
+  "test_positive_rate": 0.24,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7229044834307993,
+      "test_seed_std": 0.009436338925792364,
+      "bootstrap_mean": 0.7254044737409155,
+      "bootstrap_std": 0.04929002896515229,
+      "bootstrap_ci95": [
+        0.624586956521739,
+        0.8150823652344951
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7,
+      "test_seed_std": 0.015202339001321851,
+      "bootstrap_mean": 0.69274,
+      "bootstrap_std": 0.03773067069521971,
+      "bootstrap_ci95": [
+        0.62,
+        0.7601666666666665
+      ]
+    }
+  }
+}

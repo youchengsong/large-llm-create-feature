@@ -108,7 +108,7 @@ The feature's statistical properties are evaluated against automatically calibra
     \item \textbf{Information Value (IV)}~\cite{chen2018aml}: Must exceed the noise-calibrated threshold, ensuring the feature has meaningful discriminative power between positive and negative classes.
     \item \textbf{Kolmogorov--Smirnov (KS) Statistic}~\cite{nargesian2017learning}: Must exceed the noise-calibrated threshold, measuring the maximum distributional separation between classes.
     \item \textbf{Redundancy}: Maximum absolute Pearson correlation with all existing accepted features must be below 0.7, preventing near-duplicate features from inflating the feature set.
-    \item \textbf{Missing Rate}: The proportion of NaN values must be at most 50\%, ensuring sufficient coverage for model training.
+    \item \textbf{Missing Rate}: The proportion of NaN values must be at most 30\%, ensuring sufficient coverage for model training.
 \end{itemize}
 The noise-calibrated thresholds apply to IV and KS; the redundancy and missing rate thresholds are fixed.
 

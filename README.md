@@ -93,6 +93,27 @@ Post-hoc pruning is available for dedicated experiments through
 `scripts/run_knowfeat_public.py --enable-posthoc-selection` and is disabled by
 default.
 
+Run final frozen-test evaluation and reproduce the paper summaries with:
+
+```bash
+PYTHONPATH=. .venv/bin/python scripts/evaluate_holdout.py \
+  --dataset credit_g --baseline
+PYTHONPATH=. .venv/bin/python scripts/analyze_public_results.py
+PYTHONPATH=. .venv/bin/python scripts/evaluate_reduced_baseline.py
+PYTHONPATH=. .venv/bin/python scripts/gen_fig2_avg_rank.py
+```
+
+The exact manuscript inputs are versioned in `outputs/eval_holdout/`.
+`paper/results/public_holdout_analysis.json` contains the average ranks and
+Holm-corrected paired Wilcoxon tests. The reduced-baseline analysis explicitly
+excludes identifiers and labels before model fitting.
+
+Compile the paper from `paper/` with a standard TeX Live installation:
+
+```bash
+latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+```
+
 ### Run Tests
 
 ```bash

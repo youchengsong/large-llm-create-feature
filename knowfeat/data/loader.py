@@ -146,6 +146,44 @@ def load_stage2(cfg: Optional[KnowFeatConfig] = None,
     )
 
 
+def subset_stage2(data: Stage2Data, idx) -> Stage2Data:
+    """Return the Stage 2 development rows in baseline-feature order.
+
+    Account and closure tables contain no labels and remain available for
+    joins. Transaction rows are restricted to the selected split so candidate
+    generation cannot inspect frozen-test transactions.
+    """
+    baseline = None
+    if data.baseline_features is not None:
+        baseline = data.baseline_features.iloc[idx].reset_index(drop=True)
+
+    if (
+        baseline is not None
+        and "tx_id_fe" in baseline
+        and "tx_id" in data.tx_df
+    ):
+        tx_by_id = data.tx_df.set_index("tx_id", drop=False)
+        if not tx_by_id.index.is_unique:
+            raise ValueError("tx_df.tx_id must be unique when aligning a split")
+        keep_ids = baseline["tx_id_fe"].tolist()
+        missing_ids = set(keep_ids).difference(tx_by_id.index)
+        if missing_ids:
+            raise ValueError(
+                f"{len(missing_ids)} split transaction IDs are absent from tx_df"
+            )
+        tx_df = tx_by_id.loc[keep_ids].reset_index(drop=True)
+    else:
+        tx_df = data.tx_df.iloc[idx].reset_index(drop=True)
+
+    return Stage2Data(
+        open_df=data.open_df,
+        tx_df=tx_df,
+        close_df=data.close_df,
+        baseline_features=baseline,
+        label_col=data.label_col,
+    )
+
+
 def get_label_series(data: Stage2Data) -> pd.Series:
     """从 baseline_features 中提取标签列（确保与特征行对齐）。"""
     if data.baseline_features is not None and data.label_col in data.baseline_features.columns:
@@ -226,6 +264,20 @@ def load_stage1(cfg: Optional[KnowFeatConfig] = None,
 def get_label_series_stage1(data: Stage1Data) -> pd.Series:
     """从 Stage 1 df 中提取标签列。"""
     return data.df[data.label_col].astype(int)
+
+
+def subset_stage1(data: Stage1Data, idx) -> Stage1Data:
+    """Return a position-based subset without exposing other rows."""
+    baseline = None
+    if data.baseline_features is not None:
+        baseline = data.baseline_features.iloc[idx].reset_index(drop=True)
+    return Stage1Data(
+        df=data.df.iloc[idx].reset_index(drop=True),
+        baseline_features=baseline,
+        label_col=data.label_col,
+        id_col=data.id_col,
+        feature_cols=list(data.feature_cols),
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-"""L3 model performance verification: XGBoost 5-fold StratifiedKFold CV, supports delta-recall (AML) / delta-AUC (public datasets)."""
+"""L3 verification with five repeated stratified holdouts on D_dev."""
 
 import logging
 from dataclasses import dataclass

@@ -1,0 +1,41 @@
+{
+  "dataset": "adult",
+  "method": "CAAFE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 39073,
+  "n_test": 9769,
+  "n_features": 19,
+  "test_positive_rate": 0.23932848807452145,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.9306062308740843,
+      "test_seed_std": 0.00040784738390185657,
+      "bootstrap_mean": 0.9314382114857189,
+      "bootstrap_std": 0.002563447888035414,
+      "bootstrap_ci95": [
+        0.9264700100570382,
+        0.9364472839722532
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.8377315999590541,
+      "test_seed_std": 0.0006052511208555445,
+      "bootstrap_mean": 0.83923953321732,
+      "bootstrap_std": 0.0038031385445484824,
+      "bootstrap_ci95": [
+        0.8318098065308629,
+        0.8463507011976661
+      ]
+    }
+  }
+}

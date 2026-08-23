@@ -1,0 +1,41 @@
+{
+  "dataset": "heart",
+  "method": "No-FE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 734,
+  "n_test": 184,
+  "n_features": 11,
+  "test_positive_rate": 0.5543478260869565,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.9278335724533717,
+      "test_seed_std": 0.0019784925483919687,
+      "bootstrap_mean": 0.9287854707356089,
+      "bootstrap_std": 0.019481502913911965,
+      "bootstrap_ci95": [
+        0.8908609200827041,
+        0.9630590323285279
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.8673913043478262,
+      "test_seed_std": 0.007372097807744837,
+      "bootstrap_mean": 0.870375,
+      "bootstrap_std": 0.02437474189190085,
+      "bootstrap_ci95": [
+        0.8206521739130435,
+        0.9184782608695652
+      ]
+    }
+  }
+}

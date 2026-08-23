@@ -1,0 +1,41 @@
+{
+  "dataset": "credit_g",
+  "method": "KnowFeat-posthoc",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 800,
+  "n_test": 200,
+  "n_features": 24,
+  "test_positive_rate": 0.7,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7590714285714286,
+      "test_seed_std": 0.008592698477206197,
+      "bootstrap_mean": 0.765069460562923,
+      "bootstrap_std": 0.03592227885567928,
+      "bootstrap_ci95": [
+        0.6862040328086753,
+        0.8296015936041292
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.736,
+      "test_seed_std": 0.01019803902718558,
+      "bootstrap_mean": 0.7353950000000001,
+      "bootstrap_std": 0.03117240726989176,
+      "bootstrap_ci95": [
+        0.67,
+        0.790125
+      ]
+    }
+  }
+}

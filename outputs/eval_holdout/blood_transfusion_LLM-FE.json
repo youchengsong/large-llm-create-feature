@@ -1,0 +1,41 @@
+{
+  "dataset": "blood_transfusion",
+  "method": "LLM-FE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 598,
+  "n_test": 150,
+  "n_features": 5,
+  "test_positive_rate": 0.24,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7489278752436647,
+      "test_seed_std": 0.007383644041527752,
+      "bootstrap_mean": 0.7532166121487687,
+      "bootstrap_std": 0.04908058823752183,
+      "bootstrap_ci95": [
+        0.6510384549738991,
+        0.8409380047083299
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.744,
+      "test_seed_std": 0.013727506854649355,
+      "bootstrap_mean": 0.7411866666666668,
+      "bootstrap_std": 0.0351911074626026,
+      "bootstrap_ci95": [
+        0.6666666666666666,
+        0.8066666666666666
+      ]
+    }
+  }
+}

@@ -44,7 +44,7 @@ Elliptic (AML)     & 46,564  & 166 & 9.76 & Finance \\
 
 The eight public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}, except wine\_quality, which is the UCI Red Wine Quality dataset~\cite{cortez2009wine} binarized at a quality threshold of~6. SimECNY is a synthetic AML benchmark calibrated against real digital currency (e-CNY) transaction patterns from the Postal Savings Bank of China. Its 93 baseline features, transaction topology, and class distribution (2.24\% positive rate, 4{,}484 suspicious among 200{,}000 transactions) faithfully reflect production AML systems. Due to financial privacy regulations, high-fidelity simulation is standard practice in AML research~\cite{weber2019anti}. Importantly, the domain knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) is derived entirely from real regulatory guidelines, compliance manuals, expert interviews, and publicly available court judgments.
 
-For the eight public datasets, we also construct simplified knowledge bases with three types: risk indicators (IND), detection rules (RULE), and expert consensus (EXP), compiled from medical guidelines, financial regulations, census documentation, and oenological literature (e.g., heart: 12~IND, 10~RULE, 8~EXP). Although simpler than the AML taxonomy, these knowledge bases improve over the schema-only baseline (Section~\ref{subsec:rq3}).
+For the eight public datasets, we also construct simplified knowledge bases with three types: risk indicators (IND), detection rules (RULE), and expert consensus (EXP), compiled from medical guidelines, financial regulations, census documentation, and oenological literature (e.g., heart: 12~IND, 10~RULE, 8~EXP). Although simpler than the AML taxonomy, these knowledge bases improve over the schema-only baseline on the two reported public ablations (Section~\ref{subsec:rq3}).
 
 \textbf{Baselines.}
 We compare against six baselines:
@@ -100,9 +100,9 @@ Table~\ref{tab:main_results} presents the AUC comparison on eight public dataset
     \label{fig:avg_rank}
 \end{figure}
 
-The strongest competitor is OpenFE (avg.\ rank 3.2), which achieves the best AUC on 3 datasets through exhaustive operator-operand search but generates roughly 34--50 features per dataset. Among LLM-based methods, LLM-FE outperforms CAAFE and FeatLLM on average but remains below OpenFE and KnowFeat. The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
+The strongest competitor is OpenFE (avg.\ rank 3.2), which achieves the best AUC on 3 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.8). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
-\textbf{Statistical significance.} Under the leakage-free protocol, Wilcoxon signed-rank tests confirm that no single method significantly dominates all others on these well-studied benchmarks. KnowFeat's advantage lies in \emph{consistency}: it achieves the best average rank (2.5) across all eight datasets, whereas other methods show higher variance---notably AutoFeat degrades substantially on wine\_quality.
+\textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction for six comparisons, none is significant at $\alpha=0.05$ (smallest unadjusted $p=0.0781$; smallest adjusted $p=0.4688$). Thus, the eight benchmarks support a descriptive consistency claim---KnowFeat has the best average rank (2.5)---but not pairwise superiority. Exact inputs, analysis code, and generated statistics are released with the source code.
 
 \textbf{LLM backbone sensitivity.}
 To evaluate whether KnowFeat's effectiveness depends on the LLM backbone, we compare DeepSeek-V4-Flash (default) against DeepSeek-V4-Pro on two datasets. On heart, Pro slightly improves AUC (0.930 vs.\ 0.928); on credit\_g, Pro degrades (0.735 vs.\ 0.752). This mixed result indicates that KnowFeat's performance depends more on the knowledge-guided verification pipeline than on the backbone LLM's raw capability.
@@ -182,14 +182,14 @@ Table~\ref{tab:simecny} presents results on the SimECNY AML dataset. KnowFeat ad
 \hline
 No-FE     & 93   & .965 & .977 & .971 & .9997 \\
 OpenFE    & 123  & .960 & .978 & .969 & .9996 \\
-CAAFE     & 94   & .964 & .979 & .972 & .9997 \\
+CAAFE     & 94   & .964 & .979 & \textbf{.972} & .9997 \\
 FeatLLM   & 1124 & .958 & .978 & .968 & .9996 \\
-\textbf{KnowFeat} & \textbf{97} & .961 & .981 & \textbf{.971} & \textbf{.9997} \\
+\textbf{KnowFeat} & \textbf{97} & .961 & .981 & .971 & \textbf{.9997} \\
 \hline
 \end{tabular}
 \end{table}
 
-On SimECNY, the 93-feature baseline already achieves near-perfect AUC (0.9997), leaving minimal headroom for improvement. Under this saturated setting, KnowFeat's 4 verified features maintain baseline F1 (0.971), while FeatLLM's 1{,}124 unverified features \emph{decrease} F1 to 0.968 and OpenFE's generated features also degrade to 0.969. This confirms that the three-stage verification pipeline effectively filters harmful features: \emph{quality control matters more than generation volume} when baseline performance is already strong.
+On SimECNY, the 93-feature baseline already achieves near-perfect AUC (0.9997), leaving minimal headroom for improvement. Under this saturated setting, KnowFeat's 4 verified features maintain baseline F1 (0.971), while FeatLLM's 1{,}124 unverified features \emph{decrease} F1 to 0.968 and OpenFE's generated features also degrade to 0.969. This result is consistent with the value of filtering harmful features: generation volume alone does not guarantee improvement when baseline performance is already strong.
 
 To further validate this finding, we additionally evaluate on the Elliptic Bitcoin AML dataset~\cite{weber2019anti}---a real-world transaction graph with 46{,}564 labeled transactions and 166 features. KnowFeat generates 3 knowledge-guided features (using a Bitcoin AML knowledge base with 10 risk indicators and 8 detection rules) and achieves AUC 0.9982 vs.\ the 0.9981 baseline, again demonstrating that verified features do not degrade an already-strong model.
 
@@ -234,7 +234,7 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 
 \begin{table}[t]
 \centering
-\caption{Feature quantity vs.\ quality. $\Delta$F1 (AML): F1 change over No-FE on SimECNY.}
+\caption{Feature quantity vs.\ quality. Avg.\ \#Feat is the total model input count; $\Delta$F1 (AML) is the F1 change over No-FE on SimECNY.}
 \label{tab:quantity_quality}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -252,14 +252,14 @@ No-FE     & ---   & 3.3 & --- \\
 \end{tabular}
 \end{table}
 
-On SimECNY, KnowFeat's verified features maintain baseline F1, while FeatLLM's 1{,}124 unverified features decrease F1 by $-$0.3\%. This confirms that the three-stage verification pipeline is critical: since both methods use LLMs, the contrast isolates the effect of verification from generation.
+On SimECNY, KnowFeat's verified features maintain baseline F1, while FeatLLM's 1{,}124 unverified features decrease F1 by $-$0.3\%. This is consistent with a benefit from progressive verification, although the two systems also use different generators and the comparison therefore does not isolate verification as the sole causal factor.
 
 \textbf{Feature engineering impact under reduced baselines.}
 The modest absolute improvements on public datasets (Table~\ref{tab:main_results}) reflect that these well-studied benchmarks already have strong baseline features, leaving limited headroom. To evaluate feature engineering impact when it is genuinely needed, we reduce the baseline to only 3 core features per dataset (e.g., \texttt{duration}, \texttt{credit\_amount}, \texttt{age} for credit\_g) and measure each method's contribution from this weaker starting point.
 
 \begin{table}[t]
 \centering
-\caption{AUC with reduced baseline (3 core features only). Feature engineering impact is most visible when baseline features are limited.}
+\caption{AUC with a reduced baseline (3 core features only). Identifier and label columns are excluded from every method.}
 \label{tab:reduced_baseline}
 \small
 \renewcommand{\arraystretch}{1.2}
@@ -268,15 +268,15 @@ The modest absolute improvements on public datasets (Table~\ref{tab:main_results
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
 \hline
-credit\_g  & .633 & .757 & .647 & .755 & \textbf{.760} \\
-heart      & .750 & .925 & .839 & .928 & \textbf{.931} \\
-diabetes   & .789 & \underline{.817} & .794 & --- & \textbf{.801} \\
-wine\_quality & .830 & \underline{.885} & --- & --- & \textbf{.890} \\
+credit\_g  & .633 & \underline{.757} & .647 & .755 & \textbf{.795} \\
+heart      & .750 & .925 & .839 & \textbf{.928} & \underline{.927} \\
+diabetes   & .789 & \textbf{.817} & .794 & .807 & \underline{.812} \\
+wine\_quality & .825 & \textbf{.897} & --- & --- & \underline{.896} \\
 \hline
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:reduced_baseline} reveals that when feature engineering is genuinely needed (baseline AUC 0.63--0.83), KnowFeat achieves the best AUC on all four datasets, outperforming both the strongest traditional method (OpenFE) and LLM-based methods (CAAFE, FeatLLM). On credit\_g, KnowFeat improves from 0.633 to 0.760 (+12.7\%); on wine\_quality, from 0.830 to 0.890 (+6.0\%), nearly recovering full-baseline performance (0.896) from only 3 core features. This demonstrates that knowledge-guided features provide substantial value when the model lacks informative inputs, complementing the full-baseline comparison (Table~\ref{tab:main_results}) where methods converge due to feature saturation.
+Table~\ref{tab:reduced_baseline} reveals larger feature-engineering gains when baseline AUC is 0.63--0.83. KnowFeat improves all four weak baselines, ranking first on credit\_g and second on the other three datasets. On credit\_g, it improves AUC from 0.633 to 0.795 (+16.2 percentage points); on wine\_quality, from 0.825 to 0.896 (+7.1 points), matching full-baseline performance from only 3 core features. These results complement the full-baseline comparison (Table~\ref{tab:main_results}), where feature saturation leaves less headroom. Leakage-checked, seed-level results are released with the analysis code.
 
 \subsection{Computational Cost}
 \label{subsec:cost}
@@ -287,6 +287,7 @@ Table~\ref{tab:reduced_baseline} reveals that when feature engineering is genuin
 \label{tab:cost}
 \small
 \renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{l r r r}
 \hline
 \textbf{Stage} & \textbf{Time} & \textbf{\% Total} & \textbf{Per Cand.} \\

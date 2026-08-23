@@ -34,7 +34,7 @@ class TestInit:
     def test_custom_dimensions(self):
         mgr = _make_manager(dimensions=["A", "B"])
         assert mgr.dimensions == ["A", "B"]
-        assert mgr.total_budget == 10
+        assert mgr.total_budget == 6
 
     def test_custom_initial_budget(self):
         mgr = _make_manager(initial_budget_per_dim=8)
@@ -45,7 +45,7 @@ class TestInit:
         cfg = KnowFeatConfig()
         mgr = DimensionManager(cfg=cfg)
         assert mgr.dimensions == DEFAULT_DIMS
-        assert mgr.total_budget == 20
+        assert mgr.total_budget == 12
 
     def test_search_cfg_overrides_knowfeat_config(self):
         cfg = KnowFeatConfig()

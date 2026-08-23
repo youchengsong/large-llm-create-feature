@@ -1,0 +1,41 @@
+{
+  "dataset": "breast_w",
+  "method": "KnowFeat",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 546,
+  "n_test": 137,
+  "n_features": 16,
+  "test_positive_rate": 0.35036496350364965,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.9919007490636705,
+      "test_seed_std": 0.0012172284644194808,
+      "bootstrap_mean": 0.9916267766807167,
+      "bootstrap_std": 0.006297731899984004,
+      "bootstrap_ci95": [
+        0.9766856463020637,
+        1.0
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.9693430656934308,
+      "test_seed_std": 0.002919708029197077,
+      "bootstrap_mean": 0.9708686131386862,
+      "bootstrap_std": 0.014114076310120726,
+      "bootstrap_ci95": [
+        0.9416058394160584,
+        0.9927007299270073
+      ]
+    }
+  }
+}

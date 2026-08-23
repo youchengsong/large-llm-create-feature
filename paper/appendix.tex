@@ -66,6 +66,28 @@ Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6
 \noindent\textbf{Verification Statistics.}
 On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$53 minutes by avoiding unnecessary L3 evaluations on the 21 candidates rejected at L1/L2. When the optional post-hoc selection pass is enabled for the holdout experiment, 4 features are retained in the final model (as reported in Section~\ref{subsec:rq2}). The gap between 18 L3-accepted and 4 final features illustrates the importance of evaluating redundancy in combination rather than relying on individual gains alone.
 
+\begin{table*}[t]
+\centering
+\caption{Frozen-test AUC with 95\% bootstrap confidence intervals (1{,}000 test-set resamples).}
+\label{tab:auc_ci}
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{l c c}
+\hline
+\textbf{Dataset} & \textbf{No-FE AUC [95\% CI]} & \textbf{KnowFeat AUC [95\% CI]} \\
+\hline
+credit\_g          & .749 [.678, .819] & .752 [.681, .820] \\
+diabetes           & .812 [.737, .881] & .810 [.741, .880] \\
+blood\_transfusion & .757 [.662, .844] & .754 [.656, .840] \\
+heart              & .928 [.891, .963] & .928 [.888, .964] \\
+bank\_marketing    & .930 [.925, .938] & .931 [.926, .939] \\
+breast\_w          & .986 [.969, .999] & .992 [.977, 1.000] \\
+adult              & .931 [.927, .937] & .932 [.928, .938] \\
+wine\_quality      & .896 [.863, .932] & .896 [.860, .930] \\
+\hline
+\end{tabular}
+\end{table*}
+
 \subsection{Practical Considerations}
 \label{sec:practical}
 

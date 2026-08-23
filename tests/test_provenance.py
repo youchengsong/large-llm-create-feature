@@ -104,7 +104,8 @@ class TestProvenanceCard:
         d = card.to_dict()
         expected_keys = {
             "feature_name", "dimensions", "explanation", "reasoning",
-            "knowledge_source", "data_fields_used", "code_hash",
+            "knowledge_source", "data_fields_used", "knowledge_ids",
+            "computation_steps", "knowledge_resolved", "code_hash",
         }
         assert set(d.keys()) == expected_keys
 

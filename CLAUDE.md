@@ -69,6 +69,12 @@ rebase 发生冲突时：
   enforced for recall-based acceptance and intentionally omitted in AUC mode.
 - Post-hoc feature pruning is an opt-in `SearchConfig.enable_posthoc_selection`
   experiment because it performs another model-selection pass.
+- `scripts/evaluate_holdout.py` scores only the frozen test partition.
+  Manuscript inputs live in `outputs/eval_holdout/`; average ranks and paired
+  Wilcoxon/Holm tests are reproduced by `scripts/analyze_public_results.py`.
+- Reduced-baseline evaluation must exclude all ID and label columns; use
+  `scripts/evaluate_reduced_baseline.py`. LLM generation defaults to
+  temperature 0 for lower sampling variance.
 
 ## 测试规范
 

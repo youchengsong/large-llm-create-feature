@@ -69,6 +69,9 @@ class ProvenanceCard:
         elif self.knowledge_ids:
             lines.append(f"**知识溯源ID**: {', '.join(self.knowledge_ids)}")
             lines.append("")
+        elif self.knowledge_source:
+            lines.append(f"**知识来源（兼容字段）**: {self.knowledge_source}")
+            lines.append("")
         else:
             lines.append("**知识溯源ID**: 未指定")
             lines.append("")

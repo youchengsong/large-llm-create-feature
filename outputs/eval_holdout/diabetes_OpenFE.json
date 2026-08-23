@@ -1,0 +1,41 @@
+{
+  "dataset": "diabetes",
+  "method": "OpenFE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 614,
+  "n_test": 154,
+  "n_features": 38,
+  "test_positive_rate": 0.35064935064935066,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.8200740740740742,
+      "test_seed_std": 0.005905752699867214,
+      "bootstrap_mean": 0.823641576081294,
+      "bootstrap_std": 0.03506578007007998,
+      "bootstrap_ci95": [
+        0.748728128410254,
+        0.8881493841126193
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7675324675324675,
+      "test_seed_std": 0.006362311020216062,
+      "bootstrap_mean": 0.7850129870129869,
+      "bootstrap_std": 0.033286005643489755,
+      "bootstrap_ci95": [
+        0.7207792207792207,
+        0.8506493506493507
+      ]
+    }
+  }
+}

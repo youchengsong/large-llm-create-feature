@@ -34,6 +34,6 @@ We evaluate KnowFeat on eight public OpenML tabular datasets, a synthetic AML be
 
 \begin{itemize}
     \item On public datasets, KnowFeat achieves the best average rank (2.5) among seven methods under leakage-free evaluation, with consistent performance while generating knowledge-grounded features.
-    \item On both AML datasets, KnowFeat’s verified features maintain baseline performance, while methods that generate large volumes of unverified features (e.g., FeatLLM with 1{,}124 features) degrade F1---confirming that \emph{verification quality matters more than generation quantity}.
+    \item On both AML datasets, KnowFeat's verified features remain competitive with the strong baselines; on SimECNY, FeatLLM's 1{,}124-feature representation lowers F1, showing that generation volume alone does not guarantee improvement.
     \item Every accepted feature carries a structured provenance record linking its design to specific knowledge assets, enabling efficient compliance review in regulated domains.
 \end{itemize}

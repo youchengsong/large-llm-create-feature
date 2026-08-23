@@ -34,11 +34,11 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 1. **This is standard practice in AutoFE.** OpenFE uses LightGBM for both feature selection and evaluation. CAAFE uses logistic regression as a proxy evaluator and evaluates with the downstream model. LLM-FE uses the downstream model's accuracy as evolutionary fitness feedback. Using the downstream model for feature selection is inherent to the AutoFE paradigm—the goal is to find features that improve the *specific* model being deployed.
 
-2. **L3 uses held-out evaluation, not training performance.** The L3 stage evaluates features on a held-out test set (stratified 80/20 split) across 5 random seeds. This means L3 measures generalization, not memorization. A feature that only helps XGBoost memorize training data would not pass L3.
+2. **L3 never accesses the frozen test set.** Each dataset is first divided into \(D_{\mathrm{dev}}\) (80%) and a frozen \(D_{\mathrm{test}}\) (20%). Feature generation, L2 calibration, and L3 selection use only \(D_{\mathrm{dev}}\). Within \(D_{\mathrm{dev}}\), L3 compares baseline and augmented XGBoost models over five repeated stratified 80/20 splits. Only after all feature decisions are fixed do we train on \(D_{\mathrm{dev}}\) and report performance on \(D_{\mathrm{test}}\). This prevents test-set leakage, although it does not by itself eliminate model-specific selection bias.
 
 3. **L2 provides model-agnostic filtering.** Information Value and KS statistics are model-independent measures. Features must pass these model-agnostic checks before reaching L3, ensuring they capture genuine distributional signals rather than model-specific artifacts.
 
-4. **We can provide cross-model validation.** To directly address this concern, we will add a supplementary experiment evaluating the KnowFeat-selected features using LightGBM and CatBoost as downstream models. Our preliminary results on 3 datasets (credit_g, adult, SimECNY) show that KnowFeat-generated features also improve LightGBM AUC by comparable margins (+0.005–0.018), confirming that the features capture generalizable signal rather than XGBoost-specific patterns.
+4. **Cross-model validation is the appropriate remaining check.** We will evaluate the fixed KnowFeat feature sets with LightGBM and CatBoost as downstream models. The current repository does not yet contain this experiment, so we do not claim numerical cross-model gains in the revision.
 
 **Revision plan:** We will add a cross-model validation table (LightGBM, CatBoost) in the revised paper to demonstrate model-agnostic feature quality.
 
@@ -50,15 +50,15 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 **Response:**
 
-1. **Temperature=0 for deterministic outputs.** Our implementation uses DeepSeek-V3 with temperature=0, which produces near-deterministic outputs given the same prompt. While minor provider-side changes may affect exact outputs over time, the verification pipeline ensures consistent *quality* regardless of generation variance.
+1. **Temperature=0 reduces sampling variance.** The released configuration now defaults to temperature 0. Exact reproduction can still be affected by provider-side model updates, so we describe the output as near-deterministic rather than bitwise deterministic.
 
 2. **Verification pipeline as the reproducibility guarantee.** The key insight of KnowFeat is that reproducibility of *feature quality* matters more than reproducibility of *exact feature code*. The L1→L2→L3 pipeline acts as a quality gate: even if the LLM generates slightly different features across runs, only those passing all three stages are accepted. The acceptance criteria (IV threshold, KS threshold, ΔAUC > 0) are fully deterministic.
 
-3. **Multi-run stability experiment.** We have conducted 3 independent end-to-end runs of KnowFeat on the adult dataset. While the exact feature names and code differ across runs, the number of accepted features (44, 46, 43) and the final AUC (0.9301, 0.9298, 0.9305) are highly consistent (std < 0.001). This demonstrates that KnowFeat's outputs are *functionally reproducible* even if not *lexically identical*.
+3. **Multi-run stability remains to be measured.** We will report three independent end-to-end runs on one public dataset, including accepted-feature count, feature-set overlap, and frozen-test AUC. We have removed the earlier numerical stability claim because no versioned run artifacts currently support it.
 
 4. **Code and knowledge base are released.** Our anonymous repository includes the complete codebase, all knowledge base files, and configuration parameters. Combined with temperature=0 and the released prompt templates, a researcher can reproduce our pipeline with high fidelity.
 
-**Revision plan:** We will add the multi-run stability results and explicitly state the temperature=0 setting in the paper.
+**Revision plan:** The temperature-0 default is implemented. Multi-run stability remains a camera-ready experiment.
 
 ---
 
@@ -68,13 +68,13 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 **Response:**
 
-1. **These are saturated benchmarks.** The 7 public datasets are well-studied benchmarks where state-of-the-art methods already achieve high AUC (e.g., breast_w ≈ 0.994, adult ≈ 0.930). On saturated benchmarks, even small improvements are meaningful—the key metric is *relative ranking* rather than absolute gain, which is why we emphasize average rank.
+1. **These are saturated benchmarks.** The 8 public datasets are well-studied benchmarks where baseline models already achieve high AUC (e.g., breast_w ≈ 0.986, adult ≈ 0.931). We therefore present average rank as a descriptive summary and avoid claiming practical significance from small absolute differences.
 
 2. **Ranking is the standard evaluation in AutoFE.** Following OpenFE [Zhang et al., 2023] and the AutoML benchmark literature [Gijsbers et al., 2024], we use average rank as the primary comparison metric. Under the frozen-test protocol, KnowFeat's average rank of 2.5 vs. OpenFE's 3.2 represents the most consistent result across the eight public datasets.
 
-3. **The real contribution on public datasets is efficiency, not just accuracy.** KnowFeat achieves top performance with 12–46 features, while FeatLLM requires 98–1,124 features and AutoFeat needs 35–142 features. Fewer features mean lower inference cost, easier interpretability, and simpler deployment.
+3. **The public results also show a quantity-quality tradeoff.** Across completed public runs, KnowFeat uses 33.8 total model inputs on average versus 133.8 for FeatLLM. The ranges are 12–88 and 11–280, respectively; on SimECNY they are 97 and 1,124.
 
-4. **The main empirical contribution is on AML.** The public dataset experiments serve to establish competitive performance on standard benchmarks. The primary empirical contribution is on SimECNY, where the improvements are substantial (+2.1pp Recall, +1.5pp F1) and practically significant for AML monitoring (each percentage point of Recall corresponds to ~45 additional detected suspicious transactions).
+4. **The AML result is a feature-quality result, not a large accuracy gain.** SimECNY's 93-feature baseline is already saturated (AUC 0.9997). KnowFeat maintains its F1 at 0.971 with four selected features, whereas FeatLLM's 1,124-feature representation lowers F1 to 0.968. We no longer claim unsupported recall or F1 improvements.
 
 ---
 
@@ -96,7 +96,7 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 ## Additional Concern: 统计显著性检验（5 seeds 样本量不足）
 
-We use 5 random seeds following the standard protocol established by OpenFE, CAAFE, and LLM-FE. We acknowledge that 5 seeds provide limited statistical power for parametric tests. In the revised version, we will (1) replace paired t-test with the non-parametric Wilcoxon signed-rank test, which is more appropriate for small sample sizes, and (2) report confidence intervals alongside p-values.
+We now use the dataset, rather than model seed, as the statistical unit. Across the eight public datasets, we compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests and apply Holm correction across six comparisons. None is significant at \(\alpha=0.05\): the smallest unadjusted \(p\)-value is 0.0781 and the smallest Holm-adjusted value is 0.4688. We also report 95% bootstrap confidence intervals from 1,000 frozen-test resamples. The exact inputs and generated statistics are versioned under outputs/eval_holdout/ and paper/results/public_holdout_analysis.json.
 
 ---
 
@@ -105,9 +105,9 @@ We use 5 random seeds following the standard protocol established by OpenFE, CAA
 | # | Revision | Addresses |
 |---|----------|-----------|
 | 1 | Add real-world grounding description for SimECNY + compliance feedback | Concern 1 |
-| 2 | Add cross-model validation (LightGBM, CatBoost) | Concern 2 |
-| 3 | Add multi-run stability experiment + state temperature=0 | Concern 3 |
-| 4 | Replace t-test with Wilcoxon signed-rank test | Statistical rigor |
-| 5 | Add practical impact quantification (detected transactions per Recall pp) | Concern 4 |
+| 2 | Add cross-model validation (LightGBM, CatBoost; remaining) | Concern 2 |
+| 3 | Add multi-run stability experiment (remaining); set temperature=0 (done) | Concern 3 |
+| 4 | Replace t-test with paired Wilcoxon + Holm correction (done) | Statistical rigor |
+| 5 | Remove unsupported detected-transaction impact claim (done) | Concern 4 |
 
 We believe these revisions would strengthen the paper significantly while preserving its core contributions. We are committed to completing all revisions within the camera-ready period.

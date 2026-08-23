@@ -1,8 +1,10 @@
 import json
 
 import numpy as np
+import pandas as pd
 import pytest
 
+from knowfeat.data.loader import Stage1Data, Stage2Data, subset_stage1, subset_stage2
 from knowfeat.data.split import DataSplit, get_or_make_split, make_split
 
 
@@ -46,3 +48,50 @@ def test_invalid_cache_is_regenerated(tmp_path):
     assert np.array_equal(
         np.sort(np.concatenate([split.dev_idx, split.test_idx])), np.arange(4)
     )
+
+
+def test_subset_stage1_preserves_selected_order():
+    data = Stage1Data(
+        df=pd.DataFrame({"row_id": [10, 11, 12], "x": [1, 2, 3], "y": [0, 1, 0]}),
+        baseline_features=pd.DataFrame({"x": [1, 2, 3]}),
+        label_col="y",
+        id_col="row_id",
+        feature_cols=["x"],
+    )
+
+    subset = subset_stage1(data, np.array([2, 0]))
+
+    assert subset.df["row_id"].tolist() == [12, 10]
+    assert subset.baseline_features["x"].tolist() == [3, 1]
+    assert subset.feature_cols == ["x"]
+
+
+def test_subset_stage2_aligns_transactions_by_id():
+    data = Stage2Data(
+        open_df=pd.DataFrame({"wallet_id": [1]}),
+        tx_df=pd.DataFrame({"tx_id": [30, 10, 20], "amount": [3, 1, 2]}),
+        close_df=pd.DataFrame({"wallet_id": [1]}),
+        baseline_features=pd.DataFrame({
+            "tx_id_fe": [10, 20, 30],
+            "is_risk": [0, 1, 0],
+        }),
+    )
+
+    subset = subset_stage2(data, np.array([2, 0]))
+
+    assert subset.baseline_features["tx_id_fe"].tolist() == [30, 10]
+    assert subset.tx_df["tx_id"].tolist() == [30, 10]
+    assert subset.open_df is data.open_df
+    assert subset.close_df is data.close_df
+
+
+def test_subset_stage2_rejects_missing_transaction_ids():
+    data = Stage2Data(
+        open_df=pd.DataFrame(),
+        tx_df=pd.DataFrame({"tx_id": [10]}),
+        close_df=pd.DataFrame(),
+        baseline_features=pd.DataFrame({"tx_id_fe": [99], "is_risk": [1]}),
+    )
+
+    with pytest.raises(ValueError, match="absent from tx_df"):
+        subset_stage2(data, np.array([0]))

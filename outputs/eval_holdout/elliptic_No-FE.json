@@ -1,0 +1,61 @@
+{
+  "dataset": "elliptic",
+  "method": "No-FE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 37251,
+  "n_test": 9313,
+  "n_features": 166,
+  "test_positive_rate": 0.09760549769139912,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "recall": {
+      "test_point": 0.946974697469747,
+      "test_seed_std": 0.0012829377106370022,
+      "bootstrap_mean": 0.9479689200480327,
+      "bootstrap_std": 0.007420278787830234,
+      "bootstrap_ci95": [
+        0.9328690956926089,
+        0.9619604215544352
+      ]
+    },
+    "precision": {
+      "test_point": 0.9781954972408317,
+      "test_seed_std": 0.003629446392191991,
+      "bootstrap_mean": 0.9819860227763961,
+      "bootstrap_std": 0.004329847729232856,
+      "bootstrap_ci95": [
+        0.9727852372419892,
+        0.9898077627688413
+      ]
+    },
+    "f1": {
+      "test_point": 0.9623280583519394,
+      "test_seed_std": 0.001836551846230091,
+      "bootstrap_mean": 0.9646583760297246,
+      "bootstrap_std": 0.0043946151329443284,
+      "bootstrap_ci95": [
+        0.9561866824847153,
+        0.9732452153714084
+      ]
+    },
+    "auc": {
+      "test_point": 0.9980705923995542,
+      "test_seed_std": 0.00010550349583463474,
+      "bootstrap_mean": 0.9982662516249592,
+      "bootstrap_std": 0.00036151460359894286,
+      "bootstrap_ci95": [
+        0.9975182079193734,
+        0.9989261896848473
+      ]
+    }
+  }
+}

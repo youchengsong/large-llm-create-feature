@@ -460,7 +460,7 @@ def format_expert_opinion(text: str) -> str:
     if not text:
         return "## 专家意见: 未加载\n"
     paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
-    lines = [f"## 专家意见（{len(paragraphs)} 段）\n"]
+    lines = [f"## 银行风控专家意见（{len(paragraphs)} 段）\n"]
     for i, para in enumerate(paragraphs, 1):
         lines.append(f"[EXP_{i:02d}] {para}\n")
     return "\n".join(lines)
@@ -565,6 +565,12 @@ def format_stage1_risk_factors(factors: list[dict]) -> str:
         f"## 加密货币洗钱风险因子摘要"
         f"（{len(factors)} 份来源, {total_rf} 个因子, 按维度聚合去重）\n"
     ]
+    sources = [str(doc.get("source", "")).strip() for doc in factors]
+    sources = [source for source in sources if source]
+    if sources:
+        visible_sources = sources[:10]
+        suffix = f"（另有 {len(sources) - 10} 份）" if len(sources) > 10 else ""
+        lines.append(f"**来源**: {', '.join(visible_sources)}{suffix}\n")
 
     for dim in dim_order:
         if dim not in dim_patterns:

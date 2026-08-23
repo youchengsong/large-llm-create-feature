@@ -1,0 +1,41 @@
+{
+  "dataset": "bank_marketing",
+  "method": "KnowFeat",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 36168,
+  "n_test": 9043,
+  "n_features": 36,
+  "test_positive_rate": 0.11699657193409267,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.9309724282178424,
+      "test_seed_std": 0.0008080826222724185,
+      "bootstrap_mean": 0.9327763815629011,
+      "bootstrap_std": 0.0033802181393190957,
+      "bootstrap_ci95": [
+        0.9259940215988407,
+        0.938882457678855
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.8746876036713479,
+      "test_seed_std": 0.0014859296279766542,
+      "bootstrap_mean": 0.8755677319473625,
+      "bootstrap_std": 0.0033837007456278016,
+      "bootstrap_ci95": [
+        0.8688460687824837,
+        0.8821187658962734
+      ]
+    }
+  }
+}

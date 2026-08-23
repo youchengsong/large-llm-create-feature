@@ -1,0 +1,41 @@
+{
+  "dataset": "credit_g",
+  "method": "KnowFeat-pro",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 800,
+  "n_test": 200,
+  "n_features": 46,
+  "test_positive_rate": 0.7,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7347380952380953,
+      "test_seed_std": 0.006543678467892213,
+      "bootstrap_mean": 0.7380355321980613,
+      "bootstrap_std": 0.03684223800420561,
+      "bootstrap_ci95": [
+        0.6630705686903093,
+        0.8064209597780255
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.693,
+      "test_seed_std": 0.010295630140986963,
+      "bootstrap_mean": 0.7003250000000001,
+      "bootstrap_std": 0.033047985944683514,
+      "bootstrap_ci95": [
+        0.634875,
+        0.765
+      ]
+    }
+  }
+}

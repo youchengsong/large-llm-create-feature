@@ -1,0 +1,41 @@
+{
+  "dataset": "blood_transfusion",
+  "method": "KnowFeat-schema",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 598,
+  "n_test": 150,
+  "n_features": 12,
+  "test_positive_rate": 0.24,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.742738791423002,
+      "test_seed_std": 0.004595906726258243,
+      "bootstrap_mean": 0.7411349905986924,
+      "bootstrap_std": 0.04481526696951351,
+      "bootstrap_ci95": [
+        0.6486621397437335,
+        0.823112432625707
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7133333333333332,
+      "test_seed_std": 0.011925695879998867,
+      "bootstrap_mean": 0.7006600000000001,
+      "bootstrap_std": 0.03775546994954653,
+      "bootstrap_ci95": [
+        0.6266666666666667,
+        0.7733333333333333
+      ]
+    }
+  }
+}

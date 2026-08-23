@@ -16,7 +16,7 @@ class LLMConfig:
     api_key: str = os.environ.get("KNOWFEAT_API_KEY", "")
     base_url: str = os.environ.get("KNOWFEAT_BASE_URL", "https://api.deepseek.com/v1")
     model: str = os.environ.get("KNOWFEAT_MODEL", "deepseek-chat")
-    temperature: float = 0.4
+    temperature: float = 0.0
     max_tokens: int = 4096
     timeout: int = 120
     max_retries: int = 3

@@ -1,0 +1,41 @@
+{
+  "dataset": "diabetes",
+  "method": "KnowFeat-posthoc",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 614,
+  "n_test": 154,
+  "n_features": 13,
+  "test_positive_rate": 0.35064935064935066,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.8196296296296296,
+      "test_seed_std": 0.006254764987432453,
+      "bootstrap_mean": 0.8219028771536366,
+      "bootstrap_std": 0.03424599017208667,
+      "bootstrap_ci95": [
+        0.751952430609699,
+        0.8857478191629568
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7324675324675325,
+      "test_seed_std": 0.011171850996159244,
+      "bootstrap_mean": 0.7339805194805195,
+      "bootstrap_std": 0.03608772353372428,
+      "bootstrap_ci95": [
+        0.6623376623376623,
+        0.8051948051948052
+      ]
+    }
+  }
+}
