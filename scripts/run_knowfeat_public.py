@@ -77,6 +77,22 @@ DATASET_REGISTRY = {
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "adult" / "domain_knowledge.json",
         "dimensions": ["人口统计", "教育就业", "财务资产", "社会经济"],
     },
+    "elliptic": {
+        "csv": PROJECT_ROOT / "data" / "elliptic" / "elliptic_labeled.csv",
+        "target": "label",
+        "domain": "Bitcoin AML detection",
+        "task": "Binary classification (illicit vs licit transactions)",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "elliptic" / "domain_knowledge.json",
+        "dimensions": ["Transaction Amount", "Network Topology", "Temporal Pattern", "Aggregated Features"],
+    },
+    "wine_quality": {
+        "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
+        "target": "class",
+        "domain": "红葡萄酒品质评估",
+        "task": "二分类（品质>=6为好酒）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "wine_quality" / "domain_knowledge.json",
+        "dimensions": ["酸度平衡", "氧化保护", "酒体结构", "矿质感"],
+    },
 }
 
 
@@ -97,6 +113,7 @@ def build_config(dataset_name: str, max_features: int = 9999) -> KnowFeatConfig:
     cfg = load_config(stage="generic")
     cfg.public_dataset = pub_cfg
     cfg.verification.accept_metric = "auc"
+    cfg.verification.delta_auc_min = -0.002
     cfg.search.dimensions = reg["dimensions"]
     cfg.search.max_features = max_features
     cfg.search.initial_budget_per_dim = max(2, 20 // len(reg["dimensions"]))
@@ -110,12 +127,17 @@ def main():
     parser.add_argument("--max-features", type=int, default=9999)
     parser.add_argument("--max-rounds", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--enable-posthoc-selection", action="store_true",
+        help="Run the optional second model-selection pass after forward selection",
+    )
     parser.add_argument("--knowledge-filter", default=None,
                         choices=["schema_only", "indicators", "rules", "expert"])
     args = parser.parse_args()
 
     cfg = build_config(args.dataset, args.max_features)
     cfg.search.max_rounds = args.max_rounds
+    cfg.search.enable_posthoc_selection = args.enable_posthoc_selection
     cfg.seed = args.seed
 
     logger.info("=== KnowFeat on %s ===", args.dataset)
@@ -124,17 +146,32 @@ def main():
                 cfg.public_dataset.target_col, cfg.search.max_features)
 
     # 加载数据
-    from knowfeat.data.loader import load_public_dataset
-    data = load_public_dataset(cfg.public_dataset)
+    from knowfeat.data.loader import load_public_dataset, subset_stage1
+    data_full = load_public_dataset(cfg.public_dataset)
+
+    # 无泄漏协议：按冻结划分裁剪到 D_dev，特征生成/选择只见训练部分。
+    # 划分缓存与 scripts/evaluate_holdout.py 共享，保证最终 test 集一致。
+    from knowfeat.data.split import get_or_make_split
+    full_labels = pd.to_numeric(data_full.df[data_full.label_col], errors="coerce").astype(int)
+    split_cache = cfg.paths.output_dir / "splits" / f"{args.dataset}_split.json"
+    split = get_or_make_split(len(data_full.df), labels=full_labels, cache_path=split_cache)
+    data = subset_stage1(data_full, split.dev_idx)
+
     label_series = pd.to_numeric(data.df[data.label_col], errors='coerce')
     pos_rate = label_series.mean() * 100 if not label_series.isna().all() else 0.0
-    logger.info("Data loaded: %d rows, %d features, label=%s (pos_rate=%.2f%%)",
-                len(data.df), len(data.feature_cols), data.label_col, pos_rate)
+    logger.info("Data loaded: full=%d rows -> dev=%d rows (test=%d frozen), %d features, "
+                "label=%s (dev pos_rate=%.2f%%)",
+                len(data_full.df), len(data.df), len(split.test_idx),
+                len(data.feature_cols), data.label_col, pos_rate)
 
-    # 加载领域知识
-    from knowfeat.prompt.domain_knowledge import load_domain_knowledge
-    dk = load_domain_knowledge(cfg)
-    logger.info("Knowledge loaded: registry=%d entries", len(dk.knowledge_registry))
+    # Load domain knowledge (skip if no knowledge path configured, e.g. Elliptic schema-only)
+    from knowfeat.prompt.domain_knowledge import load_domain_knowledge, DomainKnowledge
+    if cfg.public_dataset.domain_knowledge_path and str(cfg.public_dataset.domain_knowledge_path) != "":
+        dk = load_domain_knowledge(cfg)
+        logger.info("Knowledge loaded: registry=%d entries", len(dk.knowledge_registry))
+    else:
+        dk = DomainKnowledge(knowledge_registry={}, formatted_text="")
+        logger.info("No domain knowledge configured, using schema-only mode")
 
     # 运行 Agent 循环
     from knowfeat.main import run_stage, save_results

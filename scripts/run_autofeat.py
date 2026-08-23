@@ -10,7 +10,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 if not hasattr(pd.Series, "ravel"):
     pd.Series.ravel = lambda self, order="C": self.to_numpy().ravel(order)
@@ -34,6 +33,7 @@ DATASET_REGISTRY = {
     "bank_marketing": {"csv": "data/public/bank_marketing.csv", "target": "y"},
     "breast_w": {"csv": "data/public/breast_w.csv", "target": "Class"},
     "adult": {"csv": "data/public/adult.csv", "target": "class"},
+    "wine_quality": {"csv": "data/public/wine_quality.csv", "target": "class"},
     "simecny": {"csv": None, "target": "is_risk"},
 }
 
@@ -82,9 +82,17 @@ def main():
         le = LabelEncoder()
         y = le.fit_transform(y)
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=args.seed, stratify=y,
+    # Use the same frozen split as KnowFeat and holdout evaluation.  AutoFeat
+    # sees labels only on D_dev; the learned transformations are then applied
+    # to the untouched D_test rows.
+    from knowfeat.data.split import get_or_make_split
+    split_cache = PROJECT_ROOT / "outputs" / "splits" / f"{args.dataset}_split.json"
+    split = get_or_make_split(
+        len(df), labels=pd.Series(y), cache_path=split_cache, seed=args.seed,
     )
+    X_train = X.iloc[split.dev_idx]
+    X_test = X.iloc[split.test_idx]
+    y_train = y[split.dev_idx]
 
     print(f"Running AutoFeat on {args.dataset} ({len(df)} rows, {X.shape[1]} features)")
 

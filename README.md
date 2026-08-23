@@ -84,10 +84,19 @@ nohup python3 -m knowfeat.main > logs/stage2.log 2>&1 &
 tail -f logs/stage2.log
 ```
 
+Public-baseline generation uses the frozen split cached under
+`outputs/splits/<dataset>_split.json`. AutoFeat, CAAFE, FeatLLM, OpenFE, and
+KnowFeat fit or select features on the development partition only; generated
+transformations are then applied in original row order for holdout scoring.
+Post-hoc pruning is available for dedicated experiments through
+`cfg.search.enable_posthoc_selection` or
+`scripts/run_knowfeat_public.py --enable-posthoc-selection` and is disabled by
+default.
+
 ### Run Tests
 
 ```bash
-pytest tests/ -v
+PYTHONPATH=. .venv/bin/pytest -q
 ```
 
 ## Documentation

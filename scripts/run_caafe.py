@@ -128,6 +128,11 @@ DATASET_REGISTRY = {
         "target": "class",
         "description": "Adult census income dataset. Predict whether annual income exceeds $50K based on demographic attributes like age, education, occupation, marital status, etc.",
     },
+    "wine_quality": {
+        "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
+        "target": "class",
+        "description": "Red wine quality dataset. Predict whether wine quality is good (score>=6) or not based on physicochemical properties: fixed acidity, volatile acidity, citric acid, residual sugar, chlorides, free/total sulfur dioxide, density, pH, sulphates, and alcohol content.",
+    },
     "simecny": {
         "csv": None,
         "target": "is_risk",
@@ -173,6 +178,7 @@ def main():
     parser.add_argument("--dataset", required=True, choices=list(DATASET_REGISTRY.keys()))
     parser.add_argument("--iterations", type=int, default=10,
                         help="Number of iterative LLM feature generation rounds")
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--model", default="deepseek-chat")
     parser.add_argument("--output-dir", type=Path,
                         default=PROJECT_ROOT / "outputs" / "caafe")
@@ -182,7 +188,6 @@ def main():
 
     df, target = load_dataset(args.dataset)
     reg = DATASET_REGISTRY[args.dataset]
-    ds = build_ds_tuple(df, target, reg["description"], name=args.dataset)
 
     df_for_caafe = df.copy()
     for col in df_for_caafe.columns:
@@ -197,12 +202,24 @@ def main():
         df_for_caafe[target] = df_for_caafe[target].astype("category").cat.codes
     df_for_caafe = df_for_caafe.fillna(-999)
 
-    print(f"Running CAAFE on {args.dataset} ({len(df)} rows, {len(df.columns)-1} features)")
+    # CAAFE evaluates candidate code with labels during generation.  Restrict
+    # that entire loop to the shared development partition, then execute the
+    # resulting deterministic code on all rows for frozen-test evaluation.
+    from knowfeat.data.split import get_or_make_split
+    split_cache = PROJECT_ROOT / "outputs" / "splits" / f"{args.dataset}_split.json"
+    split = get_or_make_split(
+        len(df_for_caafe), labels=df_for_caafe[target],
+        cache_path=split_cache, seed=args.seed,
+    )
+    df_dev = df_for_caafe.iloc[split.dev_idx].reset_index(drop=True)
+    ds = build_ds_tuple(df_dev, target, reg["description"], name=args.dataset)
+
+    print(f"Running CAAFE on {args.dataset} ({len(df_dev)} dev rows, {len(df.columns)-1} features)")
     print(f"Model: {args.model}, iterations: {args.iterations}")
 
     code, prompt, messages = generate_features(
         ds=ds,
-        df=df_for_caafe,
+        df=df_dev,
         model=args.model,
         iterative=args.iterations,
         metric_used="auc",

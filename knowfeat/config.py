@@ -1,4 +1,4 @@
-"""KnowFeat 全局配置"""
+"""KnowFeat global configuration."""
 
 import os
 from pathlib import Path
@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 # ---------------------------------------------------------------------------
-# LLM 配置
+# LLM configuration
 # ---------------------------------------------------------------------------
 @dataclass
 class LLMConfig:
@@ -23,96 +23,110 @@ class LLMConfig:
 
 
 # ---------------------------------------------------------------------------
-# 文件路径
+# File paths
 # ---------------------------------------------------------------------------
 @dataclass
 class PathConfig:
-    # Stage 2 数据 (SimECNY)
+    # Stage 2 data (SimECNY)
     accounts_csv: Path = PROJECT_ROOT / "data" / "accounts.csv"
     transactions_csv: Path = PROJECT_ROOT / "data" / "transactions.csv"
     close_csv: Path = PROJECT_ROOT / "data" / "close.csv"
 
-    # Stage 1 数据 (BABD-13)
+    # Stage 1 data (BABD-13)
     babd13_csv: Path = Path("/root/autodl-tmp/archive/BABD-13.csv")
 
-    # 基线特征
+    # Baseline features
     baseline_cache: Path = PROJECT_ROOT / "outputs" / "baseline_cache.parquet"
     baseline_feature_engineering: Path = PROJECT_ROOT / "inputs" / "baseline" / "feature_engineering.py"
 
-    # 领域知识
+    # Domain knowledge
     domain_knowledge_dir: Path = PROJECT_ROOT / "inputs" / "domain_knowledge"
     risk_indicators_xlsx: Path = PROJECT_ROOT / "inputs" / "domain_knowledge" / "风险分类表_38指标.xlsx"
     detection_rules_xlsx: Path = PROJECT_ROOT / "inputs" / "domain_knowledge" / "检测规则_15条.xlsx"
     expert_interview_docx: Path = PROJECT_ROOT / "inputs" / "domain_knowledge" / "邮储专家访谈_数币洗钱模式.docx"
 
-    # Stage 1 知识
+    # Stage 1 knowledge
     stage1_knowledge_dir: Path = PROJECT_ROOT / "inputs" / "stage1_knowledge"
     stage1_risk_factors_dir: Path = PROJECT_ROOT / "inputs" / "stage1_knowledge" / "risk_factors"
 
-    # Stage 2 裁判文书提取结果
+    # Stage 2 court document extraction results
     stage2_risk_factors_dir: Path = PROJECT_ROOT / "inputs" / "stage2_knowledge" / "risk_factors"
 
-    # 裁判文书
+    # Court documents
     court_docs_dir: Path = PROJECT_ROOT / "裁判文书docx"
 
-    # SimECNY 原始数据
+    # SimECNY raw data
     simecny_dir: Path = PROJECT_ROOT / "inputs" / "SimECNY"
 
-    # 输出
+    # Output
     output_dir: Path = PROJECT_ROOT / "outputs"
 
-    # 日志
+    # Logs
     log_dir: Path = PROJECT_ROOT / "logs"
 
 
 # ---------------------------------------------------------------------------
-# 验证阈值
+# Verification thresholds
 # ---------------------------------------------------------------------------
 @dataclass
 class VerificationConfig:
-    # L1 沙盒
+    # L1 sandbox
     sandbox_timeout_sec: int = 30
     sandbox_max_retries: int = 2
 
-    # L2 统计验证 — 噪声校准
+    # L2 statistical verification — noise calibration
     noise_n_random_features: int = 100
     noise_percentile: float = 95.0
-    iv_min_fallback: float = 0.02
-    ks_min_fallback: float = 0.02
+    noise_multiplier: float = 3.0
+    iv_min_floor: float = 0.005
+    ks_min_floor: float = 0.005
+    # Backward-compatible names used by older configs and integrations.  When
+    # supplied, these aliases are normalized to the corresponding ``*_floor``.
+    iv_min_fallback: Optional[float] = None
+    ks_min_fallback: Optional[float] = None
     redundancy_max: float = 0.7
     missing_rate_max: float = 0.3
 
-    # L3 模型效果
+    # L3 model performance
     cv_folds: int = 5
     precision_min: float = 0.90
     delta_recall_min: float = 0.0
-    accept_metric: str = "recall"  # "recall" (AML) or "auc" (公开数据集)
+    accept_metric: str = "recall"  # "recall" (AML) or "auc" (public datasets)
     delta_auc_min: float = 0.0
     spw_override: Optional[float] = None  # None=auto, 1.0=no balancing
 
+    def __post_init__(self) -> None:
+        if self.iv_min_fallback is not None:
+            self.iv_min_floor = self.iv_min_fallback
+        if self.ks_min_fallback is not None:
+            self.ks_min_floor = self.ks_min_fallback
+
 
 # ---------------------------------------------------------------------------
-# 搜索策略参数
+# Search strategy parameters
 # ---------------------------------------------------------------------------
 @dataclass
 class SearchConfig:
     max_rounds: int = 10
     max_features: int = 9999
     convergence_rounds: int = 2
+    # Post-hoc pruning is expensive and changes the selected feature set, so
+    # it must be explicitly enabled by experiment configs.
+    enable_posthoc_selection: bool = False
 
-    # 四维度
+    # Four dimensions (functional — used in prompts, do not translate)
     dimensions: list[str] = field(default_factory=lambda: [
         "金额频次", "时间地域", "行为序列", "主体关联",
     ])
     initial_budget_per_dim: int = 3
 
-    # 失败记忆
+    # Failure memory
     failure_memory_inject_n: int = 10
 
-    # 跨维度传播
+    # Cross-dimension propagation
     cross_dim_top_k: int = 5
 
-    # 特征复合打分权重
+    # Feature composite scoring weights
     score_weight_shap: float = 0.30
     score_weight_iv: float = 0.20
     score_weight_novelty: float = 0.20
@@ -120,11 +134,11 @@ class SearchConfig:
 
 
 # ---------------------------------------------------------------------------
-# 顶层配置
+# Top-level configuration
 # ---------------------------------------------------------------------------
 @dataclass
 class PublicDatasetConfig:
-    """公开数据集配置（用于 stage='generic'）。"""
+    """Public dataset configuration (used when stage='generic')."""
     dataset_name: str = ""
     csv_path: Path = Path("")
     target_col: str = ""
@@ -147,7 +161,7 @@ class KnowFeatConfig:
 
 
 def load_config(stage: str = "stage2", **overrides) -> KnowFeatConfig:
-    """创建配置实例，支持关键字覆盖。"""
+    """Create a configuration instance with keyword overrides."""
     cfg = KnowFeatConfig(stage=stage)
 
     for key, value in overrides.items():
@@ -159,6 +173,9 @@ def load_config(stage: str = "stage2", **overrides) -> KnowFeatConfig:
             setattr(cfg.verification, key, value)
         elif hasattr(cfg.search, key):
             setattr(cfg.search, key, value)
+
+    # Apply aliases supplied through ``load_config`` after field overrides.
+    cfg.verification.__post_init__()
 
     cfg.paths.output_dir.mkdir(parents=True, exist_ok=True)
     cfg.paths.log_dir.mkdir(parents=True, exist_ok=True)

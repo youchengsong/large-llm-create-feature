@@ -1,12 +1,12 @@
-"""KnowFeat 主编排：两阶段特征生成 + 搜索策略循环。
+"""KnowFeat main orchestration: two-stage feature generation + search strategy loop.
 
-Stage 2 完整流程:
-  1. 加载数据 + 基线特征
-  2. 生成噪声校准阈值
-  3. 每轮循环: 4 维度 Agent 探索 → 前向选择 → SHAP → 更新预算
-  4. 收敛检测（连续 2 轮无新特征 / 达上限 / max_rounds 轮）
-  5. 输出结果
-Stage 1 同样流程（数据和知识不同）。
+Stage 2 full pipeline:
+  1. Load data + baseline features
+  2. Generate noise calibration thresholds
+  3. Each round: 4-dimension Agent exploration -> forward selection -> SHAP -> update budgets
+  4. Convergence detection (2 consecutive rounds with no new features / limit reached / max_rounds)
+  5. Output results
+Stage 1 follows the same pipeline (different data and knowledge).
 """
 
 from __future__ import annotations
@@ -157,7 +157,7 @@ def run_stage(
 
     if noise_thresholds is None:
         emit("noise_calibration_start", n_random=cfg.verification.noise_n_random_features)
-        logger.info("噪声校准开始 (n_random=%d) ...", cfg.verification.noise_n_random_features)
+        logger.info("Noise calibration started (n_random=%d) ...", cfg.verification.noise_n_random_features)
         noise_thresholds = calibrate_noise_thresholds(
             label=label,
             n_samples=len(label),
@@ -192,7 +192,7 @@ def run_stage(
 
         logger.info("=" * 60)
         logger.info(
-            "Round %d/%d 开始 (已接受=%d, 候选=%d)",
+            "Round %d/%d started (accepted=%d, candidates=%d)",
             round_num, cfg.search.max_rounds,
             accepted_before, len(tool_ctx.candidate_pool),
         )
@@ -261,7 +261,7 @@ def run_stage(
         if tool_ctx.candidate_pool:
             emit("forward_selection_start", n_candidates=len(tool_ctx.candidate_pool))
             logger.info(
-                "前向选择: %d 个候选特征", len(tool_ctx.candidate_pool),
+                "Forward selection: %d candidate features", len(tool_ctx.candidate_pool),
             )
             fs_result = forward_select(
                 baseline_X=tool_ctx.baseline_X,
@@ -289,12 +289,12 @@ def run_stage(
             for rej_cand in fs_result.rejected:
                 detail = fs_result.eval_details.get(rej_cand.name)
                 reason = (
-                    "; ".join(detail.reject_reasons) if detail else "未通过"
+                    "; ".join(detail.reject_reasons) if detail else "not passed"
                 )
                 failure_mem.record_failure(
                     feature_name=rej_cand.name,
                     code=rej_cand.code,
-                    reason=f"前向选择: {reason}",
+                    reason=f"Forward selection: {reason}",
                     round_num=round_num,
                     dimension=(
                         "/".join(rej_cand.dimension)
@@ -325,7 +325,7 @@ def run_stage(
             cross_prop.update_from_shap(shap_fb.feature_scores)
             dim_mgr.update_budgets_from_shap(shap_fb.dimension_contributions)
             prompt_shap = _shap_to_prompt(shap_fb, round_num)
-            logger.info("SHAP 反馈:\n%s", format_shap_summary(shap_fb))
+            logger.info("SHAP feedback:\n%s", format_shap_summary(shap_fb))
 
         # ---- convergence check ----------------------------------------------
         accepted_after = len(tool_ctx.accepted_features)
@@ -333,34 +333,50 @@ def run_stage(
         result.total_rounds = round_num
 
         logger.info(
-            "Round %d 完成: +%d 特征, 总计 %d/%d",
+            "Round %d completed: +%d features, total %d/%d",
             round_num, new_this_round,
             accepted_after, cfg.search.max_features,
         )
         emit("round_end", round_num=round_num, new_features=new_this_round,
              total_accepted=accepted_after, total_rejected=len(tool_ctx.rejected_features))
-        logger.info("维度状态:\n%s", dim_mgr.summary())
+        logger.info("Dimension status:\n%s", dim_mgr.summary())
 
         if new_this_round == 0:
             consecutive_no_new += 1
         else:
             consecutive_no_new = 0
 
-        if False:  # max_features limit disabled
+        if cfg.search.max_features > 0 and accepted_after >= cfg.search.max_features:
             result.convergence_reason = f"达到特征上限 {cfg.search.max_features}"
-            logger.info("收敛: %s", result.convergence_reason)
+            logger.info("Converged: %s", result.convergence_reason)
             break
 
         if consecutive_no_new >= cfg.search.convergence_rounds:
-            result.convergence_reason = (
-                f"连续 {consecutive_no_new} 轮无新特征"
-            )
-            logger.info("收敛: %s", result.convergence_reason)
+            result.convergence_reason = f"连续 {consecutive_no_new} 轮无新特征"
+            logger.info("Converged: %s", result.convergence_reason)
             break
     else:
         result.convergence_reason = f"达到最大轮次 {cfg.search.max_rounds}"
 
     # -- collect final results ------------------------------------------------
+    # Post-hoc forward selection is an optional experiment because it adds a
+    # second model-selection pass and can be expensive on large datasets.
+    if cfg.search.enable_posthoc_selection and tool_ctx.accepted_features:
+        from knowfeat.search.forward_selection import posthoc_select
+        selected_names = posthoc_select(
+            baseline_X=tool_ctx.baseline_X,
+            label=label,
+            accepted_features=tool_ctx.accepted_features,
+            cfg=cfg,
+            seed=cfg.seed,
+            spw_override=cfg.verification.spw_override,
+        )
+        pruned = set(tool_ctx.accepted_features.keys()) - set(selected_names)
+        if pruned:
+            logger.info("Post-hoc pruned %d features: %s", len(pruned), pruned)
+            for name in pruned:
+                del tool_ctx.accepted_features[name]
+
     result.total_accepted = len(tool_ctx.accepted_features)
     result.accepted_feature_names = list(tool_ctx.accepted_features.keys())
     result.total_candidates = len(tool_ctx.candidate_pool)
@@ -378,7 +394,7 @@ def run_stage(
 
     result.elapsed_sec = time.time() - t0
     logger.info(
-        "Stage %s 完成: %d 特征, %d 轮, %.1fs, %s",
+        "Stage %s completed: %d features, %d rounds, %.1fs, %s",
         cfg.stage, result.total_accepted, result.total_rounds,
         result.elapsed_sec, result.convergence_reason,
     )
@@ -414,7 +430,7 @@ def save_results(result: StageResult, output_dir: Path) -> dict[str, Path]:
     features_path = output_dir / f"{result.stage}_features.json"
     with open(features_path, "w", encoding="utf-8") as f:
         json.dump(features_info, f, ensure_ascii=False, indent=2)
-    logger.info("特征信息 → %s", features_path)
+    logger.info("Feature info -> %s", features_path)
 
     summary = {
         "stage": result.stage,
@@ -429,7 +445,7 @@ def save_results(result: StageResult, output_dir: Path) -> dict[str, Path]:
     summary_path = output_dir / f"{result.stage}_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
-    logger.info("运行摘要 → %s", summary_path)
+    logger.info("Run summary -> %s", summary_path)
 
     paths: dict[str, Path] = {
         "features": features_path,
@@ -485,21 +501,21 @@ def _ensure_knowledge_extracted(cfg: KnowFeatConfig) -> None:
 
     if _has_cached_risk_factors(output_dir):
         logger.info(
-            "Key-clue Extraction 缓存已存在 (%s)，跳过提取", output_dir,
+            "Key-clue Extraction cache exists (%s), skipping extraction", output_dir,
         )
         return
 
     if not input_dir.exists():
         logger.warning(
-            "知识源目录不存在: %s，跳过 Key-clue Extraction", input_dir,
+            "Knowledge source directory does not exist: %s, skipping Key-clue Extraction", input_dir,
         )
         return
 
     logger.info(
-        "Key-clue Extraction 开始: %s → %s", input_dir, output_dir,
+        "Key-clue Extraction started: %s -> %s", input_dir, output_dir,
     )
     run_extraction(cfg, input_dir=input_dir, output_dir=output_dir)
-    logger.info("Key-clue Extraction 完成")
+    logger.info("Key-clue Extraction completed")
 
 
 # ---------------------------------------------------------------------------
@@ -530,15 +546,31 @@ def run(
         format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
         force=True,
     )
-    logger.info("KnowFeat 启动 (stage=%s, knowledge_filter=%s)", stage, knowledge_filter)
+    logger.info("KnowFeat started (stage=%s, knowledge_filter=%s)", stage, knowledge_filter)
 
-    # -- Key-clue Extraction（首次运行时自动提取，有缓存则跳过）--------
+    # -- Key-clue Extraction (auto-extracts on first run, skipped if cached) --
     _ensure_knowledge_extracted(cfg)
 
     if stage == "stage1":
         data = load_stage1(cfg=cfg)
     else:
         data = load_stage2(cfg=cfg)
+
+    # No-leakage protocol: trim to D_dev using frozen split; KnowFeat only sees the training portion.
+    from knowfeat.data.split import get_or_make_split
+    from knowfeat.data.loader import get_label_series as _get_label, subset_stage2
+    _label_for_split = _get_label(data) if not isinstance(data, Stage1Data) else data.df[data.label_col].astype(int)
+    _n = len(_label_for_split)
+    _ds_name = "simecny" if stage == "stage2" else "stage1"
+    split_cache = cfg.paths.output_dir / "splits" / f"{_ds_name}_split.json"
+    _split = get_or_make_split(_n, labels=_label_for_split, cache_path=split_cache)
+    if isinstance(data, Stage1Data):
+        from knowfeat.data.loader import subset_stage1
+        data = subset_stage1(data, _split.dev_idx)
+    else:
+        data = subset_stage2(data, _split.dev_idx)
+    logger.info("No-leakage trim: full=%d -> dev=%d (test=%d frozen)", _n, len(_split.dev_idx), len(_split.test_idx))
+
     domain_knowledge = load_domain_knowledge(cfg)
     result = run_stage(cfg, data, domain_knowledge, knowledge_filter=knowledge_filter)
     output_dir = cfg.paths.output_dir
@@ -556,7 +588,7 @@ def run(
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="KnowFeat 特征生成系统")
+    parser = argparse.ArgumentParser(description="KnowFeat feature generation system")
     parser.add_argument(
         "--stage", default="stage2", choices=["stage1", "stage2"],
     )
@@ -568,7 +600,7 @@ def main() -> None:
     parser.add_argument(
         "--knowledge-filter", default=None,
         choices=["rules", "indicators", "expert", "court", "schema_only"],
-        help="消融实验: 只注入指定类型的领域知识",
+        help="Ablation experiment: only inject the specified type of domain knowledge",
     )
     parser.add_argument(
         "--spw", type=float, default=None,
@@ -598,8 +630,8 @@ def main() -> None:
         **overrides,
     )
     print(
-        f"\n完成: {result.total_accepted} 特征, "
-        f"{result.total_rounds} 轮, "
+        f"\nCompleted: {result.total_accepted} features, "
+        f"{result.total_rounds} rounds, "
         f"{result.convergence_reason}"
     )
 

@@ -18,17 +18,16 @@ async def main():
     COMPACT layout - minimize vertical space. MUST use Times New Roman font for ALL text (axis labels, tick labels, bar annotations) to match the IEEE paper body font. Font size 8-9pt.
     White background, no grid lines, clean academic style.
 
-    Data (sorted by rank, best at top, 8 methods):
+    Data (sorted by rank, best at top, 7 methods, 8 public datasets):
     | Method    | Avg. Rank |
     |-----------|-----------|
-    | KnowFeat  | 1.4       |
-    | OpenFE    | 2.3       |
-    | No-FE     | 4.7       |
-    | FeatLLM   | 5.1       |
-    | LLM-FE    | 5.1       |
-    | AutoFeat  | 5.5       |
-    | CAAFE     | 5.9       |
-    | OCTree    | 5.9       |
+    | KnowFeat  | 2.50      |
+    | OpenFE    | 3.19      |
+    | No-FE     | 3.31      |
+    | AutoFeat  | 4.17      |
+    | CAAFE     | 4.19      |
+    | FeatLLM   | 4.56      |
+    | LLM-FE    | 4.83      |
 
     - KnowFeat bar should be a distinct darker blue color, all others in light gray
     - Show the numeric rank value at the end of each bar
@@ -40,11 +39,11 @@ async def main():
     """
 
     raw_data = {
-        "methods": ["KnowFeat", "OpenFE", "No-FE", "FeatLLM", "LLM-FE", "AutoFeat", "CAAFE", "OCTree"],
-        "avg_rank": [1.4, 2.3, 4.7, 5.1, 5.1, 5.5, 5.9, 5.9],
+        "methods": ["KnowFeat", "OpenFE", "No-FE", "AutoFeat", "CAAFE", "FeatLLM", "LLM-FE"],
+        "avg_rank": [2.50, 3.19, 3.31, 4.17, 4.19, 4.56, 4.83],
     }
 
-    caption = "Average rank across 7 public datasets (lower is better). KnowFeat achieves the best average rank (1.4) among 8 methods."
+    caption = "Average rank across 8 public datasets (lower is better). KnowFeat achieves the best average rank (2.50) among 7 methods."
 
     settings = Settings(
         vlm_provider="gemini",

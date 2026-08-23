@@ -1,4 +1,4 @@
-"""L2 统计验证：IV/KS 计算 + 噪声校准阈值 + 冗余度检测 + 缺失率。"""
+"""L2 statistical verification: IV/KS computation + noise calibration thresholds + redundancy detection + missing rate."""
 
 import logging
 from dataclasses import dataclass
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class StatResult:
-    """L2 统计验证结果。"""
+    """L2 statistical verification result."""
     passed: bool
     iv: float
     ks: float
@@ -27,7 +27,7 @@ class StatResult:
 
 @dataclass
 class NoiseThresholds:
-    """噪声校准动态阈值。"""
+    """Noise calibration dynamic thresholds."""
     iv_threshold: float
     ks_threshold: float
     iv_distribution: np.ndarray
@@ -35,21 +35,21 @@ class NoiseThresholds:
 
 
 def compute_iv(feature: pd.Series, label: pd.Series, n_bins: int = 10) -> float:
-    """计算 Information Value（WoE 分箱法）。
+    """Compute Information Value (WoE binning method).
 
     Parameters
     ----------
     feature : pd.Series
-        特征值（数值型）。
+        Feature values (numeric).
     label : pd.Series
-        二分类标签（0/1）。
+        Binary label (0/1).
     n_bins : int
-        分箱数，默认 10。
+        Number of bins, default 10.
 
     Returns
     -------
     float
-        IV 值。特征全为常数或分箱失败时返回 0.0。
+        IV value. Returns 0.0 if feature is constant or binning fails.
     """
     mask = feature.notna() & label.notna()
     feat = feature[mask].values.astype(float)
@@ -70,7 +70,7 @@ def compute_iv(feature: pd.Series, label: pd.Series, n_bins: int = 10) -> float:
         unique_bins = np.array([])
 
     if len(unique_bins) < 2:
-        # qcut 分箱失败（稀疏特征），改用零/非零 + 非零部分再分箱
+        # qcut binning failed (sparse feature), fallback to zero/non-zero + re-bin non-zero portion
         zero_mask = feat == 0
         if zero_mask.all() or (~zero_mask).all():
             return 0.0
@@ -78,10 +78,10 @@ def compute_iv(feature: pd.Series, label: pd.Series, n_bins: int = 10) -> float:
         try:
             nz_bins = pd.qcut(nonzero_feat, q=min(n_bins - 1, len(np.unique(nonzero_feat))),
                               duplicates="drop")
-            nz_codes = nz_bins.codes + 1  # 非零部分的bin从1开始
+            nz_codes = nz_bins.codes + 1  # non-zero portion bins start from 1
         except (ValueError, TypeError):
             nz_codes = np.ones(len(nonzero_feat), dtype=int)
-        bin_codes = np.zeros(len(feat), dtype=int)  # 0 = 零值bin
+        bin_codes = np.zeros(len(feat), dtype=int)  # 0 = zero-value bin
         bin_codes[~zero_mask] = nz_codes
         unique_bins = np.unique(bin_codes[bin_codes >= 0])
         if len(unique_bins) < 2:
@@ -106,19 +106,19 @@ def compute_iv(feature: pd.Series, label: pd.Series, n_bins: int = 10) -> float:
 
 
 def compute_ks(feature: pd.Series, label: pd.Series) -> float:
-    """计算 KS 统计量（正负样本累积分布最大差异）。
+    """Compute KS statistic (maximum difference between positive and negative cumulative distributions).
 
     Parameters
     ----------
     feature : pd.Series
-        特征值（数值型）。
+        Feature values (numeric).
     label : pd.Series
-        二分类标签（0/1）。
+        Binary label (0/1).
 
     Returns
     -------
     float
-        KS 值。
+        KS value.
     """
     mask = feature.notna() & label.notna()
     feat = feature[mask].values.astype(float)
@@ -140,7 +140,7 @@ def compute_ks(feature: pd.Series, label: pd.Series) -> float:
 
 
 def compute_missing_rate(feature: pd.Series) -> float:
-    """计算缺失率。"""
+    """Compute missing rate."""
     if len(feature) == 0:
         return 1.0
     return float(feature.isna().sum() / len(feature))
@@ -150,19 +150,19 @@ def compute_redundancy(
     feature: pd.Series,
     existing_features: pd.DataFrame,
 ) -> float:
-    """计算与已有特征的最大绝对相关系数。
+    """Compute maximum absolute correlation coefficient with existing features.
 
     Parameters
     ----------
     feature : pd.Series
-        待评估的新特征。
+        New feature to evaluate.
     existing_features : pd.DataFrame
-        已接受的特征矩阵（每列一个特征）。
+        Accepted feature matrix (one feature per column).
 
     Returns
     -------
     float
-        最大绝对 Pearson 相关系数。无已有特征时返回 0.0。
+        Maximum absolute Pearson correlation coefficient. Returns 0.0 if no existing features.
     """
     if existing_features is None or existing_features.empty:
         return 0.0
@@ -191,34 +191,27 @@ def calibrate_noise_thresholds(
     n_samples: int,
     n_random: int = 100,
     percentile: float = 95.0,
-    iv_fallback: float = 0.02,
-    ks_fallback: float = 0.02,
+    iv_floor: float = 0.005,
+    ks_floor: float = 0.005,
     seed: int = 42,
+    *,
+    noise_multiplier: float = 3.0,
+    iv_fallback: Optional[float] = None,
+    ks_fallback: Optional[float] = None,
 ) -> NoiseThresholds:
-    """生成随机噪声特征，取 IV/KS 的高分位数作为动态阈值。
+    """Generate random noise features, take IV/KS high percentile x multiplier as dynamic thresholds.
 
-    Parameters
-    ----------
-    label : pd.Series
-        二分类标签（0/1）。
-    n_samples : int
-        样本数（与特征长度一致）。
-    n_random : int
-        随机特征数量，默认 100。
-    percentile : float
-        取分位数，默认 95。
-    iv_fallback : float
-        IV 兜底最小阈值。
-    ks_fallback : float
-        KS 兜底最小阈值。
-    seed : int
-        随机种子。
+    Threshold = max(noise_p95 x multiplier, floor), adaptive to different positive rates.
 
-    Returns
-    -------
-    NoiseThresholds
-        包含 iv_threshold, ks_threshold 及完整分布。
+    ``iv_fallback`` and ``ks_fallback`` are deprecated aliases retained for
+    callers using the pre-calibration API.  They take precedence over the
+    corresponding floor when supplied.
     """
+    if iv_fallback is not None:
+        iv_floor = iv_fallback
+    if ks_fallback is not None:
+        ks_floor = ks_fallback
+
     rng = np.random.RandomState(seed)
     iv_list = []
     ks_list = []
@@ -231,13 +224,15 @@ def calibrate_noise_thresholds(
     iv_arr = np.array(iv_list)
     ks_arr = np.array(ks_list)
 
-    iv_thresh = max(float(np.percentile(iv_arr, percentile)), iv_fallback)
-    ks_thresh = max(float(np.percentile(ks_arr, percentile)), ks_fallback)
+    iv_p = float(np.percentile(iv_arr, percentile))
+    ks_p = float(np.percentile(ks_arr, percentile))
+    iv_thresh = max(iv_p * noise_multiplier, iv_floor)
+    ks_thresh = max(ks_p, ks_floor)
 
     logger.info(
-        "噪声校准完成: IV p%.0f=%.4f (threshold=%.4f), KS p%.0f=%.4f (threshold=%.4f)",
-        percentile, float(np.percentile(iv_arr, percentile)), iv_thresh,
-        percentile, float(np.percentile(ks_arr, percentile)), ks_thresh,
+        "Noise calibration completed: IV p%.0f=%.4f x%.0f->threshold=%.4f, KS p%.0f=%.4f ->threshold=%.4f",
+        percentile, iv_p, noise_multiplier, iv_thresh,
+        percentile, ks_p, ks_thresh,
     )
 
     return NoiseThresholds(
@@ -256,33 +251,33 @@ def validate_feature(
     cfg: Optional[KnowFeatConfig] = None,
     vcfg: Optional[VerificationConfig] = None,
 ) -> StatResult:
-    """L2 统计验证：IV/KS/缺失率/冗余度综合判定。
+    """L2 statistical verification: combined IV/KS/missing rate/redundancy assessment.
 
     Parameters
     ----------
     feature : pd.Series
-        待验证的特征列。
+        Feature column to verify.
     label : pd.Series
-        二分类标签（0/1），与 feature 等长。
+        Binary label (0/1), same length as feature.
     existing_features : pd.DataFrame, optional
-        已接受的特征矩阵，用于冗余度计算。
+        Accepted feature matrix, used for redundancy calculation.
     thresholds : NoiseThresholds, optional
-        噪声校准阈值。未提供则使用配置中的 fallback 值。
+        Noise calibration thresholds. If not provided, uses fallback values from config.
     cfg : KnowFeatConfig, optional
-        顶层配置。
+        Top-level configuration.
     vcfg : VerificationConfig, optional
-        验证配置。优先于 cfg.verification。
+        Verification configuration. Takes priority over cfg.verification.
 
     Returns
     -------
     StatResult
-        passed=True 表示通过 L2 验证。
+        passed=True means L2 verification passed.
     """
     if vcfg is None:
         vcfg = cfg.verification if cfg is not None else VerificationConfig()
 
-    iv_thresh = thresholds.iv_threshold if thresholds else vcfg.iv_min_fallback
-    ks_thresh = thresholds.ks_threshold if thresholds else vcfg.ks_min_fallback
+    iv_thresh = thresholds.iv_threshold if thresholds else vcfg.iv_min_floor
+    ks_thresh = thresholds.ks_threshold if thresholds else vcfg.ks_min_floor
 
     iv = compute_iv(feature, label)
     ks = compute_ks(feature, label)
@@ -291,21 +286,27 @@ def validate_feature(
 
     reasons = []
     if iv <= iv_thresh:
-        reasons.append(f"IV={iv:.4f} <= 阈值{iv_thresh:.4f}")
+        reasons.append(f"IV={iv:.4f} <= threshold {iv_thresh:.4f}")
     if ks <= ks_thresh:
-        reasons.append(f"KS={ks:.4f} <= 阈值{ks_thresh:.4f}")
+        reasons.append(f"KS={ks:.4f} <= threshold {ks_thresh:.4f}")
     if missing_rate > vcfg.missing_rate_max:
-        reasons.append(f"缺失率={missing_rate:.2%} > {vcfg.missing_rate_max:.0%}")
+        reasons.append(
+            f"missing_rate={missing_rate:.2%} > {vcfg.missing_rate_max:.0%} "
+            f"(缺失率={missing_rate:.2%})"
+        )
     if redundancy > vcfg.redundancy_max:
-        reasons.append(f"冗余度={redundancy:.4f} > {vcfg.redundancy_max}")
+        reasons.append(
+            f"redundancy={redundancy:.4f} > {vcfg.redundancy_max} "
+            f"(冗余度={redundancy:.4f})"
+        )
 
     passed = len(reasons) == 0
 
     logger.info(
-        "L2 统计验证 %s: IV=%.4f KS=%.4f 缺失率=%.2f%% 冗余度=%.4f%s",
-        "通过" if passed else "未通过",
+        "L2 statistical verification %s: IV=%.4f KS=%.4f missing_rate=%.2f%% redundancy=%.4f%s",
+        "passed" if passed else "failed",
         iv, ks, missing_rate * 100, redundancy,
-        "" if passed else f" | 原因: {'; '.join(reasons)}",
+        "" if passed else f" | reasons: {'; '.join(reasons)}",
     )
 
     return StatResult(

@@ -58,6 +58,18 @@ rebase 发生冲突时：
 - **TEST.md**：测试指南，新增功能时同步添加测试用例和文档
 - **PROGRESS.md**：见下方「经验教训沉淀」
 
+## Current Architecture Notes
+
+- `knowfeat.data.split` is the single source of truth for the frozen
+  development/test partition. Cached splits are validated as complete,
+  disjoint partitions and are regenerated when size, seed, or test ratio
+  changes.
+- Verification configuration keeps `iv_min_floor`/`ks_min_floor` as the active
+  names while accepting the deprecated `*_fallback` aliases. L3 precision is
+  enforced for recall-based acceptance and intentionally omitted in AUC mode.
+- Post-hoc feature pruning is an opt-in `SearchConfig.enable_posthoc_selection`
+  experiment because it performs another model-selection pass.
+
 ## 测试规范
 
 **开发时必须主动使用测试，不是事后补充！**

@@ -1,4 +1,4 @@
-"""前向选择：从候选池中贪心搜索特征组合，解决单特征增量不够但组合有效的问题。"""
+"""Forward selection: greedy search for feature combinations from the candidate pool, solving the problem of individual features with insufficient incremental gain but effective in combination."""
 
 import logging
 from dataclasses import dataclass, field
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CandidateFeature:
-    """候选特征信息。"""
+    """Candidate feature information."""
     name: str
     series: pd.Series
     dimension: list[str] = field(default_factory=list)
@@ -30,7 +30,7 @@ class CandidateFeature:
 
 @dataclass
 class SelectionResult:
-    """前向选择结果。"""
+    """Forward selection result."""
     accepted: list[CandidateFeature]
     rejected: list[CandidateFeature]
     eval_details: dict[str, ModelEvalResult]
@@ -43,36 +43,37 @@ def forward_select(
     cfg: Optional[KnowFeatConfig] = None,
     vcfg: Optional[VerificationConfig] = None,
     seed: int = 42,
+    spw_override: float = None,
 ) -> SelectionResult:
-    """贪心前向选择：逐个评估候选特征，delta_recall > 0 则接受。
+    """Greedy forward selection: evaluate candidate features one by one, accept if delta_recall > 0.
 
     Parameters
     ----------
     baseline_X : pd.DataFrame
-        当前已接受的特征矩阵（含基线 + 已通过 L3 的特征）。
+        Current accepted feature matrix (baseline + features that passed L3).
     label : pd.Series
-        二分类标签（0/1）。
+        Binary label (0/1).
     candidates : list[CandidateFeature]
-        候选特征列表（通过 L2 但未通过 L3 单独评估的特征）。
+        Candidate feature list (passed L2 but not L3 individual evaluation).
     cfg : KnowFeatConfig, optional
-        顶层配置。
+        Top-level configuration.
     vcfg : VerificationConfig, optional
-        验证配置。优先于 cfg.verification。
+        Verification configuration. Takes priority over cfg.verification.
     seed : int
-        随机种子。
+        Random seed.
 
     Returns
     -------
     SelectionResult
-        accepted: 被接受的候选特征列表（按接受顺序）。
-        rejected: 未被接受的候选特征列表。
-        eval_details: 每个候选特征名 → ModelEvalResult。
+        accepted: list of accepted candidate features (in acceptance order).
+        rejected: list of non-accepted candidate features.
+        eval_details: mapping of each candidate feature name -> ModelEvalResult.
     """
     if vcfg is None:
         vcfg = cfg.verification if cfg is not None else VerificationConfig()
 
     if not candidates:
-        logger.info("前向选择: 候选池为空，跳过")
+        logger.info("Forward selection: candidate pool empty, skipping")
         return SelectionResult(accepted=[], rejected=[], eval_details={})
 
     current_X = baseline_X.copy()
@@ -80,7 +81,7 @@ def forward_select(
     rejected: list[CandidateFeature] = []
     eval_details: dict[str, ModelEvalResult] = {}
 
-    logger.info("前向选择开始: %d 个候选特征", len(candidates))
+    logger.info("Forward selection started: %d candidate features", len(candidates))
 
     for i, cand in enumerate(candidates):
         feat = pd.to_numeric(cand.series, errors="coerce").fillna(0)
@@ -91,6 +92,7 @@ def forward_select(
             label=label,
             vcfg=vcfg,
             seed=seed,
+            spw_override=spw_override,
         )
         eval_details[cand.name] = result
 
@@ -102,19 +104,19 @@ def forward_select(
             else:
                 delta_str = f"delta_recall={result.delta_recall:+.4f}"
             logger.info(
-                "前向选择 [%d/%d] %s → 接受 (%s)",
+                "Forward selection [%d/%d] %s -> accepted (%s)",
                 i + 1, len(candidates), cand.name, delta_str,
             )
         else:
             rejected.append(cand)
             logger.info(
-                "前向选择 [%d/%d] %s → 拒绝 (%s)",
+                "Forward selection [%d/%d] %s -> rejected (%s)",
                 i + 1, len(candidates), cand.name,
                 "; ".join(result.reject_reasons),
             )
 
     logger.info(
-        "前向选择完成: %d 接受, %d 拒绝 (共 %d 候选)",
+        "Forward selection completed: %d accepted, %d rejected (out of %d candidates)",
         len(accepted), len(rejected), len(candidates),
     )
 
@@ -123,3 +125,85 @@ def forward_select(
         rejected=rejected,
         eval_details=eval_details,
     )
+
+
+def posthoc_select(
+    baseline_X: pd.DataFrame,
+    label: pd.Series,
+    accepted_features: dict[str, "CandidateFeature"],
+    cfg: "KnowFeatConfig | None" = None,
+    vcfg: "VerificationConfig | None" = None,
+    seed: int = 42,
+    spw_override: float = None,
+) -> list[str]:
+    """Post-hoc greedy forward selection over all accepted features.
+
+    Starts from the original baseline (no generated features) and greedily
+    adds the feature that most improves the target metric.  Stops when no
+    remaining feature improves performance.  This removes redundant features
+    that individually passed L3 but hurt when combined.
+
+    Returns the list of selected feature names (in selection order).
+    """
+    if vcfg is None:
+        vcfg = cfg.verification if cfg is not None else VerificationConfig()
+
+    if not accepted_features:
+        return []
+
+    # Dict insertion order is part of the experiment's reproducibility
+    # contract; do not use a set for the candidate queue.
+    feat_names = list(accepted_features.keys())
+    feat_series = {}
+    for name, cand in accepted_features.items():
+        feat_series[name] = pd.to_numeric(cand.series, errors="coerce").fillna(0)
+
+    original_baseline = baseline_X[[c for c in baseline_X.columns if c not in feat_names]].copy()
+
+    selected: list[str] = []
+    remaining = list(feat_names)
+    current_X = original_baseline.copy()
+
+    logger.info("Post-hoc selection started: %d accepted features to prune", len(feat_names))
+
+    while remaining:
+        best_name = None
+        best_delta = -np.inf
+        for name in remaining:
+            result = evaluate_feature(
+                baseline_X=current_X,
+                new_feature=feat_series[name].rename(name),
+                label=label,
+                vcfg=vcfg,
+                seed=seed,
+                spw_override=spw_override,
+            )
+            if vcfg.accept_metric == "auc":
+                delta = result.delta_auc
+            else:
+                delta = result.delta_recall
+
+            if result.passed and delta > best_delta:
+                best_delta = delta
+                best_name = name
+
+        if best_name is not None and best_delta > 0:
+            selected.append(best_name)
+            current_X[best_name] = feat_series[best_name].values
+            remaining.remove(best_name)
+            logger.info(
+                "Post-hoc [%d] selected %s (delta=%.4f, remaining=%d)",
+                len(selected), best_name, best_delta, len(remaining),
+            )
+        else:
+            logger.info(
+                "Post-hoc selection stopped: best delta=%.4f <= 0, %d features pruned",
+                best_delta, len(remaining),
+            )
+            break
+
+    logger.info(
+        "Post-hoc selection: %d / %d features retained",
+        len(selected), len(feat_names),
+    )
+    return selected

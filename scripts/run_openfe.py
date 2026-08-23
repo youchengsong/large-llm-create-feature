@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
@@ -22,6 +21,7 @@ DATASET_REGISTRY = {
     "bank_marketing": {"csv": "data/public/bank_marketing.csv", "target": "y"},
     "breast_w": {"csv": "data/public/breast_w.csv", "target": "Class"},
     "adult": {"csv": "data/public/adult.csv", "target": "class"},
+    "wine_quality": {"csv": "data/public/wine_quality.csv", "target": "class"},
     "simecny": {"csv": None, "target": "is_risk"},
 }
 
@@ -62,9 +62,18 @@ def main():
     y = df[target]
     X = df.drop(columns=[target])
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=args.seed, stratify=y,
-    )
+    # 无泄漏协议：使用与 KnowFeat / evaluate_holdout 共享的冻结划分。
+    # OpenFE 只在 D_dev 上 fit，再 transform 到 dev+test 输出全量 CSV，
+    # 最终由 evaluate_holdout 在冻结 test 上评分，保证与其他方法同一 test 集。
+    from knowfeat.data.split import get_or_make_split
+    split_cache = PROJECT_ROOT / "outputs" / "splits" / f"{args.dataset}_split.json"
+    y_int = pd.to_numeric(y, errors="coerce")
+    if y_int.isna().any():
+        from sklearn.preprocessing import LabelEncoder
+        y_int = pd.Series(LabelEncoder().fit_transform(y.astype(str)), index=y.index)
+    split = get_or_make_split(len(df), labels=y_int.astype(int), cache_path=split_cache)
+    X_train, y_train = X.iloc[split.dev_idx], y.iloc[split.dev_idx]
+    X_test, y_test = X.iloc[split.test_idx], y.iloc[split.test_idx]
 
     print(f"Running OpenFE on {args.dataset} ({len(df)} rows, {X.shape[1]} features)")
 

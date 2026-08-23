@@ -1,4 +1,4 @@
-"""L3 模型效果验证：XGBoost 5-fold StratifiedKFold CV，支持 delta-recall (AML) / delta-AUC (公开数据集)。"""
+"""L3 model performance verification: XGBoost 5-fold StratifiedKFold CV, supports delta-recall (AML) / delta-AUC (public datasets)."""
 
 import logging
 from dataclasses import dataclass
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ModelEvalResult:
-    """L3 模型效果验证结果。"""
+    """L3 model performance verification result."""
     passed: bool
     baseline_recall: float
     new_recall: float
@@ -37,7 +37,7 @@ def _compute_metrics(
     y_true: np.ndarray,
     y_pred: np.ndarray,
 ) -> tuple[float, float, float]:
-    """计算 recall, precision, f1。"""
+    """Compute recall, precision, f1."""
     tp = ((y_pred == 1) & (y_true == 1)).sum()
     fp = ((y_pred == 1) & (y_true == 0)).sum()
     fn = ((y_pred == 0) & (y_true == 1)).sum()
@@ -54,7 +54,7 @@ def capture_rate_at_k(
     y_prob: np.ndarray,
     k_pcts: list[float] = (0.001, 0.002, 0.003, 0.005, 0.01, 0.03, 0.05),
 ) -> dict[str, float]:
-    """CR@K: Top K% 样本中捕获的正样本占总正样本的比例。"""
+    """CR@K: proportion of positive samples captured in top K% samples relative to total positives."""
     n = len(y_true)
     total_pos = y_true.sum()
     if total_pos == 0:
@@ -88,7 +88,7 @@ def _cv_evaluate(
     compute_cr: bool = False,
     spw_override: float = None,
 ) -> _CVMetrics:
-    """80/20 train_test_split × 5 seeds，与 evaluate.py 完全一致。"""
+    """80/20 train_test_split x 5 seeds, consistent with evaluate.py."""
     from sklearn.metrics import roc_auc_score
 
     recalls, precisions, f1s, aucs = [], [], [], []
@@ -148,27 +148,27 @@ def evaluate_feature(
     seed: int = 42,
     spw_override: float = None,
 ) -> ModelEvalResult:
-    """L3 模型效果验证：比较加入新特征前后的 delta-recall。
+    """L3 model performance verification: compare delta-recall before and after adding a new feature.
 
     Parameters
     ----------
     baseline_X : pd.DataFrame
-        基线特征矩阵（已接受的特征 + 原始基线特征）。
+        Baseline feature matrix (accepted features + original baseline features).
     new_feature : pd.Series
-        待评估的新特征列。
+        New feature column to evaluate.
     label : pd.Series
-        二分类标签（0/1）。
+        Binary label (0/1).
     cfg : KnowFeatConfig, optional
-        顶层配置。
+        Top-level configuration.
     vcfg : VerificationConfig, optional
-        验证配置。优先于 cfg.verification。
+        Verification configuration. Takes priority over cfg.verification.
     seed : int
-        随机种子。
+        Random seed.
 
     Returns
     -------
     ModelEvalResult
-        passed=True 表示通过 L3 验证。
+        passed=True means L3 verification passed.
     """
     if vcfg is None:
         vcfg = cfg.verification if cfg is not None else VerificationConfig()
@@ -214,29 +214,30 @@ def evaluate_feature(
             reasons.append(
                 f"delta_recall={delta_recall:+.4f} <= {vcfg.delta_recall_min}"
             )
-        # DISABLED: precision_min check too strict for AML with SPW
-        # if new_m.precision < vcfg.precision_min:
-        #     reasons.append(
-        #         f"precision={new_m.precision:.4f} < {vcfg.precision_min}"
-        #     )
+        # Recall-based AML selection has an explicit precision floor.  AUC
+        # mode intentionally does not apply this classification threshold.
+        if new_m.precision < vcfg.precision_min:
+            reasons.append(
+                f"precision={new_m.precision:.4f} < {vcfg.precision_min}"
+            )
 
     passed = len(reasons) == 0
 
     if metric == "auc":
         logger.info(
-            "L3 模型验证 %s [metric=auc]: baseline_auc=%.4f new_auc=%.4f "
+            "L3 model verification %s [metric=auc]: baseline_auc=%.4f new_auc=%.4f "
             "delta_auc=%+.4f delta_f1=%+.4f%s",
-            "通过" if passed else "未通过",
+            "passed" if passed else "failed",
             base_m.auc, new_m.auc, delta_auc, delta_f1,
-            "" if passed else f" | 原因: {'; '.join(reasons)}",
+            "" if passed else f" | reasons: {'; '.join(reasons)}",
         )
     else:
         logger.info(
-            "L3 模型验证 %s [metric=recall]: baseline_recall=%.4f new_recall=%.4f "
+            "L3 model verification %s [metric=recall]: baseline_recall=%.4f new_recall=%.4f "
             "delta_recall=%+.4f precision=%.4f delta_f1=%+.4f%s",
-            "通过" if passed else "未通过",
+            "passed" if passed else "failed",
             base_m.recall, new_m.recall, delta_recall, new_m.precision, delta_f1,
-            "" if passed else f" | 原因: {'; '.join(reasons)}",
+            "" if passed else f" | reasons: {'; '.join(reasons)}",
         )
 
     return ModelEvalResult(

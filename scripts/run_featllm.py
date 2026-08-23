@@ -20,7 +20,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FEATLLM_DIR = PROJECT_ROOT / "baselines" / "FeatLLM"
@@ -71,6 +70,12 @@ DATASET_REGISTRY = {
         "task": "Does this person earn more than $50K per year? Yes or no?",
         "meta": None,
     },
+    "wine_quality": {
+        "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
+        "target": "class",
+        "task": "Is this red wine of good quality (score >= 6)? Yes or no?",
+        "meta": None,
+    },
     "simecny": {
         "csv": None,
         "target": "is_risk",
@@ -95,8 +100,12 @@ def load_dataset(name: str) -> pd.DataFrame:
     return pd.read_csv(reg["csv"])
 
 
-def prepare_data(df: pd.DataFrame, target: str, shot: int, seed: int):
-    """Prepare train/test split and few-shot samples."""
+def prepare_data(df: pd.DataFrame, target: str, shot: int, seed: int, split=None):
+    """Prepare a frozen dev/test split and development-only few-shot samples."""
+    if split is None:
+        from knowfeat.data.split import make_split
+        split = make_split(len(df), labels=df[target], seed=seed)
+
     y = df[target].to_numpy()
     label_list = sorted(np.unique(y).tolist(), key=str)
 
@@ -105,10 +114,11 @@ def prepare_data(df: pd.DataFrame, target: str, shot: int, seed: int):
         for c in df.columns if c != target
     ]
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        df.drop(target, axis=1), y,
-        test_size=0.2, random_state=seed, stratify=y,
-    )
+    X = df.drop(target, axis=1)
+    X_train = X.iloc[split.dev_idx].copy()
+    X_test = X.iloc[split.test_idx].copy()
+    y_train = y[split.dev_idx]
+    y_test = y[split.test_idx]
 
     X_new_train = X_train.copy()
     X_new_train[target] = y_train
@@ -150,7 +160,7 @@ def main():
     parser.add_argument("--dataset", required=True, choices=list(DATASET_REGISTRY.keys()))
     parser.add_argument("--num-query", type=int, default=5, help="Number of rule ensembles")
     parser.add_argument("--shot", type=int, default=4, help="Number of few-shot examples")
-    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--model", default="deepseek-chat")
     parser.add_argument("--output-dir", type=Path,
                         default=PROJECT_ROOT / "outputs" / "featllm")
@@ -163,9 +173,17 @@ def main():
     df = load_dataset(args.dataset)
     target = reg["target"]
 
+    from knowfeat.data.split import get_or_make_split
+    split_cache = PROJECT_ROOT / "outputs" / "splits" / f"{args.dataset}_split.json"
+    split = get_or_make_split(
+        len(df), labels=df[target], cache_path=split_cache, seed=args.seed,
+    )
+
     (X_train, X_test, y_train, y_test,
      X_train_shot, y_train_shot,
-     label_list, is_cat) = prepare_data(df, target, args.shot, args.seed)
+     label_list, is_cat) = prepare_data(
+        df, target, args.shot, args.seed, split=split,
+    )
 
     X_all = df.drop(target, axis=1)
     print(f"Running FeatLLM on {args.dataset} ({len(df)} rows, shot={args.shot}, queries={args.num_query})")

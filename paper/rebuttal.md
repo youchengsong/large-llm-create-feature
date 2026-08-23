@@ -70,7 +70,7 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 1. **These are saturated benchmarks.** The 7 public datasets are well-studied benchmarks where state-of-the-art methods already achieve high AUC (e.g., breast_w ≈ 0.994, adult ≈ 0.930). On saturated benchmarks, even small improvements are meaningful—the key metric is *relative ranking* rather than absolute gain, which is why we emphasize average rank.
 
-2. **Ranking is the standard evaluation in AutoFE.** Following OpenFE [Zhang et al., 2023] and the AutoML benchmark literature [Gijsbers et al., 2024], we use average rank as the primary comparison metric. KnowFeat's average rank of 1.4 vs. OpenFE's 2.3 represents a substantial and consistent advantage.
+2. **Ranking is the standard evaluation in AutoFE.** Following OpenFE [Zhang et al., 2023] and the AutoML benchmark literature [Gijsbers et al., 2024], we use average rank as the primary comparison metric. Under the frozen-test protocol, KnowFeat's average rank of 2.5 vs. OpenFE's 3.2 represents the most consistent result across the eight public datasets.
 
 3. **The real contribution on public datasets is efficiency, not just accuracy.** KnowFeat achieves top performance with 12–46 features, while FeatLLM requires 98–1,124 features and AutoFeat needs 35–142 features. Fewer features mean lower inference cost, easier interpretability, and simpler deployment.
 
