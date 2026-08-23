@@ -21,3 +21,22 @@
 The full suite currently has pre-existing failures in unrelated translation and
 retry-behavior changes in the dirty worktree; the focused verification,
 orchestration, and split suites pass.
+
+## 2026-08-23: reproducible paper submission package
+
+- Problem: the paper mixed stale aggregate claims with unversioned holdout
+  outputs, lacked a reproducible Wilcoxon/Holm analysis, and used reduced
+  baselines that could retain identifier columns. The compiled PDF also
+  contained a Type 3 figure font and an overflowing author line.
+- Resolution: versioned all frozen-holdout inputs, added deterministic public
+  and reduced-baseline analysis scripts, excluded identifiers and labels from
+  every reduced method, aligned the manuscript and rebuttal with the resulting
+  statistics, and regenerated a clean 12-page PDF with embedded TrueType/Type 1
+  fonts. Added wine-quality assets and regression tests for the shared protocol.
+- Prevention: derive paper tables and figures from versioned JSON, keep feature
+  eligibility rules centralized in the dataset loader, run the full test suite,
+  and check LaTeX logs plus `pdffonts` before submission.
+- Commit: `4b68b5e`
+
+The full suite passes with 627 tests; the remaining nine warnings are Python
+3.14 `multiprocessing.fork()` deprecation warnings in tool tests.
