@@ -1,0 +1,114 @@
+[
+  {
+    "name": "age_maturity_score",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_age_maturity_score(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    age = df['age'].astype(int)\n    # 年龄成熟度分段得分：<25低, 25-34中低, 35-44高, 45-54最高, >=55回落\n    score = np.where(age < 25, 0,\n             np.where(age < 35, 1,\n             np.where(age < 45, 3,\n             np.where(age < 55, 4, 2))))\n    res['age_maturity_score'] = score\n    return res"
+  },
+  {
+    "name": "married_mature",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_married_mature(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    married = (df['marital_status'] == 'Married-civ-spouse').astype(int)\n    age = df['age'].astype(int)\n    # 已婚配偶在场 且 处于35-55岁成熟高收入区间\n    mature = ((age >= 35) & (age < 55)).astype(int)\n    res['married_mature'] = (married * mature).astype(int)\n    return res"
+  },
+  {
+    "name": "never_married_edu",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_never_married_edu(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    never = (df['marital_status'] == 'Never-married').astype(int)\n    edu = df['education_num'].astype(float)\n    # 未婚状态下教育年限的分层信号：教育能否弥补婚姻状态的收入劣势\n    res['never_married_edu'] = (never * edu).astype(float)\n    return res"
+  },
+  {
+    "name": "own_child",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_own_child(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # 家庭角色：是否为子女（Own-child）——依赖型家庭角色的低收入信号\n    res['own_child'] = (df['relationship'] == 'Own-child').astype(int)\n    return res"
+  },
+  {
+    "name": "rule001_high_edu_prof",
+    "dimensions": [
+      "教育就业"
+    ],
+    "code": "def feature_rule001_high_edu_prof(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    high_edu = (df['education_num'] >= 13).astype(int)\n    mgmt_prof = df['occupation'].isin(['Exec-managerial', 'Prof-specialty']).astype(int)\n    # RULE_001: 本科及以上学历且从事管理/专业类职业\n    res['rule001_high_edu_prof'] = (high_edu & mgmt_prof).astype(int)\n    return res"
+  },
+  {
+    "name": "hours_occ_tier",
+    "dimensions": [
+      "教育就业"
+    ],
+    "code": "def feature_hours_occ_tier(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    hours = df['hours_per_week'].astype(int)\n    occ = df['occupation'].astype(str)\n    # EXP_04: 工时分段 part_time(<35)/full_time(35-45)/overtime(>45)\n    hours_seg = np.where(hours < 35, 0,\n                np.where(hours <= 45, 1, 2))\n    # IND_06: 职业层级 管理/专业=2, 销售/技术/保护=1, 其他=0\n    occ_tier = np.where(occ.isin(['Exec-managerial', 'Prof-specialty']), 2,\n               np.where(occ.isin(['Sales', 'Tech-support', 'Protective-serv', 'Armed-Forces']), 1, 0))\n    # 交叉编码：工时维度权重更高\n    res['hours_occ_tier'] = (hours_seg * 3 + occ_tier).astype(int)\n    return res"
+  },
+  {
+    "name": "capital_net_flow_score",
+    "dimensions": [
+      "财务资产"
+    ],
+    "code": "def feature_capital_net_flow_score(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    gain = df['capital_gain'].astype(float)\n    loss = df['capital_loss'].astype(float)\n    # RULE_007 净资本流动 + EXP_02 非线性分档：捕获资本收益在(0,5000]区间实为低收入信号的反直觉模式\n    score = np.where(gain == 0,\n                     np.where(loss > 0, 1, 0),\n                     np.where(gain <= 5000, -1,\n                              np.where(gain <= 20000, 3, 4)))\n    res['capital_net_flow_score'] = score.astype(int)\n    return res"
+  },
+  {
+    "name": "married_sex_profile",
+    "dimensions": [
+      "社会经济"
+    ],
+    "code": "def feature_married_sex_profile(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    married = (df['marital_status'] == 'Married-civ-spouse').astype(int)\n    male = (df['sex'] == 'Male').astype(int)\n    # EXP_01: 已婚配偶在场=2, 未婚男性=1, 未婚女性=0 (婚姻溢价与性别交互)\n    score = np.where(married == 1, 2, male)\n    res['married_sex_profile'] = score.astype(int)\n    return res"
+  },
+  {
+    "name": "rule004_low_income_profile",
+    "dimensions": [
+      "社会经济"
+    ],
+    "code": "def feature_rule004_low_income_profile(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    young = (df['age'] < 25).astype(int)\n    low_edu = (df['education_num'] < 12).astype(int)\n    part_time = (df['hours_per_week'] < 35).astype(int)\n    # RULE_004: 年轻+低学历+兼职 → 极低收入人群信号(正类率仅0.27%)\n    res['rule004_low_income_profile'] = (young & low_edu & part_time).astype(int)\n    return res"
+  },
+  {
+    "name": "race_income_advantage",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_race_income_advantage(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # IND_09: White和Asian-Pac-Islander高收入比例较高(约25-27%)，Black/Other约12%\n    res['race_income_advantage'] = df['race'].isin(['White', 'Asian-Pac-Islander']).astype(int)\n    return res"
+  },
+  {
+    "name": "developing_origin_flag",
+    "dimensions": [
+      "人口统计"
+    ],
+    "code": "def feature_developing_origin_flag(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    nc = df['native_country'].astype(str)\n    # 发展中/拉美/加勒比低收入移民来源（正类率仅6.7%，总体24.4%，强低收入信号）\n    developing = ['Mexico','Columbia','Dominican-Republic','El-Salvador','Guatemala','Haiti','Honduras',\n                  'Jamaica','Nicaragua','Peru','Puerto-Rico','Laos','Ecuador','Trinadad&Tobago',\n                  'Outlying-US(Guam-USVI-etc)']\n    res['developing_origin_flag'] = nc.isin(developing).astype(int)\n    return res"
+  },
+  {
+    "name": "occupation_income_tier",
+    "dimensions": [
+      "教育就业"
+    ],
+    "code": "def feature_occupation_income_tier(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # IND_06: 职业直接决定收入水平和天花板。将15个职业按收入率映射为5级有序收入层级\n    occ_tier_map = {\n        'Exec-managerial': 4, 'Prof-specialty': 4,\n        'Protective-serv': 3, 'Tech-support': 3, 'Sales': 3, 'Armed-Forces': 3,\n        'Craft-repair': 2, 'Transport-moving': 2, 'Adm-clerical': 2,\n        'Farming-fishing': 1, 'Machine-op-inspct': 1, 'Handlers-cleaners': 1,\n        'Other-service': 1, 'Priv-house-serv': 1,\n        '?': 0\n    }\n    res['occupation_income_tier'] = df['occupation'].map(occ_tier_map).astype(int)\n    return res"
+  },
+  {
+    "name": "workclass_income_tier",
+    "dimensions": [
+      "教育就业"
+    ],
+    "code": "def feature_workclass_income_tier(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # IND_08: 工作类型决定收入层级。Self-emp-inc(自雇企业主)和Federal-gov(联邦政府)高，Private中等，Without-pay/Never-worked/缺失最低\n    wc_tier_map = {\n        'Self-emp-inc': 4, 'Federal-gov': 3,\n        'Local-gov': 2, 'State-gov': 2, 'Self-emp-not-inc': 2,\n        'Private': 1,\n        'Without-pay': 0, 'Never-worked': 0, '?': 0\n    }\n    res['workclass_income_tier'] = df['workclass'].map(wc_tier_map).astype(int)\n    return res"
+  },
+  {
+    "name": "high_gain_educated_fulltime",
+    "dimensions": [
+      "财务资产"
+    ],
+    "code": "def feature_high_gain_educated_fulltime(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # IND_04: 高资本收益(>=5000)极强信号\n    cg_high = (df['capital_gain'] >= 5000).astype(int)\n    # IND_01: 本科及以上(education_num>=13)\n    high_edu = (df['education_num'] >= 13).astype(int)\n    # IND_03: 全职工作(hours>=40)\n    fulltime = (df['hours_per_week'] >= 40).astype(int)\n    # 三重选择性交互：高收益+高学历+全职（正类率极高的小众群体）\n    res['high_gain_educated_fulltime'] = (cg_high * high_edu * fulltime).astype(int)\n    return res\n"
+  },
+  {
+    "name": "married_female_edu_status",
+    "dimensions": [
+      "社会经济"
+    ],
+    "code": "def feature_married_female_edu_status(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # EXP_01: 已婚女性是婚姻溢价的另一半信号（与已婚男性互补，相关性仅-0.07）\n    married_f = ((df['marital_status'] == 'Married-civ-spouse') & (df['sex'] == 'Female')).astype(int)\n    # IND_01: 教育年限>=13（本科及以上）为高收入拐点\n    edu_hi = (df['education_num'] >= 13).astype(int)\n    # 加权交叉：已婚女性身份权重更高，教育作为放大器\n    res['married_female_edu_status'] = (married_f * 2 + edu_hi).astype(int)\n    return res"
+  },
+  {
+    "name": "high_gain_mature_age45",
+    "dimensions": [
+      "财务资产"
+    ],
+    "code": "def feature_high_gain_mature_age45(df):\n    import pandas as pd\n    import numpy as np\n    res = pd.DataFrame({'row_id': df['row_id']})\n    # IND_04: 高资本收益(>=5000)极强信号\n    cg_high = (df['capital_gain'] >= 5000).astype(int)\n    # IND_02: 45岁以上进入职业与财富积累后期，资本收益更可能代表长期财富\n    mature = (df['age'] >= 45).astype(int)\n    # 高收益+45岁以上：长期财富积累的成熟投资者群体\n    res['high_gain_mature_age45'] = (cg_high * mature).astype(int)\n    return res\n"
+  }
+]

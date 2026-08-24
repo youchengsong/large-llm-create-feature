@@ -1,0 +1,380 @@
+[
+  {
+    "feature_name": "financial_health_score",
+    "dimensions": [
+      "客户画像",
+      "财务能力"
+    ],
+    "explanation": "财务健康评分，综合housing(无房贷)、loan(无个人贷)、balance(正余额/高余额)、default(无违约)四个维度，每个维度1-2分，总分0-6分。分数越高代表客户财务状况越好，认购定期存款的概率越高。基于RULE_005财务能力分层规则。",
+    "reasoning": "步骤1: 因为IND_05指出无住房贷款的客户有更多可支配收入，不受长期财务义务约束，所以当housing='no'时加1分。\n步骤2: 因为IND_06指出无个人贷款的客户有更多自由现金流，不太需要即时流动性，所以当loan='no'时加1分。\n步骤3: 因为IND_11指出余额越高认购率越高，正余额代表更多可投资资本，所以当balance>0时加1分。\n步骤4: 因为IND_10指出信用违约客户处于财务困境，default=no强相关认购，所以当default='no'时加1分。\n步骤5: 因为分布差异表显示正类余额中位数(733)远高于负类(417)，所以balance>417时额外加1分以强化高余额信号。\n步骤6: 因为分布差异表显示正类余额均值(1804)远高于负类(1304)，差异倍数1.38x，所以balance>1362时额外加1分。",
+    "knowledge_source": "基于RULE_005财务能力分层规则，综合IND_05(无住房贷款)、IND_06(无个人贷款)、IND_10(无信用违约)、IND_11(账户余额)四个风险指标",
+    "data_fields_used": [
+      "housing",
+      "loan",
+      "balance",
+      "default"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "74c147809dfadeaf"
+  },
+  {
+    "feature_name": "high_value_profile_score",
+    "dimensions": [
+      "客户画像",
+      "高价值客户"
+    ],
+    "explanation": "高价值客户画像评分，基于EXP_04描述的最可能认购者画像。综合职业(student/retired/management)、婚姻(single)、教育(tertiary/secondary)、财务健康(无房贷、无个人贷、无违约、正余额)、年龄(65+/<25)五个维度，加权评分0-13分。分数越高越符合理想认购客户画像。",
+    "reasoning": "步骤1: 因为IND_07指出student(31.3%)和retired(25.3%)转化率最高，management(13.8%)也高于平均水平，所以student加3分、retired加2分、management加1分。\n步骤2: 因为IND_08指出single认购率最高(14.9%)，所以marital='single'加1分。\n步骤3: 因为IND_09指出高等教育正相关，tertiary(15.0%)>secondary(10.6%)>primary(8.6%)，所以tertiary加2分、secondary加1分。\n步骤4: 因为RULE_005财务能力分层指出无房贷+无个人贷+正余额+无违约=高优先级客户，所以各加1分。\n步骤5: 因为数据探索显示65+转化率42.6%、<25转化率24.0%，远高于其他年龄段，所以年龄在65+或<25时加1分。",
+    "knowledge_source": "基于EXP_04最可能认购者画像，综合IND_07(职业类型)、IND_08(婚姻状况)、IND_09(教育水平)、RULE_005(财务能力分层)",
+    "data_fields_used": [
+      "job",
+      "marital",
+      "education",
+      "housing",
+      "loan",
+      "default",
+      "balance",
+      "age"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "21829af395c80896"
+  },
+  {
+    "feature_name": "contact_efficiency_score",
+    "dimensions": [
+      "联系记录"
+    ],
+    "explanation": "联系效率评分：综合当前联系次数(campaign)、历史联系次数(previous)和上次活动结果(poutcome)三个维度，量化客户联系效率。评分越高表示联系效率越高、客户越可能认购定期存款。",
+    "reasoning": "步骤1: 因为RULE_001(3次联系规则)指出每个客户每次活动最多联系3次，超过后转化率急剧下降，所以对campaign<=3赋予正向评分，campaign=1最高(3分)，campaign=2(2分)，campaign=3(1分)，>3为0分。\n步骤2: 因为IND_01(历史营销成功)指出poutcome=success的客户有60%+转化率，是所有pre-call特征中预测力最强的，所以对poutcome=success赋予3分，poutcome=other赋予1分。\n步骤3: 因为分布差异表显示previous(之前联系次数)在正负类间差异倍数达2.33x，是除duration外最强的区分特征，所以对previous>0赋予2分。\n步骤4: 因为RULE_002(优先历史成功客户)指出应先联系poutcome=success的客户，且数据探索显示poutcome=success+previous>0组合转化率极高，所以额外加2分。\n步骤5: 因为数据探索显示campaign<=3且previous>0的组合转化率达24.46%，而campaign>3且previous==0仅6.59%，所以对高效组合额外加1分。",
+    "knowledge_source": "RULE_001(3次联系规则)、RULE_002(优先历史成功客户)、IND_01(历史营销成功)、分布差异表(previous差异倍数2.33x)",
+    "data_fields_used": [
+      "campaign",
+      "previous",
+      "poutcome"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "10e5fe0f91ebdf2c"
+  },
+  {
+    "feature_name": "seasonal_contact_timing",
+    "dimensions": [
+      "联系记录"
+    ],
+    "explanation": "季节性联系时机评分：基于IND_04(季节性时机)和RULE_003(季节性活动时机)，结合month和day两个时间维度。最佳月份(mar/sep/oct/dec)得3分，次佳月份得1分；月初(day<=3)和月中(10-15)各加1分；最佳月份+月初组合额外加1分。评分越高代表联系时机越好。",
+    "reasoning": "步骤1: 因为IND_04(季节性时机)指出3月(~50.5%)、9月、10月、12月转化率最高，5月(~6.4%)最低，且EXP_08指出葡萄牙定期存款认购的季节性由税季(3月)、财年末(9-10月)、年终奖(12月)驱动，所以对最佳月份(mar/sep/oct/dec)赋予3分，次佳月份(jan/apr/jun/jul/aug/nov)赋予1分。\n步骤2: 因为数据探索显示day<=3的转化率16.7%(远高于均值11.7%)，day在10-15的转化率14.1%，所以对月初(day<=3)和月中(10-15)各加1分。\n步骤3: 因为数据探索显示最佳月份且月初的组合转化率达43.15%，远高于单独效应，所以对最佳月份+月初组合额外加1分。",
+    "knowledge_source": "IND_04(季节性时机)、RULE_003(季节性活动时机)、EXP_08(葡萄牙定期存款认购季节性)",
+    "data_fields_used": [
+      "month",
+      "day"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "582a5267cba93d9a"
+  },
+  {
+    "feature_name": "economic_lifecycle_stage",
+    "dimensions": [
+      "经济环境"
+    ],
+    "explanation": "经济生命周期阶段评分：基于年龄和职业评估客户所处的经济生命周期阶段。退休人员和学生处于储蓄积累期，认购意愿强；中年人有家庭负担，储蓄能力受限；失业人员经济困难。评分越高代表越可能认购定期存款。",
+    "reasoning": "步骤1: 因为IND_07和RULE_009指出退休人员转化率22.8%，有积累储蓄寻求安全固定收益产品，所以对退休人员赋3分; \n步骤2: 因为IND_07指出学生转化率28.7%（所有职业最高），可能开设首个储蓄账户，所以对学生赋3分; \n步骤3: 因为EXP_04指出65+老年人转化率42.6%，远高于平均水平，有积累储蓄，所以对年龄>=65赋2分; \n步骤4: 因为数据探索显示<25岁年轻人转化率24.0%，储蓄意愿强，所以对年龄<25赋1分; \n步骤5: 因为数据探索显示35-55岁中年人转化率约9.4%，家庭负担重储蓄能力受限，所以减1分; \n步骤6: 因为IND_07指出失业人员经济状况不稳定，不太可能储蓄，所以减2分; \n步骤7: 因为评分可能为负值，所以clip到0以上确保非负。",
+    "knowledge_source": "基于IND_07(职业类型)、RULE_009(退休人员优先)、EXP_04(最可能认购者画像)和年龄分布分析",
+    "data_fields_used": [
+      "age",
+      "job"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6f54f505e3b04b9b"
+  },
+  {
+    "feature_name": "seasonal_economic_timing",
+    "dimensions": [
+      "经济环境"
+    ],
+    "explanation": "季节性经济时机评分：基于月份的经济周期特征，结合balance的季节性变化。最佳月份(3月税季、9-10月财年末、12月年终奖)转化率高达43-52%，而5-8月度假季转化率仅6-10%。高余额客户在最佳月份转化率更高，月初联系效果更好。",
+    "reasoning": "步骤1: 因为IND_04和RULE_003指出最佳月份(mar, sep, oct, dec)转化率43-52%，由税季、财年末、年终奖驱动(EXP_08)，所以对最佳月份赋3分; \n步骤2: 因为EXP_08指出5-8月度假季表现最差，度假计划消耗可支配收入，所以对may/jun/jul/aug减1分; \n步骤3: 因为IND_11指出高余额客户认购率更高，且最佳月份平均余额也最高，所以对balance>448赋1分; \n步骤4: 因为EXP_08指出最佳月份客户有更多可支配资金，最佳月份+高余额组合转化率更高，所以对最佳月份且高余额的组合额外赋2分; \n步骤5: 因为数据探索显示月初(day<=3)转化率16.7%高于平均水平，所以对月初赋1分; \n步骤6: 因为评分可能为负，所以clip到0以上。",
+    "knowledge_source": "基于IND_04(季节性时机)、RULE_003(季节性活动时机)、EXP_08(季节性驱动因素)、IND_11(账户余额)和月份分布分析",
+    "data_fields_used": [
+      "month",
+      "balance",
+      "day"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "71ceafb6fc719cff"
+  },
+  {
+    "feature_name": "seasonal_campaign_efficiency",
+    "dimensions": [
+      "时机因素"
+    ],
+    "explanation": "季节性联系效率评分：综合月份的季节性时机(3月/9月/10月/12月最佳)和联系次数(3次内最优)的交互效应。最佳月份+首次联系转化率高达58%，而5月+多次联系仅3.2%。评分越高代表在最佳时机以最少联系次数触达客户。",
+    "reasoning": "步骤1: 因为IND_04(季节性时机)指出3月(51.9%)、9月(46.5%)、10月(43.8%)、12月(46.7%)转化率最高，5月(6.7%)最低，所以将月份分为三档评分(最佳3分/次佳1分/最差0分); \n步骤2: 因为RULE_001(3次联系规则)和IND_12(联系次数边际效应)指出campaign<=3为最优，超过后转化率急剧下降，所以将campaign分为四档评分(1次3分/2次2分/3次1分/>3次0分);\n步骤3: 因为数据探索显示最佳月份+首次联系(campaign=1)的组合转化率高达58.0%，远超单独效应之和，所以给予组合加分+2;\n步骤4: 因为最佳月份+2-3次联系也有不错转化率(如dec+2-3次达57.3%)，所以给予组合加分+1;\n步骤5: 因为最差月份(may)+多次联系(>3)转化率仅3.2%，远低于平均水平，所以给予惩罚-3分",
+    "knowledge_source": "基于IND_04(季节性时机)、RULE_003(季节性活动时机)、RULE_001(3次联系规则)、IND_12(联系次数边际效应)以及数据探索发现的月份与联系次数交互效应",
+    "data_fields_used": [
+      "month",
+      "campaign"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "bb4f27065985a35c"
+  },
+  {
+    "feature_name": "marital_education_job_cluster",
+    "dimensions": [
+      "客户画像"
+    ],
+    "explanation": "婚姻-教育-职业聚类评分，基于婚姻、教育、职业三个维度的交叉组合，将客户分为高、中、低三个转化率聚类。不使用age字段以避免与已有特征冗余。评分0-5分，基于数据探索中验证的具体组合历史转化率赋值。",
+    "reasoning": "步骤1: 因为IND_07(职业类型)、IND_08(婚姻状况)、IND_09(教育水平)各自与转化率相关，且数据探索显示三维交叉组合的转化率差异更大（如学生+单身29.4% vs 蓝领+已婚+低教育5.4%），所以构建婚姻-教育-职业三维组合键。\n步骤2: 因为数据探索显示学生+单身(29.4%)、退休+离异(28.5%)、退休+已婚(22.1%)等组合转化率远高于平均水平，所以将这些组合标记为高分(5分)。\n步骤3: 因为数据探索显示蓝领+已婚+低教育(5.4%)、已婚+蓝领+低教育(6.2%)等组合转化率极低，所以将这些组合标记为低分(0-1分)。\n步骤4: 因为IND_07指出学生(28.7%)和退休(22.8%)是所有职业中转化率最高的，所以为所有学生和退休人员额外加分。\n步骤5: 因为IND_08指出单身客户转化率(14.9%)高于离异(11.9%)和已婚(10.1%)，所以为单身客户额外加分。\n步骤6: 因为IND_09指出高等教育客户转化率(15.0%)最高，所以为高等教育客户额外加分。",
+    "knowledge_source": "基于IND_07(职业类型)、IND_08(婚姻状况)、IND_09(教育水平)以及数据探索中验证的三维组合转化率",
+    "data_fields_used": [
+      "job",
+      "marital",
+      "education"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "d206bce07735dc5d"
+  },
+  {
+    "feature_name": "day_phase_success_momentum",
+    "dimensions": [
+      "时机因素",
+      "联系记录"
+    ],
+    "explanation": "日期阶段成功动量评分：基于day的周期性模式与poutcome(历史营销成功)和campaign(联系次数)的交互效应。下旬(21-31日)联系历史成功客户转化率最高(69.8%)，月初联系且单次联系转化率也较高。",
+    "reasoning": "步骤1: 因为数据探索显示day的转化率存在周期性模式：early(1-10日)12.6%，mid(11-20日)9.7%，late(21-31日)12.4%，且day=1(27.95%)、10(23.09%)、22(17.02%)、30(17.31%)为特殊高值，所以创建日期阶段指标和特殊高值指标。\n步骤2: 因为IND_01(历史营销成功)指出poutcome=success大幅增加认购概率，且数据探索显示late+success(69.8%)>early+success(64.7%)>mid+success(61.2%)，所以给late+success赋3分，early/mid+success赋2分。\n步骤3: 因为RULE_001(3次联系规则)指出campaign<=3为最优，且数据探索显示late+campaign=1(17.24%)>early+campaign=1(14.04%)>mid+campaign=1(13.47%)，所以给late+campaign<=2赋2分，early/mid+campaign=1赋1分。\n步骤4: 因为IND_03(联系方式-手机)指出cellular转化率最高，且数据探索显示early+cellular(17.08%)>late+cellular(14.57%)>mid+cellular(13.67%)，所以给early/late+cellular赋1分。\n步骤5: 因为RULE_002(优先历史成功客户)指出poutcome=success客户优先，且数据探索显示高转化日期+success组合转化率极高，所以给高转化日期+success赋2分。\n步骤6: 因为IND_12(联系次数边际效应)指出联系次数越少越好，所以给高转化日期+campaign<=2赋1分。",
+    "knowledge_source": "基于IND_01(历史营销成功)、RULE_001(3次联系规则)、IND_03(联系方式-手机)、RULE_002(优先历史成功客户)、IND_12(联系次数边际效应)及数据探索的day转化率模式",
+    "data_fields_used": [
+      "row_id",
+      "day",
+      "poutcome",
+      "campaign",
+      "contact"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "76650ac3b1aa4212"
+  },
+  {
+    "feature_name": "pdays_previous_contact_depth",
+    "dimensions": [
+      "时机因素",
+      "联系记录"
+    ],
+    "explanation": "pdays-历史联系深度评分：基于pdays与previous的非线性交互。pdays在31-90天且previous>=4的客户转化率最高(46.7%)，pdays=-1且previous=0的客户转化率最低(9.2%)。评分越高代表客户与银行的历史联系越深且时机越优。",
+    "reasoning": "步骤1: 因为RULE_007(pdays编码处理)指出pdays=-1表示从未被联系过(约82%记录)，应拆分为二元指标，所以创建was_contacted指标。\n步骤2: 因为数据探索显示pdays分段转化率差异显著：31-90天(42.08%)>91-180天(27.42%)>365天+(29.24%)>1-30天(14.89%)>-1(9.16%)，所以按分段赋分3/2/2/1/0。\n步骤3: 因为数据探索显示previous分段转化率：>=4最高，2-3次高，1中等，0最低，所以按分段赋分3/2/1/0。\n步骤4: 因为数据探索显示pdays×previous的协同效应极强：pdays 31-90+previous>=4(46.71%)>pdays 31-90+previous=2-3(41.29%)>pdays 31-90+previous=1(38.27%)>pdays 91-180+previous>=4(30.95%)，所以给最佳组合赋3分、次佳赋2分、中等赋1分。\n步骤5: 因为数据探索显示pdays=-1+previous=0转化率仅9.16%，远低于平均水平(11.7%)，所以给从未被联系过的客户赋-1分惩罚。",
+    "knowledge_source": "基于RULE_007(pdays编码处理)及数据探索的pdays×previous交互效应",
+    "data_fields_used": [
+      "row_id",
+      "pdays",
+      "previous"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "f17b90d51246c4b5"
+  },
+  {
+    "feature_name": "contact_channel_day_affinity",
+    "dimensions": [
+      "时机因素",
+      "联系记录",
+      "客户画像"
+    ],
+    "explanation": "联系方式-日期亲和度评分：基于contact与day和job/education的交互效应。手机联系+下旬+学生转化率最高(40.5%)，电话联系+中旬+退休人员转化率35.0%，手机联系+上旬+高等教育转化率21.3%。",
+    "reasoning": "步骤1: 因为IND_03(联系方式-手机)指出cellular(15%)>telephone(5%)>unknown，所以创建cellular和telephone二元指标。\n步骤2: 因为数据探索显示日期阶段转化率差异，所以创建early/mid/late三个日期阶段指标。\n步骤3: 因为数据探索显示cellular+late+student(40.49%)>cellular+early+student(34.26%)>cellular+mid+student(31.95%)，且cellular+retired在任何日期阶段转化率都较高(25-27%)，所以给cell+student+late赋3分、cell+student+early/mid赋2分、cell+retired赋2分。\n步骤4: 因为数据探索显示telephone+mid+retired(35.00%)>telephone+late+retired(30.83%)>telephone+early+retired(29.66%)，所以给tel+retired+mid赋3分、tel+retired+其他赋2分。\n步骤5: 因为数据探索显示cellular+early+tertiary(21.33%)和cellular+early+unknown(20.66%)转化率较高，所以给这些组合赋1分。\n步骤6: 因为数据探索显示unknown联系方式在任何日期阶段转化率都极低(3-6%)，所以给unknown赋-2分惩罚。",
+    "knowledge_source": "基于IND_03(联系方式-手机)、IND_07(职业类型)、IND_09(教育水平)及数据探索的contact×day×job/education交互",
+    "data_fields_used": [
+      "row_id",
+      "contact",
+      "day",
+      "job",
+      "education"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "5f4ab645552282e4"
+  },
+  {
+    "feature_name": "contact_balance_affinity",
+    "dimensions": [
+      "经济环境"
+    ],
+    "explanation": "联系-余额亲和度评分：基于联系方式(contact)、余额(balance)和年龄(age)的三维交互效应。高效联系方式(手机/电话)配合高余额和合适年龄段的客户认购概率最高。",
+    "reasoning": "步骤1: 因为IND_03(联系方式-手机)指出cellular转化率约15%，telephone约5%，unknown最低，所以给cellular加2分，telephone加1分。\n步骤2: 因为IND_11(账户余额)指出余额越高认购率越高，负余额强负相关，所以根据余额分位数给予0-3分，负余额扣2分。\n步骤3: 因为数据探索显示senior(50+)和young(<35)转化率更高，所以给这两个年龄段加1分。\n步骤4: 因为数据探索显示cellular+高余额转化率20.01%，telephone+高余额21.33%，均高于单独效应之和，所以对高余额+高效联系方式组合额外加分。\n步骤5: 因为数据探索显示cellular+young和telephone+senior有额外加成，所以对这些组合加1分。\n步骤6: 因为数据探索显示telephone+高余额+senior转化率26.81%（最高组合），cellular+高余额+senior转化率23.38%，cellular+高余额+young转化率20.89%，所以对三维交互组合额外加分。",
+    "knowledge_source": "基于IND_03(联系方式-手机)、IND_11(账户余额)以及数据探索中contact×balance×age三维交互效应",
+    "data_fields_used": [
+      "contact",
+      "balance",
+      "age"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "7e5bf71e76eaa920"
+  },
+  {
+    "feature_name": "day_digit_quality_score",
+    "dimensions": [
+      "时机因素"
+    ],
+    "explanation": "日期数字质量评分：基于day的个位数和十位数数字模式的转化率差异，结合日期整体转化率、月初效应和周内模式，评估联系日期的质量。评分越高代表日期数字模式越优。",
+    "reasoning": "步骤1: 因为数据探索显示day的个位数转化率差异显著，个位数2(15.3%)和3(15.1%)最高，个位数8(9.6%)和9(8.5%)最低，所以将个位数映射为3/2/1/0分。\n步骤2: 因为数据探索显示day的十位数转化率差异，十位数3(14.4%)最高，十位数2(10.3%)最低，所以将十位数映射为2/1/0分。\n步骤3: 因为数据探索显示高转化日期(day=1:27.9%, 10:23.1%, 30:17.3%)和低转化日期(day=19:6.9%, 20:7.0%)差异显著，所以对高转化日期加分、低转化日期减分。\n步骤4: 因为数据探索显示月初(day<=3)转化率16.7%，高于平均水平，所以对月初日期额外加分。\n步骤5: 因为数据探索显示day%7的周内模式，day%7=2(14.0%)最佳，day%7=0(9.5%)最差，所以对最佳周内模式加分、最差减分。\n步骤6: 因为各维度评分可能叠加，所以将总分截断到0-8范围，得到最终的日期数字质量评分。",
+    "knowledge_source": "基于数据探索的day字段个位数、十位数、整体日期转化率、月初效应和周内模式分析",
+    "data_fields_used": [
+      "row_id",
+      "day"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "6dccb89103b6bf4f"
+  },
+  {
+    "feature_name": "day_age_lifecycle",
+    "dimensions": [
+      "时机因素",
+      "客户画像"
+    ],
+    "explanation": "日期-年龄生命周期评分：基于day(日期阶段)与age(年龄生命周期阶段)的交互效应。数据探索显示65+在d21-25转化率51.6%、<25在d21-25转化率30.5%，而35-50在所有日期阶段转化率都较低(10-13%)。评分越高代表客户在其年龄生命周期的最佳日期阶段被联系。",
+    "reasoning": "步骤1: 因为数据探索显示不同年龄阶段在不同日期阶段的转化率差异显著，所以将年龄分为<25, 25-35, 35-50, 50-65, 65+五个生命周期阶段。\n步骤2: 因为数据探索显示65+在d21-25转化率51.6%(最高)、d16-20转化率44.3%、d26-31转化率42.5%，所以为65+客户按日期阶段赋6/5/5/4/3分。\n步骤3: 因为数据探索显示<25在d21-25转化率30.5%、d26-31转化率27.1%、d6-10转化率26.1%，所以为<25客户按日期阶段赋4/3/3/2/2/1分。\n步骤4: 因为数据探索显示50-65在d21-25转化率15.4%、d1-5转化率15.3%，略高于其他日期阶段，所以为50-65客户按日期阶段赋2/2/1/1/1/0分。\n步骤5: 因为数据探索显示25-35在d1-5转化率15.1%、d11-15转化率14.1%，略高于其他日期阶段，所以为25-35客户按日期阶段赋2/1/1/1/0/0分。\n步骤6: 因为数据探索显示35-50在所有日期阶段转化率都较低(10-13%)，所以为35-50客户仅在d1-5和d11-15赋1分，其他赋0分。\n步骤7: 因为IND_07指出student和retired转化率最高，所以对student和retired在最佳日期阶段额外加1分。",
+    "knowledge_source": "基于数据探索的age与day分段交互转化率分析，以及IND_07(职业类型)中student和retired的高转化率",
+    "data_fields_used": [
+      "row_id",
+      "day",
+      "age",
+      "job"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "082d113f639afbdb"
+  },
+  {
+    "feature_name": "age_marital_housing_education_index",
+    "dimensions": [
+      "客户画像"
+    ],
+    "explanation": "年龄-婚姻-住房-教育综合指数：基于年龄分位、婚姻状况、住房贷款、教育水平的多维交互效应。不同年龄群体中婚姻、住房、教育的组合效应差异显著，评分越高代表客户在所属年龄群体中拥有最优的社会经济画像。",
+    "reasoning": "步骤1: 因为数据探索显示不同年龄分位内婚姻、住房、教育的效应差异显著，所以将年龄分为5个分位组\n步骤2: 因为IND_08(婚姻状况)指出single转化率最高，但数据探索显示Q1(年轻)中single最优(17.5%)而Q5(老年)中divorced(16.6%)和married(14.6%)更优，所以按年龄分位调整婚姻评分\n步骤3: 因为IND_05(无住房贷款)指出housing=no转化率更高，且数据探索显示Q1+无房贷(22.0%)和Q5+无房贷(18.8%)效应最强，所以按年龄分位调整住房评分\n步骤4: 因为IND_09(教育水平)指出tertiary转化率最高，且数据探索显示Q5中secondary(14.5%)也较好，所以按年龄分位调整教育评分\n步骤5: 因为数据探索显示Q1+single+无房贷和Q5+married+无房贷组合转化率最高，所以对婚姻-住房交互加分\n步骤6: 因为数据探索显示Q1+single+tertiary(20.7%)和Q5+divorced+primary(18.6%)组合效应显著，所以对婚姻-教育交互加分\n步骤7: 因为数据探索显示Q1+无房贷+tertiary(24.3%)和Q5+无房贷+tertiary(20.4%)组合效应显著，所以对住房-教育交互加分",
+    "knowledge_source": "基于IND_05(无住房贷款)、IND_08(婚姻状况)、IND_09(教育水平)以及数据探索发现的年龄分位内婚姻-住房-教育多维交互效应",
+    "data_fields_used": [
+      "age",
+      "marital",
+      "housing",
+      "education"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "c32a4a58c3bcc6ea"
+  },
+  {
+    "feature_name": "month_day_lift_score",
+    "dimensions": [
+      "时机因素"
+    ],
+    "explanation": "月份-日期阶段提升评分：基于月份与日期阶段的交互效应，使用每个组合相对于月份平均转化率的提升倍数作为评分依据。评分范围0-5，越高代表时机组合越优。",
+    "reasoning": "步骤1: 因为需要将day字段离散化为日期阶段，所以将day分为6个阶段(d1-5, d6-10, d11-15, d16-20, d21-25, d26-31)。\n步骤2: 因为数据探索显示不同月份×日期阶段组合的提升倍数差异巨大(nov+d11-15提升5.96x, jan+d11-15提升5.44x等)，所以根据提升倍数构建5级评分矩阵。\n步骤3: 因为IND_04(季节性时机)指出3月、9月、10月、12月转化率最高，所以对最佳月份中未被日期阶段覆盖的组合给予1分基础分。\n步骤4: 因为EXP_08指出5-8月(度假季)表现最差，所以对度假季非月初的组合给予0分。",
+    "knowledge_source": "基于IND_04(季节性时机)、EXP_08(季节性驱动因素)以及数据探索发现的月份×日期阶段提升倍数",
+    "data_fields_used": [
+      "month",
+      "day"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "8a07da26a92d1695"
+  },
+  {
+    "feature_name": "month_financial_timing",
+    "dimensions": [
+      "时机因素",
+      "经济环境"
+    ],
+    "explanation": "月份-财务时机评分：综合月份与住房贷款、个人贷款、违约、余额的交互效应。不同月份下财务能力对转化率的影响差异巨大（最佳月份中财务能力差异不大，但非最佳月份中无房贷优势可达4倍）。评分越高代表客户在最佳时机拥有最佳财务能力。",
+    "reasoning": "步骤1: 因为RULE_005(财务能力分层)指出无房贷+无个人贷+正余额+无违约是高优先级客户，所以构建基础财务能力评分(0-4分)。\n步骤2: 因为IND_04(季节性时机)指出3月、9月、10月、12月转化率最高，所以将月份分为最佳/次佳/普通/最差四类。\n步骤3: 因为数据探索显示最佳月份中任何财务能力的客户转化率都高(mar: housing=no 52.7%, housing=yes 49.6%)，所以最佳月份给予3分基础分，高财务能力再加1分。\n步骤4: 因为IND_05(无住房贷款)和IND_06(无个人贷款)指出无贷款客户转化率更高，且数据探索显示非最佳月份中无房贷优势可达2-4倍(apr: 4.22x, jan: 3.40x)，所以非最佳月份的无房贷客户加1分。\n步骤5: 因为IND_11(账户余额)指出余额越高转化率越高，且数据探索显示最佳月份+高余额转化率更高，所以最佳月份+高余额加1分。\n步骤6: 因为RULE_006(违约排除规则)指出违约客户应排除，所以违约客户减2分。\n步骤7: 因为EXP_08指出5-8月度假季表现最差，所以度假季+低财务能力客户减1分。",
+    "knowledge_source": "基于IND_04(季节性时机)、IND_05(无住房贷款)、IND_06(无个人贷款)、IND_11(账户余额)、RULE_005(财务能力分层)、RULE_006(违约排除规则)、EXP_08(季节性驱动因素)以及数据探索发现的月份×财务能力交互效应",
+    "data_fields_used": [
+      "month",
+      "housing",
+      "loan",
+      "default",
+      "balance"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "9dbb63c7c930a415"
+  },
+  {
+    "feature_name": "campaign_age_sensitivity",
+    "dimensions": [
+      "联系记录"
+    ],
+    "explanation": "联系次数-年龄敏感度评分：基于campaign(当前联系次数)与age(年龄)的交互效应。65+岁客户对联系次数不敏感（多次联系仍保持40%+转化率），而35-50岁客户对联系次数高度敏感（超过1次后转化率骤降）。评分越高代表在当前联系次数下基于年龄的认购概率越高。",
+    "reasoning": "步骤1: 因为IND_07指出retired(退休人员)转化率25.3%、student(学生)转化率31.3%，而数据探索显示65+岁转化率最高、<25岁次之、35-50岁最低，所以按年龄分组赋予基础分: 65+岁=4分, 50-65岁和<25岁=3分, 25-35岁=2分, 35-50岁=1分。\n步骤2: 因为RULE_001(3次联系规则)指出超过3次后转化率急剧下降，IND_12指出超过3-4次后效果递减，所以campaign=1得3分, =2得2分, =3得1分, >3得0分。\n步骤3: 因为数据探索显示65+岁客户即使campaign=3仍有42.5%转化率(对联系次数不敏感)，而35-50岁客户campaign=2时转化率已降至8.8%(高度敏感)，所以对65+岁+低campaign赋予交互加分，对35-50岁+高campaign施加惩罚。\n步骤4: 因为数据探索显示25-35岁客户campaign>3后转化率降至8%以下，所以对此组合施加惩罚。",
+    "knowledge_source": "基于IND_07(职业类型-退休/学生高转化)、RULE_001(3次联系规则)、IND_12(联系次数边际效应)以及数据探索中campaign与age的交互效应",
+    "data_fields_used": [
+      "age",
+      "campaign"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "b667a2157d1d06ab"
+  },
+  {
+    "feature_name": "day_contact_timing_score",
+    "dimensions": [
+      "联系记录",
+      "时机因素"
+    ],
+    "explanation": "日期阶段与联系方式的时机评分。cellular在月初(d1-5)转化率20.2%最高，月中(d15-20)仅10.9%最低。telephone同样月初最佳(17.5%)。unknown在任何日期都低(3-4.6%)。该特征捕捉了不同日期阶段中联系方式的效率差异。",
+    "reasoning": "步骤1: 因为IND_03(联系方式-手机)指出cellular转化率约15%，telephone约5%，unknown最低，所以cellular赋基础分2，telephone赋1，unknown赋0。\n步骤2: 因为数据探索显示不同日期阶段转化率差异显著（d1-5:最高，d15-20:最低），所以将day分为6个阶段。\n步骤3: 因为数据探索显示cellular+d1-5转化率20.2%（最高），cellular+d11-15为16.9%，cellular+d21-25为15.3%，cellular+d6-10为14.6%，cellular+d26-31为14.0%，cellular+d15-20仅10.9%，所以分别赋4、3、3、2、2、1分。\n步骤4: 因为数据探索显示telephone+d1-5转化率17.5%，telephone+d11-15为14.3%，telephone+d21-25为13.2%，telephone+d6-10为14.3%，telephone+d26-31为13.1%，telephone+d15-20仅9.5%，所以分别赋3、2、2、2、2、1分。\n步骤5: 因为数据探索显示unknown在任何日期转化率都低(3-4.6%)，所以unknown统一赋0分。",
+    "knowledge_source": "基于IND_03(联系方式-手机)以及数据探索中day(日期阶段)与contact(联系方式)的交互效应",
+    "data_fields_used": [
+      "day",
+      "contact"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "e94929c2cd99b20f"
+  },
+  {
+    "feature_name": "financial_health_success_synergy",
+    "dimensions": [
+      "经济环境"
+    ],
+    "explanation": "财务健康-历史成功协同指数：综合RULE_005(财务能力分层：无住房贷款+无个人贷款+正余额+无违约)与IND_01(历史营销成功)的交互效应。评分5级，最高分5代表财务健康且历史成功，最低分0代表两者皆无。",
+    "reasoning": "步骤1: 因为RULE_005(财务能力分层)指出无住房贷款+无个人贷款+正余额+无违约的客户为高优先级，转化率19.7%远高于7.8%，所以构建financial_health指标(balance>0 & housing='no' & loan='no' & default='no')。\n步骤2: 因为IND_01(历史营销成功)指出poutcome=success的客户转化率>60%，是所有pre-call特征中预测力最强的，所以构建pout_success指标(poutcome='success')。\n步骤3: 因为IND_11(账户余额)指出余额越高认购率越高，且数据探索显示Q5+success=64.3%略高于Q1+success=63.3%，所以将balance分为5个分位用于精细评分。\n步骤4: 因为数据探索显示financial_health=1+poutcome=success的组合转化率最高，且financial_health=1+高余额也有较高转化率，所以构建5级评分体系：等级5=财务健康+历史成功，等级4=仅历史成功，等级3=财务健康+高余额，等级2=财务健康+中余额，等级1=财务健康+低余额，等级0=其他。",
+    "knowledge_source": "基于RULE_005(财务能力分层)、IND_01(历史营销成功)、IND_11(账户余额)的交互效应",
+    "data_fields_used": [
+      "balance",
+      "housing",
+      "loan",
+      "default",
+      "poutcome"
+    ],
+    "knowledge_ids": [],
+    "computation_steps": "",
+    "knowledge_resolved": [],
+    "code_hash": "2b6d25b16d5ca37e"
+  }
+]

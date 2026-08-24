@@ -75,6 +75,11 @@ rebase 发生冲突时：
 - Reduced-baseline evaluation must exclude all ID and label columns; use
   `scripts/evaluate_reduced_baseline.py`. LLM generation defaults to
   temperature 0 for lower sampling variance.
+- Cross-model validation uses the same released No-FE/KnowFeat matrices under
+  the frozen split and records matrix hashes in
+  `paper/results/cross_model_analysis.json`. Independent LLM stability runs
+  must use isolated `outputs/llm_stability/<dataset>/run_<n>` directories and
+  are analyzed only when at least three complete runs are present.
 
 ## 测试规范
 

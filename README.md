@@ -100,6 +100,7 @@ PYTHONPATH=. .venv/bin/python scripts/evaluate_holdout.py \
   --dataset credit_g --baseline
 PYTHONPATH=. .venv/bin/python scripts/analyze_public_results.py
 PYTHONPATH=. .venv/bin/python scripts/evaluate_reduced_baseline.py
+PYTHONPATH=. .venv/bin/python scripts/evaluate_cross_model.py
 PYTHONPATH=. .venv/bin/python scripts/gen_fig2_avg_rank.py
 ```
 
@@ -107,6 +108,25 @@ The exact manuscript inputs are versioned in `outputs/eval_holdout/`.
 `paper/results/public_holdout_analysis.json` contains the average ranks and
 Holm-corrected paired Wilcoxon tests. The reduced-baseline analysis explicitly
 excludes identifiers and labels before model fitting.
+`paper/results/cross_model_analysis.json` compares the same released No-FE and
+KnowFeat matrices with XGBoost, LightGBM, and CatBoost; matrix SHA-256 hashes
+are stored with the results.
+
+Run the independent LLM-generation stability experiment after supplying the
+OpenAI-compatible KnowFeat credentials:
+
+```bash
+export KNOWFEAT_API_KEY=<key>
+export KNOWFEAT_BASE_URL=<openai-compatible-endpoint>
+export KNOWFEAT_MODEL=<model-name>
+PYTHONPATH=. .venv/bin/python scripts/run_llm_stability.py \
+  --datasets heart credit_g --runs 3
+```
+
+Each run is isolated under `outputs/llm_stability/<dataset>/run_<n>/` and
+records feature definitions, the full-row feature matrix, and frozen-holdout
+metrics. `scripts/analyze_llm_stability.py` reports pairwise feature-name
+Jaccard similarity and AUC variation and rejects incomplete run sets.
 
 Compile the paper from `paper/` with a standard TeX Live installation:
 

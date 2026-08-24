@@ -18,23 +18,23 @@
   "n_bootstrap": 1000,
   "metrics": {
     "auc": {
-      "test_point": 0.895631696691393,
-      "test_seed_std": 0.0022378111539018983,
-      "bootstrap_mean": 0.8972800530136463,
-      "bootstrap_std": 0.018052520246159248,
+      "test_point": 0.8988971309706033,
+      "test_seed_std": 0.0019077923469168227,
+      "bootstrap_mean": 0.9012974940465314,
+      "bootstrap_std": 0.01759221793485216,
       "bootstrap_ci95": [
-        0.8601912661250224,
-        0.9304458654508934
+        0.8647405727032482,
+        0.9335420350889181
       ]
     },
     "accuracy": {
-      "test_point": 0.8243750000000001,
-      "test_seed_std": 0.00870524267324005,
-      "bootstrap_mean": 0.82471875,
-      "bootstrap_std": 0.02164068704864751,
+      "test_point": 0.825,
+      "test_seed_std": 0.0059292706128157135,
+      "bootstrap_mean": 0.824590625,
+      "bootstrap_std": 0.021955619075406982,
       "bootstrap_ci95": [
         0.78125,
-        0.865625
+        0.86875
       ]
     }
   }

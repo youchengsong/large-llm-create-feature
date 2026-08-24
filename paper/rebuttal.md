@@ -70,7 +70,7 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 1. **These are saturated benchmarks.** The 8 public datasets are well-studied benchmarks where baseline models already achieve high AUC (e.g., breast_w ≈ 0.986, adult ≈ 0.931). We therefore present average rank as a descriptive summary and avoid claiming practical significance from small absolute differences.
 
-2. **Ranking is the standard evaluation in AutoFE.** Following OpenFE [Zhang et al., 2023] and the AutoML benchmark literature [Gijsbers et al., 2024], we use average rank as the primary comparison metric. Under the frozen-test protocol, KnowFeat's average rank of 2.5 vs. OpenFE's 3.2 represents the most consistent result across the eight public datasets.
+2. **Ranking is the standard evaluation in AutoFE.** Following OpenFE [Zhang et al., 2023] and the AutoML benchmark literature [Gijsbers et al., 2024], we use average rank as the primary comparison metric. Under the frozen-test protocol, KnowFeat's average rank of 2.4 vs. OpenFE's 3.3 represents the most consistent result across the eight public datasets.
 
 3. **The public results also show a quantity-quality tradeoff.** Across completed public runs, KnowFeat uses 33.8 total model inputs on average versus 133.8 for FeatLLM. The ranges are 12–88 and 11–280, respectively; on SimECNY they are 97 and 1,124.
 
@@ -96,7 +96,7 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 ## Additional Concern: 统计显著性检验（5 seeds 样本量不足）
 
-We now use the dataset, rather than model seed, as the statistical unit. Across the eight public datasets, we compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests and apply Holm correction across six comparisons. None is significant at \(\alpha=0.05\): the smallest unadjusted \(p\)-value is 0.0781 and the smallest Holm-adjusted value is 0.4688. We also report 95% bootstrap confidence intervals from 1,000 frozen-test resamples. The exact inputs and generated statistics are versioned under outputs/eval_holdout/ and paper/results/public_holdout_analysis.json.
+We now use the dataset, rather than model seed, as the statistical unit. Across the eight public datasets, we compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests and apply Holm correction across six comparisons. None is significant at \(\alpha=0.05\): the smallest unadjusted \(p\)-value is 0.0547 and the smallest Holm-adjusted value is 0.3281. We also report 95% bootstrap confidence intervals from 1,000 frozen-test resamples. A cross-model check over XGBoost, LightGBM, and CatBoost finds positive KnowFeat-minus-No-FE deltas on 6, 6, and 5 of 8 datasets, respectively, but no corrected test is significant. The exact inputs and generated statistics are versioned under outputs/eval_holdout/ and paper/results/.
 
 ---
 

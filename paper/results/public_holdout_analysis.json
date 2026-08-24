@@ -25,13 +25,13 @@
     "KnowFeat"
   ],
   "average_ranks": {
-    "No-FE": 3.3125,
-    "OpenFE": 3.1875,
+    "No-FE": 3.4375,
+    "OpenFE": 3.3125,
     "AutoFeat": 4.166666666666667,
     "CAAFE": 4.1875,
     "FeatLLM": 4.5625,
-    "LLM-FE": 4.833333333333333,
-    "KnowFeat": 2.5
+    "LLM-FE": 4.666666666666667,
+    "KnowFeat": 2.375
   },
   "knowfeat_comparisons": [
     {
@@ -47,10 +47,10 @@
         "adult",
         "wine_quality"
       ],
-      "median_auc_delta": 0.0007418592556890369,
-      "wilcoxon_statistic": 11.0,
-      "p_value": 0.3828125,
-      "p_value_holm": 0.9375,
+      "median_auc_delta": 0.0014953163584618956,
+      "wilcoxon_statistic": 10.0,
+      "p_value": 0.3125,
+      "p_value_holm": 1.0,
       "significant_at_0.05": false
     },
     {
@@ -67,9 +67,9 @@
         "wine_quality"
       ],
       "median_auc_delta": 0.0016686290030241135,
-      "wilcoxon_statistic": 13.0,
-      "p_value": 0.546875,
-      "p_value_holm": 0.9375,
+      "wilcoxon_statistic": 10.0,
+      "p_value": 0.3125,
+      "p_value_holm": 1.0,
       "significant_at_0.05": false
     },
     {
@@ -86,7 +86,7 @@
       "median_auc_delta": 0.004654360620652942,
       "wilcoxon_statistic": 5.0,
       "p_value": 0.3125,
-      "p_value_holm": 0.9375,
+      "p_value_holm": 1.0,
       "significant_at_0.05": false
     },
     {
@@ -102,10 +102,10 @@
         "adult",
         "wine_quality"
       ],
-      "median_auc_delta": 0.0008148860838351202,
-      "wilcoxon_statistic": 5.0,
-      "p_value": 0.078125,
-      "p_value_holm": 0.46875,
+      "median_auc_delta": 0.001516431202836399,
+      "wilcoxon_statistic": 4.0,
+      "p_value": 0.0546875,
+      "p_value_holm": 0.328125,
       "significant_at_0.05": false
     },
     {
@@ -121,10 +121,10 @@
         "adult",
         "wine_quality"
       ],
-      "median_auc_delta": 0.0010144667623147585,
-      "wilcoxon_statistic": 7.0,
-      "p_value": 0.1484375,
-      "p_value_holm": 0.7421875,
+      "median_auc_delta": 0.0014076401306711839,
+      "wilcoxon_statistic": 8.0,
+      "p_value": 0.1953125,
+      "p_value_holm": 0.9765625,
       "significant_at_0.05": false
     },
     {
@@ -138,10 +138,10 @@
         "bank_marketing",
         "adult"
       ],
-      "median_auc_delta": 0.001919110534041757,
-      "wilcoxon_statistic": 4.0,
-      "p_value": 0.21875,
-      "p_value_holm": 0.875,
+      "median_auc_delta": 0.0017700145259169076,
+      "wilcoxon_statistic": 9.0,
+      "p_value": 0.84375,
+      "p_value_holm": 1.0,
       "significant_at_0.05": false
     }
   ]

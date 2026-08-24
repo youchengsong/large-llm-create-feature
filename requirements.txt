@@ -19,6 +19,7 @@ pyarrow>=14.0
 scikit-learn>=1.8
 xgboost>=3.0
 lightgbm>=4.0
+catboost>=1.2.10
 
 # ── 模型解释与可视化 ──────────────────────────────
 shap>=0.50

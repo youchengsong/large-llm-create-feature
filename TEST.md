@@ -21,14 +21,21 @@ Reproduce and validate the manuscript statistics:
 ```bash
 PYTHONPATH=. .venv/bin/python scripts/analyze_public_results.py
 PYTHONPATH=. .venv/bin/python scripts/evaluate_reduced_baseline.py
+PYTHONPATH=. .venv/bin/python scripts/evaluate_cross_model.py
 PYTHONPATH=. .venv/bin/pytest -q \
-  tests/test_public_results_analysis.py tests/test_reduced_baseline.py
+  tests/test_public_results_analysis.py tests/test_reduced_baseline.py \
+  tests/test_cross_model_analysis.py tests/test_llm_stability_analysis.py
 ```
 
 The public-results test verifies all required frozen-holdout JSON files,
 average ranks, paired Wilcoxon/Holm conclusions, and bootstrap confidence
 interval availability. The reduced-baseline test guards against reintroducing
 identifier or label columns.
+The cross-model test verifies all 8 datasets and 3 model families, checks the
+stored feature-matrix hashes, and requires its XGBoost column to reproduce the
+versioned holdout AUC exactly. Stability-analysis tests require three complete,
+independent run directories and validate feature-set Jaccard aggregation,
+frozen-split metadata, and API-key fail-fast behavior.
 
 Compile-check the manuscript after changing paper sources:
 

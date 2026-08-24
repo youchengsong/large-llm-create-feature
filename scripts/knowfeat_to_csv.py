@@ -27,6 +27,8 @@ DATASET_CONFIG = {
     "heart": {"csv": "data/public/heart.csv", "target": "HeartDisease"},
     "bank_marketing": {"csv": "data/public/bank_marketing.csv", "target": "y"},
     "breast_w": {"csv": "data/public/breast_w.csv", "target": "Class"},
+    "adult": {"csv": "data/public/adult.csv", "target": "class"},
+    "wine_quality": {"csv": "data/public/wine_quality.csv", "target": "class"},
 }
 
 

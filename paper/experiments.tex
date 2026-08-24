@@ -78,31 +78,50 @@ Final performance is measured by training XGBoost~\cite{chen2016xgboost} (200~es
 \hline
 credit\_g          & .749 & .750 & .743 & .751 & .751 & \textbf{.754} & \underline{.752} \\
 diabetes           & .812 & \textbf{.820} & \underline{.818} & .810 & .810 & .806 & .810 \\
-blood\_transfusion & \textbf{.757} & .724 & .645 & .723 & \underline{.756} & .749 & .754 \\
+blood\_transfusion & \textbf{.757} & .724 & .645 & .723 & \underline{.756} & .749 & .745 \\
 heart              & .928 & .923 & \textbf{.931} & \underline{.928} & .927 & .926 & .928 \\
 bank\_marketing    & .930 & \textbf{.933} & --- & .930 & .929 & .929 & \underline{.931} \\
 breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & --- & \textbf{.992} \\
 adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textbf{.932} \\
-wine\_quality      & \underline{.896} & \textbf{.899} & .863 & .896 & .896 & --- & .896 \\
+wine\_quality      & .896 & \underline{.899} & .863 & .896 & .896 & --- & \textbf{.899} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 3.3 & 3.2 & 4.2 & 4.2 & 4.6 & 4.8 & \textbf{2.5} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 3.4 & 3.3 & 4.2 & 4.2 & 4.6 & 4.7 & \textbf{2.4} \\
 \hline
 \multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 8 public datasets; methods with missing data ranked among available entries only.} \\
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:main_results} presents the AUC comparison on eight public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.5) among all seven methods. Absolute differences are generally modest on these well-studied benchmarks, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. The key finding is that KnowFeat delivers consistent performance across datasets---unlike AutoFeat and FeatLLM, whose unverified features can degrade baselines (e.g., AutoFeat on wine\_quality). On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits; derived features can add noise. This is a known limitation of feature engineering on very-low-dimensional datasets.
+Table~\ref{tab:main_results} presents the AUC comparison on eight public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.4) among all seven methods. Absolute differences are generally modest on these well-studied benchmarks, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. The key finding is descriptive consistency across datasets---unlike AutoFeat and FeatLLM, whose unverified features can degrade baselines (e.g., AutoFeat on wine\_quality). On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits; derived features can add noise. This is a known limitation of feature engineering on very-low-dimensional datasets.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/avg_rank.pdf}
-    \caption{Average rank across 8 public datasets (lower is better). KnowFeat achieves the best average rank (2.5) among 7 methods under leakage-free evaluation.}
+    \caption{Average rank across 8 public datasets (lower is better). KnowFeat achieves the best average rank (2.4) among 7 methods under leakage-free evaluation.}
     \label{fig:avg_rank}
 \end{figure}
 
-The strongest competitor is OpenFE (avg.\ rank 3.2), which achieves the best AUC on 3 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.8). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
+The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC on 2 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.7). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
-\textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction for six comparisons, none is significant at $\alpha=0.05$ (smallest unadjusted $p=0.0781$; smallest adjusted $p=0.4688$). Thus, the eight benchmarks support a descriptive consistency claim---KnowFeat has the best average rank (2.5)---but not pairwise superiority. Exact inputs, analysis code, and generated statistics are released with the source code.
+\textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction for six comparisons, none is significant at $\alpha=0.05$ (smallest unadjusted $p=0.0547$; smallest adjusted $p=0.3281$). Thus, the eight benchmarks support a descriptive consistency claim---KnowFeat has the best average rank (2.4)---but not pairwise superiority. Exact inputs, analysis code, and generated statistics are released with the source code.
+
+\begin{table}[t]
+\centering
+\caption{Cross-model KnowFeat-minus-No-FE frozen-test AUC. Wins count positive deltas across 8 datasets; $p_{\mathrm{Holm}}$ adjusts the three paired Wilcoxon tests.}
+\label{tab:cross_model}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l c r r c}
+\hline
+\textbf{Model} & \textbf{Wins} & \textbf{Mean $\Delta$} & \textbf{Median $\Delta$} & \textbf{$p_{\mathrm{Holm}}$} \\
+\hline
+XGBoost  & 6/8 & +.0002 & +.0015 & .750 \\
+LightGBM & 6/8 & +.0016 & +.0022 & .750 \\
+CatBoost & 5/8 & +.0003 & +.0016 & 1.000 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Cross-model sensitivity.} Table~\ref{tab:cross_model} re-evaluates the same released No-FE and KnowFeat matrices with matched-depth XGBoost, LightGBM, and CatBoost~\cite{prokhorenkova2018catboost} models over five model seeds. Gains remain positive on most datasets for all three model families, so the descriptive effect is not specific to XGBoost. However, the mean deltas are small, not universal, and not significant after correction; we therefore make no classifier-independent superiority claim.
 
 \textbf{LLM backbone sensitivity.}
 To evaluate whether KnowFeat's effectiveness depends on the LLM backbone, we compare DeepSeek-V4-Flash (default) against DeepSeek-V4-Pro on two datasets. On heart, Pro slightly improves AUC (0.930 vs.\ 0.928); on credit\_g, Pro degrades (0.735 vs.\ 0.752). This mixed result indicates that KnowFeat's performance depends more on the knowledge-guided verification pipeline than on the backbone LLM's raw capability.
@@ -230,7 +249,7 @@ SimECNY (F1)        & \textbf{.973} & .971 & $-$0.2\% \\
 \subsection{RQ4: Feature Quantity, Quality, and Generalization}
 \label{subsec:rq4}
 
-Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance under leakage-free evaluation. The key insight: \emph{more features without verification can hurt performance}. FeatLLM generates the most features among the completed public-baseline runs, yet its average rank is higher (worse) than the verified KnowFeat result. KnowFeat generates a moderate number of verified features that consistently match or exceed baselines.
+Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance under leakage-free evaluation. The key insight: \emph{more features without verification can hurt performance}. FeatLLM generates the most features among the completed public-baseline runs, yet its average rank is higher (worse) than the verified KnowFeat result. KnowFeat generates a moderate number of verified features that often match strong baselines.
 
 \begin{table}[t]
 \centering
@@ -244,10 +263,10 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 \textbf{Method} & \textbf{Avg.\ \#Feat} & \textbf{Avg.\ Rank} & \textbf{$\Delta$F1 (AML)} \\
 \hline
 FeatLLM   & 133.8 & 4.6 & $-$0.3\% \\
-OpenFE    & 41.6  & 3.2 & $-$0.2\% \\
-KnowFeat  & 33.8  & \textbf{2.5} & 0.0\% \\
+OpenFE    & 41.6  & 3.3 & $-$0.2\% \\
+KnowFeat  & 33.8  & \textbf{2.4} & 0.0\% \\
 CAAFE     & 14.4  & 4.2 & +0.1\% \\
-No-FE     & ---   & 3.3 & --- \\
+No-FE     & ---   & 3.4 & --- \\
 \hline
 \end{tabular}
 \end{table}
@@ -268,15 +287,15 @@ The modest absolute improvements on public datasets (Table~\ref{tab:main_results
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
 \hline
-credit\_g  & .633 & \underline{.757} & .647 & .755 & \textbf{.795} \\
-heart      & .750 & .925 & .839 & \textbf{.928} & \underline{.927} \\
-diabetes   & .789 & \textbf{.817} & .794 & .807 & \underline{.812} \\
+credit\_g  & .633 & \textbf{.757} & .647 & \underline{.755} & .754 \\
+heart      & .750 & \underline{.925} & .839 & \textbf{.928} & .923 \\
+diabetes   & .789 & \textbf{.817} & .794 & \underline{.807} & .802 \\
 wine\_quality & .825 & \textbf{.897} & --- & --- & \underline{.896} \\
 \hline
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:reduced_baseline} reveals larger feature-engineering gains when baseline AUC is 0.63--0.83. KnowFeat improves all four weak baselines, ranking first on credit\_g and second on the other three datasets. On credit\_g, it improves AUC from 0.633 to 0.795 (+16.2 percentage points); on wine\_quality, from 0.825 to 0.896 (+7.1 points), matching full-baseline performance from only 3 core features. These results complement the full-baseline comparison (Table~\ref{tab:main_results}), where feature saturation leaves less headroom. Leakage-checked, seed-level results are released with the analysis code.
+Table~\ref{tab:reduced_baseline} reveals larger feature-engineering gains when baseline AUC is 0.63--0.83. KnowFeat improves all four weak baselines, ranking third on credit\_g, heart, and diabetes and second on wine\_quality. On credit\_g, it improves AUC from 0.633 to 0.754 (+12.1 percentage points); on wine\_quality, from 0.825 to 0.896 (+7.1 points), matching full-baseline performance from only 3 core features. These results complement the full-baseline comparison (Table~\ref{tab:main_results}), where feature saturation leaves less headroom. Leakage-checked, seed-level results are released with the analysis code.
 
 \subsection{Computational Cost}
 \label{subsec:cost}

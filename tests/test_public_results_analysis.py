@@ -21,9 +21,9 @@ def test_analysis_reproduces_manuscript_ranks_and_non_significance():
     summary = analyze(RESULTS_DIR)
     ranks = summary["average_ranks"]
 
-    assert ranks["KnowFeat"] == pytest.approx(2.5)
-    assert ranks["OpenFE"] == pytest.approx(3.1875)
-    assert ranks["No-FE"] == pytest.approx(3.3125)
+    assert ranks["KnowFeat"] == pytest.approx(2.375)
+    assert ranks["OpenFE"] == pytest.approx(3.3125)
+    assert ranks["No-FE"] == pytest.approx(3.4375)
     assert all(
         not comparison["significant_at_0.05"]
         for comparison in summary["knowfeat_comparisons"]

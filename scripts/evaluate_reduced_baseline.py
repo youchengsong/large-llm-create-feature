@@ -102,6 +102,7 @@ def evaluate_auc(X: pd.DataFrame, y: pd.Series) -> dict:
             eval_metric="logloss",
             enable_categorical=True,
             verbosity=0,
+            n_jobs=4,
         )
         model.fit(X_dev, y_dev)
         values.append(float(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1])))

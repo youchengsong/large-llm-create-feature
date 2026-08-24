@@ -1,0 +1,31 @@
+{
+  "stage": "generic",
+  "total_rounds": 7,
+  "total_accepted": 20,
+  "total_candidates": 0,
+  "total_rejected": 80,
+  "convergence_reason": "连续 2 轮无新特征",
+  "elapsed_sec": 3800.1,
+  "accepted_features": [
+    "financial_health_score",
+    "high_value_profile_score",
+    "contact_efficiency_score",
+    "seasonal_contact_timing",
+    "economic_lifecycle_stage",
+    "seasonal_economic_timing",
+    "seasonal_campaign_efficiency",
+    "marital_education_job_cluster",
+    "day_phase_success_momentum",
+    "pdays_previous_contact_depth",
+    "contact_channel_day_affinity",
+    "contact_balance_affinity",
+    "day_digit_quality_score",
+    "day_age_lifecycle",
+    "age_marital_housing_education_index",
+    "month_day_lift_score",
+    "month_financial_timing",
+    "campaign_age_sensitivity",
+    "day_contact_timing_score",
+    "financial_health_success_synergy"
+  ]
+}

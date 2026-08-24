@@ -1,0 +1,128 @@
+[
+  {
+    "name": "financial_capacity_score",
+    "dimensions": [
+      "客户画像"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_financial_capacity_score(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    财务能力评分（RULE_005 财务能力分层）：\n    无住房贷款(+1) + 无个人贷款(+1) + 无信用违约(+1) + 正账户余额(+1) -> 0~4分\n    分数越高代表客户财务能力越强，越有资金购买定期存款。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['financial_capacity_score'] = (\n        (df['housing'] == 'no').astype(int) +\n        (df['loan'] == 'no').astype(int) +\n        (df['default'] == 'no').astype(int) +\n        (df['balance'] > 0).astype(int)\n    )\n    return out"
+  },
+  {
+    "name": "seasonal_score",
+    "dimensions": [
+      "联系记录"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_seasonal_score(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    季节性时机分数：\n    将 month 映射为有序分数，分数越高代表该月份客户认购定期存款的意愿越强。\n    依据 IND_04：3月(50.9%)、9月(45.2%)、10月(43.8%)、12月(47.2%)最高；\n    5-8月(度假季)最低。映射: mar=5, sep/oct/dec=4, apr=2, jan/jun/nov=1, 其余=0。\n    \"\"\"\n    score_map = {\n        'mar': 5, 'sep': 4, 'oct': 4, 'dec': 4,\n        'apr': 2, 'jan': 1, 'jun': 1, 'nov': 1,\n        'jul': 0, 'aug': 0, 'feb': 0, 'may': 0\n    }\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['seasonal_score'] = df['month'].map(score_map).fillna(0).astype(float)\n    return out"
+  },
+  {
+    "name": "economic_regime_era",
+    "dimensions": [
+      "经济环境"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_economic_regime_era(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    经济周期时代阶段：将row_id（按数据收集时间顺序排列的记录序号）四等分，\n    映射为0~3的宏观环境/活动阶段代理。阶段越靠后，对应经济危机后期宏观环境\n    （Euribor降至近零、银行策略成熟、客户响应率更高）。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['economic_regime_era'] = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(float)\n    return out\n"
+  },
+  {
+    "name": "era_progression_position",
+    "dimensions": [
+      "经济环境"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_progression_position(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    时代内推进位置：row_id四等分得到era后，计算每个era内部的相对位置(0~1)。\n    同一era内，后期联系的客户响应率显著更高(era3内从10.8%升至51.0%)，\n    反映宏观时代内银行活动策略逐步成熟、目标客户更精准的过程。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(float)\n    era_start = df.groupby(era)['row_id'].transform('min')\n    era_width = df.groupby(era)['row_id'].transform(lambda s: s.max() - s.min())\n    within = (df['row_id'] - era_start) / era_width.replace(0, np.nan)\n    out['era_progression_position'] = within.astype(float)\n    return out\n"
+  },
+  {
+    "name": "contact_recency_warmth",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_contact_recency_warmth(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    RFM式联系近因-频次温暖度：将pdays(距上次联系天数)的Sweet Spot区间映射为近因分数，\n    再乘以历史联系频次权重，衡量客户对当前营销的\"预热\"程度。\n    依据 RULE_007/EXP_05：pdays=-1表示未曾被联系过，应拆分处理；\n    IND_12：previous>0(之前被联系过)是正信号。\n    数据探索显示：距上次联系30-90天认购率43.5%，90-150天33.6%，300-400天仅9.9%，\n    而>400天(晚时代记录)又回升——故将30-150天设为近因甜区。\n    \"\"\"\n    def recency_score(p: float) -> float:\n        if p == -1:\n            return 0.0\n        if p <= 30:\n            return 0.2\n        if p <= 90:\n            return 1.0\n        if p <= 150:\n            return 0.8\n        if p <= 210:\n            return 0.5\n        if p <= 300:\n            return 0.2\n        return 0.4  # >400天异常回升(晚时代)，弱化但保留\n\n    freq_weight = 1.0 + np.log1p(df['previous'].clip(0, 10))\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['contact_recency_warmth'] = (df['pdays'].apply(recency_score) * freq_weight).astype(float)\n    return out\n"
+  },
+  {
+    "name": "edu_age_synergy",
+    "dimensions": [
+      "客户画像"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_edu_age_synergy(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    教育×生命周期协同：高等教育对认购的拉动在生命周期两端(老年/青年)更强。\n    数据探索显示：tertiary在age>=60时认购率39.4%、age<=25时20%+，而primary整体仅8.6%。\n    将教育层次与年龄生命周期阶段加权组合，高分段(老年+高等教育)认购率约40%。\n    依据 IND_09/EXP_04/EXP_06。\n    \"\"\"\n    tertiary = (df['education'] == 'tertiary').astype(float)\n    primary = (df['education'] == 'primary').astype(float)\n    elder = (df['age'] >= 60).astype(float)\n    young = (df['age'] <= 25).astype(float)\n\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['edu_age_synergy'] = (tertiary * 2 + elder * 3 + young * 2 - primary).astype(float)\n    return out\n"
+  },
+  {
+    "name": "regime_mortgage_advantage",
+    "dimensions": [
+      "经济环境"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_regime_mortgage_advantage(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    经济时代 × 房贷负担放大效应（经济环境维度）：\n    在葡萄牙2008-2013经济危机期间，住房贷款负担对定期存款认购的抑制作用随经济阶段推进显著放大。\n    数据探索显示（按 row_id 百分位分段）：\n      - 0-60% 段：无房贷 vs 有房贷认购率几乎无差异（~5% vs ~5%）\n      - 60-70% 段：13.9% vs 6.8%（无房贷优势开始出现）\n      - 70-80% 段：33.8% vs 8.2%（优势峰值，约4倍）\n      - 80-90% 段：30.3% vs 10.5%（优势持续）\n      - 90-100% 段：47.5% vs 45.1%（宏观浪潮使差异消失）\n    该特征仅在经济阶段放大区给\"无房贷\"客户加分，隔离宏观时代与房贷负担的交互信号。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n\n    # 步骤1: row_id 百分位秩作为经济阶段位置（0=危机早期, 1=末期）\n    pct = df['row_id'].rank(pct=True)\n\n    # 步骤2: 经济阶段 → 房贷放大权重（基于各阶段无房贷优势幅度 0.071/0.256/0.198/0.024 取整）\n    w = np.where(pct < 0.6, 0.0,\n         np.where(pct < 0.7, 1.0,\n         np.where(pct < 0.8, 3.0,\n         np.where(pct < 0.9, 2.0, 0.0))))\n\n    # 步骤3: 无房贷指示符 × 阶段放大权重\n    out['regime_mortgage_advantage'] = ((df['housing'] == 'no').astype(float) * w).astype(float)\n    return out\n"
+  },
+  {
+    "name": "month_contact_saturation",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_month_contact_saturation(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    月度联系饱和度：计算每个自然月在整个数据集中被联系的客户数(month_volume)，\n    除以所有月份的最大联系量得到0~1的饱和度。饱和度越高代表该月联系量越接近\n    过度饱和状态(如5月联系11062人转化率仅6.7%)，越低代表稀缺联系月(如3月联系391人\n    转化率50.9%)。依据 RULE_010 反饱和量控：月联系量超过5000后预期递减回报。\n    \"\"\"\n    month_volume = df.groupby('month')['row_id'].transform('count').astype(float)\n    saturation = month_volume / month_volume.max()\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['month_contact_saturation'] = saturation\n    return out\n"
+  },
+  {
+    "name": "era_month_duration_context",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_month_duration_context(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    时代×月通话时长上下文：按row_id四等分得era，构造era_month分组后\n    计算组内duration均值。该特征刻画\"某一宏观时代+月份组合下客户的典型参与度水平\"，\n    是一种客户无法直接观测到的宏观上下文信号。数据探索显示：不同era_month组合的\n    平均时长差异大(12月315秒 vs 11月252秒)，且组均值与转化率正相关(0.182)。\n    与个体duration仅0.092相关，提供组级补充信息。\n    依据 EXP_03(宏观时代)与 IND_02(通话时长参与度)。\n    \"\"\"\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(float)\n    era_month = era.astype(str) + '_' + df['month'].astype(str)\n    em_dur = df.groupby(era_month)['duration'].transform('mean')\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['era_month_duration_context'] = em_dur.astype(float)\n    return out\n"
+  },
+  {
+    "name": "recency_nonbest_synergy",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_recency_nonbest_synergy(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    近因甜区×非最佳季节协同：将中心化的近因甜区分数(recency_sweet_spot_score)\n    与非最佳季节标记(5-8月等非mar/sep/oct/dec)相乘。\n    数据探索显示：非最佳季节中，近因处于甜区的客户转化率29.4% vs 非甜区9.1%；\n    而最佳季节中该差异仅50.3% vs 45.2%。即\"联系时机合适\"这一信号主要在\n    非最佳季节中发挥区分作用(好季节本身已足够强，时机信息边际价值小)。\n    依据 RULE_007/EXP_05 的pdays编码原则与 EXP_06 的交互思维。\n    \"\"\"\n    pdays = df['pdays'].values\n    contacted = pdays > 0\n    raw = np.where(contacted, np.exp(-np.abs(pdays - 60) / 60.0), 0.0)\n    center = np.exp(-np.abs(pdays[contacted] - 60) / 60.0).mean()\n    rec_centered = np.where(contacted, raw - center, 0.0)\n    nonbest = (~df['month'].isin(['mar', 'sep', 'oct', 'dec'])).astype(float)\n    score = rec_centered * nonbest\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['recency_nonbest_synergy'] = score.astype(float)\n    return out\n"
+  },
+  {
+    "name": "within_month_progression",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_within_month_progression(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    月内推进位置：将row_id(按数据收集时间排序的记录序号)在同一自然月内做百分位排名(0~1)。\n    数据探索显示：每个非最佳月份内，月内位置最后1/5的记录转化率显著更高\n    (如4月N1=15.7% vs N5=48.9%，5月N1=2.4% vs N5=15.2%，8月N1=7.5% vs N5=31.2%)，\n    呈现\"月内越靠后联系，客户响应越强\"的稳定时机规律。\n    该信号与era_progression仅0.13相关，提供月内级别的独立推进信息。\n    依据 IND_04 季节性时机与 EXP_08 客户财务日历。\n    \"\"\"\n    month_seq = df.groupby('month')['row_id'].rank(pct=True)\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['within_month_progression'] = month_seq.astype(float)\n    return out\n"
+  },
+  {
+    "name": "era_month_balance_context",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_month_balance_context(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    时代×月账户余额上下文：按row_id四等分得era，构造era_month分组后\n    计算组内balance均值。该特征刻画\"某一宏观时代+月份组合下客户群体的\n    平均财务水位\"，反映经济危机不同阶段、不同月份下客户的可投资资本环境。\n    数据探索显示：era_month组均值与转化率正相关(0.212)，高组余额(2148+)\n    转化率43.1% vs 低组(817-1008)仅3.2%。与个体balance仅0.172相关。\n    依据 EXP_03(宏观时代)与 IND_11(账户余额)。\n    \"\"\"\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(float)\n    era_month = era.astype(str) + '_' + df['month'].astype(str)\n    em_bal = df.groupby(era_month)['balance'].transform('mean')\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['era_month_balance_context'] = em_bal.astype(float)\n    return out\n"
+  },
+  {
+    "name": "era_job_loan_balance_context",
+    "dimensions": [
+      "客户画像"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_job_loan_balance_context(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    时代×职业×个人贷款 余额上下文：按row_id四等分得到经济时代era，构造era_job_loan分组后\n    计算组内balance均值。该特征刻画\"某一宏观时代+职业+个人贷款状态组合下客户群体的\n    平均财务水位\"。数据探索显示：该组均值IV=0.31，且与已接受的era_month_balance_context\n    仅0.34相关、与era_marital_housing_balance_context仅0.46相关，提供差异化的\n    \"职业×债务状态财务画像上下文\"。依据 EXP_03 + IND_07(职业) + IND_06(个人贷款) + IND_11。\n    \"\"\"\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(int)\n    grp = era.astype(str) + '_' + df['job'].astype(str) + '_' + df['loan'].astype(str)\n    ctx = df.groupby(grp)['balance'].transform('mean')\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['era_job_loan_balance_context'] = ctx.astype(float)\n    return out\n"
+  },
+  {
+    "name": "success_duration_synergy",
+    "dimensions": [
+      "联系记录"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_success_duration_synergy(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    历史成功×通话时长协同：poutcome=success(历史认购成功)与log1p(duration)的乘积。\n    数据探索显示：success+长通话(>300s)认购率76.5%，success+中通话(120-300s)66.7%，\n    success+短通话(<120s)也达22.6%，而非success客户整体仅~10%。\n    EXP_06明确指出poutcome-duration是最强交互：历史成功+长通话≈几乎确定认购。\n    该特征与duration本身仅0.059相关，提供独立的\"合格线索×参与度\"叠加信号。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    succ = (df['poutcome'] == 'success').astype(float)\n    log_dur = np.log1p(df['duration'].astype(float))\n    out['success_duration_synergy'] = (succ * log_dur).astype(float)\n    return out\n"
+  },
+  {
+    "name": "engagement_intensity_per_contact",
+    "dimensions": [
+      "联系记录"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_engagement_intensity_per_contact(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    单次联系参与强度：log1p(duration) / log1p(campaign)。\n    该特征度量\"每次当前活动联系平均带来的通话参与度\"。\n    duration=通话时长(参与度)，campaign=当前活动联系次数(联系疲劳)。\n    数据探索显示该比值五等分后转化率单调递增(Q1=2.8%→Q5=23.5%)，IV=0.62。\n    高比值=少次数高参与(高质量沟通)，低比值=多次数低参与(疲劳无效联系)。\n    依据 RULE_001(超过3次联系转化率急剧下降)与 IND_02(通话时长反映参与度)。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    log_dur = np.log1p(df['duration'].astype(float))\n    log_camp = np.log1p(df['campaign'].astype(float))\n    ratio = log_dur / log_camp.replace(0, np.nan)\n    out['engagement_intensity_per_contact'] = ratio.astype(float)\n    return out\n"
+  },
+  {
+    "name": "positive_engagement_warmth",
+    "dimensions": [
+      "联系记录"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_positive_engagement_warmth(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    正向历史结果×通话参与：poutcome∈{success,other} × log1p(duration)。\n    success(64.6%转化)与other(16.5%)均为非负向历史结果；叠加通话时长后，\n    other+长通话(5.5-7)转化率56.2%、7+达61.1%，success+长通话更高。\n    该特征将\"历史非负结果\"与\"当前参与度\"平滑相乘，\n    扩展了f1(仅success)覆盖范围至7.4%的正向历史客户。\n    依据 IND_01(历史成功)与 IND_02(通话时长参与度)。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    pos = df['poutcome'].isin(['success', 'other']).astype(float)\n    log_dur = np.log1p(df['duration'].astype(float))\n    out['positive_engagement_warmth'] = (pos * log_dur).astype(float)\n    return out\n"
+  },
+  {
+    "name": "era_contact_history_signal",
+    "dimensions": [
+      "时机因素"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_contact_history_signal(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    经济时代 × 历史联系频率的交互信号。\n    数据探索显示：历史联系频率(previous)对认购的效应随经济时代翻转——\n    era0-1(危机早期)无历史联系记录(pdays均为-1)；era2(危机中期)曾被联系的客户\n    转化率反而更低(5.7% vs 未联系10.7%)；era3(危机末期)曾被联系客户转化率显著更高\n    (previous 4+ → 34.8% vs 0 → 23.4%)。\n    该特征在未联系客户(prev_rank=0)上为0，仅度量\"历史联系频率在当前经济时代下的\n    价值方向与强度\"，与时代本身和poutcome解耦。\n    依据 IND_12(previous>0为正信号但存在边际效应)、RULE_007(pdays=-1的编码处理)、\n    EXP_03(经济危机期间行为模式)、EXP_06(关键特征交互)。\n    \"\"\"\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n\n    # 步骤1: row_id 四等分得到经济时代 era (0=危机早期, 3=危机末期)\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(float)\n\n    # 步骤2: previous 计数映射为 0-4 档位 (0=从未联系, 4=联系4次以上)\n    prev_rank = pd.cut(df['previous'], bins=[-1, 0, 1, 2, 4, 1e9],\n                       labels=[0, 1, 2, 3, 4]).astype(float)\n\n    # 步骤3: 时代权重 (era2 历史联系为负信号=-1, era3 为正信号=+1, era0/1 无记录=0)\n    era_w = np.where(era == 3, 1.0, np.where(era == 2, -1.0, 0.0))\n\n    # 步骤4: 历史联系频率 × 时代权重\n    out['era_contact_history_signal'] = (prev_rank * era_w).astype(float)\n    return out\n"
+  },
+  {
+    "name": "era_marital_housing_balance_context",
+    "dimensions": [
+      "客户画像"
+    ],
+    "code": "import pandas as pd\nimport numpy as np\n\ndef feature_era_marital_housing_balance_context(df: pd.DataFrame) -> pd.DataFrame:\n    \"\"\"\n    时代×婚姻×住房 账户余额上下文：按row_id四等分得到经济时代era，构造era_marital_housing分组后\n    计算组内balance均值。该特征刻画\"某一宏观时代+婚姻状态+住房贷款状态组合下客户群体的\n    平均财务水位\"。数据探索显示：该组均值与转化率强相关（IV=0.58），\n    高组均值客户转化率显著更高；与个体balance仅0.13相关、与已接受的era_month_balance_context\n    仅0.51相关，提供独立于个体余额和月度时机的\"人群财务画像上下文\"。\n    依据 EXP_03(宏观时代) + IND_08(婚姻) + IND_05(住房贷款) + IND_11(账户余额)。\n    \"\"\"\n    era = pd.qcut(df['row_id'], 4, labels=[0, 1, 2, 3]).astype(int)\n    grp = era.astype(str) + '_' + df['marital'].astype(str) + '_' + df['housing'].astype(str)\n    ctx = df.groupby(grp)['balance'].transform('mean')\n    out = pd.DataFrame()\n    out['row_id'] = df['row_id']\n    out['era_marital_housing_balance_context'] = ctx.astype(float)\n    return out\n"
+  }
+]

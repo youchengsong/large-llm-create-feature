@@ -127,6 +127,11 @@ def main():
     parser.add_argument("--max-features", type=int, default=9999)
     parser.add_argument("--max-rounds", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument(
+        "--result-dir", type=Path, default=None,
+        help="Exact output directory for this run (keeps repeated runs isolated)",
+    )
     parser.add_argument(
         "--enable-posthoc-selection", action="store_true",
         help="Run the optional second model-selection pass after forward selection",
@@ -139,6 +144,8 @@ def main():
     cfg.search.max_rounds = args.max_rounds
     cfg.search.enable_posthoc_selection = args.enable_posthoc_selection
     cfg.seed = args.seed
+    if args.temperature is not None:
+        cfg.llm.temperature = args.temperature
 
     logger.info("=== KnowFeat on %s ===", args.dataset)
     logger.info("Config: stage=%s, dataset=%s, target=%s, max_features=%d",
@@ -177,7 +184,8 @@ def main():
     from knowfeat.main import run_stage, save_results
     result = run_stage(cfg, data, dk, knowledge_filter=args.knowledge_filter)
     suffix = f"_{args.knowledge_filter}" if args.knowledge_filter else ""
-    save_results(result, cfg.paths.output_dir / (args.dataset + suffix))
+    result_dir = args.result_dir or cfg.paths.output_dir / (args.dataset + suffix)
+    save_results(result, result_dir)
 
     print(
         f"\n完成: {result.total_accepted} 特征, "
