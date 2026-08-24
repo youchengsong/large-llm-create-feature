@@ -280,9 +280,9 @@ The modest absolute improvements on public datasets (Table~\ref{tab:main_results
 \centering
 \caption{AUC with a reduced baseline (3 core features only). Identifier and label columns are excluded from every method.}
 \label{tab:reduced_baseline}
-\small
+\footnotesize
 \renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{3pt}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{l c c c c c}
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{KnowFeat} \\
@@ -293,6 +293,7 @@ diabetes   & .789 & \textbf{.817} & .794 & \underline{.807} & .802 \\
 wine\_quality & .825 & \textbf{.897} & --- & --- & \underline{.896} \\
 \hline
 \end{tabular}
+}% end resizebox
 \end{table}
 
 Table~\ref{tab:reduced_baseline} reveals larger feature-engineering gains when baseline AUC is 0.63--0.83. KnowFeat improves all four weak baselines, ranking third on credit\_g, heart, and diabetes and second on wine\_quality. On credit\_g, it improves AUC from 0.633 to 0.754 (+12.1 percentage points); on wine\_quality, from 0.825 to 0.896 (+7.1 points), matching full-baseline performance from only 3 core features. These results complement the full-baseline comparison (Table~\ref{tab:main_results}), where feature saturation leaves less headroom. Leakage-checked, seed-level results are released with the analysis code.
