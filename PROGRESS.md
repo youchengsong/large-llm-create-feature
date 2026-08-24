@@ -40,3 +40,26 @@ orchestration, and split suites pass.
 
 The full suite passes with 627 tests; the remaining nine warnings are Python
 3.14 `multiprocessing.fork()` deprecation warnings in tool tests.
+
+## 2026-08-24: cross-model validation and matrix traceability
+
+- Problem: several released KnowFeat feature matrices had drifted from the
+  matrices that produced the versioned frozen-holdout JSON, so a new
+  classifier-family experiment could silently evaluate different inputs.
+  Holdout evaluation also allowed XGBoost to consume every host CPU, causing
+  severe oversubscription when evaluations ran concurrently.
+- Resolution: restored and versioned all eight paper matrices, regenerated the
+  two stale holdout records and all dependent paper analyses, and required the
+  cross-model XGBoost column to reproduce every paper AUC exactly. Added
+  LightGBM/CatBoost evaluation with matrix SHA-256 hashes, capped model jobs,
+  updated the manuscript, and added an isolated three-run LLM stability runner
+  with feature-name Jaccard and frozen-test AUC aggregation.
+- Prevention: treat the feature matrix as a versioned manuscript input, store
+  its hash with derived results, and test matrix-to-JSON reproduction before
+  reporting secondary analyses. Repeated LLM runs must use isolated run
+  directories and cannot be summarized until all three runs are complete.
+- Commit: `fc28682`
+
+The full suite passes with 634 tests. Actual independent LLM calls remain
+pending because the project environment has no `KNOWFEAT_API_KEY`; the runner
+fails before creating partial output when credentials are absent.
