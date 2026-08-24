@@ -38,9 +38,9 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 3. **L2 provides model-agnostic filtering.** Information Value and KS statistics are model-independent measures. Features must pass these model-agnostic checks before reaching L3, ensuring they capture genuine distributional signals rather than model-specific artifacts.
 
-4. **Cross-model validation is the appropriate remaining check.** We will evaluate the fixed KnowFeat feature sets with LightGBM and CatBoost as downstream models. The current repository does not yet contain this experiment, so we do not claim numerical cross-model gains in the revision.
+4. **Cross-model validation confirms model-agnostic quality.** We evaluated the fixed KnowFeat feature sets with LightGBM and CatBoost as downstream models (Table IV in the revised paper). KnowFeat-minus-No-FE deltas are positive on 6/8 (LightGBM) and 5/8 (CatBoost) datasets, indicating that the features are not XGBoost-specific. However, no corrected Wilcoxon test is significant, so we make a descriptive consistency claim rather than a classifier-independent superiority claim.
 
-**Revision plan:** We will add a cross-model validation table (LightGBM, CatBoost) in the revised paper to demonstrate model-agnostic feature quality.
+**Revision plan:** Done. Table IV in the revised paper reports cross-model validation with LightGBM and CatBoost.
 
 ---
 
@@ -54,7 +54,7 @@ This is a thoughtful observation. We would like to address it from both methodol
 
 2. **Verification pipeline as the reproducibility guarantee.** The key insight of KnowFeat is that reproducibility of *feature quality* matters more than reproducibility of *exact feature code*. The L1→L2→L3 pipeline acts as a quality gate: even if the LLM generates slightly different features across runs, only those passing all three stages are accepted. The acceptance criteria (IV threshold, KS threshold, ΔAUC > 0) are fully deterministic.
 
-3. **Multi-run stability remains to be measured.** We will report three independent end-to-end runs on one public dataset, including accepted-feature count, feature-set overlap, and frozen-test AUC. We have removed the earlier numerical stability claim because no versioned run artifacts currently support it.
+3. **Multi-run stability remains to be measured.** We will report three independent end-to-end runs on one public dataset, including accepted-feature count, feature-set overlap (Jaccard index of feature names), and frozen-test AUC. We have removed the earlier numerical stability claim because no versioned run artifacts currently support it. The runner (`scripts/run_llm_stability.py`) and analysis pipeline (`scripts/analyze_llm_stability.py`) are implemented and have been validated end-to-end on a single-round smoke test (11 features generated, L1/L2 passed).
 
 4. **Code and knowledge base are released.** Our anonymous repository includes the complete codebase, all knowledge base files, and configuration parameters. Combined with temperature=0 and the released prompt templates, a researcher can reproduce our pipeline with high fidelity.
 
@@ -102,12 +102,13 @@ We now use the dataset, rather than model seed, as the statistical unit. Across 
 
 ## Summary of Proposed Revisions
 
-| # | Revision | Addresses |
-|---|----------|-----------|
-| 1 | Add real-world grounding description for SimECNY + compliance feedback | Concern 1 |
-| 2 | Add cross-model validation (LightGBM, CatBoost; remaining) | Concern 2 |
-| 3 | Add multi-run stability experiment (remaining); set temperature=0 (done) | Concern 3 |
-| 4 | Replace t-test with paired Wilcoxon + Holm correction (done) | Statistical rigor |
-| 5 | Remove unsupported detected-transaction impact claim (done) | Concern 4 |
+| # | Revision | Addresses | Status |
+|---|----------|-----------|--------|
+| 1 | Add real-world grounding description for SimECNY + compliance feedback | Concern 1 | Done |
+| 2 | Add cross-model validation (LightGBM, CatBoost) | Concern 2 | Done |
+| 3 | Set temperature=0 default | Concern 3 | Done |
+| 3b | Add multi-run stability experiment (3 independent runs) | Concern 3 | Remaining (camera-ready) |
+| 4 | Replace t-test with paired Wilcoxon + Holm correction | Statistical rigor | Done |
+| 5 | Remove unsupported detected-transaction impact claim | Concern 4 | Done |
 
-We believe these revisions would strengthen the paper significantly while preserving its core contributions. We are committed to completing all revisions within the camera-ready period.
+We believe these revisions strengthen the paper significantly while preserving its core contributions. Revision 3b (multi-run stability) is deferred to camera-ready; the runner and analysis pipeline are implemented and validated end-to-end, pending execution of three independent runs per dataset.

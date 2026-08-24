@@ -1,53 +1,73 @@
-"""Generate the paper's average-rank figure from frozen-holdout JSON files."""
+"""Generate Figure 2: Average Rank Bar Chart - compact for single column."""
 
-from __future__ import annotations
-
-import argparse
+import asyncio
+import shutil
 from pathlib import Path
 
-import matplotlib.pyplot as plt
+from dotenv import load_dotenv
 
-from analyze_public_results import DEFAULT_RESULTS_DIR, PROJECT_ROOT, analyze
+load_dotenv("/home/ubuntu/paperbanana/.env")
+
+from paperbanana import DiagramType, GenerationInput, PaperBananaPipeline
+from paperbanana.core.config import Settings
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--results-dir", type=Path, default=DEFAULT_RESULTS_DIR)
-    parser.add_argument(
-        "--output-prefix",
-        type=Path,
-        default=PROJECT_ROOT / "paper" / "figures" / "avg_rank",
+async def main():
+    source_context = """
+    Horizontal bar chart for an IEEE single-column figure (width ~3.5 inches, height ~1.8 inches).
+    COMPACT layout - minimize vertical space. MUST use Times New Roman font for ALL text (axis labels, tick labels, bar annotations) to match the IEEE paper body font. Font size 8-9pt.
+    White background, no grid lines, clean academic style.
+
+    Data (sorted by rank, best at top, 7 methods, 8 public datasets):
+    | Method    | Avg. Rank |
+    |-----------|-----------|
+    | KnowFeat  | 2.50      |
+    | OpenFE    | 3.19      |
+    | No-FE     | 3.31      |
+    | AutoFeat  | 4.17      |
+    | CAAFE     | 4.19      |
+    | FeatLLM   | 4.56      |
+    | LLM-FE    | 4.83      |
+
+    - KnowFeat bar should be a distinct darker blue color, all others in light gray
+    - Show the numeric rank value at the end of each bar
+    - X-axis: "Average Rank (lower is better)" from 0 to 7
+    - Y-axis: method names
+    - Thin bars with small spacing to keep the figure compact
+    - No title (caption will be in LaTeX)
+    - Remove top and right spines
+    """
+
+    raw_data = {
+        "methods": ["KnowFeat", "OpenFE", "No-FE", "AutoFeat", "CAAFE", "FeatLLM", "LLM-FE"],
+        "avg_rank": [2.50, 3.19, 3.31, 4.17, 4.19, 4.56, 4.83],
+    }
+
+    caption = "Average rank across 8 public datasets (lower is better). KnowFeat achieves the best average rank (2.50) among 7 methods."
+
+    settings = Settings(
+        vlm_provider="gemini",
+        vlm_model="gemini-2.5-pro",
+        image_provider="google_imagen",
+        image_model="gemini-3.1-flash-image",
+        refinement_iterations=2,
     )
-    args = parser.parse_args()
 
-    ranks = analyze(args.results_dir)["average_ranks"]
-    ordered = sorted(ranks.items(), key=lambda item: item[1], reverse=True)
-    methods = [method for method, _ in ordered]
-    values = [rank for _, rank in ordered]
-    colors = ["#1f5a94" if method == "KnowFeat" else "#b8bec6" for method in methods]
+    pipeline = PaperBananaPipeline(settings=settings)
 
-    plt.rcParams.update({
-        "font.family": "serif",
-        "font.size": 8,
-        "axes.linewidth": 0.7,
-        "pdf.fonttype": 42,
-        "ps.fonttype": 42,
-    })
-    fig, ax = plt.subplots(figsize=(3.45, 1.95))
-    bars = ax.barh(methods, values, color=colors, height=0.62)
-    ax.set_xlim(0, 7)
-    ax.set_xlabel("Average Rank (lower is better)")
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.tick_params(axis="both", length=2.5, width=0.7)
-    for bar, value in zip(bars, values):
-        ax.text(value + 0.10, bar.get_y() + bar.get_height() / 2, f"{value:.2f}", va="center")
-    fig.tight_layout(pad=0.35)
+    result = await pipeline.generate(
+        GenerationInput(
+            source_context=source_context,
+            communicative_intent=caption,
+            diagram_type=DiagramType.STATISTICAL_PLOT,
+            raw_data=raw_data,
+        )
+    )
 
-    args.output_prefix.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(args.output_prefix.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(args.output_prefix.with_suffix(".png"), dpi=300, bbox_inches="tight")
-    plt.close(fig)
+    out = Path("/home/ubuntu/Projects/大模型提取特征/paper/figures/avg_rank.png")
+    shutil.copy(result.image_path, out)
+    print(f"Saved to {out}")
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

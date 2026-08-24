@@ -142,7 +142,7 @@ def _fit_predict(X_dev, y_dev, X_test, seed, spw_override):
         n_estimators=200, max_depth=6, learning_rate=0.1,
         subsample=0.8, colsample_bytree=0.8, scale_pos_weight=spw,
         random_state=seed, eval_metric="logloss",
-        enable_categorical=True, verbosity=0, n_jobs=4,
+        enable_categorical=True, verbosity=0,
     )
     model.fit(X_dev, y_dev, verbose=False)
     y_prob = model.predict_proba(X_test)[:, 1]
