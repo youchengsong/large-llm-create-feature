@@ -69,6 +69,13 @@ rebase 发生冲突时：
   enforced for recall-based acceptance and intentionally omitted in AUC mode.
 - Post-hoc feature pruning is an opt-in `SearchConfig.enable_posthoc_selection`
   experiment because it performs another model-selection pass.
+- The paper has two document classes sharing one set of body files:
+  `paper/main.tex` (IEEEtran) and `paper/main_edbt.tex` (acmart sigconf, the
+  EDBT 2027 submission target). Body files must stay class-agnostic; when
+  editing either preamble, check it against the commands the body actually
+  uses. `acmart.cls` supplies `booktabs`, `xcolor`, `graphicx`, `hyperref`, and
+  `balance`, but not `amssymb`, and Algorithm 1 is written in `algorithmic`
+  syntax rather than `algpseudocode`.
 - `scripts/evaluate_holdout.py` scores only the frozen test partition.
   Manuscript inputs live in `outputs/eval_holdout/`; average ranks and paired
   Wilcoxon/Holm tests are reproduced by `scripts/analyze_public_results.py`.

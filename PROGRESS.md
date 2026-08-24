@@ -63,3 +63,38 @@ The full suite passes with 627 tests; the remaining nine warnings are Python
 The full suite passes with 634 tests. Actual independent LLM calls remain
 pending because the project environment has no `KNOWFEAT_API_KEY`; the runner
 fails before creating partial output when credentials are absent.
+
+## 2026-08-24: EDBT template tracking and preamble consistency
+
+- Problem: the EDBT variant (`main_edbt.tex`, acmart sigconf) shares every body
+  file with the IEEEtran variant but was never tracked, so a fresh clone could
+  not build the actual submission target. Its preamble had also drifted from the
+  shared body: it loaded `algpseudocode` while `method.tex` writes Algorithm 1
+  in `algorithmic` syntax (`\STATE`, `\FOR`, `\TO`), and it omitted `amssymb`
+  even though `related_work.tex` uses `\checkmark` eight times in Table 1.
+  `acmart.cls` provides `amsmath` but not `amssymb`, so both Algorithm 1 and
+  Table 1 would fail to compile.
+- Resolution: tracked `main_edbt.tex`, `acmart.cls`, `edbt-macros.tex`, and
+  `ACM-Reference-Format.bst`; switched the EDBT preamble to `algorithmic`; and
+  added `amssymb`. Verified the remaining shared-body dependencies
+  (`booktabs`, `xcolor`, `graphicx`, `hyperref`, `balance`) are supplied by
+  `acmart.cls`, and that no IEEEtran-specific command appears in the body.
+- Prevention: when two document classes share body files, diff both preambles
+  against the commands the body actually uses rather than against each other.
+  A shared body makes the classes look interchangeable when they are not.
+- Commit: `07200e9`
+
+Not verified by compilation: this environment has no LaTeX toolchain and cannot
+install one (`apt` requires root). The fixes were derived by reading
+`acmart.cls` and the shared body sources, and still need one `pdflatex` run to
+confirm page count and fonts.
+
+The LLM stability experiment remains incomplete. With
+`KNOWFEAT_BASE_URL=https://api.apexin.ai/v1` and
+`KNOWFEAT_MODEL=deepseek-v4-flash` a single-round smoke run finished in 1164 s
+and passed L1/L2, but a full run needs roughly 3.2 hours per dataset-run and
+about 19 hours for all six runs, which exceeds this environment's background
+task limit. Do not use `deepseek-v4-pro`: it is a reasoning model whose chain of
+thought consumes the entire `max_tokens` budget, leaving empty content and
+stalling the agent at `generated=0`.
+
