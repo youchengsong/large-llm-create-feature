@@ -1,0 +1,143 @@
+%% KnowFeat — EDBT 2027 Research Track (3rd Cycle) submission
+%% Based on the official EDBT 2027 template (A4, sigconf+review, single-blind)
+\documentclass[sigconf,review]{acmart}
+
+%% A4 geometry override (copied from EDBT template)
+\geometry{twoside=true, head=13pt,
+     a4paper,
+     includeheadfoot, columnsep=2pc,
+     top=57pt, bottom=73pt, inner=54pt, outer=54pt,
+     marginparwidth=2pc,heightrounded
+     }%
+
+\AtBeginMaketitle{%
+  \input{edbt-macros}
+}% \AtBeginMaketitle
+
+% Additional packages (acmart already loads amsmath, hyperref, booktabs, natbib)
+% amssymb is NOT loaded by acmart but related_work.tex needs \checkmark.
+\usepackage{amssymb}
+\usepackage{algorithm}
+% method.tex writes Algorithm 1 in algorithmic syntax (\STATE, \FOR, \TO),
+% so load algorithmic here rather than algpseudocode.
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{placeins}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\small\ttfamily,
+  backgroundcolor=\color[gray]{0.95},
+  frame=single,
+  framerule=0pt,
+  xleftmargin=3pt,
+  xrightmargin=3pt,
+  aboveskip=4pt,
+  belowskip=4pt,
+  columns=fullflexible,
+  keepspaces=true,
+  language=Python,
+  keywordstyle=\small\ttfamily
+}
+
+\begin{document}
+
+\title{KnowFeat: Knowledge-Guided Feature Engineering via LLM Agents}
+
+%% Single-blind: authors visible to reviewers
+\author{Chengsong You}
+\email{51275901122@stu.ecnu.edu.cn}
+\affiliation{%
+  \institution{East China Normal University}
+  \city{Shanghai}
+  \country{China}
+}
+
+\author{Wangyue Li}
+\email{52285901017@stu.ecnu.edu.cn}
+\affiliation{%
+  \institution{East China Normal University}
+  \city{Shanghai}
+  \country{China}
+}
+
+\author{Weiqiao Que}
+\email{weiqiaoque@gmail.com}
+\affiliation{%
+  \institution{East China Normal University}
+  \city{Shanghai}
+  \country{China}
+}
+
+\author{Qizhou Chen}
+\email{582476065@qq.com}
+\affiliation{%
+  \institution{East China Normal University}
+  \city{Shanghai}
+  \country{China}
+}
+
+\author{Kunyan Wu}
+\email{wky24@mails.tsinghua.edu.cn}
+\affiliation{%
+  \institution{Tsinghua University}
+  \city{Beijing}
+  \country{China}
+}
+
+\author{Feng Zhu}
+\email{Jason_bank@126.com}
+\affiliation{%
+  \institution{Digital Currency Department, Postal Savings Bank of China}
+  \city{Beijing}
+  \country{China}
+}
+
+\author{Wei Deng}
+\email{dengwei@swufe.edu.cn}
+\affiliation{%
+  \institution{Southwestern University of Finance and Economics}
+  \city{Chengdu}
+  \country{China}
+}
+
+\author{Xiaofeng He}
+\email{hexf@cs.ecnu.edu.cn}
+\affiliation{%
+  \institution{East China Normal University}
+  \city{Shanghai}
+  \country{China}
+}
+
+\renewcommand{\shortauthors}{You et al.}
+
+%% Abstract (abstract.tex contains \begin{abstract}...\end{abstract})
+\input{abstract}
+
+\keywords{Feature Engineering, Large Language Models, Domain Knowledge, Automated Feature Engineering, Anti-Money Laundering}
+
+\maketitle
+
+%% Body
+\input{intro}
+\input{related_work}
+\input{method}
+\input{experiments}
+\input{conclusion}
+
+%% Artifacts section (required by EDBT before references)
+\section*{Artifacts}
+The source code and all datasets used in this paper are publicly available.
+The code repository is at \url{https://github.com/youchengsong/large-llm-create-feature}.
+The SimECNY dataset and public dataset knowledge bases are available at \url{https://huggingface.co/datasets/anonymous-7219/knowfeat}.
+
+%% References
+\balance
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+%% Appendix (appendix.tex contains \appendix command)
+\input{appendix}
+
+\end{document}
