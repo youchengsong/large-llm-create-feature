@@ -351,11 +351,9 @@ with no LLM calls required.
 \hline
 heart (AUC)     & .927 & .926 & .923 & .925$\pm$.002 \\
 heart (\#feat)  & 37   & 36   & 45   & 39.3$\pm$4.9 \\
-credit\_g (AUC) & ---  & ---  & ---  & --- \\
-credit\_g (\#feat) & --- & --- & --- & --- \\
 \hline
 \multicolumn{5}{l}{\scriptsize Mean pairwise Jaccard (heart): 0.036} \\
 \end{tabular}
 \end{table}
 
-To quantify run-to-run variability, we execute the full KnowFeat pipeline three times independently on heart and credit\_g. Table~\ref{tab:stability} reports frozen-test AUC and accepted-feature count. Despite very low feature-name overlap (Jaccard\,$\approx$\,0.04), the frozen-test AUC is highly stable (std\,$\leq$\,0.002). This confirms that the L1$\rightarrow$L2$\rightarrow$L3 verification pipeline---not the LLM's token-level determinism---is the mechanism that ensures consistent downstream performance: different feature implementations pass the same quality gate, yielding equivalent predictive value.
+To quantify run-to-run variability, we execute the full KnowFeat pipeline three times independently on heart with temperature\,=\,0. Table~\ref{tab:stability} reports frozen-test AUC and accepted-feature count. Despite very low feature-name overlap (Jaccard\,$\approx$\,0.04), the frozen-test AUC is highly stable (std\,$=$\,0.002). This confirms that the L1$\rightarrow$L2$\rightarrow$L3 verification pipeline---not the LLM's token-level determinism---is the mechanism that ensures consistent downstream performance: different feature implementations pass the same quality gate, yielding equivalent predictive value.
