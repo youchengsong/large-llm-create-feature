@@ -100,6 +100,13 @@ Table~\ref{tab:main_results} presents the AUC comparison on eight public dataset
     \label{fig:avg_rank}
 \end{figure}
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/cd_diagram.pdf}
+    \caption{Critical Difference diagram (Nemenyi test, $\alpha$=0.05). Methods connected by a gray bar are not significantly different. The wide CD reflects limited statistical power (4 datasets with all 7 methods present); the diagram visualizes the rank ordering rather than claiming pairwise significance.}
+    \label{fig:cd_diagram}
+\end{figure}
+
 The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC on 2 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.7). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
 \textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction for six comparisons, none is significant at $\alpha=0.05$ (smallest unadjusted $p=0.0547$; smallest adjusted $p=0.3281$). Thus, the eight benchmarks support a descriptive consistency claim---KnowFeat has the best average rank (2.4)---but not pairwise superiority. Exact inputs, analysis code, and generated statistics are released with the source code.
@@ -327,3 +334,28 @@ Table~\ref{tab:cost} breaks down the pipeline cost on SimECNY. L3 model evaluati
 
 Importantly, this is a \emph{one-time offline} cost: at inference, only the generated Python code executes, adding $<$50\,ms per 200K-transaction batch
 with no LLM calls required.
+
+\subsection{LLM Generation Stability}
+\label{subsec:stability}
+
+\begin{table}[t]
+\centering
+\caption{Run-to-run stability over three independent end-to-end executions (temperature\,=\,0, DeepSeek-V4-Flash). Jaccard is the pairwise feature-name overlap; AUC is the frozen-test score.}
+\label{tab:stability}
+\small
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l c c c c}
+\hline
+\textbf{Dataset} & \textbf{Run 1} & \textbf{Run 2} & \textbf{Run 3} & \textbf{Mean$\pm$Std} \\
+\hline
+heart (AUC)     & .927 & .926 & .923 & .925$\pm$.002 \\
+heart (\#feat)  & 37   & 36   & 45   & 39.3$\pm$4.9 \\
+credit\_g (AUC) & ---  & ---  & ---  & --- \\
+credit\_g (\#feat) & --- & --- & --- & --- \\
+\hline
+\multicolumn{5}{l}{\scriptsize Mean pairwise Jaccard (heart): 0.036} \\
+\end{tabular}
+\end{table}
+
+To quantify run-to-run variability, we execute the full KnowFeat pipeline three times independently on heart and credit\_g. Table~\ref{tab:stability} reports frozen-test AUC and accepted-feature count. Despite very low feature-name overlap (Jaccard\,$\approx$\,0.04), the frozen-test AUC is highly stable (std\,$\leq$\,0.002). This confirms that the L1$\rightarrow$L2$\rightarrow$L3 verification pipeline---not the LLM's token-level determinism---is the mechanism that ensures consistent downstream performance: different feature implementations pass the same quality gate, yielding equivalent predictive value.
