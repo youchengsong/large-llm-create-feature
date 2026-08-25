@@ -1,0 +1,94 @@
+{
+  "dataset": "phishing",
+  "source": "OpenML",
+  "domain": "钓鱼网站检测",
+  "task": "二分类（正常/钓鱼）",
+  "target": "Result",
+  "features": 30,
+  "size": 11055,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "having_IP_Address": {
+      "type": "numeric",
+      "description": "having_IP_Address"
+    },
+    "URL_Length": {
+      "type": "numeric",
+      "description": "URL_Length"
+    },
+    "Shortining_Service": {
+      "type": "numeric",
+      "description": "Shortining_Service"
+    },
+    "having_At_Symbol": {
+      "type": "numeric",
+      "description": "having_At_Symbol"
+    },
+    "double_slash_redirecting": {
+      "type": "numeric",
+      "description": "double_slash_redirecting"
+    },
+    "Prefix_Suffix": {
+      "type": "numeric",
+      "description": "Prefix_Suffix"
+    },
+    "having_Sub_Domain": {
+      "type": "numeric",
+      "description": "having_Sub_Domain"
+    },
+    "SSLfinal_State": {
+      "type": "numeric",
+      "description": "SSLfinal_State"
+    },
+    "Domain_registeration_length": {
+      "type": "numeric",
+      "description": "Domain_registeration_length"
+    },
+    "Favicon": {
+      "type": "numeric",
+      "description": "Favicon"
+    },
+    "port": {
+      "type": "numeric",
+      "description": "port"
+    },
+    "HTTPS_token": {
+      "type": "numeric",
+      "description": "HTTPS_token"
+    },
+    "Request_URL": {
+      "type": "numeric",
+      "description": "Request_URL"
+    },
+    "URL_of_Anchor": {
+      "type": "numeric",
+      "description": "URL_of_Anchor"
+    },
+    "Links_in_tags": {
+      "type": "numeric",
+      "description": "Links_in_tags"
+    },
+    "SFH": {
+      "type": "numeric",
+      "description": "SFH"
+    },
+    "Submitting_to_email": {
+      "type": "numeric",
+      "description": "Submitting_to_email"
+    },
+    "Abnormal_URL": {
+      "type": "numeric",
+      "description": "Abnormal_URL"
+    },
+    "Redirect": {
+      "type": "numeric",
+      "description": "Redirect"
+    },
+    "on_mouseover": {
+      "type": "numeric",
+      "description": "on_mouseover"
+    }
+  }
+}

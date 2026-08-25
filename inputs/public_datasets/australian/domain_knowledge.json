@@ -1,0 +1,70 @@
+{
+  "dataset": "australian",
+  "source": "OpenML",
+  "domain": "信贷审批",
+  "task": "二分类（信贷审批）",
+  "target": "A15",
+  "features": 14,
+  "size": 690,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "A1": {
+      "type": "numeric",
+      "description": "A1"
+    },
+    "A2": {
+      "type": "numeric",
+      "description": "A2"
+    },
+    "A3": {
+      "type": "numeric",
+      "description": "A3"
+    },
+    "A4": {
+      "type": "numeric",
+      "description": "A4"
+    },
+    "A5": {
+      "type": "numeric",
+      "description": "A5"
+    },
+    "A6": {
+      "type": "numeric",
+      "description": "A6"
+    },
+    "A7": {
+      "type": "numeric",
+      "description": "A7"
+    },
+    "A8": {
+      "type": "numeric",
+      "description": "A8"
+    },
+    "A9": {
+      "type": "numeric",
+      "description": "A9"
+    },
+    "A10": {
+      "type": "numeric",
+      "description": "A10"
+    },
+    "A11": {
+      "type": "numeric",
+      "description": "A11"
+    },
+    "A12": {
+      "type": "numeric",
+      "description": "A12"
+    },
+    "A13": {
+      "type": "numeric",
+      "description": "A13"
+    },
+    "A14": {
+      "type": "numeric",
+      "description": "A14"
+    }
+  }
+}

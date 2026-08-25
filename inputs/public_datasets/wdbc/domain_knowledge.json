@@ -1,0 +1,94 @@
+{
+  "dataset": "wdbc",
+  "source": "OpenML",
+  "domain": "乳腺癌诊断",
+  "task": "二分类（良性/恶性）",
+  "target": "Class",
+  "features": 30,
+  "size": 569,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "V1": {
+      "type": "numeric",
+      "description": "V1"
+    },
+    "V2": {
+      "type": "numeric",
+      "description": "V2"
+    },
+    "V3": {
+      "type": "numeric",
+      "description": "V3"
+    },
+    "V4": {
+      "type": "numeric",
+      "description": "V4"
+    },
+    "V5": {
+      "type": "numeric",
+      "description": "V5"
+    },
+    "V6": {
+      "type": "numeric",
+      "description": "V6"
+    },
+    "V7": {
+      "type": "numeric",
+      "description": "V7"
+    },
+    "V8": {
+      "type": "numeric",
+      "description": "V8"
+    },
+    "V9": {
+      "type": "numeric",
+      "description": "V9"
+    },
+    "V10": {
+      "type": "numeric",
+      "description": "V10"
+    },
+    "V11": {
+      "type": "numeric",
+      "description": "V11"
+    },
+    "V12": {
+      "type": "numeric",
+      "description": "V12"
+    },
+    "V13": {
+      "type": "numeric",
+      "description": "V13"
+    },
+    "V14": {
+      "type": "numeric",
+      "description": "V14"
+    },
+    "V15": {
+      "type": "numeric",
+      "description": "V15"
+    },
+    "V16": {
+      "type": "numeric",
+      "description": "V16"
+    },
+    "V17": {
+      "type": "numeric",
+      "description": "V17"
+    },
+    "V18": {
+      "type": "numeric",
+      "description": "V18"
+    },
+    "V19": {
+      "type": "numeric",
+      "description": "V19"
+    },
+    "V20": {
+      "type": "numeric",
+      "description": "V20"
+    }
+  }
+}

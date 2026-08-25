@@ -1,0 +1,86 @@
+{
+  "dataset": "climate_model",
+  "source": "OpenML",
+  "domain": "气候模型故障预测",
+  "task": "二分类（模拟成功/失败）",
+  "target": "outcome",
+  "features": 18,
+  "size": 540,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "vconst_corr": {
+      "type": "numeric",
+      "description": "vconst_corr"
+    },
+    "vconst_2": {
+      "type": "numeric",
+      "description": "vconst_2"
+    },
+    "vconst_3": {
+      "type": "numeric",
+      "description": "vconst_3"
+    },
+    "vconst_4": {
+      "type": "numeric",
+      "description": "vconst_4"
+    },
+    "vconst_5": {
+      "type": "numeric",
+      "description": "vconst_5"
+    },
+    "vconst_7": {
+      "type": "numeric",
+      "description": "vconst_7"
+    },
+    "ah_corr": {
+      "type": "numeric",
+      "description": "ah_corr"
+    },
+    "ah_bolus": {
+      "type": "numeric",
+      "description": "ah_bolus"
+    },
+    "slm_corr": {
+      "type": "numeric",
+      "description": "slm_corr"
+    },
+    "efficiency_factor": {
+      "type": "numeric",
+      "description": "efficiency_factor"
+    },
+    "tidal_mix_max": {
+      "type": "numeric",
+      "description": "tidal_mix_max"
+    },
+    "vertical_decay_scale": {
+      "type": "numeric",
+      "description": "vertical_decay_scale"
+    },
+    "convect_corr": {
+      "type": "numeric",
+      "description": "convect_corr"
+    },
+    "bckgrnd_vdc1": {
+      "type": "numeric",
+      "description": "bckgrnd_vdc1"
+    },
+    "bckgrnd_vdc_ban": {
+      "type": "numeric",
+      "description": "bckgrnd_vdc_ban"
+    },
+    "bckgrnd_vdc_eq": {
+      "type": "numeric",
+      "description": "bckgrnd_vdc_eq"
+    },
+    "bckgrnd_vdc_psim": {
+      "type": "numeric",
+      "description": "bckgrnd_vdc_psim"
+    },
+    "Prandtl": {
+      "type": "numeric",
+      "description": "Prandtl"
+    }
+  }
+}

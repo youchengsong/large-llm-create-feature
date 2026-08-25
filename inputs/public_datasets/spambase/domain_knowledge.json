@@ -1,0 +1,94 @@
+{
+  "dataset": "spambase",
+  "source": "OpenML",
+  "domain": "垃圾邮件检测",
+  "task": "二分类（垃圾邮件识别）",
+  "target": "class",
+  "features": 57,
+  "size": 4601,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "word_freq_make": {
+      "type": "numeric",
+      "description": "word_freq_make"
+    },
+    "word_freq_address": {
+      "type": "numeric",
+      "description": "word_freq_address"
+    },
+    "word_freq_all": {
+      "type": "numeric",
+      "description": "word_freq_all"
+    },
+    "word_freq_3d": {
+      "type": "numeric",
+      "description": "word_freq_3d"
+    },
+    "word_freq_our": {
+      "type": "numeric",
+      "description": "word_freq_our"
+    },
+    "word_freq_over": {
+      "type": "numeric",
+      "description": "word_freq_over"
+    },
+    "word_freq_remove": {
+      "type": "numeric",
+      "description": "word_freq_remove"
+    },
+    "word_freq_internet": {
+      "type": "numeric",
+      "description": "word_freq_internet"
+    },
+    "word_freq_order": {
+      "type": "numeric",
+      "description": "word_freq_order"
+    },
+    "word_freq_mail": {
+      "type": "numeric",
+      "description": "word_freq_mail"
+    },
+    "word_freq_receive": {
+      "type": "numeric",
+      "description": "word_freq_receive"
+    },
+    "word_freq_will": {
+      "type": "numeric",
+      "description": "word_freq_will"
+    },
+    "word_freq_people": {
+      "type": "numeric",
+      "description": "word_freq_people"
+    },
+    "word_freq_report": {
+      "type": "numeric",
+      "description": "word_freq_report"
+    },
+    "word_freq_addresses": {
+      "type": "numeric",
+      "description": "word_freq_addresses"
+    },
+    "word_freq_free": {
+      "type": "numeric",
+      "description": "word_freq_free"
+    },
+    "word_freq_business": {
+      "type": "numeric",
+      "description": "word_freq_business"
+    },
+    "word_freq_email": {
+      "type": "numeric",
+      "description": "word_freq_email"
+    },
+    "word_freq_you": {
+      "type": "numeric",
+      "description": "word_freq_you"
+    },
+    "word_freq_credit": {
+      "type": "numeric",
+      "description": "word_freq_credit"
+    }
+  }
+}

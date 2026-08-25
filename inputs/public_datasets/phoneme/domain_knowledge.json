@@ -1,0 +1,34 @@
+{
+  "dataset": "phoneme",
+  "source": "OpenML",
+  "domain": "语音识别",
+  "task": "二分类（元音/鼻音分类）",
+  "target": "Class",
+  "features": 5,
+  "size": 5404,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "V1": {
+      "type": "numeric",
+      "description": "V1"
+    },
+    "V2": {
+      "type": "numeric",
+      "description": "V2"
+    },
+    "V3": {
+      "type": "numeric",
+      "description": "V3"
+    },
+    "V4": {
+      "type": "numeric",
+      "description": "V4"
+    },
+    "V5": {
+      "type": "numeric",
+      "description": "V5"
+    }
+  }
+}
