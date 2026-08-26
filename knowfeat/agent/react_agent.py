@@ -163,7 +163,7 @@ class ReactAgent:
                 break
 
             assistant_msg = LLMClient.make_assistant_tool_calls_message(
-                resp.content, resp.tool_calls,
+                resp.content, resp.tool_calls, resp.reasoning_content,
             )
             messages.append(assistant_msg)
 

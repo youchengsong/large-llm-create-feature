@@ -53,6 +53,7 @@ class LLMResponse:
     tool_calls: list[ToolCall] = field(default_factory=list)
     finish_reason: str = ""
     raw: Any = None
+    reasoning_content: str | None = None
 
     @property
     def has_tool_calls(self) -> bool:
@@ -136,11 +137,14 @@ class LLMClient:
     def make_assistant_tool_calls_message(
         content: str | None,
         tool_calls: list[ToolCall],
+        reasoning_content: str | None = None,
     ) -> dict[str, Any]:
         """将 LLMResponse 中的 assistant 消息还原为 OpenAI 格式，用于多轮对话。"""
         msg: dict[str, Any] = {"role": "assistant"}
         if content:
             msg["content"] = content
+        if reasoning_content:
+            msg["reasoning_content"] = reasoning_content
         if tool_calls:
             msg["tool_calls"] = [
                 {
@@ -201,4 +205,5 @@ class LLMClient:
             tool_calls=tool_calls,
             finish_reason=choice.finish_reason or "",
             raw=response,
+            reasoning_content=getattr(message, "reasoning_content", None),
         )
