@@ -90,10 +90,10 @@ adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textb
 wine\_quality      & .896 & \underline{.899} & .863 & .895 & .895 & --- & \textbf{.899} \\
 default\_credit    & .764 & \underline{.767} & \textbf{.778} & .763 & .762 & --- & .768 \\
 churn              & .737 & .731 & .737 & .755 & .739 & --- & \textbf{.853} \\
-kc2                & .712 & --- & \textbf{.772} & --- & .706 & --- & \underline{.714} \\
+kc2                & .712 & .737 & \textbf{.772} & --- & .706 & --- & .714 \\
 jm1                & .720 & --- & --- & .725 & .720 & --- & \textbf{.732} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 3.5 & 3.7 & 3.4 & 4.0 & 4.1 & 4.8 & \textbf{2.2} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 3.6 & 3.5 & 3.4 & 4.0 & 4.2 & 4.8 & \textbf{2.2} \\
 \hline
 \multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.} \\
 \multicolumn{8}{l}{\scriptsize CAAFE/FeatLLM on new datasets use GPT-5.6-Luna; --- indicates the method failed or was not applicable.} \\
@@ -276,11 +276,11 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 \hline
 \textbf{Method} & \textbf{Avg.\ \#Feat} & \textbf{Avg.\ Rank} & \textbf{$\Delta$F1 (AML)} \\
 \hline
-FeatLLM   & 133.8 & 4.1 & $-$0.3\% \\
-OpenFE    & 41.6  & 3.7 & $-$0.2\% \\
+FeatLLM   & 133.8 & 4.2 & $-$0.3\% \\
+OpenFE    & 41.6  & 3.5 & $-$0.2\% \\
 KnowFeat  & 33.8  & \textbf{2.2} & 0.0\% \\
 CAAFE     & 14.4  & 4.0 & +0.1\% \\
-No-FE     & ---   & 3.5 & --- \\
+No-FE     & ---   & 3.6 & --- \\
 \hline
 \end{tabular}
 \end{table}
