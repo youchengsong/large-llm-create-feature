@@ -88,15 +88,15 @@ bank\_marketing    & .930 & \textbf{.933} & --- & .930 & .929 & .929 & \underlin
 breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & --- & \textbf{.992} \\
 adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textbf{.932} \\
 wine\_quality      & .896 & \underline{.899} & .863 & .895 & .895 & --- & \textbf{.899} \\
-default\_credit    & .764 & \underline{.767} & \textbf{.778} & --- & --- & --- & .768 \\
-churn              & .737 & .731 & --- & --- & --- & --- & \textbf{.853} \\
+default\_credit    & .764 & \underline{.767} & \textbf{.778} & .763 & --- & --- & .768 \\
+churn              & .737 & .731 & --- & .755 & --- & --- & \textbf{.853} \\
 kc2                & .712 & --- & \textbf{.772} & --- & --- & --- & \underline{.714} \\
-jm1                & .720 & --- & --- & --- & --- & --- & \textbf{.732} \\
+jm1                & .720 & --- & --- & .725 & --- & --- & \textbf{.732} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 3.2 & 3.4 & 3.3 & 4.4 & 4.1 & 4.8 & \textbf{2.2} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 3.3 & 3.5 & 3.3 & 4.0 & 4.1 & 4.8 & \textbf{2.2} \\
 \hline
 \multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.} \\
-\multicolumn{8}{l}{\scriptsize CAAFE and FeatLLM failed to generate valid features on the four newly added datasets (---).} \\
+\multicolumn{8}{l}{\scriptsize CAAFE and FeatLLM use GPT-5.6-Luna; FeatLLM did not produce valid features on these datasets (---).} \\
 \end{tabular}
 \end{table*}
 

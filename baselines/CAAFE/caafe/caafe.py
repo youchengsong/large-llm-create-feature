@@ -140,9 +140,12 @@ def generate_features(
             messages=messages,
             stop=["```end"],
             temperature=0.5,
-            max_tokens=500,
+            max_tokens=2000,
         )
-        code = completion.choices[0].message.content
+        msg = completion.choices[0].message
+        code = msg.content or ""
+        if not code.strip() and hasattr(msg, "reasoning_content") and msg.reasoning_content:
+            code = msg.reasoning_content
         code = code.replace("```python", "").replace("```", "").replace("<end>", "")
         return code
 

@@ -94,6 +94,8 @@ def query_gpt(text_list, api_key, max_tokens=30, temperature=0, max_try_num=10, 
                     top_p=1,
                 )
                 result = response.choices[0].message.content
+                if not result and hasattr(response.choices[0].message, "reasoning_content"):
+                    result = response.choices[0].message.reasoning_content
                 result_list.append(result)
                 break
             except openai.BadRequestError:
