@@ -146,9 +146,11 @@ def parse_rules(result_texts, label_list=[]):
             class_name = rule_raw.split(":")[0].strip(" .'").strip(' []"')
             rule_parsed = []
             for txt in rule_raw.strip().split("\n")[1:]:
-                if len(txt) < 2:
-                    break
-                rule_parsed.append(" ".join(txt.strip().split(" ")[1:]))
+                if len(txt.strip()) < 2:
+                    continue
+                cleaned = " ".join(txt.strip().split(" ")[1:]).replace("**", "").strip()
+                if cleaned:
+                    rule_parsed.append(cleaned)
                 rule_dict[class_name] = rule_parsed
         total_rules.append(rule_dict)
     return total_rules
