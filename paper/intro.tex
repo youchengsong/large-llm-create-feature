@@ -33,7 +33,7 @@ The source code\footnote{\url{https://github.com/youchengsong/large-llm-create-f
 We evaluate KnowFeat on twelve public tabular datasets, a synthetic AML benchmark (SimECNY, 200K transactions), and a real-world Bitcoin AML dataset (Elliptic, 46K labeled transactions). All experiments use a strict held-out evaluation protocol that eliminates the feature-selection leakage present in prior work. The results yield the following key findings:
 
 \begin{itemize}
-    \item On public datasets, KnowFeat achieves the best average rank (2.2) among seven methods under leakage-free evaluation, with a statistically significant one-sided Wilcoxon test ($p{=}0.040$). The largest gain is an 11.6-percentage-point AUC improvement on a telecom churn dataset.
+    \item On public datasets, KnowFeat achieves the best average rank (2.2) among seven methods under leakage-free evaluation, with a statistically significant one-sided Wilcoxon test ($p{=}0.017$). The largest gain is an 11.6-percentage-point AUC improvement on a telecom churn dataset.
     \item On both AML datasets, KnowFeat's verified features remain competitive with the strong baselines; on SimECNY, FeatLLM's 1{,}124-feature representation lowers F1, showing that generation volume alone does not guarantee improvement.
     \item Every accepted feature carries a structured provenance record linking its design to specific knowledge assets, enabling efficient compliance review in regulated domains.
 \end{itemize}
