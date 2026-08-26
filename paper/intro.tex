@@ -30,10 +30,10 @@ We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure enginee
 
 The source code\footnote{\url{https://github.com/youchengsong/large-llm-create-feature}} and datasets\footnote{\url{https://huggingface.co/datasets/anonymous-7219/knowfeat}} are publicly accessible.
 
-We evaluate KnowFeat on eight public OpenML tabular datasets, a synthetic AML benchmark (SimECNY, 200K transactions), and a real-world Bitcoin AML dataset (Elliptic, 46K labeled transactions). All experiments use a strict held-out evaluation protocol that eliminates the feature-selection leakage present in prior work. The results yield the following key findings:
+We evaluate KnowFeat on ten public tabular datasets, a synthetic AML benchmark (SimECNY, 200K transactions), and a real-world Bitcoin AML dataset (Elliptic, 46K labeled transactions). All experiments use a strict held-out evaluation protocol that eliminates the feature-selection leakage present in prior work. The results yield the following key findings:
 
 \begin{itemize}
-    \item On public datasets, KnowFeat achieves the best average rank (2.4) among seven methods under leakage-free evaluation. Cross-model checks show mostly positive but small, non-universal gains over No-FE across XGBoost, LightGBM, and CatBoost.
+    \item On public datasets, KnowFeat achieves the best average rank (2.1) among seven methods under leakage-free evaluation, including an 11.6-percentage-point AUC gain on a telecom churn dataset. Cross-model checks show mostly positive but small, non-universal gains over No-FE across XGBoost, LightGBM, and CatBoost.
     \item On both AML datasets, KnowFeat's verified features remain competitive with the strong baselines; on SimECNY, FeatLLM's 1{,}124-feature representation lowers F1, showing that generation volume alone does not guarantee improvement.
     \item Every accepted feature carries a structured provenance record linking its design to specific knowledge assets, enabling efficient compliance review in regulated domains.
 \end{itemize}

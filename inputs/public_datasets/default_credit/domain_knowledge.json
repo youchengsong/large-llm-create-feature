@@ -1,0 +1,94 @@
+{
+  "dataset": "default_credit",
+  "source": "OpenML",
+  "domain": "信用卡违约预测",
+  "task": "二分类（是否违约）",
+  "target": "target",
+  "features": 20,
+  "size": 0,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "x1": {
+      "type": "numeric",
+      "description": "x1"
+    },
+    "x5": {
+      "type": "numeric",
+      "description": "x5"
+    },
+    "x6": {
+      "type": "numeric",
+      "description": "x6"
+    },
+    "x7": {
+      "type": "numeric",
+      "description": "x7"
+    },
+    "x8": {
+      "type": "numeric",
+      "description": "x8"
+    },
+    "x9": {
+      "type": "numeric",
+      "description": "x9"
+    },
+    "x10": {
+      "type": "numeric",
+      "description": "x10"
+    },
+    "x11": {
+      "type": "numeric",
+      "description": "x11"
+    },
+    "x12": {
+      "type": "numeric",
+      "description": "x12"
+    },
+    "x13": {
+      "type": "numeric",
+      "description": "x13"
+    },
+    "x14": {
+      "type": "numeric",
+      "description": "x14"
+    },
+    "x15": {
+      "type": "numeric",
+      "description": "x15"
+    },
+    "x16": {
+      "type": "numeric",
+      "description": "x16"
+    },
+    "x17": {
+      "type": "numeric",
+      "description": "x17"
+    },
+    "x18": {
+      "type": "numeric",
+      "description": "x18"
+    },
+    "x19": {
+      "type": "numeric",
+      "description": "x19"
+    },
+    "x20": {
+      "type": "numeric",
+      "description": "x20"
+    },
+    "x21": {
+      "type": "numeric",
+      "description": "x21"
+    },
+    "x22": {
+      "type": "numeric",
+      "description": "x22"
+    },
+    "x23": {
+      "type": "numeric",
+      "description": "x23"
+    }
+  }
+}

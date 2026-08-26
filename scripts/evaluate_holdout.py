@@ -84,6 +84,8 @@ DATASET_CONFIG = {
                       "metrics": ["auc", "accuracy"]},
     "phishing": {"csv": "data/public/phishing.csv", "target": "Result",
                  "metrics": ["auc", "accuracy"]},
+    "default_credit": {"csv": "data/public/default_credit.csv", "target": "target", "metrics": ["auc", "accuracy"]},
+    "churn": {"csv": "data/public/churn.csv", "target": "target", "metrics": ["auc", "accuracy"]},
     "simecny": {"csv": None, "target": "is_risk",
                 "metrics": ["recall", "precision", "f1", "auc"]},
     "elliptic": {"csv": "data/elliptic/elliptic_labeled.csv", "target": "label",

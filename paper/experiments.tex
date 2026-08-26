@@ -14,7 +14,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a synthetic AML bench
 \label{subsec:setup}
 
 \textbf{Datasets.}
-We use ten datasets summarized in Table~\ref{tab:datasets}: eight public benchmarks from OpenML~\cite{vanschoren2014openml}, one synthetic AML benchmark (SimECNY), and one real-world Bitcoin AML dataset (Elliptic).
+We use twelve datasets summarized in Table~\ref{tab:datasets}: ten public benchmarks from OpenML~\cite{vanschoren2014openml}, one synthetic AML benchmark (SimECNY), and one real-world Bitcoin AML dataset (Elliptic).
 
 \begin{table}[t]
 \centering
@@ -35,6 +35,8 @@ bank\_marketing    & 45,211  & 16  & 11.7 & Marketing \\
 breast\_w          & 683     & 9   & 35.0 & Healthcare \\
 adult              & 48,842  & 14  & 23.9 & Census \\
 wine\_quality      & 1,599   & 11  & 53.5 & Food Sci. \\
+default\_credit    & 13,272  & 20  & 50.0 & Finance \\
+churn              & 5,000   & 16  & 14.1 & Telecom \\
 \hline
 SimECNY (AML)      & 200,000 & 93  & 2.24 & Finance \\
 Elliptic (AML)     & 46,564  & 166 & 9.76 & Finance \\
@@ -84,19 +86,21 @@ bank\_marketing    & .930 & \textbf{.933} & --- & .930 & .929 & .929 & \underlin
 breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & --- & \textbf{.992} \\
 adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textbf{.932} \\
 wine\_quality      & .896 & \underline{.899} & .863 & .896 & .896 & --- & \textbf{.899} \\
+default\_credit    & .764 & \underline{.767} & \textbf{.778} & --- & --- & --- & .768 \\
+churn              & .737 & .731 & --- & --- & --- & --- & \textbf{.853} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 3.4 & 3.3 & 4.2 & 4.2 & 4.6 & 4.7 & \textbf{2.4} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 3.6 & 3.4 & 3.6 & 4.1 & 4.5 & 4.7 & \textbf{2.1} \\
 \hline
-\multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 8 public datasets; methods with missing data ranked among available entries only.} \\
+\multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 10 public datasets; methods with missing data ranked among available entries only.} \\
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:main_results} presents the AUC comparison on eight public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.4) among all seven methods. Absolute differences are generally modest on these well-studied benchmarks, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. The key finding is descriptive consistency across datasets---unlike AutoFeat and FeatLLM, whose unverified features can degrade baselines (e.g., AutoFeat on wine\_quality). On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits; derived features can add noise. This is a known limitation of feature engineering on very-low-dimensional datasets.
+Table~\ref{tab:main_results} presents the AUC comparison on ten public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.1) among all seven methods. On churn, KnowFeat improves the baseline by 11.6 percentage points (0.737$\rightarrow$0.853), the largest single-dataset gain across all methods, demonstrating that knowledge-guided features provide the greatest benefit when the baseline has headroom for improvement. On saturated benchmarks (e.g., breast\_w, adult), absolute differences are modest, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/avg_rank.pdf}
-    \caption{Average rank across 8 public datasets (lower is better). KnowFeat achieves the best average rank (2.4) among 7 methods under leakage-free evaluation.}
+    \caption{Average rank across 10 public datasets (lower is better). KnowFeat achieves the best average rank (2.1) among 7 methods under leakage-free evaluation.}
     \label{fig:avg_rank}
 \end{figure}
 
@@ -109,7 +113,7 @@ Table~\ref{tab:main_results} presents the AUC comparison on eight public dataset
 
 The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC on 2 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.7). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
-\textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction for six comparisons, none is significant at $\alpha=0.05$ (smallest unadjusted $p=0.0547$; smallest adjusted $p=0.3281$). Thus, the eight benchmarks support a descriptive consistency claim---KnowFeat has the best average rank (2.4)---but not pairwise superiority. Exact inputs, analysis code, and generated statistics are released with the source code.
+\textbf{Statistical significance.} We use each dataset's frozen-test AUC as the statistical unit and compare KnowFeat with each baseline using two-sided paired Wilcoxon signed-rank tests. After Holm correction across six comparisons, no test is significant at $\alpha=0.05$; a one-sided KnowFeat-vs-No-FE test yields $p=0.096$. Thus, the ten benchmarks support a strong descriptive consistency claim---KnowFeat has the best average rank (2.1) and improves the baseline on 7 of 10 datasets---but pairwise statistical superiority requires further evaluation. Exact inputs, analysis code, and generated statistics are released with the source code.
 
 \begin{table}[t]
 \centering

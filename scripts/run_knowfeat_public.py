@@ -85,6 +85,22 @@ DATASET_REGISTRY = {
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "elliptic" / "domain_knowledge.json",
         "dimensions": ["Transaction Amount", "Network Topology", "Temporal Pattern", "Aggregated Features"],
     },
+    "default_credit": {
+        "csv": PROJECT_ROOT / "data" / "public" / "default_credit.csv",
+        "target": "target",
+        "domain": "信用卡违约预测",
+        "task": "二分类（是否违约）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "default_credit" / "domain_knowledge.json",
+        "dimensions": ["还款记录", "消费行为", "客户属性"],
+    },
+    "churn": {
+        "csv": PROJECT_ROOT / "data" / "public" / "churn.csv",
+        "target": "target",
+        "domain": "电信客户流失预测",
+        "task": "二分类（是否流失）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "churn" / "domain_knowledge.json",
+        "dimensions": ["使用行为", "账户信息", "客户服务"],
+    },
     "wine_quality": {
         "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
         "target": "class",

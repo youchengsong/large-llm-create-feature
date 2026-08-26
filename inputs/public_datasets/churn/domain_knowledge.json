@@ -1,0 +1,78 @@
+{
+  "dataset": "churn",
+  "source": "OpenML",
+  "domain": "电信客户流失预测",
+  "task": "二分类（是否流失）",
+  "target": "target",
+  "features": 16,
+  "size": 0,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "state": {
+      "type": "numeric",
+      "description": "state"
+    },
+    "account_length": {
+      "type": "numeric",
+      "description": "account_length"
+    },
+    "phone_number": {
+      "type": "numeric",
+      "description": "phone_number"
+    },
+    "number_vmail_messages": {
+      "type": "numeric",
+      "description": "number_vmail_messages"
+    },
+    "total_day_minutes": {
+      "type": "numeric",
+      "description": "total_day_minutes"
+    },
+    "total_day_calls": {
+      "type": "numeric",
+      "description": "total_day_calls"
+    },
+    "total_day_charge": {
+      "type": "numeric",
+      "description": "total_day_charge"
+    },
+    "total_eve_minutes": {
+      "type": "numeric",
+      "description": "total_eve_minutes"
+    },
+    "total_eve_calls": {
+      "type": "numeric",
+      "description": "total_eve_calls"
+    },
+    "total_eve_charge": {
+      "type": "numeric",
+      "description": "total_eve_charge"
+    },
+    "total_night_minutes": {
+      "type": "numeric",
+      "description": "total_night_minutes"
+    },
+    "total_night_calls": {
+      "type": "numeric",
+      "description": "total_night_calls"
+    },
+    "total_night_charge": {
+      "type": "numeric",
+      "description": "total_night_charge"
+    },
+    "total_intl_minutes": {
+      "type": "numeric",
+      "description": "total_intl_minutes"
+    },
+    "total_intl_calls": {
+      "type": "numeric",
+      "description": "total_intl_calls"
+    },
+    "total_intl_charge": {
+      "type": "numeric",
+      "description": "total_intl_charge"
+    }
+  }
+}
