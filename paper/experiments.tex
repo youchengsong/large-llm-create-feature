@@ -87,7 +87,7 @@ heart              & .928 & .923 & \textbf{.931} & \underline{.928} & .927 & .92
 bank\_marketing    & .930 & \textbf{.933} & --- & .930 & .929 & .929 & \underline{.931} \\
 breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & --- & \textbf{.992} \\
 adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textbf{.932} \\
-wine\_quality      & .896 & \underline{.899} & .863 & .896 & .896 & --- & \textbf{.899} \\
+wine\_quality      & .896 & \underline{.899} & .863 & .895 & .895 & --- & \textbf{.899} \\
 default\_credit    & .764 & \underline{.767} & \textbf{.778} & --- & --- & --- & .768 \\
 churn              & .737 & .731 & --- & --- & --- & --- & \textbf{.853} \\
 kc2                & .712 & --- & \textbf{.772} & --- & --- & --- & \underline{.714} \\
@@ -248,7 +248,7 @@ On heart, the full knowledge variant achieves AUC 0.928 vs.\ schema-only 0.920 (
 \textbf{Dataset} & \textbf{schema-only} & \textbf{full knowledge} & $\boldsymbol{\Delta}$ \\
 \hline
 heart (AUC)         & .920 & \textbf{.928} & +0.8\% \\
-blood\_trans. (AUC) & .743 & \textbf{.754} & +1.1\% \\
+blood\_trans. (AUC) & .743 & \textbf{.745} & +0.3\% \\
 SimECNY (F1)        & \textbf{.973} & .971 & $-$0.2\% \\
 \hline
 \end{tabular}
@@ -274,7 +274,7 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 \hline
 FeatLLM   & 133.8 & 4.6 & $-$0.3\% \\
 OpenFE    & 41.6  & 3.3 & $-$0.2\% \\
-KnowFeat  & 33.8  & \textbf{2.4} & 0.0\% \\
+KnowFeat  & 33.8  & \textbf{2.0} & 0.0\% \\
 CAAFE     & 14.4  & 4.2 & +0.1\% \\
 No-FE     & ---   & 3.4 & --- \\
 \hline
