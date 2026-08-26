@@ -93,18 +93,18 @@ churn              & .737 & .731 & --- & --- & --- & --- & \textbf{.853} \\
 kc2                & .712 & --- & \textbf{.772} & --- & --- & --- & \underline{.714} \\
 jm1                & .720 & --- & --- & --- & --- & --- & \textbf{.732} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 2.8 & 3.3 & 3.3 & 4.3 & 4.5 & 4.8 & \textbf{2.4} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 3.2 & 3.4 & 3.3 & 4.4 & 4.1 & 4.8 & \textbf{2.2} \\
 \hline
 \multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.} \\
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:main_results} presents the AUC comparison on twelve public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.4) among all seven methods. A one-sided paired Wilcoxon signed-rank test (KnowFeat$>$No-FE, 12 datasets) yields $p=0.040$, significant at $\alpha=0.05$. On churn, KnowFeat improves the baseline by 11.6 percentage points (0.737$\rightarrow$0.853), the largest single-dataset gain across all methods, and jm1 shows a 1.3-point gain (0.720$\rightarrow$0.732), demonstrating that knowledge-guided features provide the greatest benefit when the baseline has headroom for improvement. On saturated benchmarks (e.g., breast\_w, adult), absolute differences are modest, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits.
+Table~\ref{tab:main_results} presents the AUC comparison on twelve public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.2) among all seven methods. A one-sided paired Wilcoxon signed-rank test (KnowFeat$>$No-FE, 12 datasets) yields $p=0.040$, significant at $\alpha=0.05$. On churn, KnowFeat improves the baseline by 11.6 percentage points (0.737$\rightarrow$0.853), the largest single-dataset gain across all methods, and jm1 shows a 1.3-point gain (0.720$\rightarrow$0.732), demonstrating that knowledge-guided features provide the greatest benefit when the baseline has headroom for improvement. On saturated benchmarks (e.g., breast\_w, adult), absolute differences are modest, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/avg_rank.pdf}
-    \caption{Average rank across 12 public datasets (lower is better). KnowFeat achieves the best average rank (2.4) among 7 methods under leakage-free evaluation.}
+    \caption{Average rank across 12 public datasets (lower is better). KnowFeat achieves the best average rank (2.2) among 7 methods under leakage-free evaluation.}
     \label{fig:avg_rank}
 \end{figure}
 
@@ -272,11 +272,11 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 \hline
 \textbf{Method} & \textbf{Avg.\ \#Feat} & \textbf{Avg.\ Rank} & \textbf{$\Delta$F1 (AML)} \\
 \hline
-FeatLLM   & 133.8 & 4.5 & $-$0.3\% \\
-OpenFE    & 41.6  & 3.3 & $-$0.2\% \\
-KnowFeat  & 33.8  & \textbf{2.4} & 0.0\% \\
-CAAFE     & 14.4  & 4.3 & +0.1\% \\
-No-FE     & ---   & 2.8 & --- \\
+FeatLLM   & 133.8 & 4.1 & $-$0.3\% \\
+OpenFE    & 41.6  & 3.4 & $-$0.2\% \\
+KnowFeat  & 33.8  & \textbf{2.2} & 0.0\% \\
+CAAFE     & 14.4  & 4.4 & +0.1\% \\
+No-FE     & ---   & 3.2 & --- \\
 \hline
 \end{tabular}
 \end{table}
