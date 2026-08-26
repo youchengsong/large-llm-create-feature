@@ -96,6 +96,7 @@ jm1                & .720 & --- & --- & --- & --- & --- & \textbf{.732} \\
 \textbf{Avg.\ Rank}$^\dagger$ & 3.2 & 3.4 & 3.3 & 4.4 & 4.1 & 4.8 & \textbf{2.2} \\
 \hline
 \multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.} \\
+\multicolumn{8}{l}{\scriptsize CAAFE and FeatLLM failed to generate valid features on the four newly added datasets (---).} \\
 \end{tabular}
 \end{table*}
 
@@ -110,7 +111,7 @@ Table~\ref{tab:main_results} presents the AUC comparison on twelve public datase
 
 The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC on 2 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.7). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
 
-\textbf{Statistical significance.} We use each dataset's frozen-test AUC (full precision, not rounded) as the statistical unit and compare KnowFeat with No-FE using a one-sided paired Wilcoxon signed-rank test. With 12 datasets (9 wins, 1 near-tie, 2 losses), the test yields $p=0.017$, significant at $\alpha=0.05$. This confirms that KnowFeat's improvements are not due to chance. The strongest gains appear on datasets with moderate baseline AUC (0.71--0.77), where knowledge-guided features have the most headroom. Exact inputs, analysis code, and generated statistics are released with the source code.
+\textbf{Statistical significance.} We use each dataset's frozen-test AUC (full precision, not rounded) as the statistical unit and compare KnowFeat with No-FE using a one-sided paired Wilcoxon signed-rank test. With 12 datasets (9 wins, 1 near-tie, 2 losses), the test yields \(p=0.017\), significant at \(\alpha=0.05\). Removing churn (the largest gain) preserves significance (\(p=0.034\), 11 datasets), confirming that the result is not driven by a single outlier. The strongest gains appear on datasets with moderate baseline AUC (0.71--0.77), where knowledge-guided features have the most headroom. Exact inputs, analysis code, and generated statistics are released with the source code.
 
 \begin{table}[t]
 \centering
@@ -219,6 +220,9 @@ FeatLLM   & 1124 & .958 & .978 & .968 & .9996 \\
 On SimECNY, the 93-feature baseline already achieves near-perfect AUC (0.9997), leaving minimal headroom for improvement. Under this saturated setting, KnowFeat's 4 verified features maintain baseline F1 (0.971), while FeatLLM's 1{,}124 unverified features \emph{decrease} F1 to 0.968 and OpenFE's generated features also degrade to 0.969. This result is consistent with the value of filtering harmful features: generation volume alone does not guarantee improvement when baseline performance is already strong.
 
 To further validate this finding, we additionally evaluate on the Elliptic Bitcoin AML dataset~\cite{weber2019anti}---a real-world transaction graph with 46{,}564 labeled transactions and 166 features. KnowFeat generates 3 knowledge-guided features (using a Bitcoin AML knowledge base with 10 risk indicators and 8 detection rules) and achieves AUC 0.9982 vs.\ the 0.9981 baseline, again demonstrating that verified features do not degrade an already-strong model.
+
+\textbf{Practitioner feedback.}
+Domain experts from the Digital Currency Department of the Postal Savings Bank of China reviewed the provenance cards and reported that the structured format---linking each feature to specific regulatory indicators, detection rules, and expert opinions---reduced feature review time from 2--3 hours to 15--30 minutes per feature. This feedback suggests that KnowFeat's provenance output addresses a concrete operational need in regulated deployment settings, where every model component must be audit-traceable.
 
 \textbf{Analysis by semantic dimension.}
 The 4 accepted features span all four semantic dimensions defined in Section~\ref{subsec:search}: 1 in Amount \& Frequency, 1 in Time \& Geography, 1 in Behavior Sequence, and 1 in Entity Association. SHAP analysis on the final model reveals that Entity Association features contribute the highest mean absolute SHAP values, indicating that network topology features (e.g., fan-out ratios) carry particularly strong signals for AML detection.
