@@ -1,0 +1,94 @@
+{
+  "dataset": "jm1",
+  "source": "OpenML",
+  "domain": "软件缺陷预测",
+  "task": "二分类（代码模块是否有缺陷）",
+  "target": "target",
+  "features": 21,
+  "size": 10880,
+  "indicators": [],
+  "rules": [],
+  "expert_consensus": [],
+  "field_reference": {
+    "loc": {
+      "type": "numeric",
+      "description": "loc"
+    },
+    "v(g)": {
+      "type": "numeric",
+      "description": "v(g)"
+    },
+    "ev(g)": {
+      "type": "numeric",
+      "description": "ev(g)"
+    },
+    "iv(g)": {
+      "type": "numeric",
+      "description": "iv(g)"
+    },
+    "n": {
+      "type": "numeric",
+      "description": "n"
+    },
+    "v": {
+      "type": "numeric",
+      "description": "v"
+    },
+    "l": {
+      "type": "numeric",
+      "description": "l"
+    },
+    "d": {
+      "type": "numeric",
+      "description": "d"
+    },
+    "i": {
+      "type": "numeric",
+      "description": "i"
+    },
+    "e": {
+      "type": "numeric",
+      "description": "e"
+    },
+    "b": {
+      "type": "numeric",
+      "description": "b"
+    },
+    "t": {
+      "type": "numeric",
+      "description": "t"
+    },
+    "lOCode": {
+      "type": "numeric",
+      "description": "lOCode"
+    },
+    "lOComment": {
+      "type": "numeric",
+      "description": "lOComment"
+    },
+    "lOBlank": {
+      "type": "numeric",
+      "description": "lOBlank"
+    },
+    "locCodeAndComment": {
+      "type": "numeric",
+      "description": "locCodeAndComment"
+    },
+    "uniq_Op": {
+      "type": "numeric",
+      "description": "uniq_Op"
+    },
+    "uniq_Opnd": {
+      "type": "numeric",
+      "description": "uniq_Opnd"
+    },
+    "total_Op": {
+      "type": "numeric",
+      "description": "total_Op"
+    },
+    "total_Opnd": {
+      "type": "numeric",
+      "description": "total_Opnd"
+    }
+  }
+}
