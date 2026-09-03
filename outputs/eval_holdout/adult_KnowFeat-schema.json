@@ -1,0 +1,41 @@
+{
+  "dataset": "adult",
+  "method": "KnowFeat-schema",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 39073,
+  "n_test": 9769,
+  "n_features": 32,
+  "test_positive_rate": 0.23932848807452145,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.9310998166306523,
+      "test_seed_std": 0.0004420877992427801,
+      "bootstrap_mean": 0.932019640125064,
+      "bootstrap_std": 0.0025586126290473164,
+      "bootstrap_ci95": [
+        0.9270359232233828,
+        0.9370125447968634
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.841621455624936,
+      "test_seed_std": 0.000558426929961558,
+      "bootstrap_mean": 0.8428524925785648,
+      "bootstrap_std": 0.0038460279959570353,
+      "bootstrap_ci95": [
+        0.8350880335755962,
+        0.8502431159791176
+      ]
+    }
+  }
+}

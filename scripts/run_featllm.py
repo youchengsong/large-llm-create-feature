@@ -242,7 +242,7 @@ def main():
         print("Querying LLM for rules...")
         results = featllm_utils.query_gpt(
             templates, api_key,
-            max_tokens=1500, temperature=0.5, model=args.model,
+            max_tokens=4000, temperature=0.5, model=args.model,
         )
         if results == [-1]:
             print("LLM query failed.")
@@ -272,7 +272,7 @@ def main():
             )
             fct_results = featllm_utils.query_gpt(
                 fct_templates, api_key,
-                max_tokens=1500, temperature=0, model=args.model,
+                max_tokens=4000, temperature=0, model=args.model,
             )
             fct_strs = []
             for fct_txt in fct_results:

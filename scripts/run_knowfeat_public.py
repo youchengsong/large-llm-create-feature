@@ -85,13 +85,21 @@ DATASET_REGISTRY = {
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "elliptic" / "domain_knowledge.json",
         "dimensions": ["Transaction Amount", "Network Topology", "Temporal Pattern", "Aggregated Features"],
     },
+    "wine_quality": {
+        "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
+        "target": "class",
+        "domain": "红葡萄酒品质评估",
+        "task": "二分类（品质>=6为好酒）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "wine_quality" / "domain_knowledge.json",
+        "dimensions": ["酸度平衡", "氧化保护", "酒体结构", "矿质感"],
+    },
     "default_credit": {
         "csv": PROJECT_ROOT / "data" / "public" / "default_credit.csv",
         "target": "target",
         "domain": "信用卡违约预测",
         "task": "二分类（是否违约）",
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "default_credit" / "domain_knowledge.json",
-        "dimensions": ["还款记录", "消费行为", "客户属性"],
+        "dimensions": ["信用额度", "还款行为", "账单金额", "还款金额"],
     },
     "churn": {
         "csv": PROJECT_ROOT / "data" / "public" / "churn.csv",
@@ -101,61 +109,21 @@ DATASET_REGISTRY = {
         "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "churn" / "domain_knowledge.json",
         "dimensions": ["使用行为", "账户信息", "客户服务"],
     },
-    "wine_quality": {
-        "csv": PROJECT_ROOT / "data" / "public" / "wine_quality.csv",
-        "target": "class",
-        "domain": "红葡萄酒品质评估",
-        "task": "二分类（品质>=6为好酒）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "wine_quality" / "domain_knowledge.json",
-        "dimensions": ["酸度平衡", "氧化保护", "酒体结构", "矿质感"],
+    "kc2": {
+        "csv": PROJECT_ROOT / "data" / "public" / "kc2.csv",
+        "target": "target",
+        "domain": "软件缺陷预测",
+        "task": "二分类（代码模块是否有缺陷）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "kc2" / "domain_knowledge.json",
+        "dimensions": ["代码规模", "复杂度", "Halstead度量", "文档质量"],
     },
-    "spambase": {
-        "csv": PROJECT_ROOT / "data" / "public" / "spambase.csv",
-        "target": "class",
-        "domain": "垃圾邮件检测",
-        "task": "二分类（垃圾邮件识别）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "spambase" / "domain_knowledge.json",
-        "dimensions": ["词频特征", "字符特征", "格式特征"],
-    },
-    "australian": {
-        "csv": PROJECT_ROOT / "data" / "public" / "australian.csv",
-        "target": "A15",
-        "domain": "信贷审批",
-        "task": "二分类（信贷审批）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "australian" / "domain_knowledge.json",
-        "dimensions": ["个人信息", "财务状况", "信贷记录"],
-    },
-    "phoneme": {
-        "csv": PROJECT_ROOT / "data" / "public" / "phoneme.csv",
-        "target": "Class",
-        "domain": "语音识别",
-        "task": "二分类（元音/鼻音分类）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "phoneme" / "domain_knowledge.json",
-        "dimensions": ["频谱特征", "时域特征"],
-    },
-    "wdbc": {
-        "csv": PROJECT_ROOT / "data" / "public" / "wdbc.csv",
-        "target": "Class",
-        "domain": "乳腺癌诊断",
-        "task": "二分类（良性/恶性）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "wdbc" / "domain_knowledge.json",
-        "dimensions": ["均值特征", "标准差特征", "最大值特征"],
-    },
-    "climate_model": {
-        "csv": PROJECT_ROOT / "data" / "public" / "climate_model.csv",
-        "target": "outcome",
-        "domain": "气候模型故障预测",
-        "task": "二分类（模拟成功/失败）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "climate_model" / "domain_knowledge.json",
-        "dimensions": ["对流参数", "混合参数", "效率参数"],
-    },
-    "phishing": {
-        "csv": PROJECT_ROOT / "data" / "public" / "phishing.csv",
-        "target": "Result",
-        "domain": "钓鱼网站检测",
-        "task": "二分类（正常/钓鱼）",
-        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "phishing" / "domain_knowledge.json",
-        "dimensions": ["URL特征", "域名特征", "页面特征", "安全特征"],
+    "jm1": {
+        "csv": PROJECT_ROOT / "data" / "public" / "jm1.csv",
+        "target": "target",
+        "domain": "软件缺陷预测",
+        "task": "二分类（代码模块是否有缺陷）",
+        "knowledge": PROJECT_ROOT / "inputs" / "public_datasets" / "jm1" / "domain_knowledge.json",
+        "dimensions": ["代码规模", "复杂度", "Halstead度量", "文档质量"],
     },
 }
 
@@ -191,11 +159,6 @@ def main():
     parser.add_argument("--max-features", type=int, default=9999)
     parser.add_argument("--max-rounds", type=int, default=8)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--temperature", type=float, default=None)
-    parser.add_argument(
-        "--result-dir", type=Path, default=None,
-        help="Exact output directory for this run (keeps repeated runs isolated)",
-    )
     parser.add_argument(
         "--enable-posthoc-selection", action="store_true",
         help="Run the optional second model-selection pass after forward selection",
@@ -208,8 +171,6 @@ def main():
     cfg.search.max_rounds = args.max_rounds
     cfg.search.enable_posthoc_selection = args.enable_posthoc_selection
     cfg.seed = args.seed
-    if args.temperature is not None:
-        cfg.llm.temperature = args.temperature
 
     logger.info("=== KnowFeat on %s ===", args.dataset)
     logger.info("Config: stage=%s, dataset=%s, target=%s, max_features=%d",
@@ -248,8 +209,7 @@ def main():
     from knowfeat.main import run_stage, save_results
     result = run_stage(cfg, data, dk, knowledge_filter=args.knowledge_filter)
     suffix = f"_{args.knowledge_filter}" if args.knowledge_filter else ""
-    result_dir = args.result_dir or cfg.paths.output_dir / (args.dataset + suffix)
-    save_results(result, result_dir)
+    save_results(result, cfg.paths.output_dir / (args.dataset + suffix))
 
     print(
         f"\n完成: {result.total_accepted} 特征, "

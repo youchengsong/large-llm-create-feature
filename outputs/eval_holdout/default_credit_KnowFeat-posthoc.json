@@ -1,0 +1,41 @@
+{
+  "dataset": "default_credit",
+  "method": "KnowFeat-posthoc",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 10617,
+  "n_test": 2655,
+  "n_features": 49,
+  "test_positive_rate": 0.49981167608286253,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7672797255336341,
+      "test_seed_std": 0.001999423272863279,
+      "bootstrap_mean": 0.7724111024618546,
+      "bootstrap_std": 0.00909368129455716,
+      "bootstrap_ci95": [
+        0.7532985423450274,
+        0.7899336126993377
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.7026741996233522,
+      "test_seed_std": 0.004504682904022922,
+      "bootstrap_mean": 0.704231638418079,
+      "bootstrap_std": 0.008740313854655875,
+      "bootstrap_ci95": [
+        0.6869962335216572,
+        0.7216572504708098
+      ]
+    }
+  }
+}

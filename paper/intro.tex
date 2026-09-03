@@ -2,38 +2,38 @@
 \section{Introduction}
 \label{sec:intro}
 
-Feature engineering is among the most impactful steps in building machine learning models for tabular data~\cite{domingos2012few}. Well-designed features improve model accuracy, reduce overfitting, and provide interpretable signals for downstream tasks. Yet manual feature engineering requires deep domain expertise and does not scale across diverse applications.
+Feature engineering is among the most impactful steps in building machine learning models for tabular data~\cite{domingos2012few}. Good features improve accuracy and make models easier to interpret---but designing them by hand requires domain expertise that is scarce and does not transfer between applications.
 
-Traditional automated feature engineering (AutoFE) methods such as OpenFE~\cite{zhang2023openfe} and AutoFeat~\cite{horn2019autofeat} apply systematic transformations (mathematical operations, aggregations, and feature crosses) to existing columns, then select the most predictive ones. These methods are purely data-driven: they explore a predefined transformation space without understanding what the features \emph{mean} or why certain transformations might be useful. In practice, understanding the \emph{semantic} meaning of features is crucial in regulated domains such as finance and healthcare, where stakeholders must know \emph{what} a feature represents before deploying it.
+Traditional automated feature engineering (AutoFE) methods such as OpenFE~\cite{zhang2023openfe} and AutoFeat~\cite{horn2019autofeat} apply systematic transformations (mathematical operations, aggregations, and feature crosses) to existing columns, then select the most predictive ones. These methods are purely data-driven: they explore a predefined transformation space without understanding what the features \emph{mean}. In regulated domains such as finance and healthcare, stakeholders must know \emph{what} a feature represents before deploying it---semantic meaning is not optional.
 
-The emergence of large language models (LLMs) has opened a new paradigm for feature engineering. Methods such as CAAFE~\cite{hollmann2023caafe}, FeatLLM~\cite{han2024featllm}, and LLM-FE~\cite{abhyankar2025llmfe} use LLMs to generate feature transformation code from dataset descriptions, leveraging the LLM's broad world knowledge to propose semantically meaningful features. These methods demonstrate promising gains on general benchmarks. However, they fall short in domain-specific, regulated settings where specialized knowledge, rigorous verification, and decision-level explainability are required. Specifically, current LLM-based methods share three limitations:
+The emergence of large language models (LLMs) has opened a new paradigm for feature engineering. Methods such as CAAFE~\cite{hollmann2023caafe}, FeatLLM~\cite{han2024featllm}, and LLM-FE~\cite{abhyankar2025llmfe} use LLMs to generate feature transformation code from dataset descriptions, leveraging the model's broad world knowledge to propose semantically meaningful features. These methods show gains on general benchmarks but were not designed for regulated, domain-specific settings. Three limitations stand out:
 
 \textbf{(1) Lack of structured domain knowledge.}
-LLM-based methods rely on the model's parametric knowledge, which is often outdated or absent for specialized domains such as anti-money laundering (AML) or clinical risk scoring. Although external knowledge sources, including regulatory indicators, detection rules, expert opinions, and legally validated case evidence, exist and are domain-rich, no existing method organizes them into a structured taxonomy format for systematic injection into the feature generation process.
+LLM-based methods rely on the model's parametric knowledge, which is often outdated or absent for specialized domains such as anti-money laundering (AML) or clinical risk scoring. Rich external knowledge sources exist---regulatory indicators, detection rules, expert opinions, court evidence---but no existing method organizes them into a structured taxonomy for systematic injection into feature generation.
 
 \textbf{(2) Insufficient feature verification.}
-Even when useful candidate features are generated, no existing method verifies them adequately before use. CAAFE relies on a logistic regression proxy; LLM-FE uses downstream accuracy without any statistical filtering; FeatLLM performs no model-based validation at all. As a result, unverified features, such as those that are syntactically valid but statistically redundant or model-harmful, enter the training data unchecked, degrading rather than improving performance.
+Even when useful candidate features are generated, verification is weak. CAAFE relies on a logistic regression proxy; LLM-FE uses downstream accuracy without statistical filtering; FeatLLM performs no model-based validation at all. Unverified features---syntactically valid but statistically redundant or model-harmful---enter the training data unchecked.
 
 \textbf{(3) Limited explainability.}
-In regulated industries, model features must be both explainable and auditable. Decision-makers need to understand \emph{why} a feature was created and \emph{what evidence} supports it. Existing methods lack structured provenance that traces each feature to specific knowledge assets with detailed reasoning chains.
+In regulated industries, model features must be both explainable and auditable. Decision-makers need to know \emph{why} a feature was created and \emph{what evidence} supports it. No existing method provides structured provenance linking each feature to specific knowledge assets.
 
-We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that addresses all three limitations:
+We propose \textbf{KnowFeat} (\textbf{Know}ledge-guided \textbf{Feat}ure engineering), a framework that tackles all three:
 
 \begin{itemize}
-    \item \textbf{Multi-Type Knowledge Injection.} We organize domain knowledge into five types of increasing specificity (schema metadata, risk indicators, detection rules, expert opinions, and court document evidence) and inject them as structured context into the LLM agent.
+    \item \textbf{Multi-Type Knowledge Injection.} Domain knowledge is organized into five types of increasing specificity (schema metadata, risk indicators, detection rules, expert opinions, and court document evidence) and injected as structured context into the LLM agent.
 
-    \item \textbf{Three-Stage Verification Pipeline.} Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds).
+    \item \textbf{Three-Stage Verification Pipeline.} Each candidate passes through L1 (code execution sandbox), L2 (statistical quality with noise-calibrated thresholds), and L3 (model effectiveness via XGBoost across 5 seeds). Early stages are cheap; expensive evaluation runs only on candidates that survive.
 
-    \item \textbf{Explainable Provenance.} Each accepted feature carries a structured provenance card that records the knowledge assets, reasoning chain, computation steps, and verification outputs.
+    \item \textbf{Explainable Provenance.} Each accepted feature carries a provenance card recording the knowledge assets, reasoning chain, computation steps, and verification outputs.
 
 \end{itemize}
 
 The source code\footnote{\url{https://github.com/youchengsong/large-llm-create-feature}} and datasets\footnote{\url{https://huggingface.co/datasets/anonymous-7219/knowfeat}} are publicly accessible.
 
-We evaluate KnowFeat on twelve public tabular datasets, a synthetic AML benchmark (SimECNY, 200K transactions), and a real-world Bitcoin AML dataset (Elliptic, 46K labeled transactions). All experiments use a strict held-out evaluation protocol that eliminates the feature-selection leakage present in prior work. The results yield the following key findings:
+We evaluate KnowFeat on twelve public tabular datasets, a synthetic AML benchmark (SimECNY, 200K transactions), and a real-world Bitcoin AML dataset (Elliptic, 46K labeled transactions). All experiments use a strict held-out protocol that eliminates the feature-selection leakage present in prior work. Key findings:
 
 \begin{itemize}
-    \item On public datasets, KnowFeat achieves the best average rank (2.2) among seven methods under leakage-free evaluation, with a statistically significant one-sided Wilcoxon test ($p{=}0.017$). The largest gain is an 11.6-percentage-point AUC improvement on a telecom churn dataset.
-    \item On both AML datasets, KnowFeat's verified features remain competitive with the strong baselines; on SimECNY, FeatLLM's 1{,}124-feature representation lowers F1, showing that generation volume alone does not guarantee improvement.
-    \item Every accepted feature carries a structured provenance record linking its design to specific knowledge assets, enabling efficient compliance review in regulated domains.
+    \item On public datasets, KnowFeat ranks first (avg.\ rank 2.3) among seven methods under leakage-free evaluation, with a significant one-sided Wilcoxon test ($p{=}0.017$). The largest gain is +11.6\,pp AUC on a telecom churn dataset.
+    \item On both AML datasets, KnowFeat's verified features remain competitive with strong baselines; on SimECNY, FeatLLM's 1{,}124-feature set lowers F1, showing that volume without verification hurts.
+    \item Every accepted feature carries a provenance record linking it to specific knowledge assets, enabling audit in regulated domains.
 \end{itemize}

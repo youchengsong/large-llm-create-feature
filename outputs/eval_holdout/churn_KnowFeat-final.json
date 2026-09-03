@@ -1,0 +1,41 @@
+{
+  "dataset": "churn",
+  "method": "KnowFeat-final",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 4000,
+  "n_test": 1000,
+  "n_features": 47,
+  "test_positive_rate": 0.141,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.8696604166150644,
+      "test_seed_std": 0.003000608109651274,
+      "bootstrap_mean": 0.8710214719631703,
+      "bootstrap_std": 0.015404338015061156,
+      "bootstrap_ci95": [
+        0.8376356772936926,
+        0.8997620276898679
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.8939999999999999,
+      "test_seed_std": 0.0026076809620810618,
+      "bootstrap_mean": 0.897548,
+      "bootstrap_std": 0.009547130249451936,
+      "bootstrap_ci95": [
+        0.879,
+        0.917
+      ]
+    }
+  }
+}

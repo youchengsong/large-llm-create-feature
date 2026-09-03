@@ -1,0 +1,41 @@
+{
+  "dataset": "churn",
+  "method": "LLM-FE",
+  "protocol": "frozen_holdout_bootstrap",
+  "split_seed": 42,
+  "test_size": 0.2,
+  "n_dev": 4000,
+  "n_test": 1000,
+  "n_features": 71,
+  "test_positive_rate": 0.141,
+  "model_seeds": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "n_bootstrap": 1000,
+  "metrics": {
+    "auc": {
+      "test_point": 0.7571380212848521,
+      "test_seed_std": 0.0091112975617063,
+      "bootstrap_mean": 0.7635064509511642,
+      "bootstrap_std": 0.02465946925775362,
+      "bootstrap_ci95": [
+        0.7154426602254675,
+        0.8091919030661509
+      ]
+    },
+    "accuracy": {
+      "test_point": 0.9074,
+      "test_seed_std": 0.002332380757938122,
+      "bootstrap_mean": 0.9086730000000001,
+      "bootstrap_std": 0.009105386922036874,
+      "bootstrap_ci95": [
+        0.891,
+        0.926
+      ]
+    }
+  }
+}

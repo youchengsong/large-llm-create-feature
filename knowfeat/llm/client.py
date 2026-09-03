@@ -143,7 +143,7 @@ class LLMClient:
         msg: dict[str, Any] = {"role": "assistant"}
         if content:
             msg["content"] = content
-        if reasoning_content:
+        if reasoning_content is not None:
             msg["reasoning_content"] = reasoning_content
         if tool_calls:
             msg["tool_calls"] = [

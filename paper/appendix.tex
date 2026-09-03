@@ -3,97 +3,56 @@
 \section{Supplementary Material}
 \label{sec:appendix}
 
-\subsection{Domain Knowledge and Verification Statistics}
+\subsection{Domain Knowledge Examples}
 \label{sec:appendix_knowledge}
 
+We illustrate the five knowledge types for SimECNY ($\sim$200K digital yuan transactions). One example per type; the full set (38 indicators, 15 rules, 12 expert opinions, 309 court documents) is available in the released repository.
 
-This appendix illustrates the five knowledge types for the SimECNY AML dataset ($\sim$200K digital yuan transactions). One example per type is shown; similar structured knowledge is compiled for all types (38 indicators, 15 rules, 12 expert opinions, 309 court documents).
+\smallskip\noindent\textbf{Schema Metadata.}
+Column names, types, and basic statistics. Example: \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types), \texttt{hour} (0--23), \texttt{src}/\texttt{dst} (wallet IDs), \texttt{transaction\_mode} (8 categories).
 
-\smallskip
-\noindent\textbf{Schema Metadata.}
-Column names, data types, and basic statistics extracted from the transaction data. Example fields include \texttt{amount} (numeric), \texttt{wallet\_type} (categorical, 4 types: anonymous, personal, enterprise, merchant), \texttt{hour} (numeric, 0--23), \texttt{src}/\texttt{dst} (wallet identifiers), and \texttt{transaction\_mode} (8 categories).
+\smallskip\noindent\textbf{Risk Indicator} [IND\_05]:
+Transaction behavior anomaly. Accounts exceeding regulatory daily transaction-count thresholds indicate potential money mule activity.
 
-\smallskip
-\noindent\textbf{Risk Indicator} [IND\_05]:
-Dimension: transaction behavior anomaly. Field: single-day transaction count. Accounts exceeding regulatory daily thresholds indicate potential money mule activity. Each indicator includes a risk dimension, relevant data field, and expected directionality.
+\smallskip\noindent\textbf{Detection Rule} [RULE\_006]:
+\emph{Scatter-in, gather-out.} Daily incoming count $\geq$20, amount $\geq$1M; dispersed inflows consolidated into few large outflows. Python hint: group by \texttt{(src, date)}.
 
-\smallskip
-\noindent\textbf{Detection Rule} [RULE\_006]:
-\emph{Scatter-in, gather-out.} Logic: daily incoming count $\geq$ 20 AND daily amount $\geq$ 1{,}000{,}000, with high incoming but low outgoing count. Python hint: group by \texttt{(src, date)}, filter accounts with many small inflows and few large outflows. Each rule includes a confidence level and a Python implementation hint for the agent.
+\smallskip\noindent\textbf{Expert Opinion} [EXP\_05]:
+``Border region + nighttime trading is the hallmark of cross-border laundering.''
 
-\subsection{Complete Detection Rule Definitions (RULE\_001--015)}
-\label{sec:rule_definitions}
+\smallskip\noindent\textbf{Court Document Evidence} [CASE]:
+Criminal judgment on concealing proceeds---digital yuan wallets across 6 banks creating a multi-layer fund network via intermediary wallets.
 
-Table~\ref{tab:rules_full} lists all 15 detection rules compiled from compliance manuals and internal documentation, as referenced throughout the paper.
+\subsection{Verification Statistics}
+On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), 18 pass L3 (35\%). Progressive filtering saves $\sim$53 minutes. After post-hoc selection, 4 features are retained.
 
-\begin{table*}[t]
+\subsection{Bootstrap Confidence Intervals}
+
+\begin{table}[h]
 \centering
-\caption{Complete definitions of detection rules RULE\_001 through RULE\_015. All rules have \emph{high} confidence.}
-\label{tab:rules_full}
-\small
-\begin{tabular}{@{}llp{10.5cm}@{}}
-\toprule
-\textbf{ID} & \textbf{Type} & \textbf{Description \& Logic} \\
-\midrule
-RULE\_001 & behavior & \textbf{Batch ATM cash-out via Type-4 wallets.} A single operator uses $\geq$10 digital yuan wallets to withdraw cash via ATM within 2\,h, total amount $\geq$100{,}000 yuan. \\
-RULE\_002 & behavior & \textbf{Dormant-then-burst account.} Account inactive $\geq$90 days after opening, then initiates a small test transaction ($<$1{,}000 yuan) followed by frequent large transactions ($\geq$50{,}000, $\geq$20/day). \\
-RULE\_003 & composite & \textbf{Crypto--digital yuan correlation.} Account has cryptocurrency purchases temporally correlated ($\leq$1\,h) with digital yuan withdrawals; funds move in-and-out rapidly (balance retention $\leq$10\%). \\
-RULE\_004 & behavior & \textbf{Merchant account anomaly.} Multiple merchant accounts show large transactions in the same time window, amounts inconsistent with normal business scale. \\
-RULE\_005 & behavior & \textbf{Cross-regional roaming laundering.} Criminal groups rotate across cities, using merchant accounts with short stays per location and similar transaction patterns. \\
-RULE\_006 & behavior & \textbf{Scatter-in, gather-out (underground bank).} Daily incoming count $\geq$20, daily amount $\geq$1{,}000{,}000; funds are dispersed inflows consolidated into few large outflows, near-zero end-of-day balance. \\
-RULE\_007 & behavior & \textbf{Multi-channel regulatory evasion.} Account frequently mixes online banking, ATM, and other channels; transaction amounts deliberately kept below reporting thresholds. \\
-RULE\_008 & behavior & \textbf{Fraud fund transfer pattern.} Account receives funds electronically at high frequency, immediately transfers out via online banking or ATM; zero remaining balance. \\
-RULE\_009 & attribute & \textbf{Batch account opening anomaly.} Multiple accounts opened at the same branch in a short period; holders are non-local with similar identity documents. \\
-RULE\_010 & composite & \textbf{Corruption fund pattern.} Accounts of public officials or associates show large transactions inconsistent with salary; deposits concentrate around traditional holidays. \\
-RULE\_011 & behavior & \textbf{Drug transaction fund pattern.} ATM-dominated transactions in multiples of drug street prices; frequent transfers to/from accounts in drug-trafficking hotspots. \\
-RULE\_012 & behavior & \textbf{Credit card cash-out via POS.} Single POS terminal volume far exceeds merchant's business scale; round-amount transactions dominate; the actual controller frequently swipes at own terminal. \\
-RULE\_013 & behavior & \textbf{Pyramid scheme fund network.} Fund flows form a pyramid-shaped structure with periodic cycles; rebate timing and ratios are fixed. \\
-RULE\_014 & composite & \textbf{Terrorism financing pattern.} Customer from high-risk region; small but frequent cash transactions; abnormal large transactions appear before/after terrorism-related events. \\
-RULE\_015 & behavior & \textbf{Online gambling fund pattern.} Dispersed-in, dispersed-out pattern; amounts in multiples of 100 yuan; online banking transactions concentrated in late-night hours. \\
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\smallskip
-\noindent\textbf{Expert Opinion} [EXP]:
-Online ``running-score'' laundering: anonymous wallet $\to$ real-name wallet $\to$ bank account chain transfers after midnight. Amounts 300--5{,}000 yuan, sustained 10--30 days, daily volume at wallet limits.
-
-\smallskip
-\noindent\textbf{Court Document Evidence} [CASE]:
-Criminal judgment on concealing proceeds. Pattern: digital yuan wallets across 6 banks creating a multi-layer fund channeling network via intermediary wallets and corporate-to-personal conversion.
-
-\smallskip
-\noindent\textbf{Verification Statistics.}
-On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), and 18 pass L3 (35\%), with progressive filtering saving $\sim$53 minutes by avoiding unnecessary L3 evaluations on the 21 candidates rejected at L1/L2. When the optional post-hoc selection pass is enabled for the holdout experiment, 4 features are retained in the final model (as reported in Section~\ref{subsec:rq2}). The gap between 18 L3-accepted and 4 final features illustrates the importance of evaluating redundancy in combination rather than relying on individual gains alone.
-
-\begin{table*}[t]
-\centering
-\caption{Frozen-test AUC with 95\% bootstrap confidence intervals (1{,}000 test-set resamples).}
+\caption{Frozen-test AUC with 95\% bootstrap CIs (1{,}000 resamples).}
 \label{tab:auc_ci}
 \small
-\setlength{\tabcolsep}{5pt}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{l c c}
 \hline
-\textbf{Dataset} & \textbf{No-FE AUC [95\% CI]} & \textbf{KnowFeat AUC [95\% CI]} \\
+\textbf{Dataset} & \textbf{No-FE [95\% CI]} & \textbf{KnowFeat [95\% CI]} \\
 \hline
 credit\_g          & .749 [.678, .819] & .752 [.681, .820] \\
 diabetes           & .812 [.737, .881] & .810 [.741, .880] \\
-blood\_transfusion & .757 [.662, .844] & .745 [.647, .825] \\
+blood\_trans.      & .757 [.662, .844] & .745 [.647, .825] \\
 heart              & .928 [.891, .963] & .928 [.888, .964] \\
-bank\_marketing    & .930 [.925, .938] & .931 [.926, .939] \\
-breast\_w          & .986 [.969, .999] & .992 [.977, 1.000] \\
+bank\_mkt.         & .930 [.925, .938] & .931 [.926, .939] \\
+breast\_w          & .986 [.969, .999] & .992 [.977, 1.00] \\
 adult              & .931 [.927, .937] & .932 [.928, .938] \\
 wine\_quality      & .896 [.863, .932] & .899 [.865, .934] \\
+default\_credit    & .764 [.749, .786] & .768 [.753, .790] \\
+churn              & .738 [.692, .795] & .853 [.842, .901] \\
+kc2                & .706 [.565, .838] & .714 [.582, .863] \\
+jm1                & .718 [.698, .748] & .732 [.709, .761] \\
 \hline
 \end{tabular}
-\end{table*}
+\end{table}
 
 \subsection{Practical Considerations}
-\label{sec:practical}
-
-\textbf{Lessons Learned.}
-Three insights emerged: (1)~\emph{Knowledge curation cost varies by domain}: the full AML knowledge base required $\sim$1 person-week, dominated by court document review; simplified public-dataset knowledge bases were constructed in 30--60 minutes each with LLM assistance.
-(2)~\emph{Verification thresholds require domain calibration}: the L3 acceptance criteria must be set with domain stakeholders. (3)~\emph{Feature maintenance is ongoing}: regulatory requirements evolve, requiring periodic refresh.
-
-% \textbf{Adaptability to New Domains.}
-% KnowFeat's design is domain-agnostic: the five knowledge types serve as a general template that can be instantiated for a wide range of tabular classification tasks. Our public dataset experiments demonstrate this adaptability---we constructed knowledge bases for healthcare (diabetes, heart, breast\_w, blood\_transfusion), finance (credit\_g), marketing (bank\_marketing), and census (adult) domains using publicly available guidelines and documentation. The key requirement is that a domain expert can articulate risk indicators, detection rules, and expert heuristics in structured natural language; the LLM agent handles translation to executable code. The verification pipeline (L1/L2) is fully domain-agnostic; only the L3 acceptance metric and threshold require domain calibration (as noted above), and the semantic dimension decomposition can be adapted to any feature space (e.g., clinical vs.\ demographic features in healthcare). Knowledge curation is straightforward for well-documented domains; for others, the schema-only mode provides a starting point with knowledge incrementally added over time.
+Three lessons: (1)~Knowledge curation cost varies---$\sim$2 person-days for the full AML taxonomy, 30--60 minutes per public dataset with LLM assistance. (2)~L3 acceptance thresholds require domain calibration. (3)~Feature maintenance is ongoing as regulations evolve. The complete detection rule definitions (RULE\_001--015) are available in the released repository.

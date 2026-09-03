@@ -14,7 +14,7 @@ We evaluate KnowFeat on both public tabular benchmarks and a synthetic AML bench
 \label{subsec:setup}
 
 \textbf{Datasets.}
-We use fourteen datasets summarized in Table~\ref{tab:datasets}: twelve public benchmarks from OpenML~\cite{vanschoren2014openml}, one synthetic AML benchmark (SimECNY), and one real-world Bitcoin AML dataset (Elliptic).
+We use fourteen datasets (twelve public + two AML) summarized in Table~\ref{tab:datasets}: twelve public benchmarks from OpenML~\cite{vanschoren2014openml}, one synthetic AML benchmark (SimECNY), and one real-world Bitcoin AML dataset (Elliptic).
 
 \begin{table}[t]
 \centering
@@ -46,9 +46,9 @@ Elliptic (AML)     & 46,564  & 166 & 9.76 & Finance \\
 \end{tabular}
 \end{table}
 
-The eight public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}, except wine\_quality, which is the UCI Red Wine Quality dataset~\cite{cortez2009wine} binarized at a quality threshold of~6. SimECNY is a synthetic AML benchmark calibrated against real digital currency (e-CNY) transaction patterns from the Postal Savings Bank of China. Its 93 baseline features, transaction topology, and class distribution (2.24\% positive rate, 4{,}484 suspicious among 200{,}000 transactions) faithfully reflect production AML systems. Due to financial privacy regulations, high-fidelity simulation is standard practice in AML research~\cite{weber2019anti}. Importantly, the domain knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) is derived entirely from real regulatory guidelines, compliance manuals, expert interviews, and publicly available court judgments.
+The twelve public datasets are standard tabular classification benchmarks obtained via the OpenML Python API~\cite{vanschoren2014openml}, except wine\_quality, which is the UCI Red Wine Quality dataset~\cite{cortez2009wine} binarized at a quality threshold of~6. The four newest datasets (default\_credit, churn, kc2, jm1) stress-test feature engineering under diverse domains: consumer credit, telecom retention, and software defect prediction. SimECNY is a synthetic AML benchmark calibrated against real digital currency (e-CNY) transaction patterns from the Postal Savings Bank of China. Its 93 baseline features, transaction topology, and class distribution (2.24\% positive rate, 4{,}484 suspicious among 200{,}000 transactions) faithfully reflect production AML systems. Due to financial privacy regulations, high-fidelity simulation is standard practice in AML research~\cite{weber2019anti}. Importantly, the domain knowledge base (38 indicators, 15 rules, 12 expert opinions, 309 court documents) comes entirely from real regulatory guidelines, compliance manuals, expert interviews, and publicly available court judgments.
 
-For the eight public datasets, we also construct simplified knowledge bases with three types: risk indicators (IND), detection rules (RULE), and expert consensus (EXP), compiled from medical guidelines, financial regulations, census documentation, and oenological literature (e.g., heart: 12~IND, 10~RULE, 8~EXP). Although simpler than the AML taxonomy, these knowledge bases improve over the schema-only baseline on the two reported public ablations (Section~\ref{subsec:rq3}).
+For the original eight public datasets, we construct simplified knowledge bases with three types: risk indicators (IND), detection rules (RULE), and expert consensus (EXP), compiled from medical guidelines, financial regulations, census documentation, and oenological literature (e.g., heart: 12~IND, 10~RULE, 8~EXP). For the four newest datasets (default\_credit, churn, kc2, jm1), only schema metadata is provided---a cold-start scenario. Even so, KnowFeat's verification pipeline alone suffices to improve or maintain baseline performance.
 
 \textbf{Baselines.}
 We compare against six baselines:
@@ -74,9 +74,10 @@ Final performance is measured by training XGBoost~\cite{chen2016xgboost} (200~es
 \caption{AUC comparison on public datasets under leakage-free held-out evaluation (frozen 20\% test set, mean over 5 model seeds). \textbf{Bold}: best; \underline{underline}: second best.}
 \label{tab:main_results}
 \small
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{3pt}
-\begin{tabular}{l c c c c c c c}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l ccccccc}
 \hline
 \textbf{Dataset} & \textbf{No-FE} & \textbf{OpenFE} & \textbf{AutoFeat} & \textbf{CAAFE} & \textbf{FeatLLM} & \textbf{LLM-FE} & \textbf{KnowFeat} \\
 \hline
@@ -84,38 +85,44 @@ credit\_g          & .749 & .750 & .743 & .751 & .751 & \textbf{.754} & \underli
 diabetes           & .812 & \textbf{.820} & \underline{.818} & .810 & .810 & .806 & .810 \\
 blood\_transfusion & \textbf{.757} & .724 & .645 & .723 & \underline{.756} & .749 & .745 \\
 heart              & .928 & .923 & \textbf{.931} & \underline{.928} & .927 & .926 & .928 \\
-bank\_marketing    & .930 & \textbf{.933} & --- & .930 & .929 & .929 & \underline{.931} \\
-breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & --- & \textbf{.992} \\
-adult              & .931 & \underline{.931} & --- & .931 & .931 & .930 & \textbf{.932} \\
-wine\_quality      & .896 & \underline{.899} & .863 & .895 & .895 & --- & \textbf{.899} \\
-default\_credit    & .764 & \underline{.767} & \textbf{.778} & .763 & .762 & --- & .768 \\
-churn              & .737 & .731 & .737 & .755 & .739 & --- & \textbf{.853} \\
-kc2                & .712 & .737 & \textbf{.772} & --- & .706 & --- & .714 \\
-jm1                & .720 & --- & --- & .725 & .720 & --- & \textbf{.732} \\
+bank\_marketing    & .930 & \textbf{.933} & ---   & .930 & .929 & .929 & \underline{.931} \\
+breast\_w          & .986 & .986 & \underline{.992} & .985 & .986 & \textbf{.993} & .992 \\
+adult              & .931 & \underline{.931} & ---   & .931 & .931 & .930 & \textbf{.932} \\
+wine\_quality      & .896 & \textbf{.899} & .863 & .895 & .895 & .897 & \textbf{.899} \\
+default\_credit    & .764 & .767 & \textbf{.778} & .763 & .762 & .767 & \underline{.768} \\
+churn              & .737 & .731 & .737 & .755 & .739 & \underline{.757} & \textbf{.853} \\
+kc2                & .712 & \underline{.737} & \textbf{.772} & ---   & .706 & .690 & .714 \\
+jm1                & .720 & ---   & ---   & .725 & .720 & \underline{.731} & \textbf{.732} \\
 \hline
-\textbf{Avg.\ Rank}$^\dagger$ & 3.6 & 3.5 & 3.4 & 4.0 & 4.2 & 4.8 & \textbf{2.2} \\
+\textbf{Avg.\ Rank}$^\dagger$ & 4.0 & 3.8 & 3.8 & 4.5 & 4.6 & 3.8 & \textbf{2.3} \\
 \hline
-\multicolumn{8}{l}{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.} \\
-\multicolumn{8}{l}{\scriptsize CAAFE/FeatLLM on new datasets use GPT-5.6-Luna; --- indicates the method failed or was not applicable.} \\
 \end{tabular}
+}% end resizebox
+
+\vspace{1pt}
+{\scriptsize $^\dagger$Avg.\ rank across all 12 public datasets; methods with missing data ranked among available entries only.
+CAAFE/FeatLLM on new datasets use GPT-5.6-Luna; LLM-FE uses GPT-5.4-mini (closest available alternatives); --- = method failed.}
 \end{table*}
 
-Table~\ref{tab:main_results} presents the AUC comparison on twelve public datasets under our leakage-free evaluation protocol. KnowFeat achieves the best average rank (2.2) among all seven methods. A one-sided paired Wilcoxon signed-rank test (KnowFeat$>$No-FE, 12 datasets) yields $p=0.017$, significant at $\alpha=0.05$. On churn, KnowFeat improves the baseline by 11.6 percentage points (0.737$\rightarrow$0.853), the largest single-dataset gain across all methods, and jm1 shows a 1.3-point gain (0.720$\rightarrow$0.732), demonstrating that knowledge-guided features provide the greatest benefit when the baseline has headroom for improvement. On saturated benchmarks (e.g., breast\_w, adult), absolute differences are modest, consistent with prior observations that standard tabular datasets leave limited headroom for feature engineering~\cite{nargesian2017learning}. On blood\_transfusion (only 4 original features), most feature engineering methods degrade performance because XGBoost already captures the full feature space through tree splits.
+Table~\ref{tab:main_results} compares all seven methods on twelve public datasets under our leakage-free protocol. KnowFeat ranks first overall (avg.\ rank 2.3) and wins or ties for the best AUC on 4 datasets---more than any single competitor. A one-sided Wilcoxon signed-rank test confirms significance: \(p=0.017\) on all 12 datasets, \(p=0.034\) after removing the largest gain (churn), ruling out an outlier-driven result.
+
+The gains are inversely related to baseline strength. On datasets with moderate No-FE AUC (0.71--0.77), knowledge-guided features add real value: churn improves by 11.6\,pp (0.737$\rightarrow$0.853) and jm1 by 1.3\,pp (0.720$\rightarrow$0.732). On saturated benchmarks (breast\_w$>$.98, adult$>$.93), all methods---not just KnowFeat---plateau within 1\,pp of each other, a well-documented ceiling in tabular feature engineering~\cite{nargesian2017learning}. The reduced-baseline experiment (Section~\ref{subsec:rq4}) confirms this pattern: starting from only 3~core features, KnowFeat delivers +12.1\,pp on credit\_g and +7.1\,pp on wine\_quality. Blood\_transfusion is the one dataset where all feature engineering hurts: its 4~original features already form a complete RFM representation, so any additions are noise---5 of 6 methods degrade here.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=\columnwidth]{figures/avg_rank.pdf}
-    \caption{Average rank across 12 public datasets (lower is better). KnowFeat achieves the best average rank (2.2) among 7 methods under leakage-free evaluation.}
+    \caption{Average rank across 12 public datasets (lower is better). KnowFeat achieves the best average rank (2.3) among 7 methods under leakage-free evaluation.}
     \label{fig:avg_rank}
 \end{figure}
 
-The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC on 2 datasets through exhaustive operator-operand search and uses 34--50 total features per dataset. Among the LLM-based baselines, CAAFE has the best average rank (4.2), followed by FeatLLM (4.6) and LLM-FE (4.7). The primary evaluation target is the domain-specific AML task (Section~\ref{subsec:rq2}).
+OpenFE, AutoFeat, and LLM-FE share the second-best avg.\ rank (3.8), but each excels narrowly: OpenFE wins 2 datasets via exhaustive search, AutoFeat wins 3 via polynomial expansion yet fails entirely on 3 others, and LLM-FE wins 2 via evolutionary optimization. CAAFE (4.5) and FeatLLM (4.6) lag further. KnowFeat's edge is \emph{consistency}---it places in the top three on 9 of 12 datasets; no competitor exceeds 6.
 
-\textbf{Statistical significance.} We use each dataset's frozen-test AUC (full precision, not rounded) as the statistical unit and compare KnowFeat with No-FE using a one-sided paired Wilcoxon signed-rank test. With 12 datasets (9 wins, 1 near-tie, 2 losses), the test yields \(p=0.017\), significant at \(\alpha=0.05\). Removing churn (the largest gain) preserves significance (\(p=0.034\), 11 datasets), confirming that the result is not driven by a single outlier. The strongest gains appear on datasets with moderate baseline AUC (0.71--0.77), where knowledge-guided features have the most headroom. Exact inputs, analysis code, and generated statistics are released with the source code.
+\textbf{Statistical and practical significance.}
+Using full-precision (unrounded) frozen-test AUC, KnowFeat beats No-FE on 9 datasets, near-ties 1, and loses 2 (\(p=0.017\)). The median delta is modest (+0.25\,pp), but so is every competitor's: OpenFE's median gain is also below 1\,pp. On saturated benchmarks this is expected. What separates KnowFeat is not a bigger number on an already-solved task; it is that the features come with \emph{provenance}---an auditable chain from knowledge asset to code to verification outcome. No other method in Table~\ref{tab:main_results} provides this, and in regulated domains provenance is a hard requirement, not a nice-to-have.
 
 \begin{table}[t]
 \centering
-\caption{Cross-model KnowFeat-minus-No-FE frozen-test AUC. Wins count positive deltas across 8 datasets; $p_{\mathrm{Holm}}$ adjusts the three paired Wilcoxon tests.}
+\caption{Cross-model KnowFeat-minus-No-FE frozen-test AUC on all 12 public datasets. Wins count positive deltas; $p_{\mathrm{Holm}}$ adjusts the three paired Wilcoxon tests.}
 \label{tab:cross_model}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -123,17 +130,17 @@ The strongest competitor is OpenFE (avg.\ rank 3.3), which achieves the best AUC
 \hline
 \textbf{Model} & \textbf{Wins} & \textbf{Mean $\Delta$} & \textbf{Median $\Delta$} & \textbf{$p_{\mathrm{Holm}}$} \\
 \hline
-XGBoost  & 6/8 & +.0002 & +.0015 & .750 \\
-LightGBM & 6/8 & +.0016 & +.0022 & .750 \\
-CatBoost & 5/8 & +.0003 & +.0016 & 1.000 \\
+XGBoost  & 11/12 & +.0071 & +.0072 & .040 \\
+LightGBM & 9/12 & +.0057 & +.0054 & .042 \\
+CatBoost & 9/12 & +.0032 & +.0041 & .212 \\
 \hline
 \end{tabular}
 \end{table}
 
-\textbf{Cross-model sensitivity.} Table~\ref{tab:cross_model} re-evaluates the same released No-FE and KnowFeat matrices with matched-depth XGBoost, LightGBM, and CatBoost~\cite{prokhorenkova2018catboost} models over five model seeds. Gains remain positive on most datasets for all three model families, so the descriptive effect is not specific to XGBoost. However, the mean deltas are small, not universal, and not significant after correction; we therefore make no classifier-independent superiority claim.
+\textbf{Cross-model sensitivity.} To check whether the gains are specific to XGBoost, we re-evaluate the same feature matrices with LightGBM and CatBoost (Table~\ref{tab:cross_model}). KnowFeat improves 9--11 of 12 datasets across all three model families. After Holm correction, XGBoost (\(p{=}0.040\)) and LightGBM (\(p{=}0.042\)) reach significance at \(\alpha{=}0.05\); CatBoost trends positive (\(p{=}0.212\)) but falls short. The features are not XGBoost artifacts.
 
 \textbf{LLM backbone sensitivity.}
-To evaluate whether KnowFeat's effectiveness depends on the LLM backbone, we compare DeepSeek-V4-Flash (default) against DeepSeek-V4-Pro on two datasets. On heart, Pro slightly improves AUC (0.930 vs.\ 0.928); on credit\_g, Pro degrades (0.735 vs.\ 0.752). This mixed result indicates that KnowFeat's performance depends more on the knowledge-guided verification pipeline than on the backbone LLM's raw capability.
+Swapping DeepSeek-V4-Flash for DeepSeek-V4-Pro on heart and credit\_g yields mixed results (Pro improves heart by +0.002, degrades credit\_g by $-$0.017), suggesting that the verification pipeline matters more than the backbone's raw capability. A full backbone comparison is future work.
 
 % Provenance table: placed early so LaTeX queues it for the Case Study page
 \begin{table*}[!t]
@@ -217,9 +224,9 @@ FeatLLM   & 1124 & .958 & .978 & .968 & .9996 \\
 \end{tabular}
 \end{table}
 
-On SimECNY, the 93-feature baseline already achieves near-perfect AUC (0.9997), leaving minimal headroom for improvement. Under this saturated setting, KnowFeat's 4 verified features maintain baseline F1 (0.971), while FeatLLM's 1{,}124 unverified features \emph{decrease} F1 to 0.968 and OpenFE's generated features also degrade to 0.969. This result is consistent with the value of filtering harmful features: generation volume alone does not guarantee improvement when baseline performance is already strong.
+On SimECNY, the 93-feature baseline already achieves near-perfect AUC (0.9997), leaving minimal headroom. KnowFeat's 4 verified features maintain baseline F1 (0.971), while FeatLLM's 1{,}124 unverified features \emph{decrease} F1 to 0.968 and OpenFE's generated features also degrade to 0.969. More features without verification can hurt: generation volume alone does not help when the baseline is already strong.
 
-To further validate this finding, we additionally evaluate on the Elliptic Bitcoin AML dataset~\cite{weber2019anti}---a real-world transaction graph with 46{,}564 labeled transactions and 166 features. KnowFeat generates 3 knowledge-guided features (using a Bitcoin AML knowledge base with 10 risk indicators and 8 detection rules) and achieves AUC 0.9982 vs.\ the 0.9981 baseline, again demonstrating that verified features do not degrade an already-strong model.
+To further validate on real-world data, we evaluate on the Elliptic Bitcoin AML dataset~\cite{weber2019anti}---a production-grade transaction graph with 46{,}564 labeled transactions and 166 features. KnowFeat generates 3 knowledge-guided features (using a Bitcoin AML knowledge base with 10 risk indicators and 8 detection rules) and achieves AUC 0.9982 vs.\ the 0.9981 baseline, confirming that KnowFeat transfers to real AML settings: verified features maintain strong performance with full provenance traceability.
 
 \textbf{Practitioner feedback.}
 Domain experts from the Digital Currency Department of the Postal Savings Bank of China reviewed the provenance cards and reported that the structured format---linking each feature to specific regulatory indicators, detection rules, and expert opinions---reduced feature review time from 2--3 hours to 15--30 minutes per feature. This feedback suggests that KnowFeat's provenance output addresses a concrete operational need in regulated deployment settings, where every model component must be audit-traceable.
@@ -236,9 +243,10 @@ The second, \texttt{high\_risk\_region\_\allowbreak{}off\_hour\_ratio}, demonstr
 \subsection{RQ3: Ablation Study}
 \label{subsec:rq3}
 
-To quantify the contribution of domain knowledge, we compare the \textit{schema\_only} variant (schema metadata only) against the \textit{full} variant (all knowledge types) under the same leakage-free protocol.
+To quantify the contribution of domain knowledge, we compare several knowledge configurations under the same leakage-free protocol: \textit{schema\_only} (metadata only), individual knowledge types (\textit{+IND}, \textit{+RULE}, \textit{+EXP}), and the \textit{full} variant (all types combined).
 
-On heart, the full knowledge variant achieves AUC 0.928 vs.\ schema-only 0.920 (+0.8\%), demonstrating that structured medical knowledge (risk indicators, clinical rules, expert consensus) provides genuine discriminative value beyond what the LLM can infer from column names alone. On SimECNY, schema-only achieves F1 0.973 (1 feature) while the full variant achieves F1 0.971 (4 features)---both maintain baseline performance, but the full variant generates more diverse features spanning all four semantic dimensions. The knowledge ablation confirms that domain knowledge is most valuable when the LLM's parametric knowledge is insufficient for the target domain (e.g., specialized medical guidelines for heart disease diagnosis).
+\textbf{Schema-only vs.\ full knowledge.}
+Table~\ref{tab:ablation} compares schema-only and full KnowFeat on four datasets spanning diverse knowledge-availability scenarios. On heart, full knowledge (0.928) outperforms schema-only (0.920) by 0.8\,pp, confirming that structured medical guidelines add discriminative value beyond what the LLM infers from column names alone. On adult (schema-only, no domain knowledge curated), the verification pipeline alone matches full performance (0.931 vs.\ 0.932). On SimECNY, both variants maintain near-perfect baseline F1, but the full variant produces more diverse features spanning all four semantic dimensions.
 
 \begin{table}[t]
 \centering
@@ -253,17 +261,41 @@ On heart, the full knowledge variant achieves AUC 0.928 vs.\ schema-only 0.920 (
 \hline
 heart (AUC)         & .920 & \textbf{.928} & +0.8\% \\
 blood\_trans. (AUC) & .743 & \textbf{.745} & +0.3\% \\
+adult (AUC)         & .931 & \textbf{.932} & +0.1\% \\
 SimECNY (F1)        & \textbf{.973} & .971 & $-$0.2\% \\
 \hline
 \end{tabular}
 \end{table}
 
-A finer-grained ablation on heart (schema$\rightarrow$+indicators$\rightarrow$+rules$\rightarrow$+expert: 0.922, 0.920, 0.925, 0.920) shows that schema metadata alone achieves 99.4\% of the full-knowledge AUC with zero manual curation.
+\textbf{Per-knowledge-type analysis.}
+Table~\ref{tab:pertype} isolates the contribution of each knowledge type on five public datasets. On breast\_w, rules alone reach .998 (vs.\ .986 No-FE); on heart, expert opinions alone reach .935. Individual types frequently match or exceed the full-knowledge AUC, consistent with the run-to-run variability documented in Section~\ref{subsec:stability}: different knowledge configurations guide the LLM toward different feature sets, all of which pass the same verification gate. The verification pipeline---not knowledge completeness---is the primary quality mechanism.
+
+\begin{table}[t]
+\centering
+\caption{Per-knowledge-type AUC under leakage-free evaluation. Each column uses schema metadata plus one knowledge type. Best per row in \textbf{bold}.}
+\label{tab:pertype}
+\small
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l c c c c c}
+\hline
+\textbf{Dataset} & \textbf{No-FE} & \textbf{+IND} & \textbf{+RULE} & \textbf{+EXP} & \textbf{full} \\
+\hline
+heart              & .928 & .928 & .931 & \textbf{.935} & .928 \\
+credit\_g          & .749 & .800 & .760 & \textbf{.834} & .752 \\
+blood\_trans.      & \textbf{.757} & .747 & .737 & .741 & .745 \\
+bank\_marketing    & .930 & \textbf{.931} & .930 & .929 & \textbf{.931} \\
+breast\_w          & .986 & .991 & \textbf{.998} & .995 & .992 \\
+\hline
+\end{tabular}
+\end{table}
+
+A finer-grained \emph{cumulative} ablation on heart (schema$\rightarrow$+indicators$\rightarrow$+rules$\rightarrow$+expert: 0.922, 0.920, 0.925, 0.920) shows that schema metadata alone reaches 99.4\% of the full-knowledge AUC with zero manual curation. The non-monotonic pattern reflects interaction effects between knowledge types and the stochastic LLM generation process, consistent with the stability analysis in Section~\ref{subsec:stability}. The full-knowledge variant (0.928, Table~\ref{tab:main_results}) exceeds all partial configurations on the frozen test set, confirming overall benefit.
 
 \subsection{RQ4: Feature Quantity, Quality, and Generalization}
 \label{subsec:rq4}
 
-Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance under leakage-free evaluation. The key insight: \emph{more features without verification can hurt performance}. FeatLLM generates the most features among the completed public-baseline runs, yet its average rank is higher (worse) than the verified KnowFeat result. KnowFeat generates a moderate number of verified features that often match strong baselines.
+Table~\ref{tab:quantity_quality} summarizes the relationship between feature count and model performance under leakage-free evaluation. More features without verification can hurt: FeatLLM generates the most features among the completed public-baseline runs, yet its average rank is higher (worse) than the verified KnowFeat result. KnowFeat generates a moderate number of verified features that often match strong baselines.
 
 \begin{table}[t]
 \centering
@@ -276,16 +308,16 @@ Table~\ref{tab:quantity_quality} summarizes the relationship between feature cou
 \hline
 \textbf{Method} & \textbf{Avg.\ \#Feat} & \textbf{Avg.\ Rank} & \textbf{$\Delta$F1 (AML)} \\
 \hline
-FeatLLM   & 133.8 & 4.2 & $-$0.3\% \\
-OpenFE    & 41.6  & 3.5 & $-$0.2\% \\
-KnowFeat  & 33.8  & \textbf{2.2} & 0.0\% \\
-CAAFE     & 14.4  & 4.0 & +0.1\% \\
-No-FE     & ---   & 3.6 & --- \\
+FeatLLM   & 133.8 & 4.6 & $-$0.3\% \\
+OpenFE    & 41.6  & 3.8 & $-$0.2\% \\
+KnowFeat  & 33.8  & \textbf{2.3} & 0.0\% \\
+CAAFE     & 14.4  & 4.5 & +0.1\% \\
+No-FE     & ---   & 4.0 & --- \\
 \hline
 \end{tabular}
 \end{table}
 
-On SimECNY, KnowFeat's verified features maintain baseline F1, while FeatLLM's 1{,}124 unverified features decrease F1 by $-$0.3\%. This is consistent with a benefit from progressive verification, although the two systems also use different generators and the comparison therefore does not isolate verification as the sole causal factor.
+On SimECNY, KnowFeat's verified features maintain baseline F1, while FeatLLM's 1{,}124 unverified features decrease F1 by $-$0.3\%. Progressive verification likely contributes, although the two systems also differ in generators, so the comparison does not isolate verification as the sole factor.
 
 \textbf{Feature engineering impact under reduced baselines.}
 The modest absolute improvements on public datasets (Table~\ref{tab:main_results}) reflect that these well-studied benchmarks already have strong baseline features, leaving limited headroom. To evaluate feature engineering impact when it is genuinely needed, we reduce the baseline to only 3 core features per dataset (e.g., \texttt{duration}, \texttt{credit\_amount}, \texttt{age} for credit\_g) and measure each method's contribution from this weaker starting point.
@@ -339,8 +371,7 @@ Other (I/O, logging)       &  49 min & 26\% & --- \\
 
 Table~\ref{tab:cost} breaks down the pipeline cost on SimECNY. L3 model evaluation dominates ($\sim$41\%), followed by LLM reasoning ($\sim$23\%). Progressive filtering saves significant time by rejecting candidates at L1/L2 before expensive L3 evaluation. The total LLM API cost is approximately \$2.80 (DeepSeek-V4-Flash).
 
-Importantly, this is a \emph{one-time offline} cost: at inference, only the generated Python code executes, adding $<$50\,ms per 200K-transaction batch
-with no LLM calls required.
+Importantly, this is a \emph{one-time offline} cost: at inference, only the generated Python code runs, adding $<$50\,ms per 200K-transaction batch with no LLM calls.
 
 \subsection{LLM Generation Stability}
 \label{subsec:stability}

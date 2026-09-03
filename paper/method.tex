@@ -2,14 +2,14 @@
 \section{Methodology}
 \label{sec:method}
 
-This section presents the KnowFeat framework in detail. We first provide an overview of the pipeline (Section~\ref{subsec:overview}), then describe each component: multi-type knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and explainable provenance output (Section~\ref{subsec:provenance_method}).
+This section presents the KnowFeat framework: multi-type knowledge injection (Section~\ref{subsec:knowledge}), the LLM agent with specialized tools (Section~\ref{subsec:agent}), the three-stage verification pipeline (Section~\ref{subsec:verification}), the intelligent search strategy (Section~\ref{subsec:search}), and explainable provenance output (Section~\ref{subsec:provenance_method}).
 
 \subsection{Framework Overview}
 \label{subsec:overview}
 
-KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, KnowFeat generates a set of new features such that appending them to the original data improves predictive performance on a target metric (e.g., AUC or Recall).
+KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, it generates new features that improve a target metric (e.g., AUC or Recall).
 
-The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrated in Figure~\ref{fig:framework}. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs a set of verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~1), candidate pool for forward selection (lines~14--15), SHAP-guided budget reallocation (line~19), and cross-dimension propagation (line~5)---are detailed in the following subsections.
+Algorithm~\ref{alg:knowfeat} formalizes the pipeline and Figure~\ref{fig:framework} illustrates it. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~1), candidate pool for forward selection (lines~14--15), SHAP-guided budget reallocation (line~19), and cross-dimension propagation (line~5)---are detailed below.
 
 \begin{algorithm}[t]
 \caption{KnowFeat: Knowledge-Guided Feature Engineering}
@@ -56,9 +56,9 @@ The overall pipeline is formalized in Algorithm~\ref{alg:knowfeat} and illustrat
 \subsection{Multi-Type Knowledge Injection}
 \label{subsec:knowledge}
 
-KnowFeat systematically integrates external domain knowledge into the feature generation process. We organize knowledge into five types of increasing specificity, from general metadata to concrete case evidence:
+KnowFeat systematically integrates external domain knowledge into feature generation. Knowledge is organized into five types of increasing specificity:
 
-\textbf{(1) Schema Metadata.} The agent receives only the dataset schema: column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the ablation baseline, testing what the LLM can generate from metadata alone.
+\textbf{(1) Schema Metadata.} The agent receives only the dataset schema: column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the minimal-knowledge configuration for ablation studies (Section~\ref{subsec:rq3}), testing what the LLM can generate from metadata alone.
 
 \textbf{(2) Risk Indicators.} Structured risk indicators derived from regulatory guidelines and industry standards. Each indicator specifies a risk dimension, risk class, relevant data field, and directionality. For the AML domain, we compile 38 indicators (IND\_01 through IND\_38) covering transaction amount thresholds, frequency patterns, temporal anomalies, and network centrality measures. For example, IND\_05 flags accounts whose single-day transaction count exceeds a regulatory threshold, while IND\_15 identifies abnormal transaction modes such as fan-in and many-to-many patterns.
 
@@ -68,12 +68,12 @@ KnowFeat systematically integrates external domain knowledge into the feature ge
 
 \textbf{(5) Court Document Evidence.} Risk factors extracted from 309 real court judgments via a key-clue extraction pipeline. This is the most concrete type, grounding feature generation in case evidence (e.g., pyramid-shaped fund network patterns independently validated by legal proceedings).
 
-The five types can be freely combined via a knowledge filter parameter, enabling ablation study of each type's contribution. In the ``full'' configuration (default), all types are included. Each knowledge item is assigned a unique identifier for provenance tracking.
+The five types can be freely combined via a knowledge filter parameter for ablation. In the ``full'' configuration (default), all types are included. Each knowledge item carries a unique identifier for provenance tracking.
 
 \subsection{LLM Agent with Specialized Tools}
 \label{subsec:agent}
 
-KnowFeat employs an LLM agent (DeepSeek-V4-0324-Flash in our implementation, with temperature\,=\,0 for near-deterministic outputs) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
+KnowFeat employs an LLM agent (DeepSeek-V4-Flash in our implementation, with temperature\,=\,0 for near-deterministic outputs) that interleaves reasoning with tool calls following the ReAct paradigm~\cite{yao2023react}. The agent is equipped with three specialized tools:
 
 \textbf{Tool 1: Data Exploration.} Executes Python code on the dataset in a sandboxed environment to inspect distributions, compute correlations, and identify patterns before proposing features. The tool returns printed output or return values to the agent.
 
@@ -103,12 +103,12 @@ The generated Python code is executed in an isolated sandbox with a 30-second ti
 If L1 fails, the agent receives the error message and is allowed up to 2 automatic repair attempts before the feature is permanently rejected.
 
 \subsubsection{L2: Statistical Quality Filtering}
-The feature's statistical properties are evaluated against automatically calibrated thresholds. To establish these thresholds for discriminative power, we generate $N_{\text{noise}} = 100$ random features (drawn from standard distributions), compute their quality metrics, and set the acceptance threshold at the $P_{\text{noise}}$-th percentile (default $P_{\text{noise}} = 95$). This ensures that accepted features are statistically better than random noise. L2 checks four criteria:
+The feature's statistical properties are evaluated against automatically calibrated thresholds. To establish these thresholds for discriminative power, we generate $N_{\text{noise}} = 100$ random features (drawn from standard distributions), compute their quality metrics, and set the acceptance threshold at the $P_{\text{noise}}$-th percentile (default $P_{\text{noise}} = 95$). This ensures that accepted features are statistically stronger than random noise. L2 checks four criteria:
 \begin{itemize}
-    \item \textbf{Information Value (IV)}~\cite{chen2018aml}: Must exceed the noise-calibrated threshold, ensuring the feature has meaningful discriminative power between positive and negative classes.
+    \item \textbf{Information Value (IV)}~\cite{chen2018aml}: Must exceed the noise-calibrated threshold, so the feature carries meaningful discriminative power between positive and negative classes.
     \item \textbf{Kolmogorov--Smirnov (KS) Statistic}~\cite{nargesian2017learning}: Must exceed the noise-calibrated threshold, measuring the maximum distributional separation between classes.
-    \item \textbf{Redundancy}: Maximum absolute Pearson correlation with all existing accepted features must be below 0.7, preventing near-duplicate features from inflating the feature set.
-    \item \textbf{Missing Rate}: The proportion of NaN values must be at most 30\%, ensuring sufficient coverage for model training.
+    \item \textbf{Redundancy}: Maximum absolute Pearson correlation with all existing accepted features must be below 0.7, to prevent near-duplicate features from inflating the feature set.
+    \item \textbf{Missing Rate}: At most 30\% NaN values, so coverage is sufficient for model training.
 \end{itemize}
 The noise-calibrated thresholds apply to IV and KS; the redundancy and missing rate thresholds are fixed.
 
@@ -116,7 +116,7 @@ The noise-calibrated thresholds apply to IV and KS; the redundancy and missing r
 The feature is evaluated for its actual contribution to predictive performance. We train an XGBoost~\cite{chen2016xgboost} model on the baseline features augmented with the candidate feature, using stratified 80/20 train-test splits across 5 random seeds $\{42, 123, 456, 789, 2024\}$. The acceptance criterion depends on the task:
 \begin{itemize}
     \item \textbf{Classification (public datasets)}: $\Delta\text{AUC} > 0$, i.e., the augmented model must achieve strictly higher AUC than the baseline.
-    \item \textbf{AML detection}: $\Delta\text{Recall} > 0$ \emph{and} Precision $\geq 90\%$, ensuring that the feature improves detection without sacrificing precision.
+    \item \textbf{AML detection}: $\Delta\text{Recall} > 0$ \emph{and} Precision $\geq 90\%$, so the feature improves detection without sacrificing precision.
 \end{itemize}
 
 The three-stage design is intentionally progressive: L1 is cheap (milliseconds), L2 is moderate (seconds), and L3 is expensive (minutes per feature). By filtering early, we avoid wasting computational resources on clearly defective candidates.
@@ -136,7 +136,7 @@ Let $s_j$ denote the mean absolute SHAP value for dimension $j$'s accepted featu
 \begin{equation}
     B_j^{(r+1)} = B_{\min} + (B_{\text{total}} - D \cdot B_{\min}) \cdot \frac{1/s_j}{\sum_{j'=1}^{D} 1/s_{j'}}
 \end{equation}
-This ensures that underrepresented dimensions (those contributing least to the current model) receive more exploration budget, promoting balanced feature coverage.
+This budget reallocation steers exploration toward underrepresented dimensions, promoting balanced feature coverage.
 
 \textbf{Failure Memory.}
 A failure memory $\mathcal{M}_{\text{fail}}$ records all rejected features along with their rejection reasons. Before each generation step, the $K$ most recent failures for the current dimension (default $K=10$) are injected into the agent's prompt, preventing the regeneration of previously rejected ideas and guiding the agent toward novel directions.
@@ -150,11 +150,11 @@ After each round, the top-$K_{\text{cross}}$ features (default $K_{\text{cross}}
 \subsection{Explainable Provenance Output}
 \label{subsec:provenance_method}
 
-Every generated feature is accompanied by a structured \emph{provenance card} that enables full explainability. Each provenance card records:
+Every generated feature is accompanied by a structured \emph{provenance card} for full explainability. Each card records:
 \begin{itemize}
     \item \textbf{Knowledge assets}: The specific identifiers (e.g., RULE\_006, IND\_15, EXP\_05) that inspired the feature design.
     \item \textbf{Reasoning chain}: A step-by-step explanation of how domain knowledge led to the feature, formatted as ``Step $N$: Because [knowledge ID] indicates [insight], we compute [transformation]\ldots''
     \item \textbf{Computation steps}: The transformation pipeline from raw data fields to the final feature value.
     \item \textbf{Verification results}: L1/L2/L3 outcomes including IV, KS, redundancy, and $\Delta$AUC/$\Delta$Recall.
 \end{itemize}
-This traceability is essential for regulated domains: compliance officers can trace \emph{why} each feature exists, \emph{what evidence} supports it, and \emph{how} it was verified. Section~\ref{sec:case_study} illustrates provenance cards through concrete examples.
+This traceability matters in regulated domains: compliance officers can trace \emph{why} each feature exists, \emph{what evidence} supports it, and \emph{how} it was verified. Section~\ref{sec:case_study} illustrates provenance cards through concrete examples.
