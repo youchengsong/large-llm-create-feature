@@ -55,3 +55,5 @@ inputs/SimECNY/transaction/wallet_static_edges_distribution_based.csv
 inputs/SimECNY/transaction/wallet_temporal_transactions_*.csv
 inputs/SimECNY/close/new_close_3.csv
 transactions.csv
+.claude-manager/
+todo.md

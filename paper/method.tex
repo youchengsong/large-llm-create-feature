@@ -9,7 +9,7 @@ This section presents the KnowFeat framework: multi-type knowledge injection (Se
 
 KnowFeat is a multi-round, knowledge-guided feature engineering framework built on an LLM agent. Given a tabular dataset with baseline features and target labels, along with a domain knowledge base, it generates new features that improve a target metric (e.g., AUC or Recall).
 
-Algorithm~\ref{alg:knowfeat} formalizes the pipeline and Figure~\ref{fig:framework} illustrates it. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs verified features $\mathcal{F}^*$ with provenance cards. The key design choices---noise-calibrated thresholds (line~1), candidate pool for forward selection (lines~14--15), SHAP-guided budget reallocation (line~19), and cross-dimension propagation (line~5)---are detailed below.
+Algorithm~\ref{alg:knowfeat} formalizes the pipeline and Figure~\ref{fig:framework} illustrates it. The algorithm takes a dataset $\mathcal{D}$, a domain knowledge base $\mathcal{K}$, and configuration parameters as input, and outputs verified features $\mathcal{F}^*$ with provenance cards. The key design choices are detailed below: noise-calibrated thresholds (line~1), the candidate pool for forward selection (lines~14--15), SHAP-guided budget reallocation (line~19), and cross-dimension propagation (line~5).
 
 \begin{algorithm}[t]
 \caption{KnowFeat: Knowledge-Guided Feature Engineering}
@@ -56,7 +56,7 @@ Algorithm~\ref{alg:knowfeat} formalizes the pipeline and Figure~\ref{fig:framewo
 \subsection{Multi-Type Knowledge Injection}
 \label{subsec:knowledge}
 
-KnowFeat systematically integrates external domain knowledge into feature generation. Knowledge is organized into five types of increasing specificity:
+KnowFeat integrates external domain knowledge into feature generation. Knowledge is organized into five types of increasing specificity:
 
 \textbf{(1) Schema Metadata.} The agent receives only the dataset schema: column names, data types, and basic statistics (mean, cardinality, missing rate). No domain knowledge is provided. This serves as the minimal-knowledge configuration for ablation studies (Section~\ref{subsec:rq3}), testing what the LLM can generate from metadata alone.
 
@@ -79,7 +79,7 @@ KnowFeat employs an LLM agent (DeepSeek-V4-Flash in our implementation, with tem
 
 \textbf{Tool 2: Feature Registration.} Registers a candidate feature with mandatory provenance fields: a descriptive name, executable Python code, a natural language explanation, a structured reasoning chain linking knowledge assets to the design (formatted as ``Step $N$: Because [knowledge~ID] indicates [insight], we compute [transformation]\ldots''), the list of knowledge asset identifiers that inspired the feature, step-by-step computation description, and the raw columns consumed.
 
-\textbf{Tool 3: Verification Trigger.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call Feature Registration followed immediately by Verification Trigger for each candidate; batch submission is prohibited to ensure tight feedback loops.
+\textbf{Tool 3: Verification Trigger.} Triggers the L1$\to$L2$\to$L3 verification pipeline on a registered feature and returns the result (accepted/rejected with detailed reasons). The agent must call Feature Registration followed immediately by Verification Trigger for each candidate; batch submission is prohibited so the agent gets feedback after every candidate.
 
 The agent's prompt instructs it to:
 (1) reason about which knowledge assets are relevant to the current dimension and budget,
@@ -103,7 +103,7 @@ The generated Python code is executed in an isolated sandbox with a 30-second ti
 If L1 fails, the agent receives the error message and is allowed up to 2 automatic repair attempts before the feature is permanently rejected.
 
 \subsubsection{L2: Statistical Quality Filtering}
-The feature's statistical properties are evaluated against automatically calibrated thresholds. To establish these thresholds for discriminative power, we generate $N_{\text{noise}} = 100$ random features (drawn from standard distributions), compute their quality metrics, and set the acceptance threshold at the $P_{\text{noise}}$-th percentile (default $P_{\text{noise}} = 95$). This ensures that accepted features are statistically stronger than random noise. L2 checks four criteria:
+The feature's statistical properties are evaluated against automatically calibrated thresholds. To establish these thresholds for discriminative power, we generate $N_{\text{noise}} = 100$ random features (drawn from standard distributions), compute their quality metrics, and set the acceptance threshold at the $P_{\text{noise}}$-th percentile (default $P_{\text{noise}} = 95$). Accepted features must therefore beat random noise. L2 checks four criteria:
 \begin{itemize}
     \item \textbf{Information Value (IV)}~\cite{chen2018aml}: Must exceed the noise-calibrated threshold, so the feature carries meaningful discriminative power between positive and negative classes.
     \item \textbf{Kolmogorov--Smirnov (KS) Statistic}~\cite{nargesian2017learning}: Must exceed the noise-calibrated threshold, measuring the maximum distributional separation between classes.
@@ -124,7 +124,7 @@ The three-stage design is intentionally progressive: L1 is cheap (milliseconds),
 \subsection{Intelligent Search Strategy}
 \label{subsec:search}
 
-To systematically explore the feature space, KnowFeat employs a multi-component search strategy.
+To cover the feature space, KnowFeat combines four search components.
 
 \textbf{Dimension-Based Budgeting.}
 We decompose the feature space into $D$ semantic dimensions relevant to the target domain (default $D=4$ for the AML domain): Amount \& Frequency, covering monetary values and transaction counts; Time \& Geography, capturing temporal patterns and spatial distributions; Behavior Sequence, encoding sequential patterns in user actions; and Entity Association, derived from relationships between entities such as accounts and counterparties.

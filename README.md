@@ -1,51 +1,56 @@
 # KnowFeat
 
-**Distilling Domain Expert Knowledge into Verified Features via LLM Agents for Digital Yuan Anti-Money Laundering**
-
-ICDM 2026 Applied Track
+**Knowledge-Guided Feature Engineering via LLM Agents**
 
 ## Overview
 
-KnowFeat is an LLM Agent framework that automatically distills unstructured domain expert knowledge into statistically verified ML features for anti-money laundering detection.
-
-### Two-Stage Knowledge Injection
-
-- **Stage 1**: Crypto currency general knowledge (BABD-13, 148 baseline features) + 5 crypto laundering cases
-- **Stage 2**: Digital Yuan specific knowledge (bank expert insights + 309 judicial documents + 38 risk indicators)
+KnowFeat is an LLM Agent framework that injects structured domain knowledge into automated feature engineering and subjects every candidate to a three-stage verification pipeline. Each accepted feature carries a provenance card tracing its design from knowledge assets through reasoning chains to verification outcomes.
 
 ### Core Pipeline
 
 ```
-Unstructured Knowledge → Key-clue Extractor → Structured Risk Factors
-                                                      ↓
-                                              Feature Agent (ReAct)
-                                              ├── explore_data
-                                              ├── generate_feature (+ Provenance Card)
-                                              └── execute_sandbox
-                                                      ↓
-                                              Three-level Verification
-                                              ├── L1: Sandbox Execution
-                                              ├── L2: Noise-calibrated IV/KS
-                                              └── L3: Cross-validated Delta-Recall
-                                                      ↓
-                                              Accepted Feature Set
+Domain Knowledge Base                    LLM Agent (ReAct)
+├── Schema Metadata                      ├── explore_data
+├── Risk Indicators (38)                 ├── generate_feature (+ Provenance Card)
+├── Detection Rules (15)                 └── execute_sandbox
+├── Expert Opinions (12)                         ↓
+└── Court Document Evidence (309)        Three-Stage Verification
+                                         ├── L1: Code Execution Sandbox
+                                         ├── L2: Noise-calibrated IV/KS
+                                         └── L3: XGBoost Δ-metric Evaluation
+                                                 ↓
+                                         Accepted Features + Provenance Cards
 ```
+
+### Key Results
+
+- **Avg. Rank 1st** (2.3/7 methods) across 12 public benchmarks under leakage-free evaluation
+- **+11.6 pp AUC** peak gain on telecom churn dataset
+- **Provenance cards** cut per-feature compliance review from 2-3 hours to 15-30 minutes
+- Validated on SimECNY (200K digital currency transactions) and Elliptic (Bitcoin AML)
 
 ## Project Structure
 
 ```
-docs/
-├── KnowFeat_design.md        # System design reference (working doc)
-outputs/
-├── system_architecture_v4.html # Technical architecture (presentation)
-ModelSet/                       # 11 AML models + unified runner
-├── runner.py                  # Central dispatcher
-inputs/
-├── domain_knowledge/          # Expert interviews, risk indicators, rules
-├── SimECNY/                   # Digital Yuan simulation data
-├── baseline/                  # Baseline feature engineering code
-data/                          # Digital Yuan transaction data
-裁判文书docx/                    # 309 judicial documents
+knowfeat/                  # Core framework
+├── agent/                 # LLM Agent with ReAct tools
+├── verification/          # L1/L2/L3 verification pipeline
+├── knowledge/             # Knowledge injection module
+└── provenance/            # Provenance card generation
+
+scripts/                   # Evaluation and analysis
+├── evaluate_holdout.py    # Frozen-test holdout evaluation
+├── evaluate_cross_model.py # Cross-model (XGB/LGBM/CatBoost) validation
+└── gen_fig2_avg_rank.py   # Generate avg rank figure
+
+data/                      # Public datasets (via OpenML)
+inputs/                    # Domain knowledge bases
+outputs/                   # Results and feature matrices
+├── eval_holdout/          # Leakage-free holdout results
+└── splits/                # Frozen train/test splits
+
+paper/                     # LaTeX source
+ModelSet/                  # 11 AML baseline models
 ```
 
 ## Quick Start
@@ -54,94 +59,41 @@ data/                          # Digital Yuan transaction data
 
 ```bash
 pip install -r requirements.txt
-# PyTorch: install separately per your CUDA version
-# https://pytorch.org/get-started/locally/
 ```
 
-### Deploy to GPU Server
+### Run KnowFeat
 
 ```bash
-# Default (uses env vars DEPLOY_HOST/DEPLOY_PORT or built-in defaults)
-./deploy.sh
-
-# Custom server
-./deploy.sh --host <host> --port <port>
-
-# Preview what would be synced
-./deploy.sh --dry-run
-
-# Only sync code (skip pip install)
-./deploy.sh --sync-only
+python3 -m knowfeat.main
 ```
 
-### Run Experiments
+### Reproduce Paper Results
 
 ```bash
-# Stage 2 (Digital Yuan, data available)
-nohup python3 -m knowfeat.main > logs/stage2.log 2>&1 &
+# Holdout evaluation (frozen 20% test set)
+python scripts/evaluate_holdout.py --dataset credit_g --baseline
+python scripts/evaluate_holdout.py --dataset heart \
+  --features-csv outputs/heart/knowfeat_features.csv --method KnowFeat
 
-# Monitor progress
-tail -f logs/stage2.log
-```
+# Cross-model validation
+python scripts/evaluate_cross_model.py
 
-Public-baseline generation uses the frozen split cached under
-`outputs/splits/<dataset>_split.json`. AutoFeat, CAAFE, FeatLLM, OpenFE, and
-KnowFeat fit or select features on the development partition only; generated
-transformations are then applied in original row order for holdout scoring.
-Post-hoc pruning is available for dedicated experiments through
-`cfg.search.enable_posthoc_selection` or
-`scripts/run_knowfeat_public.py --enable-posthoc-selection` and is disabled by
-default.
-
-Run final frozen-test evaluation and reproduce the paper summaries with:
-
-```bash
-PYTHONPATH=. .venv/bin/python scripts/evaluate_holdout.py \
-  --dataset credit_g --baseline
-PYTHONPATH=. .venv/bin/python scripts/analyze_public_results.py
-PYTHONPATH=. .venv/bin/python scripts/evaluate_reduced_baseline.py
-PYTHONPATH=. .venv/bin/python scripts/evaluate_cross_model.py
-PYTHONPATH=. .venv/bin/python scripts/gen_fig2_avg_rank.py
-```
-
-The exact manuscript inputs are versioned in `outputs/eval_holdout/`.
-`paper/results/public_holdout_analysis.json` contains the average ranks and
-Holm-corrected paired Wilcoxon tests. The reduced-baseline analysis explicitly
-excludes identifiers and labels before model fitting.
-`paper/results/cross_model_analysis.json` compares the same released No-FE and
-KnowFeat matrices with XGBoost, LightGBM, and CatBoost; matrix SHA-256 hashes
-are stored with the results.
-
-Run the independent LLM-generation stability experiment after supplying the
-OpenAI-compatible KnowFeat credentials:
-
-```bash
-export KNOWFEAT_API_KEY=<key>
-export KNOWFEAT_BASE_URL=<openai-compatible-endpoint>
-export KNOWFEAT_MODEL=<model-name>
-PYTHONPATH=. .venv/bin/python scripts/run_llm_stability.py \
-  --datasets heart credit_g --runs 3
-```
-
-Each run is isolated under `outputs/llm_stability/<dataset>/run_<n>/` and
-records feature definitions, the full-row feature matrix, and frozen-holdout
-metrics. `scripts/analyze_llm_stability.py` reports pairwise feature-name
-Jaccard similarity and AUC variation and rejects incomplete run sets.
-
-Compile the paper from `paper/` with a standard TeX Live installation:
-
-```bash
-latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+# Generate figures
+python scripts/gen_fig2_avg_rank.py
 ```
 
 ### Run Tests
 
 ```bash
-PYTHONPATH=. .venv/bin/pytest -q
+PYTHONPATH=. pytest -q
 ```
 
-## Documentation
+## Datasets
 
-- **System Design**: `docs/KnowFeat_design.md`
-- **Architecture (visual)**: `outputs/system_architecture_v4.html`
-- **ModelSet Guide**: `ModelSet/README.md`
+- **12 public benchmarks**: credit_g, diabetes, blood_transfusion, heart, bank_marketing, breast_w, adult, wine_quality, default_credit, churn, kc2, jm1 (via [OpenML](https://www.openml.org/))
+- **SimECNY**: Synthetic digital currency AML benchmark (200K transactions, available on [HuggingFace](https://huggingface.co/datasets/anonymous-7219/knowfeat))
+- **Elliptic**: Real-world Bitcoin AML dataset (Weber et al., 2019)
+
+## License
+
+MIT

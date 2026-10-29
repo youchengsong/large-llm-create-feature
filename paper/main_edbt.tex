@@ -1,6 +1,6 @@
 %% KnowFeat — EDBT 2027 Research Track (3rd Cycle) submission
 %% Based on the official EDBT 2027 template (A4, sigconf+review, single-blind)
-\documentclass[sigconf,review]{acmart}
+\documentclass[sigconf,review,balance=false]{acmart}
 
 %% A4 geometry override (copied from EDBT template)
 \geometry{twoside=true, head=13pt,
@@ -87,19 +87,19 @@
   \country{China}
 }
 
-\author{Feng Zhu}
-\email{Jason_bank@126.com}
-\affiliation{%
-  \institution{Digital Currency Department, Postal Savings Bank of China}
-  \city{Beijing}
-  \country{China}
-}
-
 \author{Wei Deng}
 \email{dengwei@swufe.edu.cn}
 \affiliation{%
   \institution{Southwestern University of Finance and Economics}
   \city{Chengdu}
+  \country{China}
+}
+
+\author{Feng Zhu}
+\email{Jason_bank@126.com}
+\affiliation{%
+  \institution{Digital Currency Department, Postal Savings Bank of China}
+  \city{Beijing}
   \country{China}
 }
 
@@ -134,7 +134,6 @@ The code repository is at \url{https://github.com/youchengsong/large-llm-create-
 The SimECNY dataset and public dataset knowledge bases are available at \url{https://huggingface.co/datasets/anonymous-7219/knowfeat}.
 
 %% References
-\balance
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}
 

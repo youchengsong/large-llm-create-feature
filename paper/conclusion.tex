@@ -2,12 +2,14 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-KnowFeat injects structured domain knowledge into LLM-based feature engineering and subjects every candidate to a three-stage verification pipeline (L1--L3). On twelve public benchmarks it achieves the best average rank (2.3) with a significant Wilcoxon test ($p{=}0.017$); cross-model evaluation confirms the gains hold for LightGBM ($p_{\mathrm{Holm}}{=}0.042$) and XGBoost ($p_{\mathrm{Holm}}{=}0.040$). On SimECNY, four verified features maintain baseline F1 while FeatLLM's 1{,}124 unverified features degrade it---quality beats quantity. Every accepted feature carries a provenance card that traces it from knowledge asset to code to verification outcome, cutting compliance review time from hours to minutes in practitioner tests.
+KnowFeat injects structured domain knowledge into LLM-based feature engineering and subjects every candidate to a three-stage verification pipeline (L1--L3). Its defining output is the provenance card: an auditable record that traces each feature from the knowledge assets that motivated it, through the reasoning chain and executable code, to the L1/L2/L3 verification outcomes. Domain experts at the Postal Savings Bank of China used these cards to review KnowFeat-generated AML features and reported that per-feature review time dropped from 2--3 hours to 15--30 minutes, meeting the auditability requirements of financial regulators.
+
+On twelve public benchmarks KnowFeat achieves the best average rank (2.3) with a significant Wilcoxon test ($p{=}0.040$); cross-model evaluation confirms the gains hold for LightGBM ($p_{\mathrm{Holm}}{=}0.042$) and XGBoost ($p_{\mathrm{Holm}}{=}0.040$). On four cold-start datasets where only schema metadata was provided, the verification pipeline alone keeps KnowFeat in the top two on three of four, showing that the framework is useful even without curated domain knowledge. On SimECNY, four verified features maintain baseline F1 while FeatLLM's 1{,}124 unverified features degrade it: quality beats quantity.
 
 \textbf{Limitations and Future Work.}
 Knowledge curation takes $\sim$2 person-days for a full AML taxonomy (309 court documents) but only 30--60 minutes per public dataset with LLM assistance; automated ontology mining would reduce this further.
 L3 retrains from scratch per candidate; amortized evaluation would lower overhead.
-Semantic dimension naming influences which features the agent explores---our churn experiments show this effect can be large---and principled dimension selection remains open.
+Semantic dimension naming influences which features the agent explores (our churn experiments show this effect can be large), and principled dimension selection remains open.
 KnowFeat adds the most value when baseline features leave headroom and when the domain has knowledge the LLM does not already encode; on compact datasets like blood\_transfusion (4~RFM features), the framework is unnecessary.
 Three independent runs on heart and credit\_g produce near-zero feature-name overlap yet nearly identical frozen-test AUC (std\,$\leq$\,0.016), confirming that the verification pipeline, not LLM determinism, drives consistency.
 All code, knowledge bases, feature matrices, and evaluation scripts are publicly available.\footnote{\url{https://github.com/youchengsong/large-llm-create-feature}}

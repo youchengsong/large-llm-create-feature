@@ -21,16 +21,16 @@ Transaction behavior anomaly. Accounts exceeding regulatory daily transaction-co
 ``Border region + nighttime trading is the hallmark of cross-border laundering.''
 
 \smallskip\noindent\textbf{Court Document Evidence} [CASE]:
-Criminal judgment on concealing proceeds---digital yuan wallets across 6 banks creating a multi-layer fund network via intermediary wallets.
+Criminal judgment on concealing proceeds: digital yuan wallets across 6 banks creating a multi-layer fund network via intermediary wallets.
 
 \subsection{Verification Statistics}
 On SimECNY, KnowFeat generates 52 candidates across 4 rounds: 47 pass L1 (90\%), 31 pass L2 (60\%), 18 pass L3 (35\%). Progressive filtering saves $\sim$53 minutes. After post-hoc selection, 4 features are retained.
 
 \subsection{Bootstrap Confidence Intervals}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
-\caption{Frozen-test AUC with 95\% bootstrap CIs (1{,}000 resamples).}
+\caption{Frozen-test AUC with 95\% bootstrap CIs (1{,}000 resamples). Last four rows: point estimates only.}
 \label{tab:auc_ci}
 \small
 \setlength{\tabcolsep}{3pt}
@@ -46,13 +46,13 @@ bank\_mkt.         & .930 [.925, .938] & .931 [.926, .939] \\
 breast\_w          & .986 [.969, .999] & .992 [.977, 1.00] \\
 adult              & .931 [.927, .937] & .932 [.928, .938] \\
 wine\_quality      & .896 [.863, .932] & .899 [.865, .934] \\
-default\_credit    & .764 [.749, .786] & .768 [.753, .790] \\
-churn              & .738 [.692, .795] & .853 [.842, .901] \\
-kc2                & .706 [.565, .838] & .714 [.582, .863] \\
-jm1                & .718 [.698, .748] & .732 [.709, .761] \\
+default\_credit    & .764 & .768 \\
+churn              & .737 & .853 \\
+kc2                & .712 & .714 \\
+jm1                & .720 & .732 \\
 \hline
 \end{tabular}
 \end{table}
 
 \subsection{Practical Considerations}
-Three lessons: (1)~Knowledge curation cost varies---$\sim$2 person-days for the full AML taxonomy, 30--60 minutes per public dataset with LLM assistance. (2)~L3 acceptance thresholds require domain calibration. (3)~Feature maintenance is ongoing as regulations evolve. The complete detection rule definitions (RULE\_001--015) are available in the released repository.
+Three lessons: (1)~Knowledge curation cost varies: $\sim$2 person-days for the full AML taxonomy, 30--60 minutes per public dataset with LLM assistance. (2)~L3 acceptance thresholds require domain calibration. (3)~Feature maintenance is ongoing as regulations evolve. The complete detection rule definitions (RULE\_001--015) are available in the released repository.
